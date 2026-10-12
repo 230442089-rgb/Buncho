@@ -169,6 +169,7 @@ body.ura #uraVeil { opacity: 1; }
 .fhb { display: flex; gap: 8px; }
 .fh button { border: 1px solid var(--line); background: transparent; padding: 6px 14px; font-weight: 700; white-space: nowrap; }
 #filesHint { margin: 0; font-size: 12.5px; color: #C9D0DE; }
+#cloudNote { margin: -6px 0 0; font-size: 11.5px; color: var(--gold); }
 #fileList { display: grid; gap: 10px; }
 .fcard { display: grid; grid-template-columns: 34px minmax(0, 1fr); grid-template-rows: auto auto; background: var(--paper); color: #141A28; position: relative; }
 .fcard.auto { background: #DCE2EC; }
@@ -286,7 +287,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
   </div>
 </div>
 
-<div id="files" hidden><div class="fbox" role="dialog" aria-modal="true" aria-labelledby="filesT"><div class="fh"><div><small>内閣 留保班　記録保管庫</small><h2 id="filesT">記録ファイル</h2></div><div class="fhb"><button type="button" id="filesSwitch" hidden>読み込む</button><button type="button" id="filesClose">閉じる</button></div></div><p id="filesHint"></p><div id="fileList"></div><div class="ff" id="fileImport"><label class="fimp">記録ファイル（.json）を読み込む<input type="file" id="fileIn" accept=".json,application/json"></label></div></div></div>
+<div id="files" hidden><div class="fbox" role="dialog" aria-modal="true" aria-labelledby="filesT"><div class="fh"><div><small>内閣 留保班　記録保管庫</small><h2 id="filesT">記録ファイル</h2></div><div class="fhb"><button type="button" id="filesSwitch" hidden>読み込む</button><button type="button" id="filesClose">閉じる</button></div></div><p id="filesHint"></p><p id="cloudNote"></p><div id="fileList"></div><div class="ff" id="fileImport"><label class="fimp">記録ファイル（.json）を読み込む<input type="file" id="fileIn" accept=".json,application/json"></label></div></div></div>
 <div id="report" hidden><div class="doc" id="reportDoc"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -1604,10 +1605,12 @@ SFX.holo = () => { tone(1800, 0, 0.25, 'sine', 0.03, { f1: 600 }); noise(0, 0.2,
 
 // ================= セーブ =================
 const SAVE_KEY = 'reserve-save-v1', META_KEY = 'reserve-meta-v1', FILES_KEY = 'reserve-files-v1', PEND_KEY = 'reserve-pending';
-function readJSON(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
-function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+// 端末のブラウザ（localStorage）に置けないときも、このページを開いている間はメモリに持つ
+const MEMS = {}; let lsOK = true;
+function readJSON(k) { try { const v = localStorage.getItem(k); if (v) return JSON.parse(v); } catch (e) { lsOK = false; } return MEMS[k] ? JSON.parse(MEMS[k]) : null; }
+function writeJSON(k, v) { const t = JSON.stringify(v); MEMS[k] = t; try { localStorage.setItem(k, t); lsOK = true; } catch (e) { lsOK = false; } return true; }
 const meta = () => readJSON(META_KEY) || {};
-function setMeta(o) { writeJSON(META_KEY, Object.assign(meta(), o)); }
+function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); cloudPut('meta', m); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
 const CHN = ['序章', '第一章', '第二章', '第三章', '第四章'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', ''];
@@ -1619,8 +1622,26 @@ function thumbShot() { try { renderer.render(scene, camera); const src = rendere
   c.getContext('2d').drawImage(src, (sw - 192 * k) / 2, (sh - 108 * k) / 2, 192 * k, 108 * k, 0, 0, 192, 108); return c.toDataURL('image/jpeg', 0.72); } catch (e) { return ''; } }
 function snapNow() { return { v: 1, area: A.id, place: A.place || '', pos: [+P.pos.x.toFixed(2), +P.pos.z.toFixed(2)], facing: P.facing, obj: $('objT').textContent, s: packS(), done: [...DONE], t: Date.now(), thumb: thumbShot() }; }
 function flashSaved(text) { const m = $('autoSave'); m.textContent = text; m.classList.remove('on'); void m.offsetWidth; m.classList.add('on'); }
-function saveGame(auto, slot) { if (!A || G.mode !== 'play') return false; const f = readFiles(); f[slot || 'auto'] = snapNow(); const ok = writeJSON(FILES_KEY, f);
-  flashSaved(ok ? (auto ? '記録しました（自動）' : '記録しました') : 'この環境では記録できません'); refreshTitle(); return ok; }
+function saveGame(auto, slot) { if (!A || G.mode !== 'play') return false; const f = readFiles(), id = slot || 'auto'; f[id] = snapNow(); writeJSON(FILES_KEY, f); cloudPut(id, f[id]);
+  flashSaved((auto ? '記録しました（自動）' : '記録しました') + (cloud ? '' : lsOK ? '　この端末' : '　ページを閉じると消えます')); refreshTitle(); return true; }
+// ---- アカウントに保存（db）：ページを更新しても、別の端末でも、記録が残る ----
+// 各プレイヤー専用の data/users/<id>/ の下に、ファイルごとに 1 文書（auto, f1〜f3, meta）。本人にしか見えない。
+let cloud = null, cloudUid = null; const cloudQ = {};
+const cref = id => cloud.doc('data/users/' + cloudUid + '/' + id);
+function cloudPut(id, d) { if (!cloud) return; const body = JSON.parse(JSON.stringify(d)); cloudQ[id] = (cloudQ[id] || Promise.resolve()).then(() => cref(id).set(body)).catch(() => {}); }
+async function cloudGet(id) { try { const sn = await cref(id).get(); return sn.exists ? JSON.parse(JSON.stringify(sn.data())) : null; } catch (e) { return undefined; } }
+async function cloudInit() { if (!(window.claude && window.claude.use)) return; try { const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); if (!db || !user) return; const uid = await user.id(); if (!uid) return; cloud = db; cloudUid = uid; } catch (e) { return; }
+  // 記録ファイル：新しいほうを採る。消した記録は、消した印（deleted）の日時で比べる
+  const f = readFiles(); let changed = false;
+  for (const [id] of SLOTS) { const r = await cloudGet(id); if (r === undefined) continue; const l = f[id];
+    if (r && r.deleted) { if (l && l.t < r.t) { delete f[id]; changed = true; } else if (l) cloudPut(id, l); }
+    else if (r && r.v === 1 && (!l || r.t > l.t)) { f[id] = r; changed = true; }
+    else if (l && (!r || l.t > r.t)) cloudPut(id, l); }
+  if (changed) writeJSON(FILES_KEY, f);
+  // 章の記録（タイトルの変化、章のクリア）は足し合わせる
+  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm); for (const k of ['revealed', 'ch1Clear', 'ch2Clear', 'ch3Clear']) m[k] = !!(lm[k] || (rm && rm[k])); for (const k of ['ch1', 'ch2', 'ch3', 'ch1Done', 'ch2Done', 'ch3Done']) if (!lm[k] && rm && rm[k]) m[k] = rm[k];
+    writeJSON(META_KEY, m); if (JSON.stringify(m) !== JSON.stringify(rm || {})) cloudPut('meta', m); }
+  refreshTitle(); if (!$('files').hidden) renderFiles(); }
 function playOn() { G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; }
 async function loadSnap(d) { if (!d || !AREAS[d.area]) return; G.mode = 'cine'; unpackS(d.s); DONE = new Set(d.done || []); stationT = 0;
   if (S.chapter >= 2) SPK.kuroiwa[0] = '黒岩室長';
@@ -1632,10 +1653,11 @@ function fmtPlay(s) { s = Math.round(s || 0); const h = Math.floor(s / 3600), m 
 function bootPending() { let id = null; try { id = sessionStorage.getItem(PEND_KEY); sessionStorage.removeItem(PEND_KEY); } catch (e) { /* 使えなければ何もしない */ }
   if (!id) return; const f = readFiles(), d = id === 'import' ? null : f[id]; if (!d) return; $('title').hidden = true; run(() => loadSnap(d)); }
 let filesMode = 'load', dlCap = null, armed = null, filesBusy = false;
+cloudInit();
 if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dlCap = d; if (!$('files').hidden) renderFiles(); }).catch(() => { dlCap = null; });
 function openFiles(mode) { filesMode = mode; armed = null; if (G.mode === 'play' && !G.busy) { G.busy = true; filesBusy = true; resetInput(); }
   const inGame = $('title').hidden; $('filesSwitch').hidden = !inGame; $('filesSwitch').textContent = mode === 'save' ? '読み込む' : '記録する'; $('filesT').textContent = mode === 'save' ? '記録する' : '記録ファイル'; $('filesHint').textContent = mode === 'save' ? '記録するファイルを選んでください。自動記録は、場面の始まりに自動で書き込まれます。' : '再開する記録を選んでください。';
-  renderFiles(); $('files').hidden = false; const b = $('fileList').querySelector('button'); (b || $('filesClose')).focus({ preventScroll: true }); }
+  renderFiles(); $('cloudNote').textContent = cloudNoteText(); $('files').hidden = false; const b = $('fileList').querySelector('button'); (b || $('filesClose')).focus({ preventScroll: true }); }
 function closeFiles() { $('files').hidden = true; armed = null; if (filesBusy) { filesBusy = false; G.busy = false; } }
 function fileCard(id, label, d) { const el = document.createElement('div'); el.className = 'fcard' + (d ? '' : ' empty') + (id === 'auto' ? ' auto' : '');
   const tab = document.createElement('div'); tab.className = 'ftab'; tab.textContent = label; el.appendChild(tab);
@@ -1653,9 +1675,10 @@ function fileCard(id, label, d) { const el = document.createElement('div'); el.c
   if (filesMode === 'save' && id !== 'auto' && filesBusy) { const key = 'save:' + id; btn(d ? (armed === key ? '上書きする' : 'ここに上書き') : 'ここに記録', 'fgo' + (armed === key ? ' warn' : ''), () => { if (d && armed !== key) { armed = key; renderFiles(); return; } armed = null; if (saveGame(false, id)) { renderFiles(); } }); }
   if (d && filesMode === 'load') btn('この記録から', 'fgo', () => { closeFiles(); if (!$('title').hidden) { audioOn(); $('title').hidden = true; run(() => loadSnap(d)); } else { let ok = false; try { sessionStorage.setItem(PEND_KEY, id); ok = true; } catch (e) { /* 使えないときは直接読む */ } if (ok) location.reload(); else run(() => loadSnap(d)); } });
   if (d && dlCap) btn('書き出す', 'fsub', () => exportFile(id, label, d));
-  if (d) { const key = 'del:' + id; btn(armed === key ? '本当に消す' : '消す', 'fsub' + (armed === key ? ' warn' : ''), () => { if (armed !== key) { armed = key; renderFiles(); return; } armed = null; const f = readFiles(); delete f[id]; writeJSON(FILES_KEY, f); renderFiles(); refreshTitle(); }); }
+  if (d) { const key = 'del:' + id; btn(armed === key ? '本当に消す' : '消す', 'fsub' + (armed === key ? ' warn' : ''), () => { if (armed !== key) { armed = key; renderFiles(); return; } armed = null; const f = readFiles(); delete f[id]; writeJSON(FILES_KEY, f); cloudPut(id, { deleted: true, t: Date.now() }); renderFiles(); refreshTitle(); }); }
   return el; }
-function renderFiles() { const f = readFiles(), L = $('fileList'); L.innerHTML = ''; for (const [id, label] of SLOTS) { if (filesMode === 'save' && id === 'auto' && !f.auto) continue; L.appendChild(fileCard(id, label, f[id])); }
+function cloudNoteText() { return cloud ? 'あなたのアカウントに保存されています。ページが更新されても、別の端末でも残ります。' : lsOK ? 'この端末のブラウザに保存されています。念のため「書き出す」で控えを取れます。' : 'この画面では記録を残せません。ページを閉じる前に「書き出す」で控えを取ってください。'; }
+function renderFiles() { $('cloudNote').textContent = cloudNoteText(); const f = readFiles(), L = $('fileList'); L.innerHTML = ''; for (const [id, label] of SLOTS) { if (filesMode === 'save' && id === 'auto' && !f.auto) continue; L.appendChild(fileCard(id, label, f[id])); }
   $('fileImport').hidden = filesMode !== 'load'; }
 async function exportFile(id, label, d) { if (!dlCap) return; const z = n => String(n).padStart(2, '0'), t = new Date(d.t);
   const name = 'RESERVE_' + (id === 'auto' ? 'auto' : id.replace('f', 'file0')) + '_ch' + (d.s.chapter || 1) + '_' + t.getFullYear() + z(t.getMonth() + 1) + z(t.getDate()) + '.json';
@@ -1663,7 +1686,7 @@ async function exportFile(id, label, d) { if (!dlCap) return; const z = n => Str
 function importFile(file) { const r = new FileReader(); r.onload = () => { let d = null; try { d = JSON.parse(r.result); } catch (e) { d = null; }
     if (!d || d.v !== 1 || !d.s || !AREAS[d.area]) { $('filesHint').textContent = 'この記録ファイルは読み込めませんでした。'; return; }
     const f = readFiles(), slot = ['f1', 'f2', 'f3'].find(k => !f[k]); if (!slot) { $('filesHint').textContent = '空きファイルがありません。どれかを消してから読み込んでください。'; return; }
-    delete d.game; f[slot] = d; writeJSON(FILES_KEY, f); $('filesHint').textContent = SLOTS.find(s => s[0] === slot)[1] + ' に読み込みました。'; renderFiles(); refreshTitle(); };
+    delete d.game; d.t = Math.max(d.t || 0, Date.now() - 1000); f[slot] = d; writeJSON(FILES_KEY, f); cloudPut(slot, d); $('filesHint').textContent = SLOTS.find(s => s[0] === slot)[1] + ' に読み込みました。'; renderFiles(); refreshTitle(); };
   r.readAsText(file); }
 // タイトル画面（真のタイトルが明かされたあとは、ずっとこちら）
 function refreshTitle() { const m = meta(), l = latestFile(), d = l && l.d, rev = !!m.revealed;
@@ -1673,7 +1696,7 @@ function refreshTitle() { const m = meta(), l = latestFile(), d = l && l.d, rev 
   $('tP').textContent = rev ? '表の名は、主権保全室。封印された閣議の記録に残る名は、留保班。――この国の主権を、まだ誰にも渡していない者たち。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。' : '人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。';
   $('tCh').innerHTML = '<i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i>' + (m.ch1Clear ? '<i><span>第二章</span>二つの顔</i>' : '') + (m.ch2Clear ? '<i><span>第三章</span>人間の代表</i>' : '');
   $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('contBtn').hidden = !d; $('filesBtn').hidden = !d;
-  $('contInfo').hidden = !d; if (d) $('contInfo').textContent = '最新の記録：' + CHN[d.s.chapter || 1] + '　' + (d.place || '') + '　' + fmtT(d.t);
+  $('contInfo').hidden = !d; if (d) $('contInfo').textContent = '最新の記録：' + CHN[d.s.chapter || 1] + '　' + (d.place || '') + '　' + fmtT(d.t) + (cloud ? '　（アカウントに保存）' : '');
   $('startBtn').className = d ? 'ghost' : 'go'; }
 
 // ================= 第二章　二つの顔 =================
