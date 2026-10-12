@@ -1,0 +1,991 @@
+<title>主権留保</title>
+<meta name="description" content="久世躁一郎が主人公の諜報アドベンチャー。第一章「微笑む課長」。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* 全面の3D舞台に、官庁の書類と判子の語彙で作った字幕・手帳・報告書を重ねる。夜の青灰で統一した単色の画面。 */
+:root {
+  --night: #121826;    /* 背景の夜 */
+  --slate: #1C2434;    /* 書類の裏紙 */
+  --line: #34405A;     /* 罫 */
+  --paper: #EEF0F3;    /* 書類の白 */
+  --ink: #E9EDF4;      /* 文字 */
+  --mute: #9AA6BC;     /* 注記 */
+  --stamp: #C8323C;    /* 判子の朱 */
+  --gold: #E3B428;     /* 陽盾の金（ユリアの色） */
+  --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--night); color: var(--ink); font-family: var(--body);
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#stage { position: fixed; inset: 0; touch-action: none; }
+#stage canvas { display: block; width: 100%; height: 100%; transition: filter .5s; }
+body.ura #stage canvas { filter: grayscale(.85) contrast(1.25) brightness(.7); }
+#uraVeil { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 35%, rgba(90,0,10,.55) 100%); }
+body.ura #uraVeil { opacity: 1; }
+#layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.tag { position: absolute; left: 0; top: 0; transform: translate(-50%, -100%); font-size: 11.5px; font-weight: 900; padding: 2px 8px; border-radius: 4px; background: rgba(18,24,38,.82); color: var(--ink); white-space: nowrap; border: 1px solid var(--line); }
+.pop { position: absolute; transform: translate(-50%, -50%); font-weight: 900; font-size: 14px; color: var(--ink); text-shadow: 0 1px 3px #000; white-space: nowrap; animation: rise 1.2s ease-out forwards; }
+.pop.down { color: #FF8A92; } .pop.up { color: #9FE3C0; }
+@keyframes rise { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 0 -40px; } }
+
+/* HUD */
+#hud { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; }
+#hud > * { pointer-events: auto; }
+#obj { max-width: min(62vw, 420px); background: rgba(18,24,38,.86); border-left: 4px solid var(--stamp); padding: 6px 10px 7px; }
+#obj small { display: block; font-size: 10px; letter-spacing: .2em; color: var(--mute); font-weight: 900; }
+#obj b { display: block; font-size: 13.5px; line-height: 1.45; font-weight: 700; }
+#place { font-family: var(--mincho); font-size: 12px; color: var(--mute); margin-top: 2px; }
+.meters { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.meter { background: rgba(18,24,38,.86); padding: 5px 9px; min-width: 132px; }
+.meter .lb { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 900; letter-spacing: .1em; color: var(--mute); }
+.meter .lb b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.bar { height: 6px; background: #2A3348; margin-top: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 100%; background: var(--paper); transition: width .3s; }
+#detM .bar i { background: var(--stamp); transition: none; }
+#noteBtn { border: 1px solid var(--line); background: rgba(18,24,38,.86); padding: 6px 10px; font-size: 12.5px; font-weight: 700; }
+#noteBtn b { color: var(--stamp); margin-left: 4px; font-variant-numeric: tabular-nums; }
+#prompt { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); transform: translateX(-50%); background: rgba(18,24,38,.88); border: 1px solid var(--line); padding: 5px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; }
+#prompt kbd { font-family: var(--body); border: 1px solid var(--mute); border-radius: 3px; padding: 0 5px; margin-right: 6px; font-size: 11px; }
+#holdRing { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 186px); width: 120px; height: 6px; transform: translateX(-50%); background: #2A3348; pointer-events: none; }
+#holdRing i { display: block; height: 100%; width: 0; background: var(--stamp); }
+
+/* 操作 */
+#stickBase { position: fixed; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 2px solid rgba(233,237,244,.5); background: rgba(18,24,38,.25); pointer-events: none; z-index: 3; }
+#stickKnob { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(233,237,244,.85); }
+#act { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); width: 92px; height: 92px; border-radius: 50%; border: 2px solid var(--paper); background: rgba(200,50,60,.9); color: #fff; font-weight: 900; font-size: 15px; z-index: 4; line-height: 1.2; }
+#act.dim { background: rgba(52,64,90,.85); }
+#hint { position: fixed; left: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); font-size: 11px; color: var(--mute); background: rgba(18,24,38,.7); padding: 4px 8px; pointer-events: none; max-width: 56vw; line-height: 1.5; }
+
+/* 台詞 */
+#dlg { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); transform: translateX(-50%); width: min(94vw, 760px); background: rgba(14,19,30,.94); border-top: 3px solid var(--paper); padding: 12px 16px 14px; z-index: 10; cursor: pointer; min-height: 104px; }
+#dlg.ura { border-top-color: var(--stamp); background: rgba(10,6,8,.95); }
+#dlg.narr { border-top-color: var(--line); }
+#dName { font-family: var(--mincho); font-weight: 800; font-size: 15px; margin-bottom: 4px; min-height: 1em; letter-spacing: .06em; }
+#dText { font-size: 15.5px; line-height: 1.8; font-weight: 500; white-space: pre-line; }
+#dlg.narr #dText { font-family: var(--mincho); font-weight: 600; color: #D6DCE8; }
+#dlg.ura #dText { font-family: var(--mincho); font-weight: 800; color: #FFD6D9; }
+#dNext { position: absolute; right: 14px; bottom: 8px; font-size: 11px; color: var(--mute); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+#choices { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 140px); transform: translateX(-50%); width: min(94vw, 680px); display: grid; gap: 8px; z-index: 11; }
+#choices button { text-align: left; background: rgba(238,240,243,.96); color: #141A28; border: 0; border-left: 6px solid #6A7690; padding: 10px 14px; font-size: 14.5px; font-weight: 700; line-height: 1.55; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; }
+#choices button .k { font-size: 10.5px; font-weight: 900; letter-spacing: .12em; color: #6A7690; white-space: nowrap; }
+#choices button.ura { border-left-color: var(--stamp); }
+#choices button.ura .k { color: var(--stamp); }
+#choices button.warm { border-left-color: #3A8A6A; } #choices button.warm .k { color: #2E7A5A; }
+#choices button:hover { background: #fff; }
+
+/* 電話・字幕カード */
+#phone { position: fixed; inset: 0; z-index: 12; display: flex; align-items: center; justify-content: center; background: rgba(6,8,14,.55); padding: 16px; }
+#phone .ph { width: min(300px, 86vw); background: #0B0E15; border: 2px solid #3A4458; border-radius: 26px; padding: 22px 16px 26px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#phone .bar2 { font-size: 11px; color: var(--mute); text-align: center; margin-bottom: 14px; font-variant-numeric: tabular-nums; }
+#phone .from { font-size: 12px; font-weight: 900; color: var(--mute); margin-bottom: 6px; }
+#phone .msg { background: #232B3C; border-radius: 4px 14px 14px 14px; padding: 10px 12px; font-size: 14px; line-height: 1.7; white-space: pre-line; }
+#phone .tap { text-align: center; font-size: 11px; color: var(--mute); margin-top: 16px; }
+#card { position: fixed; inset: 0; z-index: 20; background: #05070B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 16px; opacity: 0; transition: opacity .7s; pointer-events: none; }
+#card.on { opacity: 1; pointer-events: auto; }
+#card h2 { margin: 0; font-family: var(--mincho); font-weight: 800; font-size: clamp(22px, 5vw, 40px); letter-spacing: .12em; text-wrap: balance; }
+#card p { margin: 0; font-family: var(--mincho); font-size: 14px; color: var(--mute); letter-spacing: .2em; }
+#fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .45s; z-index: 15; }
+#toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%); background: var(--paper); color: #141A28; padding: 6px 14px; font-size: 13px; font-weight: 700; z-index: 9; pointer-events: none; border-left: 5px solid var(--stamp); max-width: 90vw; }
+
+/* 手帳 */
+#note { position: fixed; inset: 0; z-index: 16; background: rgba(6,8,14,.7); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#note .book { width: 100%; max-width: 620px; max-height: 100%; overflow-y: auto; background: var(--paper); color: #141A28; padding: 18px 20px 20px; display: grid; gap: 10px; }
+#note h2 { margin: 0; font-family: var(--mincho); font-size: 20px; }
+.nh { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.nh button { border: 1px solid #141A28; background: transparent; padding: 5px 12px; font-weight: 700; color: #141A28; }
+.ni { border-top: 1px solid #C8CDD6; padding-top: 8px; }
+.ni b { font-size: 14px; } .ni p { margin: 3px 0 0; font-size: 13px; line-height: 1.7; color: #3A4256; }
+.chip { display: inline-block; font-size: 10px; font-weight: 900; padding: 1px 6px; margin-right: 6px; border: 1.5px solid var(--stamp); color: var(--stamp); vertical-align: 1px; letter-spacing: .1em; }
+.empty { color: #6A7690; font-size: 13px; }
+
+/* タイトル */
+#title { position: fixed; inset: 0; z-index: 18; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px 16px calc(env(safe-area-inset-bottom, 0px) + 28px); background: linear-gradient(to bottom, rgba(5,7,11,0) 0%, rgba(5,7,11,.15) 35%, rgba(5,7,11,.9) 80%); }
+.tbox { width: 100%; max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
+.tbox .eye { font-size: 11px; letter-spacing: .3em; color: var(--mute); font-weight: 900; }
+.tbox h1 { margin: 0; font-family: var(--mincho); font-weight: 800; font-size: clamp(48px, 13vw, 96px); line-height: 1; letter-spacing: .08em; color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,.6); }
+.tbox .sub { font-family: var(--mincho); font-size: clamp(16px, 4vw, 22px); letter-spacing: .2em; }
+.tbox .ch { display: flex; align-items: center; gap: 10px; font-family: var(--mincho); font-size: 15px; }
+.tbox .ch span { border: 1.5px solid var(--stamp); color: var(--stamp); padding: 2px 8px; font-size: 12px; font-family: var(--body); font-weight: 900; letter-spacing: .1em; }
+.tbox p { margin: 0; font-size: 13px; line-height: 1.8; color: #C9D0DE; max-width: 60ch; }
+.trow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.go { border: 0; background: var(--paper); color: #141A28; font-family: var(--mincho); font-weight: 800; font-size: 18px; padding: 12px 28px; letter-spacing: .2em; }
+.go:hover { background: #fff; }
+.ghost { border: 1px solid var(--line); background: rgba(18,24,38,.6); padding: 9px 14px; font-size: 13px; font-weight: 700; }
+.ghost[aria-pressed="true"] { border-color: var(--paper); }
+.keys { font-size: 11.5px; color: var(--mute); line-height: 1.7; }
+
+/* 報告書 */
+#report { position: fixed; inset: 0; z-index: 19; background: rgba(5,7,11,.92); display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+.doc { width: 100%; max-width: 600px; background: var(--paper); color: #141A28; padding: 22px 22px 20px; position: relative; display: grid; gap: 10px; margin: auto; }
+.doc .stamps { position: absolute; right: 18px; top: 16px; display: flex; gap: 6px; }
+.doc .stamps span { border: 3px solid var(--stamp); color: var(--stamp); font-family: var(--mincho); font-weight: 800; font-size: 18px; padding: 2px 8px; transform: rotate(-8deg); }
+.doc h2 { margin: 0; font-family: var(--mincho); font-size: 22px; }
+.doc .meta { font-size: 12px; color: #4A5468; }
+.doc table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.doc td { color: #141A28; border-top: 1px solid #C8CDD6; padding: 6px 4px; vertical-align: top; line-height: 1.6; }
+.doc td:first-child { white-space: nowrap; font-weight: 900; width: 7.5em; color: #2A3348; }
+.doc .ev { display: grid; gap: 2px; }
+.doc .ev .no { color: #6A7388; }
+.doc .close { font-family: var(--mincho); font-size: 14px; line-height: 1.8; border-left: 4px solid var(--stamp); padding-left: 10px; }
+.doc .trow .go { background: #141A28; color: #fff; font-size: 15px; padding: 10px 20px; }
+.doc .trow .ghost { color: #141A28; border-color: #141A28; background: transparent; }
+@media (max-width: 560px) { #dText { font-size: 14.5px; } #choices button { font-size: 13.5px; } #act { width: 80px; height: 80px; } #prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 124px); } }
+@media (prefers-reduced-motion: reduce) { .pop { animation-duration: .01s; } #dNext { animation: none; } }
+</style>
+
+<div id="stage"></div>
+<div id="uraVeil"></div>
+<div id="layer"></div>
+<div id="hud" hidden>
+  <div><div id="obj"><small>目的</small><b id="objT"></b></div><div id="place"></div></div>
+  <div class="meters">
+    <div class="meter" id="covM"><div class="lb"><span>擬態</span><b id="covV">100</b></div><div class="bar"><i id="covF"></i></div></div>
+    <div class="meter" id="detM" hidden><div class="lb"><span>気づかれ</span><b id="detV">0</b></div><div class="bar"><i id="detF"></i></div></div>
+    <button type="button" id="noteBtn">手帳<b id="evN">0</b></button>
+  </div>
+</div>
+<div id="prompt" hidden></div>
+<div id="holdRing" hidden><i id="holdF"></i></div>
+<div id="stickBase" hidden><div id="stickKnob"></div></div>
+<button type="button" id="act" hidden>調べる</button>
+<div id="hint" hidden>左側をドラッグで歩く／右の丸ボタンで調べる・話す（WASD・矢印＋Space／E、手帳はN）</div>
+<div id="choices" hidden></div>
+<div id="dlg" hidden><div id="dName"></div><div id="dText"></div><div id="dNext">▼</div></div>
+<div id="phone" hidden><div class="ph"><div class="bar2" id="phTime">08:14</div><div class="from" id="phFrom"></div><div class="msg" id="phMsg"></div><div class="tap">画面を押して閉じる</div></div></div>
+<div id="toast" hidden></div>
+<div id="note" hidden><div class="book" role="dialog" aria-modal="true" aria-labelledby="noteT"><div class="nh"><h2 id="noteT">手帳</h2><button type="button" id="noteClose">閉じる</button></div><div id="noteList"></div></div></div>
+<div id="fade"></div>
+<div id="card"><h2 id="cardT"></h2><p id="cardS"></p></div>
+
+<div id="title">
+  <div class="tbox">
+    <div class="eye">春日井　外神竜一族の街</div>
+    <h1>主権留保</h1>
+    <div class="sub">久世躁一郎の帰還</div>
+    <div class="ch"><span>第一章</span>微笑む課長</div>
+    <p>人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。</p>
+    <div class="trow"><button type="button" class="go" id="startBtn">はじめる</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
+    <div class="keys">歩く：画面左をドラッグ／WASD・矢印　調べる・話す・台詞送り：右の丸ボタン／Space・E　手帳：N</div>
+  </div>
+</div>
+
+<div id="report" hidden><div class="doc" id="reportDoc"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => { 'use strict';
+const $ = id => document.getElementById(id);
+if (!window.THREE) { document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;inset:0;display:grid;place-items:center;padding:16px;text-align:center;font-weight:700;background:#121826;z-index:99">3Dの部品を読み込めませんでした。通信を確かめて、もう一度開いてください。</div>'); return; }
+const TAU = Math.PI * 2, rand = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.random() * a.length | 0], clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ================= レンダラ =================
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+$('stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xBFD2E4);
+const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 400);
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const hemi = new THREE.HemisphereLight(0xffffff, 0xB8C0D0, 0.85); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(12, 30, 18); scene.add(sun);
+
+const gradTex = new THREE.DataTexture(new Uint8Array([120, 190, 255]), 3, 1, THREE.LuminanceFormat);
+gradTex.minFilter = gradTex.magFilter = THREE.NearestFilter; gradTex.needsUpdate = true;
+const matCache = {};
+function toon(hex, emis) { const k = hex + '|' + (emis || 0); if (!matCache[k]) { const m = new THREE.MeshToonMaterial({ color: hex, gradientMap: gradTex }); if (emis) m.emissive = new THREE.Color(emis); matCache[k] = m; } return matCache[k]; }
+const outlineMat = new THREE.MeshBasicMaterial({ color: 0x1B2230, side: THREE.BackSide });
+const geoCache = {};
+const G_ = (k, f) => geoCache[k] || (geoCache[k] = f());
+const sph = (r, a = 14, b = 10) => G_('s' + r + '_' + a + '_' + b, () => new THREE.SphereGeometry(r, a, b));
+const cyl = (t, b, h, s = 12) => G_('c' + t + '_' + b + '_' + h + '_' + s, () => new THREE.CylinderGeometry(t, b, h, s));
+const box = (x, y, z) => G_('b' + x + '_' + y + '_' + z, () => new THREE.BoxGeometry(x, y, z));
+function part(geo, hex, x, y, z, parent, o = {}) {
+  const m = new THREE.Mesh(geo, o.mat || toon(hex, o.emis)); m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx; if (o.ry) m.rotation.y = o.ry; if (o.rz) m.rotation.z = o.rz;
+  if (o.s) m.scale.set(o.s[0], o.s[1], o.s[2]);
+  parent.add(m);
+  if (o.outline !== false) { const ol = new THREE.Mesh(geo, outlineMat); ol.scale.setScalar(o.ol || 1.08); m.add(ol); }
+  return m;
+}
+// 建物などの大きな箱（輪郭なし、影色つき）
+function block(w, h, d, hex, x, y, z, parent, o = {}) { const m = new THREE.Mesh(box(w, h, d), o.mat || new THREE.MeshLambertMaterial({ color: hex, emissive: o.emis || 0 })); m.position.set(x, y, z); if (o.ry) m.rotation.y = o.ry; parent.add(m); return m; }
+const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2, depthWrite: false });
+function blob(parent, r) { const m = new THREE.Mesh(G_('blob' + r, () => new THREE.CircleGeometry(r, 20)), shadowMat); m.rotation.x = -Math.PI / 2; m.position.y = 0.02; parent.add(m); return m; }
+function canvasTex(w, h, draw) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const c = cv.getContext('2d'); draw(c, w, h); const t = new THREE.CanvasTexture(cv); t.anisotropy = 4; t.redraw = d => { d(c, w, h); t.needsUpdate = true; }; return t; }
+function plane(w, h, tex, x, y, z, parent, o = {}) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: !!o.transparent, side: o.double ? THREE.DoubleSide : THREE.FrontSide, fog: o.fog !== false, opacity: o.opacity ?? 1, depthWrite: o.depthWrite ?? true })); m.position.set(x, y, z); if (o.ry) m.rotation.y = o.ry; if (o.rx) m.rotation.x = o.rx; parent.add(m); return m; }
+const MINCHO = '"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif', GOTHIC = '"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif';
+function fitText(c, t, x, y, maxW) { const m = c.measureText(t).width; if (m > maxW) { c.save(); c.translate(x, y); c.scale(maxW / m, 1); c.fillText(t, 0, 0); c.restore(); } else c.fillText(t, x, y); }
+function signTex(w, h, lines, o = {}) { return canvasTex(w, h, (c) => { c.fillStyle = o.bg || '#F4F5F7'; c.fillRect(0, 0, w, h); if (o.border) { c.strokeStyle = o.border; c.lineWidth = 8; c.strokeRect(4, 4, w - 8, h - 8); }
+  c.textAlign = o.align || 'center'; c.textBaseline = 'middle'; lines.forEach((ln, i) => { c.font = `${ln.w || 700} ${ln.size}px ${ln.f || GOTHIC}`; c.fillStyle = ln.c || o.fg || '#141A28'; fitText(c, ln.t, ln.x ?? (o.align === 'left' ? 30 : w / 2), ln.y ?? h * (i + 0.5) / lines.length, w - 50); }); }); }
+const glowTex = canvasTex(64, 64, (c) => { const g = c.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(255,255,255,.4)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, 64, 64); });
+const glowSprite = (col, sc, op = 1) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: col, transparent: true, depthWrite: false, opacity: op, blending: THREE.AdditiveBlending })); s.scale.setScalar(sc); return s; };
+// 窓明かりのビル
+const winTex = canvasTex(64, 128, (c, w, h) => { c.fillStyle = '#5C6A80'; c.fillRect(0, 0, w, h); for (let y = 4; y < h; y += 10) for (let x = 4; x < w; x += 10) { c.fillStyle = Math.random() < 0.45 ? '#F4E3B0' : Math.random() < 0.5 ? '#8FA3BD' : '#43506A'; c.fillRect(x, y, 6, 6); } });
+winTex.wrapS = winTex.wrapT = THREE.RepeatWrapping;
+function tower(parent, x, z, w, h, d, tint = 0xffffff, lit = 0) { const t = winTex.clone(); t.needsUpdate = true; t.repeat.set(Math.max(1, w / 6), Math.max(1, h / 12)); const m = new THREE.Mesh(box(w, h, d), new THREE.MeshLambertMaterial({ map: t, color: tint, emissive: lit ? 0x2A2A20 : 0 })); m.position.set(x, h / 2, z); parent.add(m); return m; }
+function tree(parent, x, z, s = 1) { part(cyl(0.12 * s, 0.16 * s, 1.4 * s, 8), 0x6A5040, x, 0.7 * s, z, parent); part(sph(0.9 * s, 12, 10), 0x4E8A5A, x, 1.9 * s, z, parent, { s: [1, 0.9, 1] }); part(sph(0.6 * s, 10, 8), 0x5E9A66, x + 0.4 * s, 2.3 * s, z + 0.2 * s, parent); }
+
+// ================= 人物 =================
+const SK = 0xFFE4D2, SK2 = 0xF0CDB4, DK = 0x8B5E3C;
+function chain(head, pts, r0, r1, color, accentFrom, accent) { pts.forEach((p, k) => { const t = k / Math.max(1, pts.length - 1); const r = +(r0 + (r1 - r0) * t).toFixed(3); part(sph(r, 10, 8), accentFrom !== undefined && k >= accentFrom ? accent : color, p[0], p[1], p[2], head, { ol: 1.07 }); }); }
+// 星墓戦闘試作の makeChar を土台に、スーツ・ネクタイ・耳・角などを足したもの
+function makeChar(L) {
+  const st = new Set(L.st || []), w = L.w || 1;
+  const root = new THREE.Group(); const g = new THREE.Group(); g.scale.setScalar(L.s || 1); root.add(g);
+  const legs = [], arms = [];
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.12 * w, 0.8, 0); g.add(pv);
+    part(cyl(0.085 * w, 0.075 * w, 0.74, 8), L.leg, 0, -0.38, 0, pv); part(box(0.17, 0.12, 0.3), L.shoe, 0, -0.76, 0.04, pv); legs.push(pv); }
+  if (L.bottom === 'skirt') part(cyl(0.24 * w, 0.36 * w, 0.4, 14), L.bc, 0, 0.82, 0, g);
+  else part(cyl(0.23 * w, 0.25 * w, 0.24, 12), L.bc, 0, 0.86, 0, g);
+  const torso = new THREE.Group(); g.add(torso);
+  part(cyl(0.22 * w, 0.26 * w, 0.52, 14), L.top, 0, 1.14, 0, torso);
+  if (L.shirt) { part(box(0.13 * w, 0.3, 0.03), L.shirt, 0, 1.25, 0.235 * w, torso, { outline: false }); if (L.tie) part(box(0.05, 0.3, 0.035), L.tie, 0, 1.22, 0.248 * w, torso, { outline: false }); }
+  if (L.coat) { const short = !!L.shortCoat; part(cyl(0.25 * w, 0.34 * w, short ? 0.5 : 0.95, 14), L.coat, 0, short ? 1.14 : 0.92, -0.02, torso);
+    part(box(0.18 * w, short ? 0.46 : 0.9, 0.06), L.top, 0, short ? 1.14 : 0.94, 0.27 * w, torso, { outline: false }); if (L.lining) part(box(0.06, 0.8, 0.07), L.lining, 0.11 * w, 0.85, 0.28 * w, torso, { outline: false }); }
+  if (L.vest) part(cyl(0.235 * w, 0.27 * w, 0.42, 14), L.vest, 0, 1.12, 0, torso, { outline: false });
+  if (L.badge) part(box(0.08, 0.1, 0.02), L.badge, 0.12 * w, 1.28, 0.25 * w, torso, { outline: false });
+  part(cyl(0.07, 0.08, 0.14, 8), L.skin, 0, 1.43, 0, torso, { outline: false });
+  const ar = L.muscle ? 0.105 : 0.072;
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.31 * w, 1.34, 0); torso.add(pv);
+    part(cyl(ar, ar * 0.88, 0.5, 8), L.sleeve, 0, -0.24, 0, pv); part(sph(0.07, 8, 6), L.glove || L.skin, 0, -0.52, 0, pv); arms.push(pv); }
+  const phone = part(box(0.06, 0.12, 0.02), 0x1A1E28, 0, -0.56, 0.06, arms[1], { outline: false }); phone.visible = false;
+  const bag = L.bag ? part(box(0.36, 0.26, 0.1), L.bag, 0, -0.62, 0.02, arms[0]) : null;
+  const head = new THREE.Group(); head.position.set(0, 1.65, 0); torso.add(head);
+  part(sph(0.3, 16, 12), L.skin, 0, 0, 0, head);
+  const eyes = [];
+  if (!st.has('eyesHidden')) for (const sx of [-1, 1]) { if (st.has('oneEye') && sx === -1) continue;
+    eyes.push(part(sph(0.05, 8, 6), L.eye, sx * 0.11, -0.03, 0.26, head, { outline: false, s: [1, st.has('narrow') ? 0.7 : 1.3, 0.5] }));
+    if (!st.has('narrow')) part(sph(0.016, 6, 4), 0xFFFFFF, sx * 0.11 + 0.015, 0.0, 0.29, head, { outline: false }); }
+  if (L.brow) for (const sx of [-1, 1]) part(box(0.09, 0.016, 0.01), L.brow, sx * 0.11, 0.06, 0.285, head, { outline: false, rz: sx * (L.browTilt || 0.08) });
+  if (st.has('beard')) part(box(0.24, 0.08, 0.06), L.hair, 0, -0.2, 0.24, head, { outline: false });
+  const capR = 0.335;
+  if (!st.has('bald')) { part(G_('cap' + capR, () => new THREE.SphereGeometry(capR, 18, 12, 0, TAU, 0, Math.PI * 0.42)), L.hair, 0, 0.02, -0.01, head, { ol: 1.05 });
+    part(G_('back' + capR, () => new THREE.SphereGeometry(capR, 18, 12, Math.PI, Math.PI, 0, Math.PI * (st.has('short') ? 0.62 : 0.8))), L.hair, 0, 0, -0.02, head, { ol: 1.04 }); }
+  if (st.has('eyesHidden')) part(box(0.56, 0.24, 0.12), L.hair, 0, 0.04, 0.24, head, { ol: 1.05 });
+  else if (st.has('part')) { const b = part(box(0.4, 0.1, 0.1), L.hair, 0.06, 0.2, 0.22, head, { ol: 1.06 }); b.rotation.set(-0.5, 0, -0.15); }
+  else if (!st.has('bald')) { const bang = part(box(0.52, 0.14, 0.12), L.hair, 0, 0.15, 0.23, head, { ol: 1.06 }); bang.rotation.x = -0.35; }
+  const lockLen = st.has('short') ? 0.16 : 0.36;
+  if (!st.has('bald')) for (const sx of [-1, 1]) part(box(0.08, lockLen, 0.13), L.hair, sx * 0.29, -0.04 - (lockLen - 0.16) / 2, 0.07, head, { ol: 1.06 });
+  if (st.has('mesh')) part(box(0.07, 0.15, 0.13), L.accent, -0.08, 0.16, 0.245, head, { outline: false, rx: -0.35 });
+  if (st.has('oneEye')) part(box(0.2, 0.2, 0.08), L.hair, -0.11, -0.02, 0.28, head, { ol: 1.06 });
+  if (st.has('long')) part(box(0.6, L.longLen || 0.85, 0.1), L.hair, 0, -(L.longLen || 0.85) / 2, -0.25, head, { ol: 1.03 });
+  if (st.has('sidetails')) for (const sx of [-1, 1]) part(sph(0.1, 10, 8), L.accent || L.hair, sx * 0.31, -0.3, -0.05, head);
+  if (st.has('sidepony')) chain(head, [[0.3, 0.18, -0.08], [0.4, 0.0, -0.12], [0.44, -0.24, -0.12], [0.42, -0.5, -0.1]], 0.13, 0.09, L.hair, 2, L.accent);
+  if (st.has('pony')) chain(head, [[0, 0.12, -0.33], [0, -0.12, -0.42], [0, -0.4, -0.44], [0, -0.68, -0.4]], 0.13, 0.08, L.hair);
+  if (st.has('bun')) part(sph(0.15, 10, 8), L.hair, 0, 0.16, -0.32, head);
+  if (st.has('braid')) chain(head, [[-0.3, -0.18, 0.02], [-0.32, -0.36, 0.03], [-0.33, -0.54, 0.04], [-0.33, -0.72, 0.05]], 0.07, 0.05, L.hair);
+  if (st.has('glasses')) { for (const sx of [-1, 1]) part(G_('lens', () => new THREE.TorusGeometry(0.075, 0.012, 6, 16)), L.glassCol || 0x2A2630, sx * 0.11, -0.03, 0.29, head, { outline: false }); part(box(0.08, 0.015, 0.015), L.glassCol || 0x2A2630, 0, -0.02, 0.3, head, { outline: false }); }
+  if (st.has('horns')) for (const sx of [-1, 1]) { const h = part(G_('horn', () => new THREE.ConeGeometry(0.07, 0.34, 8)), L.hornCol || 0x4A1E28, sx * 0.2, 0.3, -0.02, head, { ol: 1.1 }); h.rotation.z = -sx * 0.6; }
+  if (st.has('ghorns')) for (const sx of [-1, 1]) for (const [a, l] of [[0.45, 0.36], [0.95, 0.26]]) { const h = part(G_('gh' + l, () => new THREE.ConeGeometry(0.045, l, 4)), 0xF2C230, sx * (0.18 + Math.sin(a) * l * 0.4), 0.26 + Math.cos(a) * l * 0.4, -0.02, head, { ol: 1.08 }); h.rotation.z = -sx * a; }
+  if (st.has('ears')) for (const sx of [-1, 1]) { const e = part(G_('elfear', () => new THREE.ConeGeometry(0.06, 0.3, 6)), L.skin, sx * 0.33, 0.02, -0.02, head, { ol: 1.08 }); e.rotation.z = -sx * 1.15; }
+  if (st.has('foxears')) for (const sx of [-1, 1]) { const e = part(G_('foxear', () => new THREE.ConeGeometry(0.1, 0.26, 4)), L.hair, sx * 0.2, 0.36, -0.02, head, { ol: 1.08 }); e.rotation.z = -sx * 0.35; }
+  if (st.has('cap')) { part(G_('capHat', () => new THREE.SphereGeometry(0.35, 16, 8, 0, TAU, 0, Math.PI / 2)), L.capCol, 0, 0.06, 0, head, { ol: 1.05 }); part(box(0.4, 0.03, 0.2), L.capCol, 0, 0.07, 0.3, head, { ol: 1.06 }); }
+  if (L.tail) { const t = part(G_('foxtail', () => new THREE.SphereGeometry(0.16, 10, 8)), L.hair, 0, 0.78, -0.32, g, { s: [1, 1, 2.2] }); t.rotation.x = 0.7; }
+  if (L.smock) part(cyl(0.27 * w, 0.36 * w, 0.8, 14), L.smock, 0, 1.0, 0, torso, { ol: 1.04 });
+  blob(root, 0.42 * w);
+  return { root, g, torso, legs, arms, head, eyes, phone, ph: rand(0, 6), nod: 0 };
+}
+// 作業着の文鳥（赤嶺・陽盾・千路などで働く更生文鳥）
+function makeBird(o = {}) {
+  const root = new THREE.Group(), g = new THREE.Group(); g.scale.setScalar(o.s || 1.25); root.add(g); const legs = [], arms = [];
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.17, 0.62, 0); g.add(pv); part(cyl(0.11, 0.09, 0.56, 8), o.pants || 0x34425E, 0, -0.28, 0, pv); part(box(0.2, 0.1, 0.3), 0x2A2A30, 0, -0.58, 0.05, pv); legs.push(pv); }
+  const torso = new THREE.Group(); g.add(torso);
+  part(sph(0.5, 16, 12), o.coat || 0x34425E, 0, 1.05, 0, torso, { s: [1.05, 1.12, 0.85] });
+  if (o.vest) part(sph(0.505, 16, 12), o.vest, 0, 1.0, 0.02, torso, { s: [1.0, 0.8, 0.86], outline: false });
+  part(sph(0.3, 12, 10), 0x7A8088, 0, 1.12, 0.22, torso, { s: [1.1, 0.9, 0.5], outline: false });
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.52, 1.3, 0); torso.add(pv); part(cyl(0.14, 0.12, 0.6, 8), o.coat || 0x34425E, 0, -0.28, 0, pv); part(sph(0.12, 8, 6), 0xE8C8A8, 0, -0.62, 0, pv); arms.push(pv); }
+  const head = new THREE.Group(); head.position.set(0, 1.78, 0.04); torso.add(head);
+  part(sph(0.36, 16, 12), 0x18181C, 0, 0, 0, head); for (const sx of [-1, 1]) { part(sph(0.17, 10, 8), 0xF8F8F8, sx * 0.24, -0.08, 0.16, head, { s: [0.6, 0.9, 0.8], outline: false }); part(sph(0.05, 8, 6), 0x101010, sx * 0.2, 0.06, 0.28, head, { outline: false }); part(G_('ering', () => new THREE.TorusGeometry(0.065, 0.02, 6, 12)), 0xE2505B, sx * 0.2, 0.06, 0.29, head, { outline: false, ry: sx * 0.5 }); }
+  { const b = part(G_('bbeak', () => new THREE.ConeGeometry(0.17, 0.42, 10)), 0xE2505B, 0, -0.08, 0.44, head); b.rotation.x = Math.PI / 2; }
+  if (o.helmet) { part(G_('helm', () => new THREE.SphereGeometry(0.4, 16, 8, 0, TAU, 0, Math.PI / 2)), o.helmet, 0, 0.08, 0, head, { ol: 1.05 }); part(cyl(0.44, 0.44, 0.04, 16), o.helmet, 0, 0.08, 0.04, head, { outline: false }); }
+  blob(root, 0.6);
+  return { root, g, torso, legs, arms, head, eyes: [], phone: null, ph: rand(0, 6), nod: 0, bird: true };
+}
+function animChar(c, st, dt) {
+  const k = Math.min(1, dt * 12); if (st.walk) c.ph += dt * (st.run ? 13 : 9);
+  const w = st.walk ? 1 : 0, sw = Math.sin(c.ph) * (st.run ? 0.75 : 0.55) * w;
+  const legX = st.sit ? -1.45 : null;
+  c.legs[0].rotation.x += ((legX ?? sw) - c.legs[0].rotation.x) * k; c.legs[1].rotation.x += ((legX ?? -sw) - c.legs[1].rotation.x) * k;
+  c.g.position.y = (st.sit ? -0.38 : 0) + Math.abs(Math.sin(c.ph)) * 0.04 * w;
+  c.torso.rotation.x += ((st.bow ? 0.42 : st.sit ? -0.08 : 0) - c.torso.rotation.x) * k;
+  for (let i = 0; i < 2; i++) { const a = c.arms[i]; let ax = (i ? -sw : sw) * 0.8, az = (i ? -1 : 1) * 0.08;
+    if (st.phone && i === 1) { ax = -2.2; az = 0.55; } if (st.point && i === 1) { ax = -1.5; az = 0; } if (st.cross) { ax = -0.9; az = (i ? 1 : -1) * 0.7; } if (st.carry) { ax = -0.9; az = 0; } if (st.v && i === 1) { ax = -2.6; az = 0.4; } if (st.sit && !st.phone) { ax = -0.5; az = (i ? -1 : 1) * 0.15; }
+    a.rotation.x += (ax - a.rotation.x) * k; a.rotation.z += (az - a.rotation.z) * k; }
+  if (c.phone) c.phone.visible = !!st.phone;
+  c.nod = Math.max(0, c.nod - dt); c.head.rotation.x = (st.look || 0) + Math.sin(c.nod * 14) * 0.08 * Math.min(1, c.nod * 3) + Math.sin(T.now * 1.3 + c.ph) * 0.02;
+  c.head.rotation.y = st.headY || 0;
+}
+
+// ================= 状態 =================
+const T = { now: 0 };
+const S = { cover: 100, warm: 0, cold: 0, notes: [], ev: new Set(), flags: {}, seen: new Set(), caught: 0, area: null };
+const G = { busy: false, mode: 'title', cine: null, shake: 0 };
+let sound = true;
+
+// ================= 入力 =================
+const keys = {}; const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 };
+let actDown = false, actPressT = 0;
+addEventListener('keydown', e => { if (e.repeat && (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter')) return; keys[e.code] = true;
+  if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') { e.preventDefault(); pressAct(true); }
+  if (e.code === 'KeyN' && G.mode === 'play' && !G.busy) openNote(); if (e.code === 'Escape') closeNote(); });
+addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') pressAct(false); });
+const sb = $('stickBase'), sk = $('stickKnob');
+$('stage').addEventListener('pointerdown', e => { if (G.mode !== 'play' || e.clientX > innerWidth * 0.62) { if (G.busy) advance(); return; } stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = 0; sb.style.left = e.clientX + 'px'; sb.style.top = e.clientY + 'px'; sb.hidden = false; sk.style.transform = ''; try { $('stage').setPointerCapture(e.pointerId); } catch (er) { /* 無視 */ } });
+$('stage').addEventListener('pointermove', e => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy), R = 48; if (d > R) { dx *= R / d; dy *= R / d; } stick.x = dx / R; stick.y = dy / R; sk.style.transform = `translate(${dx}px,${dy}px)`; });
+const endStick = e => { if (e.pointerId !== stick.id) return; stick.id = null; stick.x = stick.y = 0; sb.hidden = true; };
+$('stage').addEventListener('pointerup', endStick); $('stage').addEventListener('pointercancel', endStick);
+function resetInput() { stick.id = null; stick.x = stick.y = 0; sb.hidden = true; for (const k in keys) keys[k] = false; }
+$('act').addEventListener('pointerdown', e => { e.preventDefault(); pressAct(true); });
+$('act').addEventListener('pointerup', () => pressAct(false)); $('act').addEventListener('pointerleave', () => pressAct(false));
+$('dlg').addEventListener('click', () => advance());
+
+// ================= 音 =================
+let AC = null, master = null, bgmKind = '', bgmStep = 0, bgmNext = 0;
+function audioOn() { if (!sound) return; if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0.5; master.connect(AC.destination); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); }
+function tone(f, at, dur, type = 'sine', vol = 0.05, o = {}) { if (!AC || !sound) return; const t = AC.currentTime + at, os = AC.createOscillator(), g = AC.createGain(); os.type = type; os.frequency.setValueAtTime(f, t); if (o.f1) os.frequency.exponentialRampToValueAtTime(o.f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + (o.a || 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); let n = os;
+  if (o.lp) { const f2 = AC.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = o.lp; os.connect(f2); n = f2; } n.connect(g); g.connect(master); os.start(t); os.stop(t + dur + 0.05); }
+function noise(at, dur, vol = 0.03, f = 2000, type = 'bandpass') { if (!AC || !sound) return; const t = AC.currentTime + at, len = Math.max(64, (AC.sampleRate * dur) | 0), b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = b; fl.type = type; fl.frequency.value = f; g.gain.value = vol; s.connect(fl); fl.connect(g); g.connect(master); s.start(t); }
+const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+const SFX = { blip: () => tone(1200, 0, 0.05, 'square', 0.015), choose: () => { tone(660, 0, 0.08, 'triangle', 0.05); tone(990, 0.05, 0.1, 'triangle', 0.04); },
+  vib: () => { for (let i = 0; i < 2; i++) noise(i * 0.18, 0.14, 0.08, 140, 'lowpass'); }, note: () => { tone(880, 0, 0.12, 'triangle', 0.05); tone(1320, 0.08, 0.2, 'triangle', 0.04); },
+  shutter: () => { noise(0, 0.05, 0.12, 4000, 'highpass'); noise(0.07, 0.06, 0.08, 3000, 'highpass'); }, ura: () => { tone(55, 0, 2.2, 'sawtooth', 0.04, { lp: 300, a: 0.3 }); tone(82, 0, 2.2, 'sine', 0.05, { a: 0.3 }); noise(0, 0.4, 0.03, 300, 'lowpass'); },
+  alert: () => { tone(880, 0, 0.12, 'square', 0.04); tone(660, 0.14, 0.18, 'square', 0.04); }, door: () => { noise(0, 0.3, 0.05, 600, 'lowpass'); tone(220, 0, 0.2, 'sine', 0.04); }, down: () => tone(300, 0, 0.3, 'sine', 0.05, { f1: 150 }),
+  chime: () => { [72, 76, 79, 84].forEach((m, i) => tone(mf(m), i * 0.18, 0.6, 'sine', 0.05)); } };
+function sfx(k) { if (!AC || !sound) return; try { SFX[k] && SFX[k](); } catch (e) { /* 無視 */ } }
+// 場面ごとの短い環境曲（16分音符で鳴らす）
+const BGM = {
+  city: { bpm: 92, f(s, t, sp) { const ch = [[60, 64, 67, 71], [57, 60, 64, 67], [62, 65, 69, 72], [55, 59, 62, 65]][(s >> 5) & 3]; if (s % 32 === 0) ch.forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.012, { a: 0.6 })); if (s % 4 === 0) tone(mf(ch[(s >> 2) % 4] + 12), t, sp * 3, 'triangle', 0.012); if (s % 8 === 4) noise(t, 0.05, 0.006, 6000, 'highpass'); } },
+  office: { bpm: 80, f(s, t, sp) { if (s % 8 === 0) noise(t, 0.03, 0.01, 3000, 'highpass'); if (s % 32 === 0) [57, 60, 64].forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.01, { a: 0.8 })); if (s % 16 === 6) tone(mf(76), t, sp * 6, 'triangle', 0.008); } },
+  train: { bpm: 120, f(s, t, sp) { if (s % 16 === 0 || s % 16 === 3) noise(t, 0.08, 0.03, 300, 'lowpass'); if (s % 64 === 0) [52, 59, 64].forEach(m => tone(mf(m), t, sp * 60, 'sine', 0.012, { a: 1 })); } },
+  gallery: { bpm: 66, f(s, t, sp) { if (s % 32 === 0) [50, 57, 65].forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.012, { a: 1 })); if (s % 8 === 0 && Math.random() < 0.6) tone(mf(pick([74, 77, 81, 84, 86])), t, sp * 10, 'sine', 0.018); } },
+  stealth: { bpm: 100, f(s, t, sp) { if (s % 4 === 0) tone(mf(38), t, sp * 1.5, 'sine', 0.05); if (s % 8 === 6) noise(t, 0.04, 0.012, 5000, 'highpass'); if (s % 64 === 0) tone(mf(50), t, sp * 60, 'sawtooth', 0.008, { lp: 500, a: 2 }); } },
+  night: { bpm: 70, f(s, t, sp) { if (s % 32 === 0) [48, 55, 63, 67].forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.012, { a: 1 })); if (s % 16 === 8) tone(mf(pick([75, 79, 82])), t, sp * 8, 'sine', 0.012); } },
+};
+function bgm(kind) { bgmKind = kind || ''; bgmStep = 0; bgmNext = AC ? AC.currentTime + 0.1 : 0; }
+function bgmTick() { if (!AC || !sound || !bgmKind) return; const B = BGM[bgmKind], sp = 60 / B.bpm / 4; while (bgmNext < AC.currentTime + 0.2) { try { B.f(bgmStep, bgmNext - AC.currentTime, sp); } catch (e) { /* 無視 */ } bgmStep++; bgmNext += sp; } }
+
+// ================= 台詞・選択肢 =================
+const SPK = { kuze: ['久世', '#E9EDF4'], ura: ['裏声', '#FF8A92'], asai: ['浅井', '#B8C8E8'], gondo: ['権藤部長', '#D8C08A'], onodera: ['小野寺', '#E8B8C8'], luc: ['ルシエンヌ', '#BFE8D0'], stu: ['スチューデント', '#C8C0E8'], stu2: ['スチューデント', '#C8C0E8'],
+  yuria: ['ユリア', '#F2C230'], ad: ['画面の声', '#F2C230'], exec: ['竜族の役員', '#E89A8A'], young: ['若い社員', '#B8C8E8'], old: ['老人', '#D8D0C0'], bun: ['作業着の文鳥', '#E8A0A8'], kuroiwa: ['室長', '#9AA6BC'], wataru: ['渉', '#A8D8E8'] };
+let dlgDone = null, typer = null, typing = false, fullText = '';
+function showDlg(who, text, cls) { const d = $('dlg'); d.hidden = false; d.className = cls || ''; const sp = SPK[who]; $('dName').textContent = who === 'narr' ? '' : sp ? sp[0] : who; $('dName').style.color = sp ? sp[1] : '#E9EDF4';
+  fullText = text; $('dText').textContent = ''; $('dNext').hidden = true; typing = true; let i = 0; clearInterval(typer);
+  typer = setInterval(() => { i += 1; $('dText').textContent = fullText.slice(0, i); if (i % 2 === 0) sfx('blip'); if (i >= fullText.length) { clearInterval(typer); typing = false; $('dNext').hidden = false; } }, 28); }
+function say(who, text, o = {}) { return new Promise(res => { if (o.nod !== false) { const c = CAST[who]; if (c) c.nod = 0.6; } showDlg(who, text, o.cls); dlgDone = res; }); }
+const narr = text => say('narr', text, { cls: 'narr' });
+async function ura(...lines) { document.body.classList.add('ura'); sfx('ura'); for (const l of lines) await say('ura', l, { cls: 'ura' }); document.body.classList.remove('ura'); }
+function advance() { if ($('dlg').hidden || !$('choices').hidden) return; if (typing) { clearInterval(typer); typing = false; $('dText').textContent = fullText; $('dNext').hidden = false; return; } const f = dlgDone; dlgDone = null; if (f) { $('dlg').hidden = true; f(); } }
+function choose(opts) { return new Promise(res => { const box = $('choices'); box.innerHTML = ''; box.hidden = false;
+  opts.forEach((o, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = o.k === '裏声' ? 'ura' : o.k === '温情' ? 'warm' : ''; b.innerHTML = '<span class="k">' + (o.k || '表') + '</span><span></span>'; b.lastChild.textContent = o.t;
+    b.addEventListener('click', () => { box.hidden = true; sfx('choose'); if (o.cover) addCover(o.cover); if (o.warm) S.warm += o.warm; if (o.cold) S.cold += o.cold; res(i); }); box.appendChild(b); });
+  const first = box.querySelector('button'); if (first) first.focus({ preventScroll: true }); }); }
+function phoneMsg(from, text, time) { return new Promise(res => { sfx('vib'); G.shake = 0.15; $('phFrom').textContent = from; $('phMsg').textContent = text; $('phTime').textContent = time || '08:14'; const p = $('phone'); p.hidden = false; const close = () => { p.removeEventListener('click', close); p.hidden = true; res(); }; setTimeout(() => p.addEventListener('click', close), 350); }); }
+function card(t, s, ms = 2400) { return new Promise(res => { $('cardT').textContent = t; $('cardS').textContent = s || ''; const c = $('card'); c.classList.add('on'); setTimeout(() => { c.classList.remove('on'); setTimeout(res, 700); }, ms); }); }
+function fade(on) { $('fade').style.opacity = on ? 1 : 0; return sleep(460); }
+let toastT = 0; function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; toastT = 2.6; }
+function setObj(t) { $('objT').textContent = t; }
+function addCover(d) { S.cover = clamp(S.cover + d, 0, 100); updHud(); const p = P.model ? scr(P.pos.x, 2.6, P.pos.z) : null; if (p) popAt(p, '擬態 ' + (d > 0 ? '+' : '') + d, d < 0 ? 'down' : 'up'); }
+function addNote(key, title, body, ev) { if (S.seen.has('n:' + key)) return; S.seen.add('n:' + key); S.notes.push({ key, title, body, ev: !!ev }); if (ev) S.ev.add(key); sfx('note'); toast((ev ? '証拠を記録：' : '手帳に記録：') + title); updHud(); }
+function updHud() { $('covV').textContent = Math.round(S.cover); $('covF').style.width = S.cover + '%'; $('evN').textContent = S.ev.size; }
+function openNote() { if (G.mode !== 'play') return; const L = $('noteList'); L.innerHTML = S.notes.length ? '' : '<p class="empty">まだ何も記録していない。気になるものを調べると、ここに残る。</p>';
+  for (const n of S.notes) { const d = document.createElement('div'); d.className = 'ni'; d.innerHTML = '<b>' + (n.ev ? '<span class="chip">証拠</span>' : '') + '</b><p></p>'; d.querySelector('b').append(n.title); d.querySelector('p').textContent = n.body; L.appendChild(d); }
+  $('note').hidden = false; $('noteClose').focus(); }
+function closeNote() { $('note').hidden = true; }
+$('noteBtn').addEventListener('click', openNote); $('noteClose').addEventListener('click', closeNote); $('note').addEventListener('click', e => { if (e.target.id === 'note') closeNote(); });
+const _v = new THREE.Vector3();
+function scr(x, y, z) { _v.set(x, y, z).project(camera); if (_v.z > 1) return null; return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight }; }
+function popAt(p, text, cls) { const e = document.createElement('div'); e.className = 'pop ' + (cls || ''); e.textContent = text; e.style.left = p.x + 'px'; e.style.top = p.y + 'px'; $('layer').appendChild(e); setTimeout(() => e.remove(), 1250); }
+async function run(fn) { if (G.busy) return; G.busy = true; resetInput(); try { await fn(); } catch (e) { console.error(e); } finally { G.busy = false; G.cine = null; document.body.classList.remove('ura'); } }
+
+// ================= 世界・場面 =================
+const AREAS = {}; let A = null;
+const P = { pos: new THREE.Vector3(), facing: 0, model: null, spd: 0, st: {} };
+const CAST = {}; // 台詞を話す人物のモデル（頷きに使う）
+function resolve(pos, r) { const a = A; pos.x = clamp(pos.x, a.bounds[0] + r, a.bounds[1] - r); pos.z = clamp(pos.z, a.bounds[2] + r, a.bounds[3] - r);
+  for (const o of a.obs) { const dx = pos.x - o.x, dz = pos.z - o.z, px = o.hx + r - Math.abs(dx), pz = o.hz + r - Math.abs(dz); if (px > 0 && pz > 0) { if (px < pz) pos.x += Math.sign(dx || 1) * px; else pos.z += Math.sign(dz || 1) * pz; } } }
+function segHitsBox(ax, az, bx, bz, o) { let t0 = 0, t1 = 1; const dx = bx - ax, dz = bz - az; for (const [p, d, lo, hi] of [[ax, dx, o.x - o.hx, o.x + o.hx], [az, dz, o.z - o.hz, o.z + o.hz]]) { if (Math.abs(d) < 1e-6) { if (p < lo || p > hi) return false; } else { let a = (lo - p) / d, b = (hi - p) / d; if (a > b) [a, b] = [b, a]; t0 = Math.max(t0, a); t1 = Math.min(t1, b); if (t0 > t1) return false; } } return true; }
+function los(ax, az, bx, bz) { for (const o of A.obs) if (o.tall && segHitsBox(ax, az, bx, bz, o)) return false; return true; }
+// 調べられるもの
+const markTex = canvasTex(64, 64, (c) => { c.translate(32, 32); c.rotate(Math.PI / 4); c.fillStyle = '#fff'; c.fillRect(-14, -14, 28, 28); c.strokeStyle = '#121826'; c.lineWidth = 5; c.strokeRect(-14, -14, 28, 28); });
+function addItem(area, it) { it.r = it.r || 1.7; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: markTex, color: it.col || 0xffffff, transparent: true, depthWrite: false, depthTest: false })); s.scale.setScalar(0.42); s.position.set(it.x, it.y || 2.9, it.z); s.renderOrder = 5; area.g.add(s); it.mark = s; area.items.push(it); return it; }
+const itemOn = it => !(it.once !== false && it.done) && (!it.avail || it.avail());
+let near = null;
+function nearItem() { let best = null, bd = 1e9; for (const it of A.items) { if (!itemOn(it)) continue; const d = Math.hypot(P.pos.x - it.x, P.pos.z - it.z); if (d < it.r && d < bd) { bd = d; best = it; } } return best; }
+let holdT = 0;
+function pressAct(down) { audioOn(); actDown = down; if (!down) return; if (G.busy) { advance(); return; } if (G.mode !== 'play') return; const it = nearItem(); if (it && !it.hold) useItem(it); }
+function useItem(it) { run(async () => { if (it.face !== false) P.facing = Math.atan2(it.x - P.pos.x, it.z - P.pos.z); await it.on(it); if (it.once !== false) it.done = true; }); }
+function npc(area, key, model, x, z, face, o = {}) { const n = Object.assign({ key, model, pos: new THREE.Vector3(x, 0, z), facing: face || 0, st: {}, path: null, pi: 0, wait: 0, speed: 1.6 }, o); area.g.add(model.root); area.npcs.push(n); CAST[key] = model; return n; }
+function makeArea(id, def) { const a = Object.assign({ id, g: new THREE.Group(), obs: [], items: [], npcs: [], built: false, bounds: [-10, 10, -10, 10], cam: [0, 9, 9], bg: 0xBFD2E4, fog: [30, 90], light: 0.85 }, def); a.g.visible = false; scene.add(a.g); AREAS[id] = a; return a; }
+async function goArea(id, spawn, face) { await fade(true); for (const k in AREAS) AREAS[k].g.visible = false; const a = AREAS[id]; if (!a.built) { a.build(a); a.built = true; } A = a; S.area = id; a.g.visible = true; a.g.add(P.model.root);
+  scene.background = new THREE.Color(a.bg); scene.fog = a.fog ? new THREE.Fog(a.bg, a.fog[0], a.fog[1]) : null; hemi.intensity = a.light; sun.intensity = a.sun ?? 0.55;
+  const sp = spawn || a.spawn; P.pos.set(sp[0], 0, sp[1]); P.facing = face ?? a.spawnFace ?? 0; $('place').textContent = a.place || ''; camSnap = true; bgm(a.music); $('detM').hidden = !a.stealth; await fade(false); }
+// カメラ
+let camSnap = true; const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+function camTick(dt) { let tp, tl; if (G.cine) { tp = G.cine.pos; tl = G.cine.look; } else { const c = A.cam; tp = _cp.set(P.pos.x + c[0], c[1], P.pos.z + c[2]); tl = _cl.set(P.pos.x, 1.3, P.pos.z - (c[3] || 0)); if (innerWidth < innerHeight) { tp.y += 3; tp.z += 3; } }
+  const k = camSnap ? 1 : Math.min(1, dt * (G.cine ? 2.2 : 5)); camPos.lerp(tp, k); camLook.lerp(tl, k); camSnap = false; camera.position.copy(camPos); if (G.shake > 0.01) { camera.position.x += rand(-1, 1) * G.shake; camera.position.y += rand(-1, 1) * G.shake; G.shake *= Math.exp(-6 * dt); } camera.lookAt(camLook); }
+const _cp = new THREE.Vector3(), _cl = new THREE.Vector3();
+function cine(px, py, pz, lx, ly, lz) { G.cine = { pos: new THREE.Vector3(px, py, pz), look: new THREE.Vector3(lx, ly, lz) }; }
+// 人物を歩かせる（台本用）
+function walkTo(n, x, z, speed = 1.8) { return new Promise(res => { n.goal = { x, z, speed, res }; }); }
+function npcTick(n, dt) { let moving = false;
+  if (n.goal) { const dx = n.goal.x - n.pos.x, dz = n.goal.z - n.pos.z, L = Math.hypot(dx, dz); if (L < 0.08) { const r = n.goal.res; n.goal = null; r(); } else { const v = Math.min(L, n.goal.speed * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 10); moving = true; } }
+  else if (n.path && !G.busy) { if (n.wait > 0) n.wait -= dt; else { const p = n.path[n.pi], dx = p[0] - n.pos.x, dz = p[1] - n.pos.z, L = Math.hypot(dx, dz); if (L < 0.1) { n.pi = (n.pi + 1) % n.path.length; n.wait = p[2] || 0; } else { const v = Math.min(L, n.speed * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 8); moving = true; } } }
+  else if (n.lookAt) { const t = n.lookAt === 'P' ? P.pos : n.lookAt; n.facing = turn(n.facing, Math.atan2(t.x - n.pos.x, t.z - n.pos.z), dt * 4); }
+  n.st.walk = moving || !!n.extMove; n.extMove = false; n.model.root.position.set(n.pos.x, 0, n.pos.z); n.model.root.rotation.y = n.facing; n.model.root.visible = !n.hidden; animChar(n.model, n.st, dt); }
+function turn(a, b, k) { const d = ((b - a + Math.PI) % TAU + TAU) % TAU - Math.PI; return a + d * Math.min(1, k); }
+
+// ================= 人物の見た目 =================
+const LK = {
+  kuze: { skin: SK2, hair: 0x15161C, eye: 0x24242A, brow: 0x15161C, top: 0x2A3552, sleeve: 0x2A3552, bc: 0x2A3552, leg: 0x2A3552, shoe: 0x15151A, shirt: 0xF4F6FA, tie: 0x6A2A34, s: 1.02, w: 0.95, st: ['short', 'part'], bag: 0x2A2420 },
+  asai: { skin: SK, hair: 0x5A4030, eye: 0x3A2A20, top: 0x6A6E78, sleeve: 0x6A6E78, bc: 0x6A6E78, leg: 0x6A6E78, shoe: 0x2A2420, shirt: 0xEEF2F8, tie: 0x2A4A8A, s: 1.0, w: 1.0, st: ['short', 'glasses'] },
+  gondo: { skin: SK2, hair: 0x9A9AA2, eye: 0x24242A, brow: 0x6A6A70, browTilt: -0.2, top: 0x3A3A44, sleeve: 0x3A3A44, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x15151A, shirt: 0xF0F0F0, tie: 0x8A6A2A, s: 1.02, w: 1.28, st: ['short'] },
+  onodera: { skin: SK, hair: 0x3A2A2A, eye: 0x4A3020, top: 0xE8E4F0, sleeve: 0xE8E4F0, bottom: 'skirt', bc: 0x4A4A58, leg: 0xD8C8B8, shoe: 0x2A2A30, s: 0.95, w: 0.95, st: ['pony'] },
+  luc: { skin: 0xFFF2EA, hair: 0xEDE3C4, eye: 0x3A9A78, top: 0xF8F8F6, sleeve: 0xF8F8F6, bc: 0xE8E8E4, leg: 0xE8E8E4, shoe: 0xD8D4CC, coat: 0xFFFFFF, lining: 0x8AB8A0, s: 1.1, w: 1.0, st: ['long', 'ears', 'braid', 'narrow'], longLen: 1.05 },
+  stuA: { skin: 0xEAD8E2, hair: 0x2A2030, eye: 0xC03040, top: 0xF4F2EE, sleeve: 0xF4F2EE, bc: 0x3A3640, leg: 0x3A3640, shoe: 0x2A2A30, smock: 0xF4F2EE, s: 1.05, w: 1.05, st: ['short', 'horns'], hornCol: 0x3A2A3A },
+  stuB: { skin: SK, hair: 0x6A4A30, eye: 0x4A3020, top: 0xF4F2EE, sleeve: 0xF4F2EE, bc: 0x3A3640, leg: 0x3A3640, shoe: 0x2A2A30, smock: 0xF4F2EE, s: 0.96, w: 0.95, st: ['bun', 'glasses'] },
+  stuC: { skin: SK, hair: 0xE8A050, eye: 0x8A5A20, top: 0x2A2A30, sleeve: 0x2A2A30, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0x1A1A1E, shirt: 0xFFFFFF, s: 0.95, w: 0.95, st: ['short', 'foxears', 'narrow'], tail: true },
+  patron: { skin: SK, hair: 0x2A3A6A, eye: 0xE0B040, top: 0x1E2236, sleeve: 0x1E2236, bottom: 'skirt', bc: 0x1E2236, leg: 0x1E2236, shoe: 0x1A1A1E, coat: 0x1E2236, s: 1.15, w: 1.05, st: ['long', 'horns'], hornCol: 0xD8C8A8 },
+  yuria: { skin: 0xFFF0E8, hair: 0xF8F7FF, accent: 0xF4D35E, eye: 0x7FB2E6, top: 0xFFFFFF, sleeve: 0xF2C890, bottom: 'skirt', bc: 0x2A2A30, leg: 0xFFF0E8, shoe: 0x2A2A30, s: 1.05, w: 1.1, st: ['sidepony', 'mesh', 'long', 'ghorns'], badge: 0xE3B428 },
+  exec: { skin: SK, hair: 0x8A2A3A, eye: 0xE0A040, top: 0x2A2228, sleeve: 0x2A2228, bottom: 'skirt', bc: 0x2A2228, leg: 0x2A2228, shoe: 0x1A1A1E, s: 1.12, w: 1.05, st: ['long', 'horns', 'narrow'], hornCol: 0xC8B8A0 },
+  young: { skin: SK, hair: 0x2A2A2A, eye: 0x2A2A2A, top: 0x3A4250, sleeve: 0x3A4250, bc: 0x3A4250, leg: 0x3A4250, shoe: 0x1A1A1E, shirt: 0xF4F6FA, tie: 0x5A6A8A, s: 0.98, w: 0.95, st: ['short'] },
+  old: { skin: SK2, hair: 0xDADADA, eye: 0x2A2A2A, top: 0x8A6A4A, sleeve: 0x8A6A4A, bc: 0x5A5A60, leg: 0x5A5A60, shoe: 0x3A3030, s: 0.9, w: 1.0, st: ['short'] },
+  elf2: { skin: 0xFFF2EA, hair: 0xB8D8F0, eye: 0x4A7AB0, top: 0xE8EEF8, sleeve: 0xE8EEF8, bottom: 'skirt', bc: 0x3A4A6A, leg: 0xEDE0D8, shoe: 0x2A2A30, s: 1.05, w: 0.95, st: ['long', 'ears'] },
+  sal1: { skin: SK, hair: 0x2A2A2A, eye: 0x2A2A2A, top: 0x40444C, sleeve: 0x40444C, bc: 0x40444C, leg: 0x40444C, shoe: 0x1A1A1E, shirt: 0xF4F6FA, tie: 0x8A3A3A, s: 1.0, w: 1.0, st: ['short'] },
+  sal2: { skin: SK, hair: 0x4A3020, eye: 0x2A2A2A, top: 0xC8C0B0, sleeve: 0xC8C0B0, bottom: 'skirt', bc: 0x5A5048, leg: 0xD8C8B8, shoe: 0x3A3030, s: 0.95, w: 0.95, st: ['long'] },
+};
+const mk = k => makeChar(LK[k]);
+
+// ================= 春日井駅前 =================
+const adTex = canvasTex(720, 400, (c, w, h) => {
+  const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#1B2742'); g.addColorStop(1, '#3A2E14'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(242,194,48,.18)'; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(520, 200, 60 + i * 40, 0, TAU); c.fill(); }
+  // 人物（白い髪に黄色の差し色、二本指）
+  c.fillStyle = '#F8F7FF'; c.beginPath(); c.ellipse(520, 175, 70, 80, 0, 0, TAU); c.fill(); c.fillStyle = '#F4D35E'; c.beginPath(); c.ellipse(600, 230, 26, 70, 0.4, 0, TAU); c.fill();
+  c.fillStyle = '#FFF0E8'; c.beginPath(); c.ellipse(520, 195, 52, 58, 0, 0, TAU); c.fill(); c.fillStyle = '#F8F7FF'; c.fillRect(470, 130, 100, 34);
+  c.fillStyle = '#F2C230'; c.beginPath(); c.moveTo(478, 128); c.lineTo(458, 70); c.lineTo(492, 120); c.fill(); c.beginPath(); c.moveTo(562, 128); c.lineTo(582, 70); c.lineTo(548, 120); c.fill();
+  c.fillStyle = '#3FA8E0'; c.beginPath(); c.ellipse(500, 196, 7, 10, 0, 0, TAU); c.ellipse(540, 196, 7, 10, 0, 0, TAU); c.fill(); c.strokeStyle = '#7A2A34'; c.lineWidth = 3; c.beginPath(); c.arc(520, 214, 12, 0.2, Math.PI - 0.2); c.stroke();
+  c.fillStyle = '#FFFFFF'; c.fillRect(470, 250, 100, 150); c.fillStyle = '#E3B428'; c.fillRect(505, 262, 30, 16);
+  c.fillStyle = '#FFF0E8'; c.save(); c.translate(610, 160); c.rotate(-0.3); c.fillRect(-8, -40, 12, 50); c.fillRect(8, -44, 12, 54); c.restore();
+  c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = '#FFFFFF'; c.font = `800 46px ${MINCHO}`; c.fillText('今日も、', 40, 120); c.fillText('全員無事に', 40, 180); c.fillText('帰ろーね！', 40, 240);
+  c.fillStyle = '#F2C230'; c.font = `900 26px ${GOTHIC}`; c.fillText('陽盾警備保障', 40, 320); c.fillStyle = '#C8D0E0'; c.font = `700 16px ${GOTHIC}`; c.fillText('天環グループ　困ったときは、陽盾相談窓口へ', 40, 356); });
+const tickerTex = canvasTex(2048, 64, (c, w, h) => { c.fillStyle = '#0C0E14'; c.fillRect(0, 0, w, h); c.font = `700 30px ${GOTHIC}`; c.textBaseline = 'middle'; c.fillStyle = '#F2A040';
+  c.fillText('【速報】断偽文鳥門、B.U.N からの独立を改めて宣言　門主メス・ゼロ「偽りを断つ」　　　【天環】界域協定の次期改定、来春にも閣議へ　　　', 10, h / 2); });
+tickerTex.wrapS = THREE.RepeatWrapping;
+makeArea('station', { place: '春日井駅前　午前8時12分', bounds: [-14, 14, -10, 7], spawn: [0, -8.6], spawnFace: 0, cam: [0, 11, 12.5], music: 'city', bg: 0xBFD4E8, fog: [40, 120], light: 0.62,
+  build(a) { const g = a.g;
+    const gr = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshLambertMaterial({ color: 0x8A9098 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(32, 19), new THREE.MeshLambertMaterial({ color: 0xBCB7AD })); pl.rotation.x = -Math.PI / 2; pl.position.set(0, 0.01, -2); g.add(pl);
+    for (let x = -15; x <= 15; x += 2) block(0.04, 0.012, 19, 0xA8A49C, x, 0.015, -2, g);
+    const rd = new THREE.Mesh(new THREE.PlaneGeometry(240, 6), new THREE.MeshLambertMaterial({ color: 0x51555C })); rd.rotation.x = -Math.PI / 2; rd.position.set(0, 0.012, 10); g.add(rd);
+    for (let x = 2.6; x <= 7.4; x += 0.8) block(0.45, 0.02, 5.4, 0xF4F4F4, x, 0.02, 10, g);
+    for (let x = -60; x < 60; x += 4) block(2, 0.02, 0.15, 0xE8D070, x, 0.02, 10, g);
+    // 駅舎
+    block(34, 10, 5, 0xE6E8EC, 0, 5, -13.6, g); block(34, 2.2, 0.2, 0x7C98B6, 0, 3.4, -11.05, g); block(6, 3, 0.3, 0x2A3040, 0, 1.5, -11, g);
+    plane(9, 1.3, signTex(900, 130, [{ t: 'JR  春日井駅　KASUGAI STATION', size: 64, w: 900 }], { bg: '#1E3A6A', fg: '#FFFFFF' }), 0, 6.2, -11.1, g);
+    block(7.8, 4.6, 0.3, 0x1A1E28, -8.5, 6.8, -11.15, g); plane(7.2, 4, adTex, -8.5, 6.8, -10.98, g, { fog: false });
+    block(10, 0.8, 0.2, 0x1A1E28, 7.5, 4.4, -11.15, g); const tk = plane(9.6, 0.6, tickerTex, 7.5, 4.4, -11.03, g, { fog: false }); tk.material.map.repeat.set(0.55, 1); a.ticker = tk.material.map;
+    // 街並み
+    for (let i = 0; i < 26; i++) { const x = -70 + i * 5.6 + rand(-1, 1), h = rand(16, 58); tower(g, x, -34 - rand(0, 20), rand(6, 11), h, rand(6, 10), i % 3 ? 0xE8ECF4 : 0xD8E0EE); }
+    for (let i = 0; i < 18; i++) { const x = -60 + i * 7 + rand(-1, 1); tower(g, x, 26 + rand(0, 14), rand(6, 10), rand(12, 40), rand(6, 9), 0xE0E6F0); }
+    for (const sx of [-1, 1]) for (let i = 0; i < 4; i++) tower(g, sx * (24 + i * 7), -14 + i * 4, 6, rand(14, 30), 8, 0xE4E8F0);
+    tower(g, 30, -40, 14, 80, 14, 0xF4F0E4); plane(10, 2.4, signTex(500, 120, [{ t: '天環', size: 80, f: MINCHO, w: 800 }], { bg: '#FFFFFF', fg: '#B8860B' }), 30, 70, -32.9, g, { fog: false });
+    // 木・ベンチ・案内板・バス停
+    for (const [x, z] of [[-12.5, -6], [-12.5, 1], [12.5, -6], [-6, 5.8], [-2, 5.8]]) { tree(g, x, z, 1.1); a.obs.push({ x, z, hx: 0.35, hz: 0.35 }); }
+    for (const [x, z] of [[-9.5, 3.4], [9, 5.2]]) { block(2.2, 0.45, 0.6, 0x8A6A4A, x, 0.3, z, g); a.obs.push({ x, z, hx: 1.1, hz: 0.3 }); }
+    block(0.15, 2.2, 0.15, 0x5A6070, -11.6, 1.1, -2, g); plane(2.2, 1.6, signTex(440, 320, [{ t: '天環グループ　春日井事業所のご案内', size: 26, w: 900 }, { t: '陽盾警備保障　駅前本社', size: 22 }, { t: '赤嶺重工　中央線沿線工事事務所', size: 22 }, { t: '千路ロジスティクス　春日井ハブ', size: 22 }, { t: '蒼生メディカルセンター　春日井', size: 22 }, { t: '正律法務機構　相談窓口', size: 22 }], { bg: '#F4F6FA', border: '#1E3A6A' }), -11.6, 2.4, -1.88, g); a.obs.push({ x: -11.6, z: -2, hx: 0.3, hz: 0.3 });
+    block(4, 0.12, 1.6, 0x3A4458, 10, 2.6, -3, g); block(0.12, 2.6, 1.6, 0x9AB0C8, 11.95, 1.3, -3, g); a.obs.push({ x: 10.5, z: -3, hx: 1.6, hz: 0.7 });
+    plane(1.2, 0.6, signTex(240, 120, [{ t: '市営バス', size: 40, w: 900 }], { bg: '#E8F0F8' }), 10, 3.1, -2.18, g);
+    // 人物
+    const ad = npc(a, 'asai', mk('asai'), 1.2, -8.8, 0); a.asai = ad; ad.follow = true;
+    const bird = makeBird({ coat: 0x34425E, vest: 0xF2A040, helmet: 0xF2C230 }); const bn = npc(a, 'bun', bird, 4.4, 5.6, -0.5); bn.st.carry = true; part(box(0.5, 0.35, 0.35), 0xC8A878, 0, -0.62, 0.3, bird.arms[0]);
+    const old = npc(a, 'old', mk('old'), 3.2, 5.4, 0.8); bn.lookAt = old.pos; old.lookAt = bn.pos;
+    a.obs.push({ x: 3.8, z: 5.5, hx: 1.0, hz: 0.5 });
+    const walkers = [['sal1', [[-3, -9.5, 0.5], [-3, 5, 0], [8, 5, 0], [8, -9.5, 0.4]]], ['elf2', [[6, -9.5, 0], [-8, 4, 0.6], [-8, -6, 0]]], ['sal2', [[-12, 6, 0], [-1, -9.5, 0.6], [11, 1, 0]]]];
+    walkers.forEach(([k, path], i) => { const n = npc(a, 'w' + i, mk(k), path[0][0], path[0][1], 0, { path, speed: 1.5 + i * 0.2 }); void n; });
+    { const b2 = makeBird({ coat: 0x2E4A3A, vest: 0x3FA37F }); npc(a, 'w3', b2, -6, -9, 0, { path: [[-6, -9.4, 0.4], [-6, 6, 0], [-13, 6, 0.3]], speed: 1.7 }); }
+    // 調べるもの
+    addItem(a, { id: 'ad', x: -8.2, z: -8.4, y: 3.2, label: '広告を見る', on: evAd });
+    addItem(a, { id: 'ticker', x: 7.2, z: -8.8, y: 3.2, label: '電光掲示を読む', on: evTicker });
+    addItem(a, { id: 'bird', x: 3.8, z: 4.3, label: '様子を見る', on: evBird });
+    addItem(a, { id: 'map', x: -11.4, z: -0.6, label: '案内板を読む', on: evMap });
+    addItem(a, { id: 'asaiT', x: 0, z: 0, r: 1.6, label: '話す', once: false, col: 0xE3B428, avail: () => !S.flags.phone && a.asai.follow, on: evAsai, dyn: a.asai });
+    addItem(a, { id: 'toOffice', x: 12.6, z: 4.2, label: '静州商事ビルへ', col: 0xC8323C, avail: () => !!S.flags.phone, on: () => goOffice() }); },
+  tick(a, dt) { if (a.ticker) a.ticker.offset.x = (a.ticker.offset.x + dt * 0.05) % 1;
+    const n = a.asai; if (n.follow && !G.busy) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, L = Math.hypot(dx, dz); if (L > 2.0) { const v = Math.min(L - 1.9, (L > 4 ? 4.5 : 2.6) * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 8); n.extMove = true; } } }
+});
+
+// ================= 静州商事 =================
+const skyTex = canvasTex(1024, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#9CC0E4'); g.addColorStop(1, '#DCE8F4'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  for (let i = 0; i < 40; i++) { const x = i * 26 + Math.random() * 10, bw = 16 + Math.random() * 30, bh = 60 + Math.random() * 170; c.fillStyle = i % 3 ? '#B8C6D8' : '#A8B8CC'; c.fillRect(x, h - bh, bw, bh); c.fillStyle = 'rgba(255,255,255,.35)'; for (let y = h - bh + 6; y < h; y += 9) c.fillRect(x + 3, y, bw - 6, 2); }
+  c.fillStyle = '#F2EEE0'; c.fillRect(760, 20, 44, 236); c.fillStyle = '#B8860B'; c.font = `800 22px ${MINCHO}`; c.fillText('天', 771, 50); c.fillText('環', 771, 80); });
+function desk(a, x, z, o = {}) { const g = a.g; block(1.7, 0.08, 0.85, 0xE8E6E0, x, 0.76, z, g); block(1.6, 0.7, 0.05, 0xC8C8CC, x, 0.38, z - 0.38, g);
+  block(0.72, 0.44, 0.05, 0x1E222C, x, 1.12, z - 0.22, g); const scr2 = block(0.66, 0.38, 0.01, o.screen || 0x5A88B8, x, 1.12, z - 0.19, g, { emis: o.screen ? 0x1A2A3A : 0x14283C }); void scr2;
+  block(0.5, 0.06, 0.5, 0x2A2E38, x, 0.48, z + 0.62, g); block(0.5, 0.5, 0.06, 0x2A2E38, x, 0.75, z + 0.86, g); a.obs.push({ x, z: z + 0.15, hx: 0.9, hz: 0.65 }); }
+makeArea('office', { place: '静州商事株式会社　事業管理部（14階）', bounds: [-9, 9, -6, 6], spawn: [0, 5.0], spawnFace: Math.PI, cam: [0, 9.5, 8.5], music: 'office', bg: 0x2A3040, fog: null, light: 0.9,
+  build(a) { const g = a.g;
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(19, 13), new THREE.MeshLambertMaterial({ color: 0x7C8698 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (let x = -9; x <= 9; x += 1.5) block(0.03, 0.01, 13, 0x6E788A, x, 0.01, 0, g);
+    block(19, 4.2, 0.3, 0xEEF0F3, 0, 2.1, -6.5, g); plane(17, 3.2, skyTex, 0, 2.2, -6.34, g, { fog: false }); for (let x = -8; x <= 8; x += 2.7) block(0.12, 3.4, 0.1, 0x9AA2B0, x, 2.2, -6.3, g);
+    block(0.3, 1.2, 13, 0xEEF0F3, -9.5, 0.6, 0, g); block(0.3, 1.2, 13, 0xEEF0F3, 9.5, 0.6, 0, g); block(19, 0.5, 0.3, 0xE2E4E8, 0, 0.25, 6.5, g);
+    block(2.2, 0.06, 1.0, 0xA8B0BC, 0, 0.03, 5.8, g); block(0.1, 1.2, 0.1, 0x6A7080, -0.9, 0.6, 6.3, g); plane(1.6, 0.4, signTex(320, 80, [{ t: 'エレベーター　1F へ', size: 34 }], { bg: '#E8ECF2' }), -0.9, 1.3, 6.2, g, { ry: Math.PI });
+    plane(4, 0.7, signTex(800, 140, [{ t: '静州商事株式会社　事業管理部', size: 54, f: MINCHO, w: 800 }], { bg: '#FFFFFF', fg: '#1E3A6A' }), 0, 3.4, -6.32, g);
+    for (const z of [-1.2, 2.2]) for (const x of [-6, -4, -2, 2, 4, 6]) desk(a, x, z, { screen: x === -4 && z === -1.2 ? 0x2A3446 : 0 });
+    block(3.2, 0.1, 1.2, 0x5A4A3A, 0, 0.8, -4.6, g); block(3, 0.75, 0.08, 0x4A3A2E, 0, 0.4, -4.05, g); a.obs.push({ x: 0, z: -4.6, hx: 1.65, hz: 0.65 });
+    block(0.8, 0.5, 0.06, 0x1E222C, 0.6, 1.15, -4.9, g); block(1.4, 2.1, 0.6, 0x9AA2B0, -7.8, 1.05, -5.1, g); a.obs.push({ x: -7.8, z: -5.1, hx: 0.75, hz: 0.35 });
+    for (let i = 0; i < 4; i++) block(1.3, 0.03, 0.02, 0x5A6070, -7.8, 0.4 + i * 0.5, -4.79, g);
+    block(0.9, 1.4, 0.6, 0x3A4050, 7.6, 0.7, -4.9, g); block(0.7, 0.45, 0.04, 0x2A5A8A, 7.6, 1.25, -4.58, g, { emis: 0x10304A }); a.obs.push({ x: 7.6, z: -4.9, hx: 0.5, hz: 0.35 });
+    block(0.7, 1.3, 0.5, 0x2A2E38, 8.2, 0.65, 4.6, g); a.obs.push({ x: 8.2, z: 4.6, hx: 0.4, hz: 0.3 }); part(cyl(0.3, 0.25, 0.5, 10), 0xC8B8A0, -8.2, 0.25, 5, g); part(sph(0.55, 10, 8), 0x4E8A5A, -8.2, 1.0, 5, g); a.obs.push({ x: -8.2, z: 5, hx: 0.4, hz: 0.4 });
+    // 人物
+    const gd = npc(a, 'gondo', mk('gondo'), 0, -3.6, 0); gd.lookAt = 'P'; a.gondo = gd;
+    const on = npc(a, 'onodera', mk('onodera'), 4, -0.6, Math.PI); on.st.sit = true; a.onodera = on;
+    const as = npc(a, 'asai', mk('asai'), 2, 2.8, Math.PI); as.st.sit = true;
+    { const c2 = npc(a, 'o1', mk('sal2'), -6, 2.8, Math.PI); c2.st.sit = true; const c3 = npc(a, 'o2', mk('sal1'), 6, -0.6, Math.PI); c3.st.sit = true; }
+    addItem(a, { id: 'gondo', x: 0, z: -3.0, label: '話す', col: 0xE3B428, on: evGondo });
+    addItem(a, { id: 'hdesk', x: -4, z: -0.2, label: '早瀬の机を調べる', avail: () => S.flags.gondo, on: evHDesk });
+    addItem(a, { id: 'term', x: 7.6, z: -3.9, label: '配送記録を照会する', avail: () => S.flags.gondo, on: evTerm });
+    addItem(a, { id: 'cab', x: -7.8, z: -4.1, label: '契約書の棚を開ける', avail: () => S.flags.gondo, on: evCab });
+    addItem(a, { id: 'ono', x: 4, z: 0.4, label: '話す', col: 0xE3B428, avail: () => S.flags.gondo, on: evOno });
+    addItem(a, { id: 'own', x: -2, z: 3.2, label: '自分の席', on: evOwn });
+    addItem(a, { id: 'coffee', x: 8.0, z: 3.9, label: 'コーヒー', on: evCoffee });
+    addItem(a, { id: 'toTrain', x: 0, z: 5.6, label: '神領へ向かう', col: 0xC8323C, avail: () => S.flags.gondo && S.seen.has('i:hdesk') && (S.seen.has('i:term') || S.seen.has('i:cab')), on: () => goTrain() }); }
+});
+
+// ================= 中央線の車内 =================
+const outTex = canvasTex(2048, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#A8C8E8'); g.addColorStop(1, '#E8F0F4'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  for (let i = 0; i < 30; i++) { const x = i * 70, bh = 40 + Math.random() * 120; c.fillStyle = i % 4 === 0 ? '#5E8A5A' : '#B8C4D4'; if (i % 4 === 0) { c.beginPath(); c.ellipse(x + 30, h - 50, 50, 60, 0, 0, TAU); c.fill(); } else c.fillRect(x, h - bh, 50, bh); }
+  c.fillStyle = '#6A7080'; for (let x = 0; x < w; x += 256) c.fillRect(x, 0, 6, h); c.fillStyle = '#4A505C'; c.fillRect(0, h - 20, w, 20); });
+outTex.wrapS = THREE.RepeatWrapping;
+makeArea('train', { place: 'JR中央本線　春日井 → 神領', bounds: [-6, 6, -1, 1], spawn: [1.0, 0.55], spawnFace: Math.PI, cam: [0, 6, 6], music: 'train', bg: 0x3A4250, fog: null, light: 0.95,
+  build(a) { const g = a.g;
+    block(14, 0.2, 3.4, 0x6A6E78, 0, -0.1, 0, g); block(14, 0.2, 3.4, 0xE8EAEE, 0, 2.6, 0, g); block(14, 2.6, 0.1, 0xD8DCE2, 0, 1.3, -1.75, g);
+    block(14, 0.9, 0.1, 0xD8DCE2, 0, 0.45, 1.75, g);
+    const win = plane(13.6, 1.1, outTex, 0, 1.6, -1.69, g, { fog: false }); win.material.map.repeat.set(0.6, 1); a.win = win.material.map;
+    for (const z of [-1.3, 1.3]) { block(10, 0.45, 0.7, 0x4A6A9A, 0, 0.35, z, g); block(10, 0.5, 0.12, 0x4A6A9A, 0, 0.75, z + (z < 0 ? -0.32 : 0.32), g); }
+    for (const x of [-5.5, -2, 2, 5.5]) part(cyl(0.03, 0.03, 2.6, 8), 0xC8CCD4, x, 1.3, 0, g, { outline: false });
+    for (let x = -5; x <= 5; x += 1) { part(cyl(0.01, 0.01, 0.3, 4), 0xE8E8E8, x, 2.3, 0.5, g, { outline: false }); part(G_('strap', () => new THREE.TorusGeometry(0.06, 0.012, 6, 12)), 0xE8E8E8, x, 2.1, 0.5, g, { outline: false }); }
+    const ex = npc(a, 'exec', mk('exec'), 1.0, -1.15, 0); ex.st.sit = true; a.exec = ex;
+    const yg = npc(a, 'young', mk('young'), 1.85, -1.15, -0.2); yg.st.sit = true; a.young = yg;
+    const el = npc(a, 'e1', mk('elf2'), -2.5, 1.15, Math.PI); el.st.sit = true;
+    const bd = makeBird({ coat: 0x5A3A2A, vest: 0xE06A2A, helmet: 0xE8E8E8 }); const bn = npc(a, 'bun2', bd, -4.2, 0.3, Math.PI * 0.6); void bn;
+    const s1 = npc(a, 'e2', mk('sal2'), -1.0, 1.15, Math.PI); s1.st.sit = true; },
+  tick(a, dt) { if (a.win) a.win.offset.x = (a.win.offset.x + dt * 0.35) % 1; }
+});
+
+// ================= 未完画廊 =================
+function artTex(seed, kind) { return canvasTex(256, 320, (c, w, h) => { let s = seed; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  c.fillStyle = kind === 2 ? '#1E1E24' : '#F6F4EE'; c.fillRect(0, 0, w, h);
+  if (kind === 0) { for (let i = 0; i < 300; i++) { c.fillStyle = `hsla(${200 + r() * 160},40%,${40 + r() * 40}%,.8)`; c.beginPath(); c.arc(w / 2 + (r() - 0.5) * 160 * r(), h * 0.45 + (r() - 0.5) * 220 * r(), 3 + r() * 5, 0, TAU); c.fill(); } }
+  if (kind === 1) { for (let i = 0; i < 6; i++) { c.fillStyle = `hsla(${r() * 360},30%,${50 + r() * 30}%,.9)`; c.fillRect(r() * w * 0.6, r() * h * 0.7, 40 + r() * 120, 40 + r() * 140); } c.strokeStyle = '#2A2A30'; c.lineWidth = 3; c.beginPath(); c.arc(w / 2, h / 2, 60, 0, TAU); c.stroke(); }
+  if (kind === 2) { c.fillStyle = '#F6F4EE'; for (let i = 0; i < 18; i++) { const x = 20 + (i % 6) * 38, y = 30 + (i / 6 | 0) * 90; c.beginPath(); c.arc(x + 14, y + 20, 14, 0, TAU); c.fill(); c.fillRect(x + 4, y + 36, 20, 30); } c.fillStyle = '#C8323C'; c.fillRect(20 + 5 * 38 + 4, 30 + 2 * 90 + 36, 20, 30); } }); }
+function frameArt(a, x, z, ry, tex, label) { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; a.g.add(g);
+  block(1.9, 2.3, 0.08, 0xC8B080, 0, 2.1, 0, g); plane(1.6, 2.0, tex, 0, 2.1, 0.05, g); plane(0.7, 0.24, signTex(280, 96, [{ t: label, size: 26 }], { bg: '#FFFFFF' }), 1.35, 1.2, 0.03, g);
+  const sp = glowSprite(0xFFF4D8, 2.4, 0.35); sp.position.set(0, 3.6, 0.5); g.add(sp); }
+const MEM = [
+  { t: '七歳。高蔵寺の緑地', d: '姉の自転車の後ろ。風が強くて、姉の背中に顔をうずめていた。', c: '#7FB88A' },
+  { t: '十九歳。蒼生の病院の廊下', d: '姉の病名を聞いた日。待合室の自販機で、二人分のお茶を買った。', c: '#8AA8D8' },
+  { t: '二十三歳。入社式', d: '静州商事。名札の向きを、三回直した。', c: '#D8C08A' },
+  { t: '二十四歳。会食の招待状', d: '差出人は画廊のドーセント。返事の文面を、十一回書き直した。', c: '#D89AA8' },
+  { t: '三日前。白い扉の前', d: '「ここで、待っていてください」。額装一式を抱えたまま、彼は頷いた。', c: '#E8E8E8' },
+  { t: '――未完', d: '最後の一枚は、まだ描かれていない。', c: '#C8323C' },
+];
+function memTex(m) { return canvasTex(320, 220, (c, w, h) => { const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, m.c); g.addColorStop(1, '#F6F4EE'); c.fillStyle = g; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(20,26,40,.82)'; c.fillRect(0, h - 64, w, 64);
+  c.fillStyle = '#FFFFFF'; c.font = `800 22px ${MINCHO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; fitText(c, m.t, w / 2, h - 32, w - 30); c.globalAlpha = 0.5; c.fillStyle = '#141A28'; c.beginPath(); c.arc(w / 2, h / 2 - 30, 34, 0, TAU); c.fill(); c.fillRect(w / 2 - 26, h / 2 + 2, 52, 40); c.globalAlpha = 1; }); }
+makeArea('gallery', { place: '神領　未完画廊・点景派画廊', bounds: [-12, 12, -14, 9], spawn: [0, 8.0], spawnFace: Math.PI, cam: [0, 10, 9], music: 'gallery', bg: 0x2A2C34, fog: null, light: 0.72, sun: 0.35,
+  build(a) { const g = a.g;
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(26, 25), new THREE.MeshPhongMaterial({ color: 0xCAC6BC, shininess: 40 })); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0, -2.5); g.add(fl);
+    const W = 0xE6E5E0; block(0.3, 4.5, 25, W, -12.3, 2.25, -2.5, g); block(0.3, 4.5, 25, W, 12.3, 2.25, -2.5, g); block(26, 4.5, 0.3, W, 0, 2.25, -14.3, g);
+    block(10, 0.6, 0.3, W, -7.2, 0.3, 9.3, g); block(10, 0.6, 0.3, W, 7.2, 0.3, 9.3, g); block(4.4, 0.04, 1.2, 0x8AA0B8, 0, 0.02, 9.2, g);
+    for (const [x0, x1] of [[-12, -2.2], [2.2, 12]]) { const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2; block(hw * 2, 1.5, 0.3, W, cx, 0.75, -5, g); a.obs.push({ x: cx, z: -5, hx: hw, hz: 0.25, tall: true }); }
+    plane(4, 0.64, signTex(800, 128, [{ t: '未完画廊　点景派', size: 64, f: MINCHO, w: 800 }], { bg: '#F6F6F3', fg: '#2A2A30' }), 0, 1.0, -4.83, g);
+    // 受付
+    block(3.2, 1.1, 0.8, 0xFFFFFF, -6, 0.55, 6.4, g); a.obs.push({ x: -6, z: 6.4, hx: 1.6, hz: 0.45 }); const rc = npc(a, 'stuC', mk('stuC'), -6, 7.4, Math.PI); rc.lookAt = 'P';
+    // 作品
+    frameArt(a, -11.9, -1.5, Math.PI / 2, artTex(7, 0), 'No.3　点景派'); frameArt(a, -11.9, 3.5, Math.PI / 2, artTex(19, 1), 'No.5　肉相派（寄託）'); frameArt(a, 11.9, 4, -Math.PI / 2, artTex(31, 2), 'No.6　点景派');
+    
+    // 収蔵庫の扉
+    block(0.12, 2.6, 1.6, 0xD8D0C8, 12.12, 1.3, -2.8, g); plane(1.4, 0.36, signTex(280, 72, [{ t: '関係者以外立入禁止', size: 28, w: 900 }], { bg: '#C8323C', fg: '#FFFFFF' }), 12.04, 2.9, -2.8, g, { ry: -Math.PI / 2 });
+    // 第七番の展示室
+    block(1.6, 1.0, 1.0, 0xFFFFFF, 0, 0.5, -10, g); a.obs.push({ x: 0, z: -10, hx: 0.85, hz: 0.55 });
+    const glass = new THREE.Mesh(box(1.5, 0.7, 0.9), new THREE.MeshPhongMaterial({ color: 0xDDEEFF, transparent: true, opacity: 0.25, shininess: 100 })); glass.position.set(0, 1.35, -10); g.add(glass);
+    block(0.36, 0.22, 0.02, 0x2A4A8A, -0.2, 1.06, -10, g, { ry: 0.2 }); block(0.14, 0.26, 0.02, 0x1A1E28, 0.3, 1.06, -9.9, g);
+    a.panels = []; MEM.forEach((m, i) => { const ang = -1.1 + i * 0.44, px = Math.sin(ang) * 4.3, pz = -10 - Math.cos(ang) * 3.0 + 0.6; const p = plane(1.6, 1.1, memTex(m), px, 2.3, pz, g, { double: true, transparent: true, opacity: i === 5 ? 0.55 : 0.92 }); p.lookAt(0, 2.3, -6.5); p.userData.y0 = 2.3; p.userData.i = i; a.panels.push(p);
+      addItem(a, { id: 'mem' + i, x: px * 0.85, z: pz + 1.2, y: 3.4, label: '記憶の断片を見る', on: () => evMem(i) }); });
+    for (let i = 0; i < 5; i++) { const s = glowSprite(0xFFFFFF, 3, 0.25); s.position.set(-4 + i * 2, 4.2, -10); g.add(s); }
+    block(0.9, 1.1, 0.4, 0xF0EEE8, 3.0, 0.55, -6.0, g); plane(0.8, 0.5, signTex(320, 200, [{ t: '未完の人間　第七番', size: 30, f: MINCHO, w: 800 }, { t: '「湊」', size: 36, f: MINCHO, w: 800 }, { t: '点景派　指導：ルシエンヌ', size: 18 }], { bg: '#FFFFFF' }), 3.0, 1.2, -5.79, g, { rx: -0.4 });
+    a.obs.push({ x: 3.0, z: -6.0, hx: 0.5, hz: 0.25 });
+    // 人物
+    const lu = npc(a, 'luc', mk('luc'), -2.4, -7.4, Math.PI * 0.85); a.luc = lu; lu.lookAt = 'P';
+    const sb2 = npc(a, 'stuB', mk('stuB'), 6, 1.6, Math.PI / 2 + 0.6); sb2.st.cross = true; void sb2;
+    const pt = npc(a, 'patron', mk('patron'), -3, 11, Math.PI); pt.hidden = true; a.patron = pt;
+    addItem(a, { id: 'recep', x: -6, z: 5.4, label: '受付で名乗る', col: 0xE3B428, on: evRecep });
+    addItem(a, { id: 'art3', x: -10.6, z: -1.5, label: '作品を見る', on: () => evArt(0) }); addItem(a, { id: 'art5', x: -10.6, z: 3.5, label: '作品を見る', on: () => evArt(1) }); addItem(a, { id: 'art6', x: 10.6, z: 4, label: '作品を見る', on: () => evArt(2) });
+    addItem(a, { id: 'stuB', x: 6, z: 2.6, label: '話す', col: 0xE3B428, on: evStuB });
+    addItem(a, { id: 'caption', x: 3.0, z: -5.0, label: '解説板を読む', on: evCaption });
+    addItem(a, { id: 'case', x: 0, z: -8.9, label: 'ガラスケースを見る', on: evCase });
+    addItem(a, { id: 'lucT', x: -2.4, z: -6.4, label: '話す', col: 0xE3B428, avail: () => !S.flags.lucTalk && S.flags.recep, on: evLuc, dyn: a.luc });
+    addItem(a, { id: 'toArch', x: 11.3, z: -2.8, label: '白い扉を開ける', col: 0xC8323C, avail: () => S.flags.lucTalk && !S.flags.archDone, on: () => goArchive() });
+    addItem(a, { id: 'toEnd', x: 0, z: 7.6, label: '画廊を出る', col: 0xC8323C, avail: () => !!S.flags.archDone && !S.flags.climax, on: () => evClimax() }); },
+  tick(a, dt) { if (a.panels) a.panels.forEach(p => { p.position.y = p.userData.y0 + Math.sin(T.now * 0.8 + p.userData.i) * 0.08; }); }
+});
+
+// ================= 収蔵庫（潜入） =================
+function makeCone(R, half, col) { const m = new THREE.Mesh(new THREE.CircleGeometry(R, 28, -Math.PI / 2 - half, half * 2), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.22, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = 0.05; return m; }
+const DOCS = {
+  d1: { name: '提供契約書（写し）', body: '提供者：早瀬 湊／承諾者：静州商事株式会社 事業管理部長 権藤。本人の署名欄は、空白のまま受理印が押されている。' },
+  d2: { name: '行政確認書', body: '春日井市 異種族協働課「人間代表確認：済」。確認者の欄は判読できない。人間側の役所が、この提供を認めたことになっている。' },
+  d3: { name: '収蔵目録', body: '第七番「湊」素材状態：保護地区Ｃ棟にて制作継続。搬入物：額装一式（静州商事）。早瀬は生きていて、保護地区のＣ棟にいる。' },
+  d4: { name: '早瀬のメモ', body: '「姉さんへ。俺はちゃんと働いてるよ。……誰か、これを読んだら、会社には言わないでください。姉の治療が止まるので」' },
+};
+makeArea('archive', { place: '未完画廊　収蔵庫', bounds: [-10, 10, -9, 9], spawn: [8.6, 0], spawnFace: -Math.PI / 2, cam: [0, 12, 7.5], music: 'stealth', bg: 0x0C0E16, fog: null, light: 0.42, sun: 0.18, stealth: true,
+  build(a) { const g = a.g;
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(21, 19), new THREE.MeshLambertMaterial({ color: 0x3E4050 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (const [w, d, x, z] of [[21, 0.3, 0, -9.3], [21, 0.3, 0, 9.3], [0.3, 19, -10.3, 0], [0.3, 19, 10.3, 0]]) block(w, 3.2, d, 0x2A2C38, x, 1.6, z, g);
+    block(0.1, 2.4, 1.4, 0xD8D0C8, 10.12, 1.2, 0, g);
+    for (const x of [-6, -2, 2, 6]) for (const zc of [-4.15, 4.15]) { block(0.9, 2.6, 5.7, 0x4A3E34, x, 1.3, zc, g); for (let k = 0; k < 7; k++) for (const lv of [0.5, 1.3, 2.1]) if (Math.random() < 0.8) block(0.6, 0.5, 0.6, pick([0xD8D0C0, 0xC8B8A0, 0xE8E4DC, 0xB8A890]), x, lv + 0.25, zc - 2.4 + k * 0.8, g);
+      a.obs.push({ x, z: zc, hx: 0.48, hz: 2.88, tall: true }); }
+    for (const [x, z] of [[-9.3, -5], [-9.3, 5], [0, -8.6]]) { block(1.1, 0.8, 0.9, 0x5A4A3A, x, 0.4, z, g); const lamp = glowSprite(0xFFD890, 2.2, 0.6); lamp.position.set(x, 1.3, z); g.add(lamp); block(0.4, 0.02, 0.3, 0xF4F2EA, x, 0.82, z, g); a.obs.push({ x, z, hx: 0.6, hz: 0.5 }); }
+    block(1.0, 0.7, 0.8, 0x8A7050, 4, 0.35, 4.3, g); a.obs.push({ x: 4, z: 4.3, hx: 0.5, hz: 0.4 });
+    for (let i = 0; i < 6; i++) { const s = glowSprite(0x8890B0, 4, 0.12); s.position.set(-8 + i * 3.2, 3, 0); g.add(s); }
+    // 見回り
+    a.watch = [];
+    const w1 = npc(a, 'stu', mk('stuA'), 5, 0, -Math.PI / 2, { path: [[5, 0, 1.6], [-5, 0, 1.6]], speed: 1.35 }); const w2 = npc(a, 'stu2', mk('stuB'), 8.3, 8.2, 0, { path: [[8.3, 8.2, 0.8], [-8.3, 8.2, 1.0], [-8.3, -8.2, 0.8], [8.3, -8.2, 1.0]], speed: 1.55 });
+    for (const w of [w1, w2]) { w.cone = makeCone(6.2, 0.5, 0xFFE9A0); w.model.root.add(w.cone); const lt = glowSprite(0xFFF0C0, 1.2, 0.8); lt.position.set(0.3, 1.1, 0.5); w.model.root.add(lt); a.watch.push(w); }
+    a.det = 0;
+    addItem(a, { id: 'd1', x: -8.6, z: -5, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evDoc('d1') });
+    addItem(a, { id: 'd2', x: 0, z: -7.9, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evDoc('d2') });
+    addItem(a, { id: 'd3', x: -8.6, z: 5, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evDoc('d3') });
+    addItem(a, { id: 'd4', x: 4, z: 3.6, label: '木箱を調べる', on: () => evNote() });
+    addItem(a, { id: 'out', x: 9.4, z: 0, label: '収蔵庫を出る', col: 0xC8323C, once: false, on: () => evArchOut() }); },
+  tick(a, dt) { if (G.busy) return; let seen = false;
+    for (const w of a.watch) { if (w.wait > 0) w.facing += Math.sin(T.now * 1.4 + w.pi) * dt * 1.3;
+      const dx = P.pos.x - w.pos.x, dz = P.pos.z - w.pos.z, d = Math.hypot(dx, dz); if (d < 1.1) { seen = true; a.det += dt * 2; continue; }
+      if (d < 6.2) { const ang = ((Math.atan2(dx, dz) - w.facing + Math.PI) % TAU + TAU) % TAU - Math.PI; if (Math.abs(ang) < 0.5 && los(w.pos.x, w.pos.z, P.pos.x, P.pos.z)) { seen = true; a.det += dt * (1.7 - d / 6.2) * (P.st.run ? 1.6 : 1) * 0.9; w.cone.material.color.setHex(0xFF6A5A); } else w.cone.material.color.setHex(0xFFE9A0); } else w.cone.material.color.setHex(0xFFE9A0); }
+    if (!seen) a.det = Math.max(0, a.det - dt * 0.3); a.det = Math.min(1, a.det);
+    $('detV').textContent = Math.round(a.det * 100); $('detF').style.width = a.det * 100 + '%';
+    if (a.det >= 1) { a.det = 0; caught(); } }
+});
+
+// ================= 神領駅のホーム（終幕） =================
+makeArea('platform', { place: '神領駅　下りホーム　午後8時40分', bounds: [-8, 8, -1.5, 1.5], spawn: [0, 0.4], spawnFace: Math.PI, cam: [0, 5, 7], music: 'night', bg: 0x0C1220, fog: [30, 90], light: 0.5, sun: 0.15,
+  build(a) { const g = a.g;
+    block(30, 1, 4, 0x6A6E78, 0, -0.5, 0, g); block(30, 0.02, 0.3, 0xF2D040, 0, 0.01, -1.6, g); const tr = new THREE.Mesh(new THREE.PlaneGeometry(200, 8), new THREE.MeshLambertMaterial({ color: 0x2A2C30 })); tr.rotation.x = -Math.PI / 2; tr.position.set(0, -1.1, -6); g.add(tr);
+    for (const x of [-6, 0, 6]) { block(0.15, 3.2, 0.15, 0x3A4050, x, 1.6, 1.4, g); block(2.4, 0.1, 1.2, 0x3A4050, x, 3.2, 0.9, g); const l = glowSprite(0xFFF0D0, 2.4, 0.7); l.position.set(x, 3.0, 0.9); g.add(l); }
+    block(2.4, 0.4, 0.6, 0x5A6A8A, 3, 0.45, 1.3, g); plane(2.6, 0.8, signTex(520, 160, [{ t: '神領', size: 70, f: MINCHO, w: 800 }, { t: 'JINRYO', size: 28 }], { bg: '#F4F6FA', border: '#1E3A6A' }), -3, 2.2, 1.45, g, { ry: Math.PI });
+    for (let i = 0; i < 24; i++) tower(g, -70 + i * 6 + rand(-1, 1), -26 - rand(0, 20), rand(5, 9), rand(10, 40), rand(5, 8), 0x8090B0, 1);
+    a.trainLight = glowSprite(0xFFF8E0, 6, 0); a.trainLight.position.set(-60, 1.5, -5); g.add(a.trainLight); }
+});
+
+// ================= 第一章の台本 =================
+const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
+let stationT = 0;
+
+// ---- 序：春日井駅前 ----
+async function prologue() {
+  G.mode = 'cine'; await goArea('station'); cine(0, 3.2, -4, -8.5, 6.5, -11);
+  await card('第一章　微笑む課長', '春日井　午前八時十二分', 2600);
+  await narr('人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。');
+  await narr('病院へ行けば助かり、仕事へ行けば給料が出て、家へ帰れば明かりが点く。\nその暮らしを支えているのは、彼女たちと、文鳥たちの文明だ。');
+  cine(2, 2.4, -4.5, 0, 1.4, -8.6);
+  await narr('静州商事株式会社、事業管理部課長。久世躁一郎、四十五歳。');
+  await say('asai', '久世さん、おはようございます。今日も早いですね。');
+  await say('kuze', 'おはようございます、浅井くん。……すみません、電車が一本早かったもので。');
+  G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; $('hint').hidden = false; setTimeout(() => { $('hint').hidden = true; }, 9000);
+  setObj('駅前を抜けて、会社へ向かう（気になるものは調べてもよい）'); stationT = 0;
+}
+async function evAd() { markI('ad'); cine(-5, 2.2, -5, -8.5, 6.4, -11);
+  await narr('駅前の大きな画面に、陽盾警備保障の広告が流れていた。白い髪に黄色の差し色。こちらへ笑いかける女が、指を二本立てている。');
+  await say('ad', '今日も、全員無事に帰ろーね！');
+  await say('asai', 'やっぱり、あの人がいると安心ですよね。');
+  const c = await choose([{ t: '「……ええ。そうですね。」', k: '表' }, { t: '「安心、ですか。」', k: '本音', cover: -4 }]);
+  if (c === 0) await say('kuze', '……ええ。そうですね。');
+  else { await say('kuze', '安心、ですか。'); await say('asai', 'え？　……久世さん、たまに難しい顔しますよね。'); await say('kuze', 'すみません。寝不足で。'); }
+  await ura('あの女がいると安心する。それは、分かっている。', '……では、あの女がいなくても生きられる国は、どこへ行った。');
+  addNote('yuria_ad', '陽盾の広告', '外神竜一族の長女ユリア。陽盾警備保障の顔。街の人間は彼女を「安心」と呼ぶ。'); }
+async function evTicker() { markI('ticker'); cine(5, 2.4, -5, 7.5, 4.4, -11);
+  await narr('駅舎の電光掲示に、二つの見出しが流れていく。');
+  await narr('【速報】断偽文鳥門、B.U.N からの独立を改めて宣言　門主メス・ゼロ「偽りを断つ」\n【天環】界域協定の次期改定、来春にも閣議へ');
+  await ura('界域協定。……来春か。', '改定されれば、人間の拒否権は、書類の上からも消える。');
+  addNote('kaiiki', '界域協定の改定', '異種族と文鳥文明が日本へ関わる権限を定めた協定。次期改定は来春にも閣議へ。'); }
+async function evBird() { markI('bird'); cine(7, 2.4, 1.5, 3.8, 1.4, 5.5);
+  await narr('横断歩道の手前で、作業着を着た大きな文鳥が、老人の荷物を持っていた。');
+  await say('old', 'ありがとうねえ、ほんとに。腰がもう、言うこと聞かなくて。');
+  await say('bun', 'チ……いえ。仕事ですので。赤嶺の現場、すぐそこなんで。');
+  await say('asai', 'いい街になりましたよね。');
+  const c = await choose([{ t: '「ええ。」と笑う', k: '表' }, { t: '（文鳥の作業着の社章を、目で読む）', k: '観察', cold: 1 }]);
+  if (c === 0) { await say('kuze', 'ええ。'); }
+  else { await narr('胸の社章は、赤嶺重工の下請け。袖口には、更生文鳥の就労番号が縫い付けてあった。'); addNote('kousei', '更生文鳥の就労番号', '赤嶺重工の下請けで働く文鳥。袖に更生プログラムの番号。かつての侵略者が、いまは老人の荷物を持つ。'); }
+  await ura('善い隣人だ。……善い隣人であることと、この国を決める権利は、別の話だ。'); }
+async function evMap() { markI('map'); await narr('天環グループ　春日井事業所のご案内。陽盾、赤嶺、千路、蒼生、正律。駅前の大きな建物の名前は、ほとんどがこの案内板に載っている。');
+  await ura('この駅前で、天環と取引のない会社を探すほうが難しい。……静州商事も、その一つだ。');
+  addNote('tenkan', '天環グループ', 'テルエスを大元とする企業集団。陽盾（警備）、赤嶺（重工）、千路（物流）、蒼生（医療）、正律（法務）など。'); }
+async function evAsai() { const L = ['今日の会議、権藤さん絶対ピリピリしてますよ。画廊さんの件で。', '早瀬、まだ連絡つかないらしいです。風邪ならいいんですけど。', '駅前、また新しいビル建つんですって。赤嶺さんが。'];
+  const i = (S.flags.asaiN || 0) % L.length; S.flags.asaiN = (S.flags.asaiN || 0) + 1; await say('asai', L[i]); if (i === 1) await say('kuze', '……そうですね。心配です。'); }
+async function evPhone() { S.flags.phone = true; const a = AREAS.station; a.asai.follow = false; cine(P.pos.x + 2.5, 2.2, P.pos.z + 3.2, P.pos.x, 1.4, P.pos.z);
+  P.st.phone = true; await phoneMsg('非通知', '――神領の展示。\n提供者の氏名を確認されたし。', '08:16');
+  await say('kuze', 'すみません、浅井くん。先に行っていてください。取引先へ一本、電話をしないと。');
+  await say('asai', 'あ、はい。遅れないでくださいね。権藤さん、今日ほんとにピリピリしてるんで。');
+  walkTo(a.asai, 13, 4.2, 2.2).then(() => { a.asai.hidden = true; });
+  await ura('微笑みを残したまま、画面を閉じろ。', '提供者。……神領の、未完画廊か。');
+  P.st.phone = false; addNote('order1', '留保室からの指示', '「神領の展示。提供者の氏名を確認されたし」。発信元は表示されない。'); setObj('静州商事ビルへ向かう（駅前の右手、道路沿い）'); }
+
+// ---- 静州商事 ----
+async function goOffice() { G.mode = 'cine'; await goArea('office'); await card('静州商事株式会社', '事業管理部　十四階', 1800); G.mode = 'play';
+  setObj('権藤部長と話す'); await say('gondo', '久世くん！　ちょっと、ちょっと。'); }
+async function evGondo() { S.flags.gondo = true; const gd = AREAS.office.gondo; cine(3, 2.6, -1.2, 0, 1.5, -3.6);
+  await say('gondo', '未完画廊さんから電話だ。今日納めるはずの展示品が、届いてないって。');
+  await say('kuze', '額装一式の件ですね。担当は、早瀬くんでした。');
+  await say('gondo', 'その早瀬が、三日前から連絡がつかん。……向こうは違約金の話まで出してきてる。天環の画廊だぞ。取引停止になったら、うちの部は終わりだ。');
+  const c = await choose([{ t: '「申し訳ありません。私の確認が足りませんでした。」', k: '表', cover: 4 }, { t: '「早瀬くんの安否の確認が、先ではありませんか。」', k: '温情', warm: 1 }, { t: '「契約書を、確認させてください。」', k: '観察', cold: 1 }]);
+  if (c === 0) { await say('kuze', '申し訳ありません。私の確認が足りませんでした。'); await say('gondo', 'いや……君が謝ることじゃないんだが。とにかく、穏便に頼む。'); }
+  if (c === 1) { await say('kuze', '早瀬くんの安否の確認が、先ではありませんか。'); gd.model.nod = 0.8; await say('gondo', '……それは、そうだが。そうなんだがな、久世くん。順番ってものがあるだろう。'); }
+  if (c === 2) { await say('kuze', '契約書を、確認させてください。'); await say('gondo', '棚の奥だ。……読んで面白いもんじゃないぞ。'); }
+  await say('gondo', '今日、神領の画廊へ行ってくれ。向こうのドーセントの……ルシエンヌさんが、会ってくださるそうだ。');
+  await say('gondo', '君は物腰が柔らかいからな。とにかく、穏便に。な？');
+  await say('kuze', 'はい。行ってまいります。');
+  await ura('穏便に。……この男は、何を差し出したのか、分かっているのか。');
+  setObj('早瀬の机、配送記録、契約書を確かめて、神領へ向かう'); }
+async function evHDesk() { markI('hdesk'); cine(-4, 2.6, 1.8, -4, 0.9, -1.2);
+  await narr('早瀬湊の机は、きれいに片付いていた。卓上カレンダーの、三日前の日付に、小さな字。');
+  await narr('「神領 18:00　L様　ご面談（提供者登録？）」');
+  await narr('写真立てには、高蔵寺の緑地で撮った写真。自転車の横で、姉らしい女性と、少年の早瀬が笑っている。');
+  await ura('提供者。……今朝の連絡と、同じ言葉だ。');
+  addNote('hdesk', '早瀬の机の予定', '三日前「神領 18:00 L様 ご面談（提供者登録？）」。L様＝ルシエンヌか。姉と写った写真がある。'); }
+async function evTerm() { markI('term'); cine(6.2, 2.6, -2.2, 7.6, 1.2, -4.8);
+  await narr('千路ロジスティクス　配送照会\n品名：額装一式（展示用）　状態：配達完了\n受領先：未完画廊 点景派 収蔵庫　受領署名：早瀬 湊');
+  await say('kuze', '……届いていない、はずの品が、配達完了になっている。');
+  await ura('早瀬は自分で運んだ。そして、帰ってこなかった。');
+  addNote('term', '配送記録', '額装一式は三日前に「配達完了」。受領先は未完画廊の収蔵庫。署名は早瀬本人。', true); }
+async function evCab() { markI('cab'); cine(-5.6, 2.6, -2.4, -7.8, 1.0, -5.1);
+  await narr('業務委託契約書（静州商事 × 未完画廊）　第十四条');
+  await narr('「乙は、甲の制作に必要な場合、提供物に付随する役務及び制作協力者を提供する。制作協力者の同意は、乙の承諾をもってこれに代える。」');
+  await say('kuze', '……本人の同意を、会社の承諾で、代える。');
+  await ura('お前の会社が、早瀬を差し出した。書類の上では、とうの昔に。');
+  const c = await choose([{ t: '携帯で撮影しておく', k: '裏声', cold: 1, cover: -2 }, { t: '条文を頭に入れて、棚を閉める', k: '表' }]);
+  if (c === 0) { sfx('shutter'); addNote('art14', '契約書 第十四条', '「制作協力者の同意は、乙（静州商事）の承諾をもってこれに代える」。本人の意思が、会社の判子にすり替わる条項。', true); }
+  else addNote('art14m', '契約書 第十四条（記憶）', '「制作協力者の同意は、乙の承諾をもってこれに代える」。撮影はしなかった。'); }
+async function evOno() { markI('ono'); const on = AREAS.office.onodera; on.st.sit = false; cine(5.8, 2.4, 1.4, 4, 1.3, -0.6);
+  await say('onodera', '久世さん……。早瀬くんのこと、ですよね。');
+  await say('onodera', '先週、画廊の人に会食に誘われたって。断れないって、笑ってました。あの子、お姉さんの治療費、蒼生さんの病院に払ってるから……。');
+  const c = await choose([{ t: '「教えてくれて、ありがとうございます。」', k: '温情', warm: 1 }, { t: '「その会食、誰からの誘いでしたか。」', k: '観察', cold: 1 }]);
+  if (c === 0) { await say('kuze', '教えてくれて、ありがとうございます。……小野寺さんは、何も心配しなくていいですから。'); await say('onodera', '……はい。'); }
+  else { await say('kuze', 'その会食、誰からの誘いでしたか。'); await say('onodera', 'ドーセントの、ルシエンヌさんって……。名刺、見せてもらったので。'); }
+  await ura('姉の治療を、異種族の病院に頼っている。……渉と、同じだ。');
+  on.st.sit = true; addNote('ono', '小野寺の証言', '早瀬は先週、画廊のドーセント（ルシエンヌ）に会食へ誘われていた。姉の治療費を蒼生の病院へ払っている。'); }
+async function evOwn() { markI('own'); await narr('自分の机。書類の山の端に、小さな写真立て。病院の中庭で、弟の渉が、点滴の管をつけたまま笑っている。');
+  await ura('渉を救ったのは、蒼生の医療だ。……忘れてはいない。'); }
+async function evCoffee() { markI('coffee'); await narr('給湯室のコーヒーは、千路の配送で毎朝届く。紙コップの底に、天環のロゴ。'); await say('kuze', '……ごちそうさまです。'); }
+
+// ---- 中央線 ----
+async function goTrain() { G.mode = 'cine'; await goArea('train'); const a = AREAS.train; P.facing = Math.PI;
+  cine(4.6, 1.9, 2.4, 0.8, 1.1, -0.6); await card('JR中央本線', '春日井 → 神領', 1800);
+  await narr('車内には、人間の会社員と、華やかな異種族と、作業着の文鳥が、同じ吊り革を握っていた。');
+  cine(2.8, 1.5, 1.2, 1.4, 1.0, -1.1);
+  await say('exec', 'ねえ。今夜の会食、来るよね？　君の会社の部長さんには、もう話を通してあるの。');
+  await say('young', 'あ、あの……今夜は、母の……。');
+  a.exec.pos.x = 1.25; await say('exec', '来るよね？');
+  await narr('若い社員の膝の上で、指先が白くなっている。周りの乗客は、誰も顔を上げない。');
+  cine(3.4, 1.9, 2.0, 1.0, 1.4, 0.2);
+  const c = await choose([{ t: '「失礼。天環の方でいらっしゃいますか。静州商事の久世と申します。」', k: '温情', warm: 1, cover: -6 }, { t: '黙って、窓の外を見る', k: '裏声', cold: 1 }]);
+  if (c === 0) { S.flags.helped = true;
+    await say('kuze', '失礼します。天環の方でいらっしゃいますか。静州商事の久世と申します。……今夜の会食の件、こちらの方の部長さんにも、私から確認を入れておきましょうか。');
+    await say('exec', '……は？　あなた、誰の許可で口を出してるの。'); await say('kuze', 'すみません。差し出がましいことを。ただ、陽盾さんの相談窓口が、最近こういった件に厳しいと聞いたもので。');
+    await say('exec', '……興が冷めた。'); a.exec.hidden = true; await narr('役員は次の駅で降りていった。若い社員が、小さく頭を下げた。');
+    await say('young', 'あの……ありがとうございます。'); await say('kuze', 'いえ。……これ、陽盾の窓口の番号です。何かあったら。');
+    await ura('目立ったな。お前の顔は、今日一日、あの女の記憶に残る。'); }
+  else { await narr('窓の外を、高蔵寺の緑が流れていく。'); await ura('目立つな。お前の仕事は、神領にある。'); a.exec.hidden = true; a.young.hidden = true; await narr('若い社員は、次の駅で、役員と一緒に降りていった。'); await say('kuze', '……。'); S.flags.ignored = true; }
+  await narr('携帯の画面に、陽盾の相談窓口の番号が残っている。早瀬の件を、ここへ入れることもできる。');
+  const r = await choose([{ t: '早瀬の件を、陽盾の窓口へ匿名で知らせておく', k: '温情', warm: 1 }, { t: '敵の手は借りない。自分で確かめる', k: '裏声', cold: 1 }]);
+  if (r === 0) { S.flags.report = true; await ura('外神竜に、助けを求めるのか。', '……早瀬は、外神竜の主権の話なんかより、今日、家に帰れるかどうかだ。'); toast('陽盾相談窓口へ匿名で通報した'); }
+  else { await ura('それでいい。借りを作れば、決める権利まで持っていかれる。'); }
+  await goGallery(); }
+
+// ---- 未完画廊 ----
+async function goGallery() { G.mode = 'cine'; await goArea('gallery'); await card('神領', '未完画廊　点景派画廊', 1800); G.mode = 'play'; G.cine = null;
+  setObj('受付で名乗り、ドーセントのルシエンヌに会う'); }
+async function evRecep() { S.flags.recep = true; cine(-3.6, 2.4, 3.8, -6, 1.6, 7);
+  await say('stu', 'ようこそ、未完画廊へ。ご来館の目的を、作品名でお答えください。');
+  await say('kuze', '静州商事の久世と申します。ルシエンヌ様と、お約束をいただいております。');
+  await say('stu', '……取引先の方。では、どうぞ。順路は左回りです。');
+  await say('stu', '作品には触れないでください。触れた方は、作品の一部として扱います。');
+  await ura('冗談の顔をしていない。');
+  setObj('第七番の展示室で、ルシエンヌと話す（作品も見ておける）'); }
+const ARTS = [
+  ['No.3「駅前の挨拶、三百回」点景派', '同じ人間の同じ笑顔を、三百日分切り取って並べた作品。評価：Ａ−。講評「三百一回目の不在が、最も美しい」。'],
+  ['No.5「重さの試作」肉相派（寄託）', '色の塊が、人の輪郭のように積まれている。解説には「素材の同意：所属学徒の課題として取得」とある。'],
+  ['No.6「十八人と、一人」点景派', '十八の人影のうち、一つだけが赤い。キャプション「選ばれた点景」。'] ];
+async function evArt(i) { markI('art' + i); await narr(ARTS[i][0] + '\n' + ARTS[i][1]); if (i === 1) await ura('同意。……ここでは、その言葉が、絵の具と同じ扱いだ。'); if (i === 0) addNote('tenkei', '点景派', '人生の小さな場面や記憶を切り取り、作品の素材にする流派。他人の生活を構成要素として扱う。'); }
+async function evStuB() { markI('stuB'); await say('stu', '……話しかけないでください。講評の前なんです。'); await say('stu', '今週、提出できなければ、保護地区から出されるので。……すみません。');
+  addNote('hogo', '保護地区', '画廊の庇護下にある住民の居住区。作品を提出できなければ追い出される。'); }
+async function evCaption() { markI('caption'); await narr('未完の人間　第七番「湊」\n点景派　指導：ドーセント ルシエンヌ\n素材提供：静州商事株式会社（業務委託契約第十四条に基づく）\n行政確認：春日井市 異種族協働課');
+  await ura('会社の承諾。役所の確認。……本人の名前だけが、どこにもない。');
+  addNote('caption', '第七番の解説板', '「素材提供：静州商事（第十四条に基づく）／行政確認：春日井市 異種族協働課」。早瀬本人の同意の記載はない。', true); }
+async function evCase() { markI('case'); cine(1.6, 2.4, -7.6, 0, 1.0, -10);
+  await narr('ガラスケースの中に、静州商事の社員証と、画面の割れた携帯電話。\n社員証には「事業管理部　早瀬 湊」。');
+  await ura('展示品は、届いていた。……届いたのは、早瀬のほうだ。');
+  addNote('case', '早瀬の社員証', 'ガラスケースに展示。早瀬自身が「提供物」として扱われている。', true); }
+async function evMem(i) { markI('mem' + i); const m = MEM[i]; await narr(m.t + '。\n' + m.d);
+  if (i === 1) await ura('蒼生の病院。……あの廊下を、俺も知っている。');
+  if (i === 3) await ura('十一回書き直して、断る文面は、一つも書けなかった。');
+  if (i === 5) await ura('未完。……まだ、間に合うということだ。');
+  const n = MEM.filter((x, k) => seenI('mem' + k)).length; if (n === 3) addNote('mem', '第七番の記憶の断片', '早瀬の人生の場面が、宙に浮かぶ額として展示されている。最後の一枚は「未完」。'); }
+async function evLuc() { S.flags.lucTalk = true; const lu = AREAS.gallery.luc; cine(-0.4, 2.2, -4.6, -2.4, 1.7, -7.4);
+  await say('luc', 'お待ちしていました、久世さん。……第七番は、ご覧になりましたか。');
+  await say('kuze', 'はい。……早瀬は、どこにいますか。');
+  await say('luc', '制作中です。契約に基づく提供ですから、ご心配には及びません。');
+  const c = await choose([{ t: '「申し訳ありません。弊社の手違いでしたら正します。早瀬に、会わせていただけませんか。」', k: '表', cover: 5 }, { t: '「本人の同意は、どこにありますか。」', k: '本音', cover: -10, warm: 1 }, { t: '（黙って、彼女の目を見る）', k: '裏声', cold: 1 }]);
+  if (c === 0) { await say('luc', 'まあ。……あなたの謝罪、とても滑らか。何百回も練習した線ですね。'); }
+  if (c === 1) { await say('luc', '同意は、御社の承諾で代えられています。事情は分かりました。ですが、事情と完成度は別です。'); }
+  if (c === 2) { await say('luc', '……ふふ。黙ると、別の顔になる方。'); }
+  await say('luc', '早瀬さんは、とても素直な素材でした。感謝の言葉ばかり口にして。……ああいう人生は、額に入れると映えるんです。');
+  await ura('笑え。ここで顔を変えたら、二度と中へは入れない。');
+  const d = await choose([{ t: '（微笑んで）「勉強になります。」', k: '裏声', cover: 5, cold: 1 }, { t: '「彼の人生は、あなたの額のためにあるんじゃない。」', k: '温情', cover: -14, warm: 1 }]);
+  if (d === 0) { await say('kuze', '勉強になります。'); await say('luc', 'いい微笑み。……ほんとうに、いい。'); }
+  else { S.flags.defied = true; await say('kuze', '彼の人生は、あなたの額のためにあるんじゃない。'); await say('luc', 'その台詞、いい線。……でも、まだ未完成です。'); }
+  await say('luc', 'では、私は別のお客様をお迎えに。順路の続きは、ご自由にどうぞ。');
+  await say('luc', '……ただし、順路の外には、出ないでくださいね。');
+  walkTo(lu, -3, 5.5, 1.6).then(() => { lu.lookAt = AREAS.gallery.patron.pos; }); const pt = AREAS.gallery.patron; pt.hidden = false; walkTo(pt, -2.6, 7.2, 1.4).then(() => { pt.lookAt = lu.pos; });
+  await ura('順路の外。……配送記録の受領先も、「収蔵庫」だった。', '提供の証拠は、扉の向こうにある。');
+  setObj('白い扉（右の壁）から収蔵庫へ入り、証拠を3点撮影する'); }
+
+// ---- 収蔵庫 ----
+async function goArchive() { sfx('door'); G.mode = 'cine'; await goArea('archive'); G.mode = 'play'; AREAS.archive.det = 0;
+  await narr('白い扉の向こうは、絵の具と、古い紙と、消毒液の匂いがした。');
+  await ura('灯りの扇に入るな。棚の陰を伝え。', '書類の前で、長く押せば撮れる。焦れば、気づかれる。');
+  setObj('見回りの灯りを避けて、書類を撮影する（0／3）'); }
+const docCount = () => ['d1', 'd2', 'd3'].filter(k => S.ev.has(k)).length + (S.ev.has('d4') ? 1 : 0);
+async function evDoc(k) { sfx('shutter'); flashCam(); const D = DOCS[k]; await narr(D.name + '\n' + D.body); addNote(k, D.name, D.body, true);
+  if (k === 'd1') await ura('署名欄は空白。それでも、受理されている。');
+  if (k === 'd2') await ura('人間の役所が、判を押した。……人間の代表が、人間を差し出した。');
+  if (k === 'd3') { S.flags.where = true; await ura('生きている。保護地区、Ｃ棟。'); }
+  const n = ['d1', 'd2', 'd3'].filter(x => S.ev.has(x)).length; setObj(n >= 3 ? '扉から収蔵庫を出る' : '見回りの灯りを避けて、書類を撮影する（' + n + '／3）'); }
+async function evNote() { markI('d4'); await narr('木箱の額縁の裏に、折りたたんだ便箋が挟まっていた。');
+  await narr(DOCS.d4.body.replace(/^「|」$/g, ''));
+  const c = await choose([{ t: '撮影する。早瀬を取り戻す証拠になる', k: '裏声', cold: 1 }, { t: '撮らずに、元の場所へ戻す', k: '温情', warm: 1 }]);
+  if (c === 0) { sfx('shutter'); flashCam(); addNote('d4', DOCS.d4.name, DOCS.d4.body, true); await ura('会社には言うな、と書いてある。……お前は、言う側の人間だ。'); }
+  else { S.flags.respect = true; addNote('d4m', '早瀬のメモ（撮らなかった）', '姉への手紙。会社に知られると姉の治療が止まる、と書いてあった。元の場所へ戻した。'); await ura('甘いな。', '……それでも、あれは、あいつの言葉だ。'); } }
+function flashCam() { const f = $('fade'); f.style.transition = 'none'; f.style.background = '#fff'; f.style.opacity = 0.6; setTimeout(() => { f.style.transition = ''; f.style.opacity = 0; setTimeout(() => { f.style.background = '#000'; }, 500); }, 60); }
+function caught() { run(async () => { const a = AREAS.archive; sfx('alert'); S.caught++; const w = a.watch.reduce((b, x) => Math.hypot(x.pos.x - P.pos.x, x.pos.z - P.pos.z) < Math.hypot(b.pos.x - P.pos.x, b.pos.z - P.pos.z) ? x : b);
+  w.facing = Math.atan2(P.pos.x - w.pos.x, P.pos.z - w.pos.z); P.facing = Math.atan2(w.pos.x - P.pos.x, w.pos.z - P.pos.z); cine((P.pos.x + w.pos.x) / 2 + 3, 3, (P.pos.z + w.pos.z) / 2 + 3, (P.pos.x + w.pos.x) / 2, 1.2, (P.pos.z + w.pos.z) / 2);
+  await say(w.key, 'そこで、何を？');
+  const c = await choose([{ t: '「すみません、お手洗いを探していて……」', k: '表', cover: -12 }, { t: '「ルシエンヌ様に、搬入した額装の検品を頼まれまして。」', k: '裏声', cover: S.cover >= 45 ? -6 : -16 }]);
+  if (c === 0) await say(w.key, '……順路の外です。お戻りください。'); else if (S.cover >= 45) await say(w.key, '……ドーセントの。そうですか。では、手短に。'); else await say(w.key, '……そのような話は、聞いていません。');
+  if (S.cover <= 0 || S.caught >= 3) { S.flags.thrown = true; await narr('スチューデントに腕を取られ、白い扉の外へ連れ出された。'); S.flags.archDone = true; await fade(true); await goArea('gallery', [10, -2.8], -Math.PI / 2); setObj('画廊を出る'); return; }
+  await fade(true); P.pos.set(8.6, 0, 0); P.facing = -Math.PI / 2; camSnap = true; a.det = 0; for (const x of a.watch) { x.pi = 0; x.pos.set(x.path[0][0], 0, x.path[0][1]); } await fade(false);
+  await ura('擬態が剥がれかけている。次は、ない。'); }); }
+async function evArchOut() { const n = ['d1', 'd2', 'd3'].filter(x => S.ev.has(x)).length;
+  if (n < 3) { const c = await choose([{ t: 'まだ撮れていない書類がある。戻る', k: '表' }, { t: 'ここで切り上げて、外へ出る', k: '裏声' }]); if (c === 0) return; }
+  S.flags.archDone = true; sfx('door'); G.mode = 'cine'; await goArea('gallery', [10.4, -2.8], -Math.PI / 2); G.mode = 'play'; setObj('画廊を出る（入口へ）'); }
+
+// ---- 講評と、陽盾 ----
+async function evClimax() { S.flags.climax = true; const a = AREAS.gallery, lu = a.luc; G.mode = 'cine';
+  lu.goal = null; lu.pos.set(-1.5, 0, 5.4); lu.lookAt = 'P'; P.pos.set(0, 0, 7.0); P.facing = Math.PI; a.patron.hidden = true; cine(2.6, 2.2, 8.8, -0.6, 1.6, 5.8);
+  await say('luc', 'おかえりなさい、久世さん。……順路の外は、いかがでしたか。');
+  if (S.caught > 0 || S.flags.thrown) await say('luc', 'スチューデントが、迷子の方がいたと。……ふふ。');
+  await say('luc', 'せっかくですから、あなたを講評しましょう。');
+  await say('luc', '微笑みの線、完璧。謝罪の間合い、完璧。……でも、目だけが描きかけ。');
+  await say('luc', '点景派は、未完のものに惹かれるんです。あなたも、いずれ額に入るかもしれませんね。');
+  const c = await choose([{ t: '「光栄です。」と頭を下げる', k: '表', cover: 4 }, { t: '「私たちの人生は、あなたの作品を完成させるためにあるんじゃない。」', k: '本音', cover: -10, warm: 1 }]);
+  if (c === 0) await say('kuze', '光栄です。'); else { await say('kuze', '私たちの人生は、あなたの作品を完成させるためにあるんじゃない。'); await say('luc', '……いい。今日いちばん、いい線です。'); }
+  if (S.flags.report) { sfx('door'); const yu = npc(a, 'yuria', makeChar(LK.yuria), 0, 11, Math.PI); yu.lookAt = null; await sleep(200);
+    const b1 = npc(a, 'gd1', makeBird({ coat: 0x2A2A30, vest: 0xE3B428 }), -1.4, 11.5, Math.PI), b2 = npc(a, 'gd2', makeBird({ coat: 0x2A2A30, vest: 0xE3B428 }), 1.4, 11.5, Math.PI);
+    cine(0, 2.6, 3.6, 0, 1.6, 9); walkTo(b1, -1.6, 9.2, 2.4); walkTo(b2, 1.6, 9.2, 2.4); await walkTo(yu, 0.2, 8.4, 2.6); yu.lookAt = lu.pos; yu.st.v = true;
+    await say('yuria', 'はーい、陽盾でーす♪　ここに、おうちに帰ってない子がいるって、窓口に連絡あったんだけど。');
+    await say('luc', '……陽盾が、画廊の展示に？　これは契約に基づく作品です。');
+    yu.st.v = false; await say('yuria', 'てんじ？　あーし、そーいうの分かんないけど。帰りたい子がいるなら、帰すのがお仕事だから。');
+    await say('yuria', '契約の話は、あとでルリカがゆーっくり聞くって。……ね？');
+    cine(1.8, 2.0, 9.8, 0.2, 1.6, 7.6); yu.lookAt = 'P';
+    await say('yuria', 'おにーさんが、通報してくれた人？　……ありがと。よゆーで助けるから、安心して♪');
+    const r = await choose([{ t: '「……ありがとうございます。」', k: '表' }, { t: '（黙って頭を下げる）', k: '裏声', cold: 1 }]);
+    if (r === 0) await say('kuze', '……ありがとうございます。'); else await narr('久世は、深く頭を下げた。');
+    await ura('あの女に、礼を言った。', '……父さんと、同じだ。');
+    await say('yuria', 'あとでルリカが、話聞きに行くと思う。逃げないでね？');
+    S.flags.metYuria = true; }
+  else { await say('luc', 'お帰りは、あちらです。次は、展示の一部としてお会いしましょう。'); await ura('証拠はある。だが、早瀬はまだ、額の中だ。'); }
+  await finale(); }
+
+// ---- 終幕：神領駅 ----
+async function finale() { G.mode = 'cine'; await goArea('platform'); const a = AREAS.platform; cine(4.2, 1.9, 3.2, 0, 1.4, 0);
+  await card('神領駅', '午後八時四十分', 1600);
+  P.st.phone = true; await phoneMsg('渉', '兄さん、今日の検査、数値よかったよ。\n蒼生の先生に、お礼言っといて。', '20:41');
+  await say('kuze', '……よかった。');
+  await narr('もう一度、携帯が震えた。今度は、番号が表示されない。');
+  await say('kuroiwa', '報告を聞こう、久世。');
+  const ev = S.ev; const lines = [];
+  if (ev.has('d1') || ev.has('art14')) lines.push('本人の同意が、会社の承諾にすり替えられていました。');
+  if (ev.has('d2')) lines.push('行政の確認印もあります。異種族協働課です。');
+  if (S.flags.where) lines.push('早瀬は保護地区のＣ棟にいます。生きています。');
+  if (!lines.length) lines.push('……画廊の中には入りましたが、十分な証拠は持ち帰れませんでした。');
+  for (const l of lines) await say('kuze', l);
+  if (ev.has('d2')) await say('kuroiwa', '異種族協働課の判。……よくやった。それは、協定の改定を止める材料になる。');
+  else await say('kuroiwa', '……そうか。次は、もっと深くまで入れ。');
+  if (S.cover < 50) await say('kuroiwa', 'それと、画廊に顔を覚えられたな。しばらくは、表の仕事に戻れ。');
+  if (S.flags.metYuria) await say('kuroiwa', '陽盾の長女と接触したそうだな。……近づけるなら、近づいておけ。ただし、呑まれるな。');
+  await say('kuroiwa', 'その早瀬という社員のことは、気にするな。大義の前の、小さな点景だ。');
+  const c = await choose([{ t: '「承知しました。」', k: '表', cold: 1 }, { t: '「……室長。彼を取り戻すのも、主権の一部です。」', k: '温情', warm: 1 }]);
+  if (c === 0) await say('kuze', '承知しました。'); else { S.flags.pushback = true; await say('kuze', '……室長。彼を取り戻すのも、主権の一部です。'); await say('kuroiwa', '……甘いな。だが、好きにしろ。'); }
+  await narr('通話が切れる。ホームの向こうから、下りの電車の灯りが近づいてくる。');
+  P.st.phone = false; await ura('救ってもらったから、決める権利まで渡すのか。');
+  await say('kuze', '……それと、渉が生きていることは、別だ。');
+  await ura('別だと思っているのは、お前だけかもしれないぞ。');
+  a.trainOn = true; sfx('chime');
+  await narr('窓に映った課長の顔は、まだ、微笑んでいた。');
+  await card('第一章　微笑む課長', '完', 2600);
+  showReport(); }
+
+// ---- 報告書 ----
+function showReport() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; bgm('night');
+  const EV = [['term', '配送記録（配達完了・収蔵庫）'], ['art14', '契約書 第十四条（写真）'], ['caption', '第七番の解説板'], ['case', '早瀬の社員証'], ['d1', '提供契約書（署名欄空白）'], ['d2', '行政確認書（異種族協働課）'], ['d3', '収蔵目録（保護地区Ｃ棟）'], ['d4', '早瀬のメモ（写真）']];
+  const got = EV.filter(e => S.ev.has(e[0])).length, lean = S.warm - S.cold, leanT = lean >= 3 ? '温情に傾く' : lean <= -3 ? '冷徹に傾く' : '均衡を保つ';
+  const close = S.flags.metYuria ? '陽盾の長女に救われた。礼を言った自分の声を、彼はまだ覚えている。' : S.flags.thrown ? '画廊の白い扉の外へ放り出された。手元に残ったものは少ない。' : '早瀬はまだ額の中にいる。証拠だけが、鞄の底で重い。';
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>秘</span><span>留保</span></div><h2>報告書　第一号</h2><div class="meta">主権保全室　情報要員 久世躁一郎　／　件名：神領展示品未着の件</div><table>' +
+    '<tr><td>取得した証拠</td><td><div class="ev">' + EV.map(e => '<span class="' + (S.ev.has(e[0]) ? '' : 'no') + '">' + (S.ev.has(e[0]) ? '■ ' : '□ ') + e[1] + '</span>').join('') + '</div></td></tr>' +
+    '<tr><td>証拠の数</td><td>' + got + '／' + EV.length + '</td></tr><tr><td>擬態の残り</td><td>' + Math.round(S.cover) + '％' + (S.caught ? '（収蔵庫で ' + S.caught + ' 回見つかった）' : '') + '</td></tr>' +
+    '<tr><td>早瀬の所在</td><td>' + (S.flags.where ? '判明（保護地区Ｃ棟）' : '不明') + '</td></tr><tr><td>陽盾への通報</td><td>' + (S.flags.report ? 'あり（ユリアが画廊へ介入）' : 'なし') + '</td></tr>' +
+    '<tr><td>判断の傾き</td><td>' + leanT + '（温情 ' + S.warm + '・冷徹 ' + S.cold + '）</td></tr></table>' +
+    '<p class="close">' + close + '<br>次章「未完の人間」――保護地区Ｃ棟へ。（準備中）</p><div class="trow"><button type="button" class="go" id="againBtn">はじめからもう一度</button></div>';
+  $('report').hidden = false; $('againBtn').addEventListener('click', () => location.reload());
+  try { localStorage.setItem('shuken-ch1', JSON.stringify({ ev: [...S.ev], flags: S.flags, cover: S.cover, warm: S.warm, cold: S.cold })); } catch (e) { /* 保存できない環境では何もしない */ } }
+
+// ================= 毎フレーム =================
+let last = performance.now();
+function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.05, (now - last) / 1000); last = now; T.now += dt; bgmTick();
+  if (A) { // 歩く
+    let mx = 0, mz = 0; if (G.mode === 'play' && !G.busy && $('note').hidden) { mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x; mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y; }
+    const L = Math.hypot(mx, mz); P.st.walk = L > 0.15; P.st.run = L > 0.85 && (keys.ShiftLeft || keys.ShiftRight || Math.hypot(stick.x, stick.y) > 0.9);
+    if (P.st.walk) { const sp = (P.st.run ? 5.2 : 3.2) * Math.min(1, L); P.pos.x += mx / Math.max(1, L) * sp * dt; P.pos.z += mz / Math.max(1, L) * sp * dt; P.facing = turn(P.facing, Math.atan2(mx, mz), dt * 12); }
+    resolve(P.pos, 0.36); P.model.root.position.set(P.pos.x, 0, P.pos.z); P.model.root.rotation.y = P.facing; animChar(P.model, P.st, dt);
+    if (A.tick) A.tick(A, dt); for (const n of A.npcs) npcTick(n, dt);
+    for (const it of A.items) { if (it.dyn) { it.x = it.dyn.pos.x; it.z = it.dyn.pos.z; } it.mark.position.set(it.x, (it.y || 2.9) + Math.sin(T.now * 3 + it.x) * 0.08, it.z); it.mark.visible = G.mode === 'play' && itemOn(it) && !G.busy; }
+    // 近くのもの
+    near = G.mode === 'play' && !G.busy ? nearItem() : null; const pr = $('prompt');
+    if (near) { pr.hidden = false; pr.innerHTML = '<kbd>Space</kbd>'; pr.append(near.label); $('act').textContent = near.hold ? '撮影' : near.label.length <= 4 ? near.label : '調べる'; $('act').classList.remove('dim'); } else { pr.hidden = true; $('act').textContent = G.busy ? '次へ' : '調べる'; $('act').classList.toggle('dim', !G.busy); }
+    if (near && near.hold && actDown && !G.busy) { holdT += dt; $('holdRing').hidden = false; $('holdF').style.width = Math.min(100, holdT / 1.3 * 100) + '%'; if (holdT >= 1.3) { holdT = 0; $('holdRing').hidden = true; useItem(near); } } else { holdT = 0; $('holdRing').hidden = true; }
+    // 駅前で、電話が鳴る
+    if (S.area === 'station' && G.mode === 'play' && !G.busy && !S.flags.phone) { stationT += dt; const seenN = ['ad', 'ticker', 'bird', 'map'].filter(seenI).length; if (seenN >= 2 || P.pos.z > 3 || stationT > 45) run(evPhone); }
+    if (S.area === 'platform' && A.trainOn) { A.trainLight.material.opacity = Math.min(1, A.trainLight.material.opacity + dt * 0.5); A.trainLight.position.x = Math.min(0, A.trainLight.position.x + dt * 18); }
+    if (G.mode === 'title') { const t = T.now * 0.05; G.cine = { pos: _cp.set(Math.sin(t) * 14, 5 + Math.sin(t * 2) * 1, 4 + Math.cos(t) * 6), look: _cl.set(-2, 4, -10) }; }
+    camTick(dt);
+  }
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').hidden = true; }
+  renderer.render(scene, camera); }
+
+// ================= はじまり =================
+P.model = makeChar(LK.kuze); CAST.kuze = P.model;
+(async () => { const a = AREAS.station; a.build(a); a.built = true; A = a; a.g.visible = true; a.g.add(P.model.root); P.pos.set(0, 0, -8.6); scene.background = new THREE.Color(a.bg); scene.fog = new THREE.Fog(a.bg, a.fog[0], a.fog[1]); camSnap = true; requestAnimationFrame(loop); })();
+$('sndBtn').addEventListener('click', () => { sound = !sound; $('sndBtn').setAttribute('aria-pressed', sound ? 'true' : 'false'); $('sndBtn').textContent = sound ? '音あり' : '音なし'; if (!sound && master) master.gain.value = 0; else if (master) master.gain.value = 0.5; });
+$('startBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(prologue); });
+window.__kz = { S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goGallery, goArchive, evClimax, finale, showReport };
+})();
+</script>
