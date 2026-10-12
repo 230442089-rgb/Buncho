@@ -160,6 +160,38 @@ body.ura #uraVeil { opacity: 1; }
 #nameCard em { display: block; font-style: normal; font-size: 12.5px; font-weight: 700; margin-top: 4px; color: var(--gold); }
 #nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; white-space: pre-line; }
 #skipBtn { position: fixed; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 21; border: 1px solid var(--line); background: rgba(10,13,22,.8); padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
+/* 記録ファイル：書類のフォルダの見た目 */
+#files { position: fixed; inset: 0; z-index: 23; background: rgba(5,7,11,.88); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.fbox { width: 100%; max-width: 760px; max-height: 100%; overflow-y: auto; background: #1A2131; border: 1px solid var(--line); padding: 18px 18px 16px; display: grid; gap: 12px; }
+.fh { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; border-bottom: 2px solid var(--stamp); padding-bottom: 8px; }
+.fh small { display: block; font-size: 10.5px; letter-spacing: .3em; color: var(--mute); font-weight: 900; }
+.fh h2 { margin: 2px 0 0; font-family: var(--mincho); font-size: 22px; letter-spacing: .12em; }
+.fhb { display: flex; gap: 8px; }
+.fh button { border: 1px solid var(--line); background: transparent; padding: 6px 14px; font-weight: 700; white-space: nowrap; }
+#filesHint { margin: 0; font-size: 12.5px; color: #C9D0DE; }
+#fileList { display: grid; gap: 10px; }
+.fcard { display: grid; grid-template-columns: 34px minmax(0, 1fr); grid-template-rows: auto auto; background: var(--paper); color: #141A28; position: relative; }
+.fcard.auto { background: #DCE2EC; }
+.ftab { grid-row: 1 / span 2; writing-mode: vertical-rl; text-orientation: mixed; background: #2A3348; color: #E9EDF4; font-size: 11px; font-weight: 900; letter-spacing: .2em; display: flex; align-items: center; justify-content: center; padding: 8px 0; }
+.fcard.auto .ftab { background: #5A6680; }
+.fbody { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 12px; padding: 10px 12px 4px; align-items: start; }
+.fthumb { width: 160px; aspect-ratio: 16 / 9; background: #0E131E; border: 1px solid #9AA6BC; overflow: hidden; }
+.fthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.finfo { display: grid; gap: 3px; min-width: 0; }
+.finfo b { font-family: var(--mincho); font-size: 17px; font-weight: 800; }
+.fplace { font-size: 12.5px; font-weight: 700; color: #2A3348; }
+.fobj { font-size: 12px; color: #4A5468; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fmeta { font-size: 11.5px; color: #6A7388; font-variant-numeric: tabular-nums; }
+.fnone { grid-column: 1 / -1; padding: 18px 0; text-align: center; color: #8A93A8; font-family: var(--mincho); letter-spacing: .3em; }
+.facts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; padding: 6px 12px 10px; }
+.facts button { padding: 7px 14px; font-size: 13px; font-weight: 700; border: 1px solid #141A28; background: transparent; color: #141A28; }
+.facts .fgo { background: #141A28; color: #fff; }
+.facts .warn { background: var(--stamp); border-color: var(--stamp); color: #fff; }
+.ff { display: flex; justify-content: flex-end; }
+.fimp { font-size: 12.5px; font-weight: 700; border: 1px dashed var(--mute); padding: 8px 14px; cursor: pointer; color: #C9D0DE; }
+.fimp input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.fimp:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (max-width: 560px) { .fbody { grid-template-columns: 1fr; } .fthumb { width: 100%; } .finfo b { font-size: 15.5px; } .fh { flex-wrap: wrap; align-items: center; } .fh h2 { font-size: 19px; } .fh button { white-space: nowrap; padding: 6px 10px; } .fbox { padding: 14px 12px; } }
 /* 名乗り：組織の本当の名と、真のタイトル */
 #reveal { position: fixed; inset: 0; z-index: 22; background: #030406; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; overflow: hidden; cursor: pointer; transition: opacity .6s; }
 #reveal.out { opacity: 0; }
@@ -248,12 +280,13 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
     <div class="sub" id="tSub">久世躁一郎の帰還</div>
     <div class="ch" id="tCh"><i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i></div>
     <p id="tP">人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。</p>
-    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
+    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
     <div class="cinfo" id="contInfo" hidden></div>
     <div class="keys">歩く：画面左をドラッグ／WASD・矢印　調べる・話す・台詞送り：右の丸ボタン／Space・E　手帳：N</div>
   </div>
 </div>
 
+<div id="files" hidden><div class="fbox" role="dialog" aria-modal="true" aria-labelledby="filesT"><div class="fh"><div><small>内閣 留保班　記録保管庫</small><h2 id="filesT">記録ファイル</h2></div><div class="fhb"><button type="button" id="filesSwitch" hidden>読み込む</button><button type="button" id="filesClose">閉じる</button></div></div><p id="filesHint"></p><div id="fileList"></div><div class="ff" id="fileImport"><label class="fimp">記録ファイル（.json）を読み込む<input type="file" id="fileIn" accept=".json,application/json"></label></div></div></div>
 <div id="report" hidden><div class="doc" id="reportDoc"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -456,7 +489,7 @@ function animChar(c, st, dt) {
 
 // ================= 状態 =================
 const T = { now: 0 };
-const S = { cover: 100, warm: 0, cold: 0, notes: [], ev: new Set(), flags: {}, seen: new Set(), caught: 0, area: null, chapter: 1 };
+const S = { cover: 100, warm: 0, cold: 0, notes: [], ev: new Set(), flags: {}, seen: new Set(), caught: 0, area: null, chapter: 1, playT: 0 };
 let DONE = new Set();
 const G = { busy: false, mode: 'title', cine: null, shake: 0 };
 let sound = true;
@@ -466,7 +499,7 @@ const keys = {}; const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 };
 let actDown = false, actPressT = 0;
 addEventListener('keydown', e => { if (e.repeat && (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter')) return; keys[e.code] = true;
   if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') { e.preventDefault(); pressAct(true); }
-  if (e.code === 'KeyN' && G.mode === 'play' && !G.busy) openNote(); if (e.code === 'Escape') closeNote(); });
+  if (e.code === 'KeyN' && G.mode === 'play' && !G.busy) openNote(); if (e.code === 'Escape') { closeNote(); if (!$('files').hidden) closeFiles(); } });
 addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') pressAct(false); });
 const sb = $('stickBase'), sk = $('stickKnob');
 $('stage').addEventListener('pointerdown', e => { if (G.mode !== 'play' || e.clientX > innerWidth * 0.62) { if (G.busy) advance(); return; } stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = 0; sb.style.left = e.clientX + 'px'; sb.style.top = e.clientY + 'px'; sb.hidden = false; sk.style.transform = ''; try { $('stage').setPointerCapture(e.pointerId); } catch (er) { /* 無視 */ } });
@@ -558,7 +591,7 @@ const itemOn = it => !(it.once !== false && it.done) && (!it.avail || it.avail()
 let near = null;
 function nearItem() { let best = null, bd = 1e9; for (const it of A.items) { if (!itemOn(it)) continue; const d = Math.hypot(P.pos.x - it.x, P.pos.z - it.z); if (d < it.r && d < bd) { bd = d; best = it; } } return best; }
 let holdT = 0;
-function pressAct(down) { audioOn(); actDown = down; if (!down) return; if (G.busy) { advance(); return; } if (G.mode !== 'play') return; const it = nearItem(); if (it && !it.hold) useItem(it); }
+function pressAct(down) { audioOn(); actDown = down; if (!down) return; if (!$('files').hidden) return; if (G.busy) { advance(); return; } if (G.mode !== 'play') return; const it = nearItem(); if (it && !it.hold) useItem(it); }
 function useItem(it) { run(async () => { if (it.face !== false) P.facing = Math.atan2(it.x - P.pos.x, it.z - P.pos.z); await it.on(it); if (it.once !== false) { it.done = true; DONE.add(it.areaId + ':' + it.id); } }); }
 function npc(area, key, model, x, z, face, o = {}) { const n = Object.assign({ key, model, pos: new THREE.Vector3(x, 0, z), facing: face || 0, st: {}, path: null, pi: 0, wait: 0, speed: 1.6 }, o); area.g.add(model.root); area.npcs.push(n); CAST[key] = model; return n; }
 function makeArea(id, def) { const a = Object.assign({ id, g: new THREE.Group(), obs: [], items: [], npcs: [], built: false, bounds: [-10, 10, -10, 10], cam: [0, 9, 9], bg: 0xBFD2E4, fog: [30, 90], light: 0.85 }, def); a.g.visible = false; scene.add(a.g); AREAS[id] = a; return a; }
@@ -1570,31 +1603,77 @@ SFX.rise = () => { for (let i = 0; i < 6; i++) tone(mf(50 + i * 2), i * 0.12, 0.
 SFX.holo = () => { tone(1800, 0, 0.25, 'sine', 0.03, { f1: 600 }); noise(0, 0.2, 0.03, 5000, 'highpass'); };
 
 // ================= セーブ =================
-const SAVE_KEY = 'reserve-save-v1', META_KEY = 'reserve-meta-v1';
+const SAVE_KEY = 'reserve-save-v1', META_KEY = 'reserve-meta-v1', FILES_KEY = 'reserve-files-v1', PEND_KEY = 'reserve-pending';
 function readJSON(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
 function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 const meta = () => readJSON(META_KEY) || {};
 function setMeta(o) { writeJSON(META_KEY, Object.assign(meta(), o)); }
-function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter }; }
-function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; }
-const CHN = ['序章', '第一章', '第二章', '第三章', '第四章'];
-function saveGame(auto) { if (!A || G.mode !== 'play') return false;
-  const ok = writeJSON(SAVE_KEY, { v: 1, area: A.id, place: A.place || '', pos: [+P.pos.x.toFixed(2), +P.pos.z.toFixed(2)], facing: P.facing, obj: $('objT').textContent, s: packS(), done: [...DONE], t: Date.now() });
-  const m = $('autoSave'); m.textContent = ok ? (auto ? '記録しました（自動）' : '記録しました') : 'この環境では記録できません'; m.classList.remove('on'); void m.offsetWidth; m.classList.add('on'); refreshTitle(); return ok; }
+function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
+function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
+const CHN = ['序章', '第一章', '第二章', '第三章', '第四章'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', ''];
+// ---- 記録ファイル：自動記録 1 冊と、手で記録する 3 冊 ----
+const SLOTS = [['auto', '自動記録'], ['f1', 'FILE 01'], ['f2', 'FILE 02'], ['f3', 'FILE 03']];
+function readFiles() { const f = readJSON(FILES_KEY) || {}; if (!f.auto) { const old = readJSON(SAVE_KEY); if (old) { f.auto = old; writeJSON(FILES_KEY, f); try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 消せなくても困らない */ } } } return f; }
+function latestFile() { const f = readFiles(); let best = null; for (const [id] of SLOTS) if (f[id] && (!best || f[id].t > best.d.t)) best = { id, d: f[id] }; return best; }
+function thumbShot() { try { renderer.render(scene, camera); const src = renderer.domElement, c = document.createElement('canvas'); c.width = 192; c.height = 108; const sw = src.width, sh = src.height, k = Math.min(sw / 192, sh / 108);
+  c.getContext('2d').drawImage(src, (sw - 192 * k) / 2, (sh - 108 * k) / 2, 192 * k, 108 * k, 0, 0, 192, 108); return c.toDataURL('image/jpeg', 0.72); } catch (e) { return ''; } }
+function snapNow() { return { v: 1, area: A.id, place: A.place || '', pos: [+P.pos.x.toFixed(2), +P.pos.z.toFixed(2)], facing: P.facing, obj: $('objT').textContent, s: packS(), done: [...DONE], t: Date.now(), thumb: thumbShot() }; }
+function flashSaved(text) { const m = $('autoSave'); m.textContent = text; m.classList.remove('on'); void m.offsetWidth; m.classList.add('on'); }
+function saveGame(auto, slot) { if (!A || G.mode !== 'play') return false; const f = readFiles(); f[slot || 'auto'] = snapNow(); const ok = writeJSON(FILES_KEY, f);
+  flashSaved(ok ? (auto ? '記録しました（自動）' : '記録しました') : 'この環境では記録できません'); refreshTitle(); return ok; }
 function playOn() { G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; }
-async function loadGame() { const d = readJSON(SAVE_KEY); if (!d || !AREAS[d.area]) return; G.mode = 'cine'; unpackS(d.s); DONE = new Set(d.done || []); stationT = 0;
+async function loadSnap(d) { if (!d || !AREAS[d.area]) return; G.mode = 'cine'; unpackS(d.s); DONE = new Set(d.done || []); stationT = 0;
   if (S.chapter >= 2) SPK.kuroiwa[0] = '黒岩室長';
   await goArea(d.area, d.pos, d.facing); if (A.stealth) A.det = 0; setObj(d.obj || ''); playOn(); toast(CHN[S.chapter] + '　' + (d.place || '') + ' から'); }
-function fmtT(t) { const d = new Date(t), z = n => String(n).padStart(2, '0'); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()); }
+async function loadGame() { const l = latestFile(); if (l) await loadSnap(l.d); }
+function fmtT(t) { const d = new Date(t), z = n => String(n).padStart(2, '0'); return d.getFullYear() + '.' + z(d.getMonth() + 1) + '.' + z(d.getDate()) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()); }
+function fmtPlay(s) { s = Math.round(s || 0); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return h + ':' + String(m).padStart(2, '0'); }
+// 遊んでいる最中に開いた「読み込む」は、ページを読み直してから始める（場面の途中の状態を持ち越さない）
+function bootPending() { let id = null; try { id = sessionStorage.getItem(PEND_KEY); sessionStorage.removeItem(PEND_KEY); } catch (e) { /* 使えなければ何もしない */ }
+  if (!id) return; const f = readFiles(), d = id === 'import' ? null : f[id]; if (!d) return; $('title').hidden = true; run(() => loadSnap(d)); }
+let filesMode = 'load', dlCap = null, armed = null, filesBusy = false;
+if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dlCap = d; if (!$('files').hidden) renderFiles(); }).catch(() => { dlCap = null; });
+function openFiles(mode) { filesMode = mode; armed = null; if (G.mode === 'play' && !G.busy) { G.busy = true; filesBusy = true; resetInput(); }
+  const inGame = $('title').hidden; $('filesSwitch').hidden = !inGame; $('filesSwitch').textContent = mode === 'save' ? '読み込む' : '記録する'; $('filesT').textContent = mode === 'save' ? '記録する' : '記録ファイル'; $('filesHint').textContent = mode === 'save' ? '記録するファイルを選んでください。自動記録は、場面の始まりに自動で書き込まれます。' : '再開する記録を選んでください。';
+  renderFiles(); $('files').hidden = false; const b = $('fileList').querySelector('button'); (b || $('filesClose')).focus({ preventScroll: true }); }
+function closeFiles() { $('files').hidden = true; armed = null; if (filesBusy) { filesBusy = false; G.busy = false; } }
+function fileCard(id, label, d) { const el = document.createElement('div'); el.className = 'fcard' + (d ? '' : ' empty') + (id === 'auto' ? ' auto' : '');
+  const tab = document.createElement('div'); tab.className = 'ftab'; tab.textContent = label; el.appendChild(tab);
+  const body = document.createElement('div'); body.className = 'fbody'; el.appendChild(body);
+  if (d) { const ch = d.s.chapter || 1, ev = (d.s.ev || []).length;
+    const th = document.createElement('div'); th.className = 'fthumb'; if (d.thumb) { const im = document.createElement('img'); im.src = d.thumb; im.alt = ''; th.appendChild(im); } body.appendChild(th);
+    const info = document.createElement('div'); info.className = 'finfo'; body.appendChild(info);
+    const h = document.createElement('b'); h.textContent = CHN[ch] + '　' + (CHT[ch] || ''); info.appendChild(h);
+    const pl = document.createElement('span'); pl.className = 'fplace'; pl.textContent = d.place || ''; info.appendChild(pl);
+    const ob = document.createElement('span'); ob.className = 'fobj'; ob.textContent = d.obj ? '目的：' + d.obj : ''; info.appendChild(ob);
+    const mt = document.createElement('span'); mt.className = 'fmeta'; mt.textContent = '証拠 ' + ev + '　擬態 ' + Math.round(d.s.cover ?? 100) + '%　プレイ ' + fmtPlay(d.s.playT) + '　' + fmtT(d.t); info.appendChild(mt); }
+  else { const e = document.createElement('div'); e.className = 'fnone'; e.textContent = '― 空き ―'; body.appendChild(e); }
+  const acts = document.createElement('div'); acts.className = 'facts'; el.appendChild(acts);
+  const btn = (text, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = text; b.addEventListener('click', fn); acts.appendChild(b); return b; };
+  if (filesMode === 'save' && id !== 'auto' && filesBusy) { const key = 'save:' + id; btn(d ? (armed === key ? '上書きする' : 'ここに上書き') : 'ここに記録', 'fgo' + (armed === key ? ' warn' : ''), () => { if (d && armed !== key) { armed = key; renderFiles(); return; } armed = null; if (saveGame(false, id)) { renderFiles(); } }); }
+  if (d && filesMode === 'load') btn('この記録から', 'fgo', () => { closeFiles(); if (!$('title').hidden) { audioOn(); $('title').hidden = true; run(() => loadSnap(d)); } else { let ok = false; try { sessionStorage.setItem(PEND_KEY, id); ok = true; } catch (e) { /* 使えないときは直接読む */ } if (ok) location.reload(); else run(() => loadSnap(d)); } });
+  if (d && dlCap) btn('書き出す', 'fsub', () => exportFile(id, label, d));
+  if (d) { const key = 'del:' + id; btn(armed === key ? '本当に消す' : '消す', 'fsub' + (armed === key ? ' warn' : ''), () => { if (armed !== key) { armed = key; renderFiles(); return; } armed = null; const f = readFiles(); delete f[id]; writeJSON(FILES_KEY, f); renderFiles(); refreshTitle(); }); }
+  return el; }
+function renderFiles() { const f = readFiles(), L = $('fileList'); L.innerHTML = ''; for (const [id, label] of SLOTS) { if (filesMode === 'save' && id === 'auto' && !f.auto) continue; L.appendChild(fileCard(id, label, f[id])); }
+  $('fileImport').hidden = filesMode !== 'load'; }
+async function exportFile(id, label, d) { if (!dlCap) return; const z = n => String(n).padStart(2, '0'), t = new Date(d.t);
+  const name = 'RESERVE_' + (id === 'auto' ? 'auto' : id.replace('f', 'file0')) + '_ch' + (d.s.chapter || 1) + '_' + t.getFullYear() + z(t.getMonth() + 1) + z(t.getDate()) + '.json';
+  try { await dlCap.save({ filename: name, data: JSON.stringify(Object.assign({ game: 'RESERVE' }, d)) }); flashSaved('書き出しました'); } catch (e) { if (e && e.code !== 'declined') flashSaved('書き出せませんでした'); } }
+function importFile(file) { const r = new FileReader(); r.onload = () => { let d = null; try { d = JSON.parse(r.result); } catch (e) { d = null; }
+    if (!d || d.v !== 1 || !d.s || !AREAS[d.area]) { $('filesHint').textContent = 'この記録ファイルは読み込めませんでした。'; return; }
+    const f = readFiles(), slot = ['f1', 'f2', 'f3'].find(k => !f[k]); if (!slot) { $('filesHint').textContent = '空きファイルがありません。どれかを消してから読み込んでください。'; return; }
+    delete d.game; f[slot] = d; writeJSON(FILES_KEY, f); $('filesHint').textContent = SLOTS.find(s => s[0] === slot)[1] + ' に読み込みました。'; renderFiles(); refreshTitle(); };
+  r.readAsText(file); }
 // タイトル画面（真のタイトルが明かされたあとは、ずっとこちら）
-function refreshTitle() { const m = meta(), d = readJSON(SAVE_KEY), rev = !!m.revealed;
+function refreshTitle() { const m = meta(), l = latestFile(), d = l && l.d, rev = !!m.revealed;
   $('title').classList.toggle('rev', rev); document.title = rev ? 'RÉSERVE ― 留保班' : '主権留保';
   $('tEye').textContent = rev ? '内閣 留保班　機密ファイル' : '春日井　外神竜一族の街';
   $('tH').textContent = rev ? 'RÉSERVE' : '主権留保'; $('tSub').textContent = rev ? '留保班　久世躁一郎の帰還' : '久世躁一郎の帰還';
   $('tP').textContent = rev ? '表の名は、主権保全室。封印された閣議の記録に残る名は、留保班。――この国の主権を、まだ誰にも渡していない者たち。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。' : '人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。';
   $('tCh').innerHTML = '<i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i>' + (m.ch1Clear ? '<i><span>第二章</span>二つの顔</i>' : '') + (m.ch2Clear ? '<i><span>第三章</span>人間の代表</i>' : '');
-  $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('contBtn').hidden = !d;
-  $('contInfo').hidden = !d; if (d) $('contInfo').textContent = '記録：' + CHN[d.s.chapter || 1] + '　' + (d.place || '') + '　' + fmtT(d.t);
+  $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('contBtn').hidden = !d; $('filesBtn').hidden = !d;
+  $('contInfo').hidden = !d; if (d) $('contInfo').textContent = '最新の記録：' + CHN[d.s.chapter || 1] + '　' + (d.place || '') + '　' + fmtT(d.t);
   $('startBtn').className = d ? 'ghost' : 'go'; }
 
 // ================= 第二章　二つの顔 =================
@@ -2106,8 +2185,13 @@ async function chapter3() { G.mode = 'cine'; S.chapter = 3; S.cover = Math.max(S
   await narr('番号の差は、ひとつかふたつ。いつ入れ替わってもおかしくない三羽だった。それでも、いまの壇の中心は、この灰色の文鳥だ。');
   await say('koshi', '……両方だ。');
   await say('koshi', 'シロブン。行け。燃やすのは、議場だけだ。');
+  await say('chanyu', '……待て、コシ。一桁を、ほいほい地表に出すのか。');
+  await say('chanyu', 'こいつが表に出た時点で、「B.U.N が本気で殴りに来た」って記録が残る。竜の一族も、異種族評議も、全部そう読む。……この手の仕事は、二桁の部隊で足りる。');
+  await say('shirobun', 'だーから、オレが行くんだろ。二桁じゃ、竜の長女に一発で畳まれて終わりだ。');
+  await say('chanyu', '……お前の気質なら、行くとは思ってたよ。思ってたけどな。');
+  await say('koshi', '……行け。');
   await say('shirobun', 'へいへい。……久々に「西」、着てくか。');
-  await say('chanyu', '着るな。文日獄衣は、地表で着るもんじゃない。');
+  await say('chanyu', '着るな。文日獄衣は、地表で着るもんじゃない。お前が全力で着たら、議場どころか、名古屋の街区ごと消える。');
   await say('shirobun', '昔ほどは燃えねえって。丸くなったからな、オレも。ヒャハッ！');
   await say('chanyu', '……丸くなって、あれか。');
   await say('koshi', 'チャ。記録を残せ。……止めた、という記録を。');
@@ -2325,6 +2409,8 @@ async function goRiver() { const a = AREAS.front; await fade(true); a.night = tr
   await say('chanyu', '……議場、半壊。負傷者、十四。うち重傷、ゼロ。');
   await say('chanyu', 'ゼロ。……あの馬鹿がゼロで済んだのは、竜の長女が初動を潰したからだ。……これ、報告書にどう書くんだ。');
   await say('chanyu', '「No.4、地表にて文日獄衣を使用。外神竜により、半分で停止」。……はぁ。半分で、あれか。');
+  await say('chanyu', 'そもそも、一桁が、ほいほい地表に出てくるな。あれが全力だったら、外神竜以外は、全部焼け焦げてた。議員も、給仕も、竜の役員も、あの広間ごと。');
+  await say('chanyu', '……あいつは、それを分かってて、半分で笑ってる。だから余計に、たちが悪い。');
   await narr('長い、長いため息が、黒い水に落ちた。');
   await ura('B.U.N の上位個体だ。……関わるな。通り過ぎろ。');
   const c0 = await choose([{ t: '（会釈だけして、通り過ぎる）', k: '表', cover: 2 }, { t: '「……大変ですね。」と声をかける', k: '温情', warm: 1 }]);
@@ -2712,9 +2798,9 @@ function showReport() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden 
 
 // ================= 毎フレーム =================
 let last = performance.now();
-function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.05, (now - last) / 1000); last = now; T.now += dt; bgmTick();
+function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.05, (now - last) / 1000); last = now; T.now += dt; bgmTick(); if ($('title').hidden && G.mode !== 'end' && G.mode !== 'title') S.playT = (S.playT || 0) + dt;
   if (A) { panTick(dt); fxTick(dt); // 歩く
-    let mx = 0, mz = 0; if (G.mode === 'play' && !G.busy && $('note').hidden) { mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x; mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y; }
+    let mx = 0, mz = 0; if (G.mode === 'play' && !G.busy && $('note').hidden && $('files').hidden) { mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x; mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y; }
     const L = Math.hypot(mx, mz); P.st.walk = L > 0.15; P.st.run = L > 0.85 && (keys.ShiftLeft || keys.ShiftRight || Math.hypot(stick.x, stick.y) > 0.9);
     if (P.st.walk) { const sp = (P.st.run ? 5.2 : 3.2) * Math.min(1, L); P.pos.x += mx / Math.max(1, L) * sp * dt; P.pos.z += mz / Math.max(1, L) * sp * dt; P.facing = turn(P.facing, Math.atan2(mx, mz), dt * 12); }
     resolve(P.pos, 0.36); P.model.root.position.set(P.pos.x, 0, P.pos.z); P.model.root.rotation.y = P.facing; animChar(P.model, P.st, dt);
@@ -2742,9 +2828,12 @@ $('ch1Btn').addEventListener('click', () => { audioOn(); $('title').hidden = tru
 $('ch2Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh2); });
 $('ch3Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh3); });
 $('contBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(loadGame); });
-$('saveBtn').addEventListener('click', () => { if (G.mode === 'play' && !G.busy) saveGame(false); });
-refreshTitle();
+$('saveBtn').addEventListener('click', () => { if (G.mode === 'play' && !G.busy) openFiles('save'); });
+$('filesBtn').addEventListener('click', () => { audioOn(); openFiles('load'); });
+$('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEventListener('click', () => { const m = filesMode === 'save' ? 'load' : 'save'; if (filesBusy) { filesBusy = false; G.busy = false; } openFiles(m); }); $('files').addEventListener('click', e => { if (e.target.id === 'files') closeFiles(); });
+$('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
+refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, DONE: () => DONE };
+window.__kz = { pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, openFiles, readFiles, latestFile, DONE: () => DONE };
 })();
 </script>
