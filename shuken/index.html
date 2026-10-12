@@ -137,6 +137,19 @@ body.ura #uraVeil { opacity: 1; }
 .doc .close { font-family: var(--mincho); font-size: 14px; line-height: 1.8; border-left: 4px solid var(--stamp); padding-left: 10px; }
 .doc .trow .go { background: #141A28; color: #fff; font-size: 15px; padding: 10px 20px; }
 .doc .trow .ghost { color: #141A28; border-color: #141A28; background: transparent; }
+#loc { position: fixed; left: 16px; top: calc(env(safe-area-inset-top, 0px) + 16px); z-index: 8; pointer-events: none; opacity: 0; transition: opacity .8s; max-width: calc(100vw - 32px); }
+#loc.on { opacity: 1; }
+#loc small { display: block; font-size: 11px; letter-spacing: .3em; color: var(--mute); font-weight: 900; }
+#loc b { display: block; font-family: var(--mincho); font-weight: 800; font-size: clamp(20px, 4.4vw, 34px); letter-spacing: .1em; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.7); }
+#loc i { display: block; font-style: normal; font-size: 11px; letter-spacing: .24em; color: #C9D0DE; margin-top: 4px; }
+#nameCard { position: fixed; right: 16px; top: 22%; z-index: 8; width: min(340px, calc(100vw - 32px)); background: rgba(10,13,22,.86); border-left: 5px solid var(--gold); padding: 12px 14px; pointer-events: none; opacity: 0; transform: translateX(12px); transition: opacity .4s, transform .4s; }
+#nameCard.on { opacity: 1; transform: none; }
+#nameCard small { display: block; font-size: 10.5px; letter-spacing: .2em; color: var(--mute); font-weight: 900; }
+#nameCard b { display: block; font-family: var(--mincho); font-weight: 800; font-size: 28px; line-height: 1.2; margin-top: 2px; }
+#nameCard em { display: block; font-style: normal; font-size: 12.5px; font-weight: 700; margin-top: 4px; color: var(--gold); }
+#nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; }
+#skipBtn { position: fixed; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 21; border: 1px solid var(--line); background: rgba(10,13,22,.8); padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
+@media (max-width: 560px) { #nameCard { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); } }
 @media (max-width: 560px) { #dText { font-size: 14.5px; } #choices button { font-size: 13.5px; } #act { width: 80px; height: 80px; } #prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 124px); } }
 @media (prefers-reduced-motion: reduce) { .pop { animation-duration: .01s; } #dNext { animation: none; } }
 </style>
@@ -162,6 +175,9 @@ body.ura #uraVeil { opacity: 1; }
 <div id="phone" hidden><div class="ph"><div class="bar2" id="phTime">08:14</div><div class="from" id="phFrom"></div><div class="msg" id="phMsg"></div><div class="tap">画面を押して閉じる</div></div></div>
 <div id="toast" hidden></div>
 <div id="note" hidden><div class="book" role="dialog" aria-modal="true" aria-labelledby="noteT"><div class="nh"><h2 id="noteT">手帳</h2><button type="button" id="noteClose">閉じる</button></div><div id="noteList"></div></div></div>
+<div id="loc"><small id="locS"></small><b id="locB"></b><i id="locI"></i></div>
+<div id="nameCard"><small id="ncS"></small><b id="ncB"></b><em id="ncE"></em><p id="ncP"></p></div>
+<button type="button" id="skipBtn" hidden>序章をとばす ▶▶</button>
 <div id="fade"></div>
 <div id="card"><h2 id="cardT"></h2><p id="cardS"></p></div>
 
@@ -170,9 +186,9 @@ body.ura #uraVeil { opacity: 1; }
     <div class="eye">春日井　外神竜一族の街</div>
     <h1>主権留保</h1>
     <div class="sub">久世躁一郎の帰還</div>
-    <div class="ch"><span>第一章</span>微笑む課長</div>
+    <div class="ch"><span>序章</span>この国を決めている者たち　<span>第一章</span>微笑む課長</div>
     <p>人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。</p>
-    <div class="trow"><button type="button" class="go" id="startBtn">はじめる</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
+    <div class="trow"><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
     <div class="keys">歩く：画面左をドラッグ／WASD・矢印　調べる・話す・台詞送り：右の丸ボタン／Space・E　手帳：N</div>
   </div>
 </div>
@@ -284,6 +300,18 @@ function makeChar(L) {
   if (st.has('pony')) chain(head, [[0, 0.12, -0.33], [0, -0.12, -0.42], [0, -0.4, -0.44], [0, -0.68, -0.4]], 0.13, 0.08, L.hair);
   if (st.has('bun')) part(sph(0.15, 10, 8), L.hair, 0, 0.16, -0.32, head);
   if (st.has('braid')) chain(head, [[-0.3, -0.18, 0.02], [-0.32, -0.36, 0.03], [-0.33, -0.54, 0.04], [-0.33, -0.72, 0.05]], 0.07, 0.05, L.hair);
+  if (st.has('twin')) for (const sx of [-1, 1]) chain(head, [[sx * 0.3, 0.22, -0.06], [sx * 0.42, 0.0, -0.1], [sx * 0.46, -0.3, -0.1], [sx * 0.44, -0.62, -0.08], [sx * 0.4, -0.92, -0.06]], 0.13, 0.08, L.hair, 2, L.accent);
+  if (st.has('highpony')) chain(head, [[0, 0.36, -0.22], [0, 0.26, -0.4], [0, 0.0, -0.46], [0, -0.32, -0.46], [0, -0.64, -0.42], [0, -0.92, -0.38]], 0.12, 0.07, L.hair);
+  if (st.has('ahoge')) part(G_('ahoge', () => new THREE.TorusGeometry(0.08, 0.018, 6, 10, Math.PI)), L.hair, 0.02, 0.38, 0, head, { outline: false, rz: 0.4 });
+  if (st.has('lock')) part(box(0.08, 0.55, 0.1), L.accent, 0.3, -0.28, 0.1, head, { outline: false });
+  if (st.has('tips')) part(G_('tips', () => new THREE.SphereGeometry(0.345, 18, 12, Math.PI, Math.PI, Math.PI * 0.62, Math.PI * 0.18)), L.accent, 0, 0, -0.02, head, { outline: false });
+  if (st.has('streaks')) for (const x of [-0.12, 0.1]) part(box(0.05, 0.4, 0.13), L.accent, x, 0.0, 0.25, head, { outline: false });
+  if (st.has('bob')) part(box(0.66, 0.4, 0.46), L.hair, 0, -0.14, -0.1, head, { ol: 1.04 });
+  if (st.has('fluffy')) for (const [x, y, z] of [[-0.3, -0.1, -0.1], [0.3, -0.12, -0.1], [0, -0.2, -0.28], [-0.22, -0.22, -0.2], [0.22, -0.22, -0.2], [0.28, 0.1, 0.12], [-0.28, 0.1, 0.12]]) part(sph(0.13, 10, 8), L.hair, x, y, z, head, { ol: 1.06 });
+  if (st.has('messy')) for (const [x, z, rz, rx] of [[-0.12, 0.05, 0.5, -0.3], [0.05, 0.12, -0.2, -0.5], [0.16, -0.02, -0.7, -0.1], [-0.02, -0.12, 0.2, 0.4], [0.24, 0.14, -1.0, -0.4], [-0.22, 0.12, 0.9, -0.3]]) part(G_('tuft', () => new THREE.ConeGeometry(0.06, 0.2, 5)), L.hair, x, 0.33, z, head, { ol: 1.1, rz, rx });
+  if (L.pin) part(sph(0.025, 6, 4), L.pin, -0.14 * w, 1.32, 0.24 * w, torso, { outline: false });
+  if (L.katana) { const k = part(box(0.05, 0.05, 1.0), 0x1E1E24, 0.26 * w, 0.92, 0.05, g, { outline: false }); k.rotation.x = 0.5; k.rotation.y = 0.3; }
+  if (L.scythe) { const s = new THREE.Group(); s.position.set(0, 1.1, -0.3); s.rotation.z = 0.7; g.add(s); part(cyl(0.03, 0.03, 1.8, 6), 0x2A2630, 0, 0, 0, s, { outline: false }); const bl = part(G_('scy', () => { const c = new THREE.ConeGeometry(0.12, 1.0, 4); c.scale(0.2, 1, 1); return c; }), 0xE4F0C8, 0.4, 0.85, 0, s, { emis: 0x3A4A10, outline: false }); bl.rotation.z = -1.5; }
   if (st.has('glasses')) { for (const sx of [-1, 1]) part(G_('lens', () => new THREE.TorusGeometry(0.075, 0.012, 6, 16)), L.glassCol || 0x2A2630, sx * 0.11, -0.03, 0.29, head, { outline: false }); part(box(0.08, 0.015, 0.015), L.glassCol || 0x2A2630, 0, -0.02, 0.3, head, { outline: false }); }
   if (st.has('horns')) for (const sx of [-1, 1]) { const h = part(G_('horn', () => new THREE.ConeGeometry(0.07, 0.34, 8)), L.hornCol || 0x4A1E28, sx * 0.2, 0.3, -0.02, head, { ol: 1.1 }); h.rotation.z = -sx * 0.6; }
   if (st.has('ghorns')) for (const sx of [-1, 1]) for (const [a, l] of [[0.45, 0.36], [0.95, 0.26]]) { const h = part(G_('gh' + l, () => new THREE.ConeGeometry(0.045, l, 4)), 0xF2C230, sx * (0.18 + Math.sin(a) * l * 0.4), 0.26 + Math.cos(a) * l * 0.4, -0.02, head, { ol: 1.08 }); h.rotation.z = -sx * a; }
@@ -303,10 +331,11 @@ function makeBird(o = {}) {
   part(sph(0.5, 16, 12), o.coat || 0x34425E, 0, 1.05, 0, torso, { s: [1.05, 1.12, 0.85] });
   if (o.vest) part(sph(0.505, 16, 12), o.vest, 0, 1.0, 0.02, torso, { s: [1.0, 0.8, 0.86], outline: false });
   part(sph(0.3, 12, 10), 0x7A8088, 0, 1.12, 0.22, torso, { s: [1.1, 0.9, 0.5], outline: false });
-  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.52, 1.3, 0); torso.add(pv); part(cyl(0.14, 0.12, 0.6, 8), o.coat || 0x34425E, 0, -0.28, 0, pv); part(sph(0.12, 8, 6), 0xE8C8A8, 0, -0.62, 0, pv); arms.push(pv); }
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * (o.muscle ? 0.6 : 0.52), 1.3, 0); torso.add(pv); part(cyl(o.muscle ? 0.2 : 0.14, o.muscle ? 0.16 : 0.12, 0.6, 8), o.coat || 0x34425E, 0, -0.28, 0, pv); part(sph(0.12, 8, 6), 0xE8C8A8, 0, -0.62, 0, pv); arms.push(pv); }
   const head = new THREE.Group(); head.position.set(0, 1.78, 0.04); torso.add(head);
-  part(sph(0.36, 16, 12), 0x18181C, 0, 0, 0, head); for (const sx of [-1, 1]) { part(sph(0.17, 10, 8), 0xF8F8F8, sx * 0.24, -0.08, 0.16, head, { s: [0.6, 0.9, 0.8], outline: false }); part(sph(0.05, 8, 6), 0x101010, sx * 0.2, 0.06, 0.28, head, { outline: false }); part(G_('ering', () => new THREE.TorusGeometry(0.065, 0.02, 6, 12)), 0xE2505B, sx * 0.2, 0.06, 0.29, head, { outline: false, ry: sx * 0.5 }); }
-  { const b = part(G_('bbeak', () => new THREE.ConeGeometry(0.17, 0.42, 10)), 0xE2505B, 0, -0.08, 0.44, head); b.rotation.x = Math.PI / 2; }
+  part(sph(0.36, 16, 12), o.cap || 0x18181C, 0, 0, 0, head); if (o.shades) part(box(0.5, 0.1, 0.12), 0x0A0A0E, 0, 0.06, 0.28, head, { outline: false }); if (o.scarf) part(G_('scarf', () => new THREE.TorusGeometry(0.34, 0.09, 8, 16)), o.scarf, 0, 1.52, 0, torso, { rx: Math.PI / 2 }); for (const sx of [-1, 1]) { part(sph(0.17, 10, 8), 0xF8F8F8, sx * 0.24, -0.08, 0.16, head, { s: [0.6, 0.9, 0.8], outline: false }); part(sph(0.05, 8, 6), 0x101010, sx * 0.2, 0.06, 0.28, head, { outline: false }); part(G_('ering', () => new THREE.TorusGeometry(0.065, 0.02, 6, 12)), 0xE2505B, sx * 0.2, 0.06, 0.29, head, { outline: false, ry: sx * 0.5 }); }
+  { const b = part(G_('bbeak', () => new THREE.ConeGeometry(0.17, 0.42, 10)), o.beak || 0xE2505B, 0, -0.08, 0.44, head); b.rotation.x = Math.PI / 2; }
+  if (o.core) { const cg = glowSprite(o.core, 0.7); cg.position.set(0, 1.25, 0.46); torso.add(cg); part(sph(0.06, 8, 6), o.core, 0, 1.25, 0.43, torso, { outline: false, emis: o.core }); }
   if (o.helmet) { part(G_('helm', () => new THREE.SphereGeometry(0.4, 16, 8, 0, TAU, 0, Math.PI / 2)), o.helmet, 0, 0.08, 0, head, { ol: 1.05 }); part(cyl(0.44, 0.44, 0.04, 16), o.helmet, 0, 0.08, 0.04, head, { outline: false }); }
   blob(root, 0.6);
   return { root, g, torso, legs, arms, head, eyes: [], phone: null, ph: rand(0, 6), nod: 0, bird: true };
@@ -378,22 +407,27 @@ function bgmTick() { if (!AC || !sound || !bgmKind) return; const B = BGM[bgmKin
 
 // ================= 台詞・選択肢 =================
 const SPK = { kuze: ['久世', '#E9EDF4'], ura: ['裏声', '#FF8A92'], asai: ['浅井', '#B8C8E8'], gondo: ['権藤部長', '#D8C08A'], onodera: ['小野寺', '#E8B8C8'], luc: ['ルシエンヌ', '#BFE8D0'], stu: ['スチューデント', '#C8C0E8'], stu2: ['スチューデント', '#C8C0E8'],
-  yuria: ['ユリア', '#F2C230'], ad: ['画面の声', '#F2C230'], exec: ['竜族の役員', '#E89A8A'], young: ['若い社員', '#B8C8E8'], old: ['老人', '#D8D0C0'], bun: ['作業着の文鳥', '#E8A0A8'], kuroiwa: ['室長', '#9AA6BC'], wataru: ['渉', '#A8D8E8'] };
+  yuria: ['ユリア', '#F2C230'], ad: ['画面の声', '#F2C230'], exec: ['竜族の役員', '#E89A8A'], young: ['若い社員', '#B8C8E8'], old: ['老人', '#D8D0C0'], bun: ['作業着の文鳥', '#E8A0A8'], kuroiwa: ['室長', '#9AA6BC'], wataru: ['渉', '#A8D8E8'], koshi: ['ザ・コシ', '#FF3D55'], op: ['艦橋の文鳥', '#9AA6BC'], ult: ['絶尊', '#FF8A60'] };
 let dlgDone = null, typer = null, typing = false, fullText = '';
 function showDlg(who, text, cls) { const d = $('dlg'); d.hidden = false; d.className = cls || ''; const sp = SPK[who]; $('dName').textContent = who === 'narr' ? '' : sp ? sp[0] : who; $('dName').style.color = sp ? sp[1] : '#E9EDF4';
   fullText = text; $('dText').textContent = ''; $('dNext').hidden = true; typing = true; let i = 0; clearInterval(typer);
   typer = setInterval(() => { i += 1; $('dText').textContent = fullText.slice(0, i); if (i % 2 === 0) sfx('blip'); if (i >= fullText.length) { clearInterval(typer); typing = false; $('dNext').hidden = false; } }, 28); }
-function say(who, text, o = {}) { return new Promise(res => { if (o.nod !== false) { const c = CAST[who]; if (c) c.nod = 0.6; } showDlg(who, text, o.cls); dlgDone = res; }); }
+function say(who, text, o = {}) { if (G.skip) return Promise.resolve(); return new Promise(res => { if (o.nod !== false) { const c = CAST[who]; if (c) c.nod = 0.6; } showDlg(who, text, o.cls); dlgDone = res; }); }
 const narr = text => say('narr', text, { cls: 'narr' });
-async function ura(...lines) { document.body.classList.add('ura'); sfx('ura'); for (const l of lines) await say('ura', l, { cls: 'ura' }); document.body.classList.remove('ura'); }
+async function ura(...lines) { if (G.skip) return; document.body.classList.add('ura'); sfx('ura'); for (const l of lines) await say('ura', l, { cls: 'ura' }); document.body.classList.remove('ura'); }
 function advance() { if ($('dlg').hidden || !$('choices').hidden) return; if (typing) { clearInterval(typer); typing = false; $('dText').textContent = fullText; $('dNext').hidden = false; return; } const f = dlgDone; dlgDone = null; if (f) { $('dlg').hidden = true; f(); } }
 function choose(opts) { return new Promise(res => { const box = $('choices'); box.innerHTML = ''; box.hidden = false;
   opts.forEach((o, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = o.k === '裏声' ? 'ura' : o.k === '温情' ? 'warm' : ''; b.innerHTML = '<span class="k">' + (o.k || '表') + '</span><span></span>'; b.lastChild.textContent = o.t;
     b.addEventListener('click', () => { box.hidden = true; sfx('choose'); if (o.cover) addCover(o.cover); if (o.warm) S.warm += o.warm; if (o.cold) S.cold += o.cold; res(i); }); box.appendChild(b); });
   const first = box.querySelector('button'); if (first) first.focus({ preventScroll: true }); }); }
 function phoneMsg(from, text, time) { return new Promise(res => { sfx('vib'); G.shake = 0.15; $('phFrom').textContent = from; $('phMsg').textContent = text; $('phTime').textContent = time || '08:14'; const p = $('phone'); p.hidden = false; const close = () => { p.removeEventListener('click', close); p.hidden = true; res(); }; setTimeout(() => p.addEventListener('click', close), 350); }); }
-function card(t, s, ms = 2400) { return new Promise(res => { $('cardT').textContent = t; $('cardS').textContent = s || ''; const c = $('card'); c.classList.add('on'); setTimeout(() => { c.classList.remove('on'); setTimeout(res, 700); }, ms); }); }
-function fade(on) { $('fade').style.opacity = on ? 1 : 0; return sleep(460); }
+function card(t, s, ms = 2400) { if (G.skip) return Promise.resolve(); return new Promise(res => { $('cardT').textContent = t; $('cardS').textContent = s || ''; const c = $('card'); c.classList.add('on'); setTimeout(() => { c.classList.remove('on'); setTimeout(res, 700); }, ms); }); }
+function fade(on) { $('fade').style.opacity = on ? 1 : 0; return sleep(G.skip ? 30 : 460); }
+// 台本用のカメラ移動（スローなパン）
+function pan(p0, l0, p1, l1, sec) { G.pan = { p0: new THREE.Vector3(...p0), l0: new THREE.Vector3(...l0), p1: new THREE.Vector3(...p1), l1: new THREE.Vector3(...l1), t: 0, dur: sec }; G.cine = { pos: G.pan.p0.clone(), look: G.pan.l0.clone() }; camSnap = true; }
+function panTick(dt) { const P2 = G.pan; if (!P2 || !G.cine) return; P2.t = Math.min(P2.dur, P2.t + dt); const u = P2.t / P2.dur, e = u * u * (3 - 2 * u); G.cine.pos.lerpVectors(P2.p0, P2.p1, e); G.cine.look.lerpVectors(P2.l0, P2.l1, e); }
+function loc(s, b, i) { if (!b) { $('loc').classList.remove('on'); return; } $('locS').textContent = s || ''; $('locB').textContent = b; $('locI').textContent = i || ''; $('loc').classList.add('on'); }
+function nameCard(o) { const c = $('nameCard'); if (!o) { c.classList.remove('on'); return; } $('ncS').textContent = o.s || ''; $('ncB').textContent = o.b; $('ncE').textContent = o.e || ''; $('ncP').textContent = o.p || ''; c.style.borderLeftColor = o.col || ''; $('ncE').style.color = o.col || ''; c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); }
 let toastT = 0; function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; toastT = 2.6; }
 function setObj(t) { $('objT').textContent = t; }
 function addCover(d) { S.cover = clamp(S.cover + d, 0, 100); updHud(); const p = P.model ? scr(P.pos.x, 2.6, P.pos.z) : null; if (p) popAt(p, '擬態 ' + (d > 0 ? '+' : '') + d, d < 0 ? 'down' : 'up'); }
@@ -407,7 +441,7 @@ $('noteBtn').addEventListener('click', openNote); $('noteClose').addEventListene
 const _v = new THREE.Vector3();
 function scr(x, y, z) { _v.set(x, y, z).project(camera); if (_v.z > 1) return null; return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight }; }
 function popAt(p, text, cls) { const e = document.createElement('div'); e.className = 'pop ' + (cls || ''); e.textContent = text; e.style.left = p.x + 'px'; e.style.top = p.y + 'px'; $('layer').appendChild(e); setTimeout(() => e.remove(), 1250); }
-async function run(fn) { if (G.busy) return; G.busy = true; resetInput(); try { await fn(); } catch (e) { console.error(e); } finally { G.busy = false; G.cine = null; document.body.classList.remove('ura'); } }
+async function run(fn) { if (G.busy) return; G.busy = true; resetInput(); try { await fn(); } catch (e) { console.error(e); } finally { G.busy = false; G.cine = null; G.pan = null; document.body.classList.remove('ura'); } }
 
 // ================= 世界・場面 =================
 const AREAS = {}; let A = null;
@@ -428,7 +462,7 @@ function pressAct(down) { audioOn(); actDown = down; if (!down) return; if (G.bu
 function useItem(it) { run(async () => { if (it.face !== false) P.facing = Math.atan2(it.x - P.pos.x, it.z - P.pos.z); await it.on(it); if (it.once !== false) it.done = true; }); }
 function npc(area, key, model, x, z, face, o = {}) { const n = Object.assign({ key, model, pos: new THREE.Vector3(x, 0, z), facing: face || 0, st: {}, path: null, pi: 0, wait: 0, speed: 1.6 }, o); area.g.add(model.root); area.npcs.push(n); CAST[key] = model; return n; }
 function makeArea(id, def) { const a = Object.assign({ id, g: new THREE.Group(), obs: [], items: [], npcs: [], built: false, bounds: [-10, 10, -10, 10], cam: [0, 9, 9], bg: 0xBFD2E4, fog: [30, 90], light: 0.85 }, def); a.g.visible = false; scene.add(a.g); AREAS[id] = a; return a; }
-async function goArea(id, spawn, face) { await fade(true); for (const k in AREAS) AREAS[k].g.visible = false; const a = AREAS[id]; if (!a.built) { a.build(a); a.built = true; } A = a; S.area = id; a.g.visible = true; a.g.add(P.model.root);
+async function goArea(id, spawn, face) { await fade(true); for (const k in AREAS) AREAS[k].g.visible = false; const a = AREAS[id]; if (!a.built) { a.build(a); a.built = true; } A = a; S.area = id; a.g.visible = true; a.g.add(P.model.root); P.model.root.visible = !a.noPlayer;
   scene.background = new THREE.Color(a.bg); scene.fog = a.fog ? new THREE.Fog(a.bg, a.fog[0], a.fog[1]) : null; hemi.intensity = a.light; sun.intensity = a.sun ?? 0.55;
   const sp = spawn || a.spawn; P.pos.set(sp[0], 0, sp[1]); P.facing = face ?? a.spawnFace ?? 0; $('place').textContent = a.place || ''; camSnap = true; bgm(a.music); $('detM').hidden = !a.stealth; await fade(false); }
 // カメラ
@@ -448,7 +482,7 @@ function turn(a, b, k) { const d = ((b - a + Math.PI) % TAU + TAU) % TAU - Math.
 
 // ================= 人物の見た目 =================
 const LK = {
-  kuze: { skin: SK2, hair: 0x15161C, eye: 0x24242A, brow: 0x15161C, top: 0x2A3552, sleeve: 0x2A3552, bc: 0x2A3552, leg: 0x2A3552, shoe: 0x15151A, shirt: 0xF4F6FA, tie: 0x6A2A34, s: 1.02, w: 0.95, st: ['short', 'part'], bag: 0x2A2420 },
+  kuze: { skin: SK2, hair: 0x121318, eye: 0x24242A, brow: 0x121318, browTilt: -0.05, top: 0x60646C, sleeve: 0x60646C, bc: 0x5A5E66, leg: 0x5A5E66, shoe: 0x15151A, shirt: 0xF6F7FA, tie: 0x1E2846, pin: 0xC8323C, s: 1.02, w: 0.92, st: ['short', 'messy'], bag: 0x2A2420 },
   asai: { skin: SK, hair: 0x5A4030, eye: 0x3A2A20, top: 0x6A6E78, sleeve: 0x6A6E78, bc: 0x6A6E78, leg: 0x6A6E78, shoe: 0x2A2420, shirt: 0xEEF2F8, tie: 0x2A4A8A, s: 1.0, w: 1.0, st: ['short', 'glasses'] },
   gondo: { skin: SK2, hair: 0x9A9AA2, eye: 0x24242A, brow: 0x6A6A70, browTilt: -0.2, top: 0x3A3A44, sleeve: 0x3A3A44, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x15151A, shirt: 0xF0F0F0, tie: 0x8A6A2A, s: 1.02, w: 1.28, st: ['short'] },
   onodera: { skin: SK, hair: 0x3A2A2A, eye: 0x4A3020, top: 0xE8E4F0, sleeve: 0xE8E4F0, bottom: 'skirt', bc: 0x4A4A58, leg: 0xD8C8B8, shoe: 0x2A2A30, s: 0.95, w: 0.95, st: ['pony'] },
@@ -686,6 +720,244 @@ makeArea('platform', { place: '神領駅　下りホーム　午後8時40分', b
     for (let i = 0; i < 24; i++) tower(g, -70 + i * 6 + rand(-1, 1), -26 - rand(0, 20), rand(5, 9), rand(10, 40), rand(5, 8), 0x8090B0, 1);
     a.trainLight = glowSprite(0xFFF8E0, 6, 0); a.trainLight.position.set(-60, 1.5, -5); g.add(a.trainLight); }
 });
+
+// ================= 序章：この国を決めている者たち =================
+// 演出の部品（光の輪・光線・閃光）
+const FX = [];
+function fxAdd(o, life, upd, parent) { (parent || A.g).add(o); FX.push({ o, life, max: life, upd, parent: parent || A.g }); return o; }
+function fxTick(dt) { for (let i = FX.length - 1; i >= 0; i--) { const f = FX[i]; f.life -= dt; const u = Math.min(1, 1 - f.life / f.max); f.upd(u); if (f.life <= 0) { f.parent.remove(f.o); FX.splice(i, 1); } } }
+const fxMat = (c, op = 0.8) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending });
+function fxRing(x, y, z, r, col, life = 0.6) { const m = new THREE.Mesh(G_('fxring', () => new THREE.RingGeometry(0.85, 1, 40)), fxMat(col)); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); fxAdd(m, life, u => { m.scale.setScalar(0.2 + r * u); m.material.opacity = 0.9 * (1 - u); }); }
+function fxBeam(a, b, col, w = 0.25, life = 0.35) { const d = new THREE.Vector3().subVectors(b, a), L = d.length(), m = new THREE.Mesh(cyl(1, 1, 1, 8), fxMat(col, 0.9)); m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); m.scale.set(w, L, w); fxAdd(m, life, u => { m.material.opacity = 0.9 * (1 - u); m.scale.x = m.scale.z = w * (1 - u * 0.6); }); }
+function fxFlash(x, y, z, col, s = 4, life = 0.3) { const sp = glowSprite(col, s); sp.position.set(x, y, z); fxAdd(sp, life, u => { sp.material.opacity = 1 - u; sp.scale.setScalar(s * (1 + u)); }); }
+
+// ---- 宇宙と B.U.N Dictator ----
+const earthTex = canvasTex(2048, 1024, (c, w, h) => { c.fillStyle = '#071A30'; c.fillRect(0, 0, w, h); for (let i = 0; i < 26; i++) { const cx = Math.random() * w, cy = h * 0.2 + Math.random() * h * 0.6; for (let j = 0; j < 30; j++) { c.fillStyle = `rgba(${30 + Math.random() * 30},${50 + Math.random() * 30},${36 + Math.random() * 20},.95)`; c.beginPath(); c.ellipse(cx + rand(-90, 90), cy + rand(-60, 60), 8 + Math.random() * 40, 6 + Math.random() * 26, Math.random() * 3, 0, TAU); c.fill(); } }
+  for (let i = 0; i < 500; i++) { c.fillStyle = `rgba(230,236,255,${0.05 + Math.random() * 0.22})`; c.beginPath(); c.ellipse(Math.random() * w, Math.random() * h, 10 + Math.random() * 50, 2 + Math.random() * 6, Math.random() * 0.4, 0, TAU); c.fill(); }
+  for (let i = 0; i < 3000; i++) { c.fillStyle = `rgba(255,${190 + Math.random() * 50},120,${0.4 + Math.random() * 0.6})`; c.fillRect(Math.random() * w, h * 0.25 + Math.random() * h * 0.5, 2, 2); } c.fillStyle = 'rgba(255,220,150,1)'; for (let i = 0; i < 600; i++) c.fillRect(1180 + rand(-60, 60) * Math.random(), 380 + rand(-40, 40) * Math.random(), 2.5, 2.5); });
+function stars(g, n, r) { const pos = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const v = new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize().multiplyScalar(r * rand(0.8, 1)); pos.set([v.x, v.y, v.z], i * 3); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xE8ECFF, size: 1.4, sizeAttenuation: false, fog: false }))); }
+function makeDictator() { const g = new THREE.Group(); const hull = new THREE.MeshPhongMaterial({ color: 0x0C0C12, specular: 0x8890A8, shininess: 70, flatShading: true });
+  const ico = new THREE.Mesh(new THREE.IcosahedronGeometry(20, 0), hull); g.add(ico);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(ico.geometry), new THREE.LineBasicMaterial({ color: 0xA8B0D0, transparent: true, opacity: 0.55 })); g.add(edges);
+  const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(20.3, 1), new THREE.MeshBasicMaterial({ color: 0x3A4058, wireframe: true, transparent: true, opacity: 0.12 })); g.add(inner);
+  const v = ico.geometry.attributes.position, seen = new Set();
+  for (let i = 0; i < v.count; i++) { const p = new THREE.Vector3().fromBufferAttribute(v, i), k = p.toArray().map(x => x.toFixed(1)).join(); if (seen.has(k)) continue; seen.add(k);
+    const sp = new THREE.Mesh(G_('dspk', () => new THREE.ConeGeometry(0.9, 7, 4)), hull); sp.position.copy(p).multiplyScalar(1.12); sp.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p.clone().normalize()); g.add(sp);
+    const rl = glowSprite(0xFF3040, 2.6); rl.position.copy(p).multiplyScalar(1.02); g.add(rl); }
+  // 正面の「眼」
+  const eye = new THREE.Group(); eye.position.set(0, 0, 18.2); g.add(eye);
+  eye.add(new THREE.Mesh(new THREE.CircleGeometry(5.5, 40), new THREE.MeshBasicMaterial({ color: 0x020205 })));
+  const er = new THREE.Mesh(new THREE.TorusGeometry(5.6, 0.25, 8, 60), new THREE.MeshBasicMaterial({ color: 0xF4F6FF })); eye.add(er);
+  const er2 = new THREE.Mesh(new THREE.TorusGeometry(8.5, 0.12, 6, 80), new THREE.MeshBasicMaterial({ color: 0xDDE4FF })); er2.rotation.x = 1.2; eye.add(er2);
+  const eg = glowSprite(0xFFFFFF, 16, 0.6); eg.position.z = 0.5; eye.add(eg);
+  const beam = new THREE.Mesh(box(0.15, 60, 0.15), new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.7 })); beam.position.z = 18.6; g.add(beam);
+  // 外周の環
+  const rings = []; for (const [r, rx, ry] of [[34, 1.25, 0.2], [30, 0.4, 0.9], [38, 1.6, -0.5]]) { const rg = new THREE.Mesh(new THREE.TorusGeometry(r, 0.7, 6, 120), new THREE.MeshPhongMaterial({ color: 0x14141C, specular: 0x6A7088, shininess: 50 })); rg.rotation.set(rx, ry, 0); g.add(rg); rings.push(rg);
+    for (let k = 0; k < 18; k++) { const l = glowSprite(k % 3 ? 0xC8D0FF : 0xFF4050, 1.2); const a = k / 18 * TAU; l.position.set(Math.cos(a) * r, Math.sin(a) * r, 0); rg.add(l); } }
+  return { g, rings, eye: er2 }; }
+function makeShip(col = 0x101018) { const g = new THREE.Group(); const hull = new THREE.MeshPhongMaterial({ color: col, specular: 0x6A7088, shininess: 60, flatShading: true });
+  const b = new THREE.Mesh(G_('ship', () => { const c = new THREE.ConeGeometry(1, 7, 6); c.rotateX(Math.PI / 2); return c; }), hull); b.scale.set(1, 0.4, 1); g.add(b);
+  for (const sx of [-1, 1]) { const w = new THREE.Mesh(box(3, 0.15, 1.6), hull); w.position.set(sx * 1.4, 0, -1.4); w.rotation.y = sx * 0.4; g.add(w); }
+  const e = glowSprite(0xFF3A50, 2.2); e.position.z = -3.6; g.add(e); return g; }
+makeArea('space', { noPlayer: true, place: '', bounds: [-1, 1, -1, 1], spawn: [0, 999], cam: [0, 9, 9], music: 'night', bg: 0x020308, fog: null, light: 0.4, sun: 0.9,
+  build(a) { const g = a.g; stars(g, 2400, 420);
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(90, 48, 32), new THREE.MeshPhongMaterial({ map: earthTex, shininess: 12, emissiveMap: earthTex, emissive: 0x332a20 })); earth.position.set(-40, -110, -20); earth.rotation.z = 0.4; g.add(earth); a.earth = earth;
+    const atm = glowSprite(0x6AA8FF, 220, 0.35); atm.position.copy(earth.position); g.add(atm);
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(9, 24, 16), new THREE.MeshPhongMaterial({ color: 0x8A8C94 })); moon.position.set(90, 70, -160); g.add(moon);
+    const D = makeDictator(); D.g.position.set(30, 30, -40); D.g.rotation.set(0.25, -0.5, 0); g.add(D.g); a.D = D;
+    a.ships = []; for (let i = 0; i < 14; i++) { const s = makeShip(); s.userData = { r: rand(48, 70), a: rand(0, TAU), y: rand(-20, 30), sp: rand(0.05, 0.12) }; g.add(s); a.ships.push(s); }
+    const kas = glowSprite(0xFFD890, 8, 0.8); kas.position.set(-14, -22, 55); g.add(kas); a.kas = kas; },
+  tick(a, dt) { a.earth.rotation.y += dt * 0.01; a.D.g.rotation.y += dt * 0.02; a.D.rings.forEach((r, i) => { r.rotation.z += dt * (0.05 + i * 0.03) * (i % 2 ? -1 : 1); }); a.D.eye.rotation.z += dt * 0.4;
+    for (const s of a.ships) { const u = s.userData; u.a += u.sp * dt; s.position.set(30 + Math.cos(u.a) * u.r, 30 + u.y, -40 + Math.sin(u.a) * u.r); s.rotation.y = -u.a; } a.kas.material.opacity = 0.6 + Math.sin(T.now * 2) * 0.25; }
+});
+
+// ---- Dictator の艦橋 ----
+const holoKas = canvasTex(1024, 512, (c, w, h) => { c.fillStyle = '#050810'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(120,150,220,.25)'; c.lineWidth = 1; for (let x = 0; x < w; x += 32) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } for (let y = 0; y < h; y += 32) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+  c.strokeStyle = 'rgba(200,220,255,.8)'; c.lineWidth = 3; c.beginPath(); c.moveTo(60, 380); c.bezierCurveTo(300, 300, 600, 340, 960, 200); c.stroke(); c.font = `700 22px ${GOTHIC}`;
+  for (const [x, y, t, col] of [[230, 330, '春日井', '#FFD860'], [520, 300, '高蔵寺', '#FFD860'], [700, 270, '神領', '#FFD860'], [380, 160, '鉄翼興業 / 紅鱗 抗争区域', '#FF5060'], [140, 460, '辻society 春日井支部', '#FF5060'], [760, 420, '外神竜 主家', '#F2C230']]) { c.fillStyle = col; c.beginPath(); c.arc(x, y, 9, 0, TAU); c.fill(); c.fillText(t, x + 16, y + 8); }
+  c.fillStyle = '#FF4050'; c.font = `900 26px ${GOTHIC}`; c.fillText('B.U.N DICTATOR ― 地表監視：日本 / 中部 / 春日井圏', 30, 46); });
+const holoUlt = canvasTex(512, 640, (c, w, h) => { const g = c.createRadialGradient(w / 2, h * 0.45, 20, w / 2, h * 0.45, 300); g.addColorStop(0, 'rgba(255,120,80,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#0A0A0E'; c.beginPath(); c.ellipse(w / 2, 170, 70, 80, 0, 0, TAU); c.fill(); c.beginPath(); c.moveTo(150, 250); c.lineTo(362, 250); c.lineTo(400, 560); c.lineTo(112, 560); c.fill(); c.beginPath(); c.ellipse(105, 330, 40, 110, 0.2, 0, TAU); c.ellipse(407, 330, 40, 110, -0.2, 0, TAU); c.fill();
+  c.fillStyle = '#F4F2EE'; c.beginPath(); c.ellipse(w / 2 - 40, 185, 22, 30, 0, 0, TAU); c.ellipse(w / 2 + 40, 185, 22, 30, 0, 0, TAU); c.fill(); c.fillStyle = '#E8A0A8'; c.beginPath(); c.moveTo(w / 2 - 22, 170); c.lineTo(w / 2 + 22, 170); c.lineTo(w / 2, 240); c.fill();
+  c.strokeStyle = 'rgba(255,110,60,.85)'; c.lineWidth = 2; for (let i = 0; i < 40; i++) { c.beginPath(); const x = 160 + Math.random() * 200, y = 270 + Math.random() * 280; c.moveTo(x, y); c.lineTo(x + rand(-30, 30), y + rand(-30, 30)); c.stroke(); }
+  const r = c.createRadialGradient(w / 2, 300, 0, w / 2, 300, 40); r.addColorStop(0, '#FFF0E0'); r.addColorStop(0.3, '#FF3A20'); r.addColorStop(1, 'rgba(255,0,0,0)'); c.fillStyle = r; c.fillRect(w / 2 - 40, 260, 80, 80);
+  c.fillStyle = '#FFFFFF'; c.font = `800 30px ${MINCHO}`; c.textAlign = 'center'; c.fillText('B.U.N society No.1　絶尊', w / 2, 610); });
+makeArea('bridge', { noPlayer: true, place: '', bounds: [-8, 8, -6, 6], spawn: [0, 999], cam: [0, 9, 9], music: 'night', bg: 0x05060C, fog: null, light: 0.35, sun: 0.25,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.CircleGeometry(12, 6), new THREE.MeshPhongMaterial({ color: 0x0C0C14, specular: 0x404860, shininess: 80 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (let k = 0; k < 6; k++) { const a2 = k / 6 * TAU; block(0.2, 6, 0.2, 0x1A1A24, Math.sin(a2) * 11, 3, Math.cos(a2) * 11, g); }
+    const scrn = plane(16, 8, holoKas, 0, 4.6, -9, g, { transparent: true, opacity: 0.92, fog: false }); scrn.material.blending = THREE.AdditiveBlending; a.scrn = scrn;
+    const ult = plane(4.4, 5.5, holoUlt, 0, 5.2, -6, g, { transparent: true, opacity: 0, fog: false }); ult.material.blending = THREE.AdditiveBlending; a.ult = ult;
+    for (const [x, z, ry] of [[-5, -4, 0.5], [5, -4, -0.5], [-6.5, 0, 1.2], [6.5, 0, -1.2]]) { const c2 = block(2.4, 1, 1, 0x14141C, x, 0.5, z, g, { ry }); void c2; const sc = block(2.0, 0.05, 0.7, 0x2A60C0, x, 1.02, z, g, { ry, emis: 0x10306A }); void sc;
+      const op = npc(a, 'op' + x, makeBird({ coat: 0x1A1A22, vest: 0x3A3A48, s: 1.0 }), x * 0.8, z + 1.2, Math.atan2(x * 0.2 - x * 0.8, z - (z + 1.2))); op.st.sit = false; }
+    const ko = npc(a, 'koshi', makeBird({ coat: 0x6C6A72, vest: 0x2A2830, cap: 0x17141A, beak: 0xE8A0A8, scarf: 0xFF3D55, muscle: true, s: 1.7, core: 0xFF3D55 }), 0, 1.5, Math.PI); a.koshi = ko;
+    for (let i = 0; i < 8; i++) { const s = glowSprite(0x3A60C0, 5, 0.18); s.position.set(rand(-10, 10), 6, rand(-10, 4)); g.add(s); } },
+  tick(a, dt) { a.scrn.material.opacity = 0.85 + Math.sin(T.now * 8) * 0.04; }
+});
+
+// ---- 異種族の街（午前の大通り） ----
+function adBoard(g, x, y, z, ry, w, h, lines, bg, fg) { plane(w, h, signTex(Math.round(w * 100), Math.round(h * 100), lines, { bg, fg }), x, y, z, g, { ry, fog: false }); }
+makeArea('aliens', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'city', bg: 0xC8DCF0, fog: [40, 140], light: 0.75,
+  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshLambertMaterial({ color: 0x9AA0A8 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+    const rd = new THREE.Mesh(new THREE.PlaneGeometry(300, 10), new THREE.MeshLambertMaterial({ color: 0x55595F })); rd.rotation.x = -Math.PI / 2; rd.position.set(0, 0.01, 0); g.add(rd);
+    for (const z of [-8, 8]) { const sw = new THREE.Mesh(new THREE.PlaneGeometry(300, 6), new THREE.MeshLambertMaterial({ color: 0xC4C0B8 })); sw.rotation.x = -Math.PI / 2; sw.position.set(0, 0.02, z); g.add(sw); }
+    for (let i = 0; i < 16; i++) { const x = -90 + i * 12; tower(g, x, -18 - rand(0, 6), rand(8, 11), rand(30, 90), 10, i % 2 ? 0xF0ECE4 : 0xE4ECF6); tower(g, x + 6, 18 + rand(0, 6), rand(8, 11), rand(24, 70), 10, 0xE8E8F0); }
+    adBoard(g, -14, 22, -12.9, 0, 9, 5, [{ t: '紅鱗コンツェルン', size: 90, f: MINCHO, w: 800 }, { t: '竜の資本が、明日をひらく', size: 40 }], '#4A0E18', '#FFE0C8');
+    adBoard(g, 10, 18, -12.9, 0, 8, 4.5, [{ t: '九尾ホールディングス', size: 70, w: 900 }, { t: '妖狐金融　あなたの未来、査定します', size: 34 }], '#2A1A10', '#FFC870');
+    adBoard(g, 34, 26, -12.9, 0, 8, 4, [{ t: 'エルフィン・メディカル', size: 64, w: 900 }, { t: '千年の知恵を、あなたの体に', size: 32 }], '#F4FAF4', '#2A6A4A');
+    adBoard(g, -2, 14, 12.9, Math.PI, 9, 4, [{ t: '魔族議員連盟　春日井後援会', size: 56, w: 900 }, { t: '「人間の皆さまを、大切にします」', size: 34 }], '#1E1428', '#E8C8FF');
+    // 歩く人々（大半が異種族の女性、ところどころに人間）
+    const crowd = [['elf2'], ['exec'], ['patron'], ['stuC'], ['luc'], ['sal1'], ['elf2'], ['exec'], ['sal2'], ['stuA']];
+    crowd.forEach(([k], i) => { const z = i % 2 ? -7.5 : 7.5, x0 = rand(-24, 24), dir = i % 2 ? 1 : -1; npc(a, 'cr' + i, mk(k), x0, z, 0, { path: [[x0, z, 0], [x0 + dir * 26, z + rand(-1, 1), 0.2], [x0 - dir * 10, z, 0.4]], speed: rand(1.3, 1.9) }); });
+    // 頭を下げる人間の会社員と、竜族の役員
+    const ex = npc(a, 'ex2', mk('exec'), 3, -6.6, Math.PI / 2 + 0.3); ex.st.cross = true; const sl = npc(a, 'sl2', mk('young'), 4.6, -6.4, -Math.PI / 2); sl.st.bow = true; a.bowman = sl;
+    // 大通りの車
+    a.cars = []; for (let i = 0; i < 6; i++) { const c3 = new THREE.Group(); block(3.6, 1.0, 1.7, pick([0x1A1A22, 0xE8E8EC, 0x8A1A2A, 0x2A3A5A]), 0, 0.7, 0, c3); block(2.0, 0.7, 1.5, 0x2A3040, -0.2, 1.4, 0, c3); c3.userData = { x: rand(-60, 60), z: i % 2 ? -2.4 : 2.4, v: (i % 2 ? 1 : -1) * rand(8, 13) }; c3.rotation.y = c3.userData.v > 0 ? 0 : Math.PI; g.add(c3); a.cars.push(c3); } },
+  tick(a, dt) { for (const c3 of a.cars) { const u = c3.userData; u.x += u.v * dt; if (u.x > 70) u.x = -70; if (u.x < -70) u.x = 70; c3.position.set(u.x, 0, u.z); } a.bowman.st.bow = Math.sin(T.now * 0.6) > -0.6; }
+});
+
+// ---- B.U.N の街（辻society 春日井支部の界隈） ----
+function banner(g, x, z, ry, text, col = '#B01020') { const t = canvasTex(140, 600, (c, w, h) => { c.fillStyle = col; c.fillRect(0, 0, w, h); c.fillStyle = '#F4F0E8'; c.font = `800 92px ${MINCHO}`; c.textAlign = 'center'; [...text].forEach((ch, i) => c.fillText(ch, w / 2, 110 + i * 104)); });
+  const p = plane(1.4, 6, t, x, 5, z, g, { ry, double: true }); return p; }
+makeArea('buntown', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'stealth', bg: 0x8A8478, fog: [24, 90], light: 0.6,
+  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshLambertMaterial({ color: 0x6A665E })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+    for (let i = 0; i < 10; i++) { const x = -40 + i * 9; block(8, rand(8, 16), 9, pick([0x7A766C, 0x6A6A68, 0x857E72]), x, 0, -13, g).position.y = 5; block(8, rand(6, 14), 9, pick([0x7A766C, 0x6A6A68]), x, 4, 13, g); }
+    banner(g, -10, -8.4, 0, '強さこそ秩序'); banner(g, -4, -8.4, 0, 'レートがすべて', '#2A2A2E'); banner(g, 4, -8.4, 0, '鍛えよ屈するな'); banner(g, 10, -8.4, 0, '偽りを断て', '#2A2A2E');
+    plane(9, 1.6, signTex(900, 160, [{ t: '辻society　春日井支部　／　G.A.C.H.I Fight 公式道場', size: 52, w: 900 }], { bg: '#1A1A1E', fg: '#FF4A3A' }), 0, 9, -8.45, g);
+    plane(4, 2.2, signTex(400, 220, [{ t: '本日のレート', size: 36, w: 900 }, { t: '1位 剛羽　2814', size: 30 }, { t: '2位 鉄嘴　2790', size: 30 }], { bg: '#0C0C10', fg: '#FFB040' }), 15, 4, -8.45, g);
+    plane(5, 1.4, signTex(500, 140, [{ t: '鉄翼興業（株）', size: 64, f: MINCHO, w: 800 }], { bg: '#F0ECE0', fg: '#1A1A1E' }), -16, 6.5, 8.45, g, { ry: Math.PI });
+    // 鍛える文鳥たち、組の若い衆
+    a.flex = []; for (let i = 0; i < 9; i++) { const b = makeBird({ coat: pick([0x2A2A30, 0x1A1A1E, 0x3A3030]), vest: i % 3 === 0 ? 0xB01020 : null, muscle: true, shades: i % 2 === 0, s: rand(1.4, 1.7) }); const x = -14 + (i % 5) * 6 + rand(-1, 1), z = i < 5 ? -5.5 : 5.5; const n = npc(a, 'bb' + i, b, x, z, i < 5 ? 0 : Math.PI); n.st.cross = i % 2 === 1; a.flex.push(n); }
+    // 街宣車
+    const tr = new THREE.Group(); block(7, 2.4, 2.4, 0x1A1A20, 0, 1.6, 0, tr); block(2, 2, 2.3, 0x2A2A30, 4.2, 1.4, 0, tr); for (const x of [-2, 0, 2]) { const sp = part(G_('spk', () => new THREE.ConeGeometry(0.5, 0.9, 10, 1, true)), 0xE8E8E8, x, 3.2, 0, tr); sp.rotation.z = x < 0 ? 1.2 : -1.2; }
+    plane(6.6, 1.2, signTex(660, 120, [{ t: '強さこそ秩序　辻society', size: 60, f: MINCHO, w: 800 }], { bg: '#B01020', fg: '#FFFFFF' }), 0, 1.7, 1.22, tr); g.add(tr); a.truck = tr; a.truckX = -40; },
+  tick(a, dt) { a.truckX += dt * 4; if (a.truckX > 40) a.truckX = -40; a.truck.position.set(a.truckX, 0, 0); for (const n of a.flex) n.model.torso.rotation.x = n.st.cross ? 0 : Math.sin(T.now * 4 + n.pos.x) * 0.25; }
+});
+
+// ---- 抗争と企業戦争（夜の交差点） ----
+makeArea('clash', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'stealth', bg: 0x0A0C16, fog: [20, 90], light: 0.32, sun: 0.2,
+  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshLambertMaterial({ color: 0x2A2C34 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+    for (let x = -12; x <= 12; x += 1.2) block(0.6, 0.02, 4, 0xC8C8C8, x * 0.9, 0.02, 0, g);
+    for (let i = 0; i < 12; i++) { tower(g, -60 + i * 11, -22 - rand(0, 8), 9, rand(20, 60), 9, 0x8090B0, 1); tower(g, -55 + i * 11, 22 + rand(0, 8), 9, rand(16, 50), 9, 0x8090B0, 1); }
+    adBoard(g, -12, 16, -17.9, 0, 10, 3, [{ t: '鉄翼興業', size: 120, f: MINCHO, w: 800 }], '#0C0C10', '#FF4A3A');
+    adBoard(g, 12, 18, -17.9, 0, 10, 3, [{ t: '紅鱗コンツェルン', size: 100, f: MINCHO, w: 800 }], '#2A0810', '#FFD0B0');
+    const tick2 = canvasTex(2048, 64, (c, w, h) => { c.fillStyle = '#05060A'; c.fillRect(0, 0, w, h); c.font = `700 30px ${GOTHIC}`; c.textBaseline = 'middle'; c.fillStyle = '#5AE08A'; c.fillText('紅鱗コンツェルン、鉄翼興業へ敵対的TOB　▲12.4%　　九尾HD、辻系建設3社の債権を買い取り　　鉄翼興業、赤嶺重工の下請け入札から排除　　', 10, h / 2); });
+    tick2.wrapS = THREE.RepeatWrapping; const tk = plane(20, 0.8, tick2, 0, 6, -12, g, { fog: false }); tk.material.map.repeat.set(0.5, 1); a.tk = tk.material.map;
+    for (const x of [-14, 14]) { const l = glowSprite(0xFFE0A0, 6, 0.5); l.position.set(x, 6, -6); g.add(l); block(0.2, 6, 0.2, 0x3A3A44, x, 3, -6.3, g); }
+    a.left = []; a.right = [];
+    for (let i = 0; i < 6; i++) { const b = makeBird({ coat: 0x0E0E12, vest: i === 0 ? 0xB01020 : 0x1A1A20, muscle: true, shades: true, s: 1.55 }); const n = npc(a, 'm' + i, b, -7 - (i % 3) * 2, -3 + Math.floor(i / 3) * 4 + rand(-0.5, 0.5), Math.PI / 2); a.left.push(n); }
+    const girls = ['stuC', 'stuA', 'exec', 'patron', 'elf2', 'stuC'];
+    girls.forEach((k, i) => { const n = npc(a, 'g' + i, mk(k), 7 + (i % 3) * 2, -3 + Math.floor(i / 3) * 4 + rand(-0.5, 0.5), -Math.PI / 2); a.right.push(n); });
+    a.fxT = 0; },
+  tick(a, dt) { a.tk.offset.x = (a.tk.offset.x + dt * 0.05) % 1; a.fxT -= dt; if (a.fxT > 0) return; a.fxT = rand(0.25, 0.7);
+    const L = pick(a.left), R = pick(a.right), lp = new THREE.Vector3(L.pos.x, 1.6, L.pos.z), rp = new THREE.Vector3(R.pos.x, 1.4, R.pos.z);
+    if (Math.random() < 0.5) { fxBeam(rp, lp, pick([0xA070FF, 0xFF8A40, 0x60D0FF]), 0.22); fxFlash(lp.x, lp.y, lp.z, 0xC8A0FF, 3); L.model.nod = 0.3; }
+    else { fxRing((L.pos.x + R.pos.x) / 2, 0.1, (L.pos.z + R.pos.z) / 2, 4, 0xFF4A3A); fxFlash(rp.x, rp.y, rp.z, 0xFF6A40, 3.5); R.model.nod = 0.3; }
+    G.shake = Math.max(G.shake, 0.06); }
+});
+
+// ---- 外神竜一族（夜明けの丘） ----
+const FAMLK = {
+  yuria: LK.yuria,
+  vol: { skin: SK, hair: 0xF8F7FF, accent: 0xAFCBEA, eye: 0x8FB8E8, top: 0xF4F4FA, sleeve: 0xF4F4FA, bottom: 'skirt', bc: 0xF4F4FA, leg: SK, shoe: 0xEDEDF5, s: 1.02, w: 1.1, st: ['pony', 'oneEye', 'mesh'] },
+  zaina: { skin: SK, hair: 0xF4F4F8, eye: 0xD0505A, top: 0x2A2630, sleeve: SK, bc: 0x2A2630, leg: 0x2A2630, shoe: 0x2A2630, s: 1.12, w: 1.28, st: ['bob', 'horns'], muscle: true },
+  rurika: { skin: SK, hair: 0xF7F6FF, accent: 0x5D5AA8, eye: 0x8E8BC8, top: 0xFFFFFF, sleeve: 0xFFFFFF, bc: 0x8F8CC4, leg: 0x8F8CC4, shoe: 0xF2F2F8, s: 0.9, w: 1, st: ['bob', 'mesh', 'sidetails'] },
+  miria: { skin: SK, hair: 0xF8F7FF, accent: 0xC8E870, eye: 0x9CCB3C, top: 0xFAFAFA, sleeve: 0xFAFAFA, bc: 0x2E2C36, leg: 0x4A4450, shoe: 0xF2F2F8, s: 0.88, w: 0.95, st: ['twin', 'mesh'], scythe: true },
+  rin: { skin: SK, hair: 0xF8F7FF, accent: 0x3FA37F, eye: 0x9A90B8, top: 0x2E2C36, sleeve: 0xFAFAFA, bc: 0x2E2C36, leg: 0x2E2C36, shoe: 0x1E1E24, s: 0.9, w: 0.95, st: ['highpony'], coat: 0xFAFAFA, katana: true },
+  terues: { skin: SK, hair: 0xF8F7FF, accent: 0xF08A24, eye: 0xD9B070, top: 0x24222C, sleeve: 0x24222C, bc: 0x24222C, leg: 0x24222C, shoe: 0x1E1E24, s: 1.0, w: 1.02, st: ['short', 'tips'], coat: 0x2A2832, lining: 0xF08A24 },
+  reune: { skin: DK, hair: 0xF4F4F8, accent: 0x2FA88A, eye: 0x3FA890, top: 0xFAFAFA, sleeve: 0xFAFAFA, bc: 0x2A2630, leg: 0x2A2630, shoe: 0x2A2630, s: 1.0, w: 1.2, st: ['bob', 'lock'] },
+  nirume: { skin: SK, hair: 0xF8F7FF, accent: 0x2A2630, eye: 0xF08AB0, top: 0xFAFAFA, sleeve: 0xFAFAFA, bottom: 'skirt', bc: 0x2E2A34, leg: 0x2E2A34, shoe: 0x2E2A34, s: 1.0, w: 1.15, st: ['long', 'streaks'], longLen: 1.25 },
+  edel: { skin: SK, hair: 0xF4F4F8, eye: 0x55556A, top: 0xFAFAFA, sleeve: 0x2E2C36, bc: 0x34323C, leg: 0x34323C, shoe: 0x1E1E24, s: 1.1, w: 1.0, st: ['short', 'glasses'], coat: 0x2E2C36, shortCoat: true },
+  asela: { skin: DK, hair: 0xF8F7FF, eye: 0xE0683A, top: 0xFAFAFA, sleeve: 0xFAFAFA, bc: 0x24222C, leg: DK, shoe: 0xC9A8E8, s: 0.88, w: 0.95, st: ['short', 'braid', 'ahoge'] },
+  furuuru: { skin: SK, hair: 0xF8F7FF, eye: 0, top: 0xFAFAFA, sleeve: SK, bc: 0x55535E, leg: 0x55535E, shoe: 0xFAFAFA, s: 1.0, w: 1.25, st: ['fluffy', 'eyesHidden'] },
+};
+const FAMI = [
+  { k: 'yuria', b: 'ユリア', s: '長女', e: '陽盾警備保障', col: '#E3B428', p: '外神竜一族の長女。軍事的な警備保障で、侵略と過剰な支配の両方を止める。基本は不殺。「よゆーよゆー♪」' },
+  { k: 'vol', b: 'ヴォル', s: '次女', e: '蒼生バイオメディカル', col: '#7FAEE0', p: '生物・化学と医療。病院と研究所を束ね、人間の命を日々つなぎとめている。' },
+  { k: 'zaina', b: 'ザイナ', s: '三女', e: '赤嶺重工', col: '#C0394B', p: '重工業とインフラ。寡黙に、街の骨格を組み、壊れたものを直す。' },
+  { k: 'rurika', b: 'ルリカ', s: '四女', e: '正律法務機構', col: '#6B63C9', p: '法務と行政の接点。能力は「正常化」。審理してから、判決する。口癖は「もう！」。' },
+  { k: 'miria', b: 'ミリア', s: '五女', e: '千路ロジスティクス', col: '#8DBE2E', p: '物流。物資を、必要な場所へ、間に合わせる。危険地帯からの移送も担う。' },
+  { k: 'rin', b: '燐', s: '六女', e: '結電工', col: '#3FA37F', p: '電力と配線の会社。その工事と保守が、日本中に張られた結界網の隠れ蓑になっている。' },
+  { k: 'terues', b: 'テルエス', s: '七女', e: '天環ホールディングス', col: '#E07A1E', p: '一族の財閥の大元。資本、契約、人脈。「テルエス財閥」と呼ぶ者もいる。' },
+  { k: 'reune', b: 'レウネ', s: '八女', e: '翠絡情報技研', col: '#2E9E83', p: '情報と通信の基盤。観測し、記録し、つなぐ。ニルメの会社の実務もほぼ彼女が回す。' },
+  { k: 'nirume', b: 'ニルメ', s: '九女', e: 'ネムリア・エンタテインメント', col: '#E889AE', p: 'サブカルの娯楽事業。……の名義を持っている。本人は、だいたい眠そうにしている。' },
+  { k: 'edel', b: 'エデル', s: '十女', e: '未完画廊（本人は経営しない）', col: '#8C80B8', p: '芸術家。作品に惹かれた者たちが勝手に集まり、芸術至上の組織「未完画廊」を作った。本人は、それに興味がない。' },
+  { k: 'asela', b: 'アセラ', s: '十一女', e: '転星救急機構', col: '#D9602E', p: '消防と救急。事故の運動を奪い、安全な向きへ転じる。誰よりも先に現場へ走る。' },
+  { k: 'furuuru', b: 'フルル', s: '母', e: '一族の根源', col: '#E79AB4', p: '十一人全員が「ママ」と呼ぶ、外神竜一族の母。春日井の、いちばん奥にいる。' },
+];
+makeArea('family', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'gallery', bg: 0xE8C8B0, fog: [30, 120], light: 0.52, sun: 0.4,
+  build(a) { const g = a.g; const hill = new THREE.Mesh(new THREE.CircleGeometry(30, 40), new THREE.MeshLambertMaterial({ color: 0x6A9A6A })); hill.rotation.x = -Math.PI / 2; g.add(hill);
+    const low = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshLambertMaterial({ color: 0x5A7A68 })); low.rotation.x = -Math.PI / 2; low.position.y = -12; g.add(low);
+    for (let i = 0; i < 40; i++) tower(g, rand(-120, 120), rand(-160, -60), rand(5, 10), rand(10, 50) - 12, rand(5, 9), 0xF0D8C8).position.y -= 12;
+    tower(g, -20, -110, 14, 70, 14, 0xF4F0E4).position.y -= 12;
+    const sunS = glowSprite(0xFFE0B0, 60, 0.9); sunS.position.set(40, 10, -180); g.add(sunS);
+    for (const [x, z] of [[-14, 6], [15, 5], [-17, -3]]) tree(g, x, z, 1.6);
+    a.fam = FAMI.map((f, i) => { const ang = -1.15 + i * (2.3 / (FAMI.length - 1)), x = Math.sin(ang) * 9, z = -Math.cos(ang) * 4 + 1; const n = npc(a, f.k, makeChar(FAMLK[f.k]), x, z, Math.atan2(-x, 6 - z)); if (f.k === 'yuria') n.st.v = true; if (f.k === 'zaina') n.st.cross = true; return n; }); }
+});
+
+// ---- 序章の台本 ----
+async function worldIntro() {
+  G.mode = 'cine'; $('skipBtn').hidden = false;
+  // 一：星の夜
+  await goArea('space'); pan([10, 40, 200], [-30, -40, -20], [-20, 12, 140], [-30, -30, -10], 30);
+  await card('序章', 'この国を決めている者たち', 2600);
+  loc('地球　夜の側', '日本', 'JAPAN');
+  await narr('この星には、人間のほかに、竜、魔族、エルフ、妖狐をはじめとする、多くの知的な種族が暮らしている。');
+  await narr('彼女たちは、人間には扱えない魔法を操り、人間の遠く及ばない力を持つ。生き物として人間より優れていることを、もう誰も疑わない。');
+  // 二：異種族が牛耳る街
+  await goArea('aliens'); pan([-30, 3.2, 3], [0, 3, -4], [6, 3.0, 3.5], [36, 3.4, -3], 34); loc('日本　中部経済圏', '異種族の街', 'THE NEIGHBORS WHO RULE');
+  await narr('彼女たちは伝説ではない。同じ電車に乗り、同じ会社で働き、企業を経営し、国の意思決定に関わる隣人だ。');
+  await narr('大企業の代表、政治家、大資産家。その多くが異種族の女たちで占められている。竜の資本、妖狐の金融、エルフの医療、魔族の議員連盟。');
+  pan([2, 3.2, 1], [4, 1.4, -6.5], [7, 2.6, -1], [3.6, 1.4, -6.6], 14);
+  await narr('表向きに人間の代表が立つ役所や会社もある。だが資金と契約と人事を握っているのは、たいてい、その背後の誰かだ。');
+  await narr('彼女たちの多くは、人間がひどく好きだ。愛情も、庇護欲も、独占欲も、人間の手には余るほど強い。');
+  await narr('会食の席に差し出される社員がいる。目をつけられて、逃げられない人がいる。それでも、声を上げれば何を失うかを、誰もが知っている。');
+  // 三：B.U.N の街
+  await goArea('buntown'); pan([-24, 3.6, 6.5], [-6, 3, -6], [20, 4.2, 6.5], [6, 3.6, -6], 36); loc('春日井圏　北部', '辻society 春日井支部', 'B.U.N SOCIETY — MUSCLE QUARTER');
+  await narr('一方で、この国には、もう一つの文明がいる。B.U.N society。約十の二十一乗羽のマッスル文鳥が属する、宇宙規模の文明圏だ。');
+  await narr('彼らは科学も、医療も、物流も持つ。人間の暮らしを支えている文鳥も多い。……だが、その社会の真ん中には、強さとレートがある。');
+  await narr('辻society系の強硬派は、異種族を、とりわけ女を敵とみなす。彼らは女を「メス肉」と呼び、人格を持つ者から、資源へと数え直そうとする。');
+  await narr('その数え方には、人間の女も入っている。強い男には種族を超えて敬意を払うが、弱い人間や、巻き込まれた住民が守られる保証は、どこにもない。');
+  // 四：抗争と企業戦争
+  await goArea('clash'); pan([0, 14, 20], [0, 1, 0], [-10, 5, 9], [0, 1.4, 0], 30); loc('春日井駅北口　深夜', '抗争', 'GANG WAR / CORPORATE WAR');
+  await narr('夜になると、街の境目で、それはぶつかる。B.U.N 系の組――表の顔は「鉄翼興業」――と、異種族の女たちが率いる組織。');
+  await narr('魔法の光と、鍛えた拳。翌朝のニュースは、それを「事故」と呼ぶ。');
+  pan([0, 8, 14], [0, 6, -12], [0, 7, 10], [0, 6, -12], 12);
+  await narr('昼の戦いは、もっと静かだ。敵対的買収、債権の買い占め、入札からの締め出し。紅鱗コンツェルンと鉄翼興業の争いは、株価の数字で毎日続いている。');
+  await narr('どちらが勝っても、損をするのは、その間で働いている人間だ。');
+  // 五：外神竜一族
+  await goArea('family'); pan([0, 3, 18], [0, 1.6, 0], [0, 2.4, 13], [0, 1.6, 0], 8); loc('春日井　高蔵寺の丘　夜明け', '外神竜一族', 'THE OUTER DRAGON FAMILY');
+  await narr('その全部を、少し離れた場所から見ている者たちがいる。');
+  await narr('春日井に暮らす、外神竜一族。十一人の姉妹と、その母。彼女たちは、どちらか一方に世界を渡すことを許さない。');
+  const A5 = AREAS.family; for (let i = 0; i < FAMI.length; i++) { const f = FAMI[i], n = A5.fam[i]; const fx = Math.sin(Math.atan2(n.pos.x, 6 - n.pos.z));
+    pan([n.pos.x + fx * 1.5, 2.0, n.pos.z + 4.6], [n.pos.x, 1.4, n.pos.z], [n.pos.x + fx * 1.2, 1.8, n.pos.z + 3.6], [n.pos.x, 1.45, n.pos.z], 6);
+    nameCard({ s: f.s, b: f.b, e: f.e, p: f.p, col: f.col }); await narr(f.b + '。' + f.e + '。'); }
+  nameCard(null); pan([0, 6, 20], [0, 1.6, 0], [0, 10, 26], [0, 2, -20], 16);
+  await narr('文鳥強硬派の侵略を止め、異種族が人間へ向ける過剰な支配にも歯止めをかける。ユリアの武力が「壊させない」を支え、テルエスの資本が「止められても暮らせる」を支える。');
+  await narr('彼女たちもまた、人間が好きだ。その庇護は優しく、重い。春日井は、その庇護のいちばん近くにある街として、大きく、豊かになった。');
+  // 六：宇宙の要塞と、No.4
+  await goArea('space'); pan([60, 40, 60], [30, 30, -40], [34, 32, -5], [30, 30, -40], 22); loc('静止軌道', 'B.U.N DICTATOR', 'ABSOLUTE ENVIRONMENT CONTROL FORTRESS');
+  await narr('そして、その上。星の夜の側に、黒い多面体が浮かんでいる。');
+  await narr('B.U.N society の絶対環境制御要塞、B.U.N DICTATOR。この星の文鳥たちへの命令は、ここから降りてくる。');
+  await goArea('bridge'); const B = AREAS.bridge; B.koshi.pos.set(0, 0, 1.5); B.koshi.facing = Math.PI; pan([0, 3.4, 9], [0, 3.4, -6], [0, 2.6, 5.5], [0, 2.6, -2], 10); loc('B.U.N DICTATOR　艦橋', 'B.U.N society No.4', 'THE KOSHI — HYPER ACCELERATION');
+  await say('op', '地表監視、報告します。春日井圏、鉄翼興業が後退。紅鱗の私兵と、外神竜の陽盾が介入しました。', { nod: false });
+  await narr('艦橋の中央に、灰色の大きな文鳥が立っている。赤い襟巻き。胸の奥で、炉心が赤く脈打つ。');
+  nameCard({ s: 'B.U.N society Rate No.4', b: 'ザ・コシ', e: '超高加速', col: '#FF3D55', p: 'B.U.N DICTATOR から、この星の作戦を指揮する上位個体。言葉は少なく、判断は速い。' });
+  await say('koshi', '……遅い。');
+  B.koshi.goal = null; for (let i = 0; i < 20; i++) { B.koshi.facing = turn(B.koshi.facing, 0, 0.2); await sleep(G.skip ? 0 : 20); }
+  pan([2.4, 2.6, 5.4], [0, 2.6, 1.5], [1.6, 2.5, 4.4], [0, 2.7, 1.5], 8);
+  await say('koshi', '外神竜が、地表の偽りを庇っている。');
+  await say('koshi', '……邪魔だ。加速する。');
+  nameCard(null); B.ult.material.opacity = 0; for (let i = 0; i < 30; i++) { B.ult.material.opacity = i / 30 * 0.95; await sleep(G.skip ? 0 : 30); }
+  pan([0, 3, 7], [0, 4.6, -6], [0, 3.4, 8.5], [0, 5, -6], 10);
+  await narr('天井の闇に、もう一つの影が映る。B.U.N society No.1、絶尊。');
+  await say('ult', '余の命は、命令そのもの。余の裁定は、宇宙の終着。');
+  await say('koshi', '……御意。');
+  loc(null); B.ult.material.opacity = 0;
+  await narr('人類より優れた隣人たちと、宇宙から命令を受ける文鳥たちと、その間に立つ竜の一族。');
+  await narr('――そのすべての真ん中で、一人の人間が、今朝も、穏やかに頭を下げる。');
+  G.pan = null; $('skipBtn').hidden = true; nameCard(null); loc(null); G.skip = false;
+}
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -961,7 +1233,7 @@ function showReport() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden 
 // ================= 毎フレーム =================
 let last = performance.now();
 function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.05, (now - last) / 1000); last = now; T.now += dt; bgmTick();
-  if (A) { // 歩く
+  if (A) { panTick(dt); fxTick(dt); // 歩く
     let mx = 0, mz = 0; if (G.mode === 'play' && !G.busy && $('note').hidden) { mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x; mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y; }
     const L = Math.hypot(mx, mz); P.st.walk = L > 0.15; P.st.run = L > 0.85 && (keys.ShiftLeft || keys.ShiftRight || Math.hypot(stick.x, stick.y) > 0.9);
     if (P.st.walk) { const sp = (P.st.run ? 5.2 : 3.2) * Math.min(1, L); P.pos.x += mx / Math.max(1, L) * sp * dt; P.pos.z += mz / Math.max(1, L) * sp * dt; P.facing = turn(P.facing, Math.atan2(mx, mz), dt * 12); }
@@ -985,7 +1257,9 @@ function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.05, (now
 P.model = makeChar(LK.kuze); CAST.kuze = P.model;
 (async () => { const a = AREAS.station; a.build(a); a.built = true; A = a; a.g.visible = true; a.g.add(P.model.root); P.pos.set(0, 0, -8.6); scene.background = new THREE.Color(a.bg); scene.fog = new THREE.Fog(a.bg, a.fog[0], a.fog[1]); camSnap = true; requestAnimationFrame(loop); })();
 $('sndBtn').addEventListener('click', () => { sound = !sound; $('sndBtn').setAttribute('aria-pressed', sound ? 'true' : 'false'); $('sndBtn').textContent = sound ? '音あり' : '音なし'; if (!sound && master) master.gain.value = 0; else if (master) master.gain.value = 0.5; });
-$('startBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(prologue); });
-window.__kz = { S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goGallery, goArchive, evClimax, finale, showReport };
+$('startBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(async () => { await worldIntro(); await prologue(); }); });
+$('ch1Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(prologue); });
+$('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
+window.__kz = { worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goGallery, goArchive, evClimax, finale, showReport };
 })();
 </script>
