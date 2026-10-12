@@ -147,7 +147,7 @@ body.ura #uraVeil { opacity: 1; }
 #nameCard small { display: block; font-size: 10.5px; letter-spacing: .2em; color: var(--mute); font-weight: 900; }
 #nameCard b { display: block; font-family: var(--mincho); font-weight: 800; font-size: 28px; line-height: 1.2; margin-top: 2px; }
 #nameCard em { display: block; font-style: normal; font-size: 12.5px; font-weight: 700; margin-top: 4px; color: var(--gold); }
-#nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; }
+#nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; white-space: pre-line; }
 #skipBtn { position: fixed; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 21; border: 1px solid var(--line); background: rgba(10,13,22,.8); padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
 @media (max-width: 560px) { #nameCard { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); } }
 @media (max-width: 560px) { #dText { font-size: 14.5px; } #choices button { font-size: 13.5px; } #act { width: 80px; height: 80px; } #prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 124px); } }
@@ -319,6 +319,9 @@ function makeChar(L) {
   if (st.has('foxears')) for (const sx of [-1, 1]) { const e = part(G_('foxear', () => new THREE.ConeGeometry(0.1, 0.26, 4)), L.hair, sx * 0.2, 0.36, -0.02, head, { ol: 1.08 }); e.rotation.z = -sx * 0.35; }
   if (st.has('cap')) { part(G_('capHat', () => new THREE.SphereGeometry(0.35, 16, 8, 0, TAU, 0, Math.PI / 2)), L.capCol, 0, 0.06, 0, head, { ol: 1.05 }); part(box(0.4, 0.03, 0.2), L.capCol, 0, 0.07, 0.3, head, { ol: 1.06 }); }
   if (L.tail) { const t = part(G_('foxtail', () => new THREE.SphereGeometry(0.16, 10, 8)), L.hair, 0, 0.78, -0.32, g, { s: [1, 1, 2.2] }); t.rotation.x = 0.7; }
+  if (st.has('wings')) for (const sx of [-1, 1]) { const wg = part(G_('dwing', () => { const c = new THREE.ConeGeometry(0.5, 0.9, 3); c.scale(1, 1, 0.08); return c; }), L.wingCol || 0x2A1A30, sx * 0.34, 1.3, -0.3, torso, { ol: 1.04 }); wg.rotation.z = sx * 1.1; wg.rotation.y = sx * 0.4; }
+  if (st.has('dtail')) { let pz = -0.25; for (let i = 0; i < 6; i++) { part(sph(0.13 - i * 0.017, 8, 6), L.tailCol || L.hair, 0, 0.78 - i * 0.07, pz, g, { ol: 1.06 }); pz -= 0.17; } }
+  if (st.has('cape')) part(box(0.62, 1.05, 0.05), L.capeCol || 0x5A0A18, 0, 1.0, -0.27, torso, { ol: 1.03 });
   if (L.smock) part(cyl(0.27 * w, 0.36 * w, 0.8, 14), L.smock, 0, 1.0, 0, torso, { ol: 1.04 });
   blob(root, 0.42 * w);
   return { root, g, torso, legs, arms, head, eyes, phone, ph: rand(0, 6), nod: 0 };
@@ -338,16 +341,17 @@ function makeBird(o = {}) {
   if (o.core) { const cg = glowSprite(o.core, 0.7); cg.position.set(0, 1.25, 0.46); torso.add(cg); part(sph(0.06, 8, 6), o.core, 0, 1.25, 0.43, torso, { outline: false, emis: o.core }); }
   if (o.helmet) { part(G_('helm', () => new THREE.SphereGeometry(0.4, 16, 8, 0, TAU, 0, Math.PI / 2)), o.helmet, 0, 0.08, 0, head, { ol: 1.05 }); part(cyl(0.44, 0.44, 0.04, 16), o.helmet, 0, 0.08, 0.04, head, { outline: false }); }
   blob(root, 0.6);
-  return { root, g, torso, legs, arms, head, eyes: [], phone: null, ph: rand(0, 6), nod: 0, bird: true };
+  return { root, g, torso, legs, arms, head, eyes: [], phone: null, ph: rand(0, 6), nod: 0, bird: true, hip: 0.62 };
 }
 function animChar(c, st, dt) {
   const k = Math.min(1, dt * 12); if (st.walk) c.ph += dt * (st.run ? 13 : 9);
   const w = st.walk ? 1 : 0, sw = Math.sin(c.ph) * (st.run ? 0.75 : 0.55) * w;
-  const legX = st.sit ? -1.45 : null;
+  const legX = st.sit || st.down ? -1.45 : null;
   c.legs[0].rotation.x += ((legX ?? sw) - c.legs[0].rotation.x) * k; c.legs[1].rotation.x += ((legX ?? -sw) - c.legs[1].rotation.x) * k;
-  c.g.position.y = (st.sit ? -0.38 : 0) + Math.abs(Math.sin(c.ph)) * 0.04 * w;
-  c.torso.rotation.x += ((st.bow ? 0.42 : st.sit ? -0.08 : 0) - c.torso.rotation.x) * k;
-  for (let i = 0; i < 2; i++) { const a = c.arms[i]; let ax = (i ? -sw : sw) * 0.8, az = (i ? -1 : 1) * 0.08;
+  c.g.position.y = (st.sit ? -0.38 : st.down ? -0.5 : 0) + Math.abs(Math.sin(c.ph)) * 0.04 * w;
+  c.torso.rotation.x += ((st.bow ? (st.bowA || 0.62) : st.down ? -1.2 : st.sit ? -0.08 : 0) - c.torso.rotation.x) * k;
+  { const H = c.hip || 0.86, r = c.torso.rotation.x; c.torso.position.set(0, H * (1 - Math.cos(r)), -H * Math.sin(r)); }
+  for (let i = 0; i < 2; i++) { const a = c.arms[i]; let ax = (i ? -sw : sw) * 0.8, az = (i ? -1 : 1) * 0.08; if (st.bow) { ax = 0.1; az = (i ? -1 : 1) * 0.05; } if (st.aim && i === 1) { ax = -1.55; az = 0; } if (st.cast) { ax = -1.7 + Math.sin(T.now * 9) * 0.15; az = (i ? -1 : 1) * 0.35; } if (st.armsUp) { ax = -3.0; az = (i ? -1 : 1) * 0.2; } if (st.paint && i === 1) { ax = -1.4 + Math.sin(T.now * 3) * 0.3; az = 0.1; }
     if (st.phone && i === 1) { ax = -2.2; az = 0.55; } if (st.point && i === 1) { ax = -1.5; az = 0; } if (st.cross) { ax = -0.9; az = (i ? 1 : -1) * 0.7; } if (st.carry) { ax = -0.9; az = 0; } if (st.v && i === 1) { ax = -2.6; az = 0.4; } if (st.sit && !st.phone) { ax = -0.5; az = (i ? -1 : 1) * 0.15; }
     a.rotation.x += (ax - a.rotation.x) * k; a.rotation.z += (az - a.rotation.z) * k; }
   if (c.phone) c.phone.visible = !!st.phone;
@@ -407,7 +411,7 @@ function bgmTick() { if (!AC || !sound || !bgmKind) return; const B = BGM[bgmKin
 
 // ================= 台詞・選択肢 =================
 const SPK = { kuze: ['久世', '#E9EDF4'], ura: ['裏声', '#FF8A92'], asai: ['浅井', '#B8C8E8'], gondo: ['権藤部長', '#D8C08A'], onodera: ['小野寺', '#E8B8C8'], luc: ['ルシエンヌ', '#BFE8D0'], stu: ['スチューデント', '#C8C0E8'], stu2: ['スチューデント', '#C8C0E8'],
-  yuria: ['ユリア', '#F2C230'], ad: ['画面の声', '#F2C230'], exec: ['竜族の役員', '#E89A8A'], young: ['若い社員', '#B8C8E8'], old: ['老人', '#D8D0C0'], bun: ['作業着の文鳥', '#E8A0A8'], kuroiwa: ['室長', '#9AA6BC'], wataru: ['渉', '#A8D8E8'], koshi: ['ザ・コシ', '#FF3D55'], op: ['艦橋の文鳥', '#9AA6BC'], ult: ['絶尊', '#FF8A60'] };
+  yuria: ['ユリア', '#F2C230'], ad: ['画面の声', '#F2C230'], exec: ['竜族の役員', '#E89A8A'], young: ['若い社員', '#B8C8E8'], old: ['老人', '#D8D0C0'], bun: ['作業着の文鳥', '#E8A0A8'], kuroiwa: ['室長', '#9AA6BC'], vol: ['ヴォル', '#7FAEE0'], zaina: ['ザイナ', '#E06070'], rurika: ['ルリカ', '#9A94F0'], miria: ['ミリア', '#A8D84A'], rin: ['燐', '#5FC39F'], terues: ['テルエス', '#F0A050'], reune: ['レウネ', '#4ECEA8'], nirume: ['ニルメ', '#F0A0C0'], edel: ['エデル', '#B0A8D8'], asela: ['アセラ', '#F08050'], furuuru: ['フルル', '#F0B0C8'], wataru: ['渉', '#A8D8E8'], koshi: ['ザ・コシ', '#FF3D55'], op: ['艦橋の文鳥', '#9AA6BC'], ult: ['絶尊', '#FF8A60'] };
 let dlgDone = null, typer = null, typing = false, fullText = '';
 function showDlg(who, text, cls) { const d = $('dlg'); d.hidden = false; d.className = cls || ''; const sp = SPK[who]; $('dName').textContent = who === 'narr' ? '' : sp ? sp[0] : who; $('dName').style.color = sp ? sp[1] : '#E9EDF4';
   fullText = text; $('dText').textContent = ''; $('dNext').hidden = true; typing = true; let i = 0; clearInterval(typer);
@@ -475,9 +479,9 @@ function cine(px, py, pz, lx, ly, lz) { G.cine = { pos: new THREE.Vector3(px, py
 function walkTo(n, x, z, speed = 1.8) { return new Promise(res => { n.goal = { x, z, speed, res }; }); }
 function npcTick(n, dt) { let moving = false;
   if (n.goal) { const dx = n.goal.x - n.pos.x, dz = n.goal.z - n.pos.z, L = Math.hypot(dx, dz); if (L < 0.08) { const r = n.goal.res; n.goal = null; r(); } else { const v = Math.min(L, n.goal.speed * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 10); moving = true; } }
-  else if (n.path && !G.busy) { if (n.wait > 0) n.wait -= dt; else { const p = n.path[n.pi], dx = p[0] - n.pos.x, dz = p[1] - n.pos.z, L = Math.hypot(dx, dz); if (L < 0.1) { n.pi = (n.pi + 1) % n.path.length; n.wait = p[2] || 0; } else { const v = Math.min(L, n.speed * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 8); moving = true; } } }
+  else if (n.path && (!G.busy || G.mode === 'cine')) { if (n.wait > 0) n.wait -= dt; else { const p = n.path[n.pi], dx = p[0] - n.pos.x, dz = p[1] - n.pos.z, L = Math.hypot(dx, dz); if (L < 0.1) { n.pi = (n.pi + 1) % n.path.length; n.wait = p[2] || 0; } else { const v = Math.min(L, n.speed * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 8); moving = true; } } }
   else if (n.lookAt) { const t = n.lookAt === 'P' ? P.pos : n.lookAt; n.facing = turn(n.facing, Math.atan2(t.x - n.pos.x, t.z - n.pos.z), dt * 4); }
-  n.st.walk = moving || !!n.extMove; n.extMove = false; n.model.root.position.set(n.pos.x, 0, n.pos.z); n.model.root.rotation.y = n.facing; n.model.root.visible = !n.hidden; animChar(n.model, n.st, dt); }
+  n.st.walk = moving || !!n.extMove; n.extMove = false; n.model.root.position.set(n.pos.x, n.y || 0, n.pos.z); n.model.root.rotation.y = n.facing; n.model.root.visible = !n.hidden; animChar(n.model, n.st, dt); }
 function turn(a, b, k) { const d = ((b - a + Math.PI) % TAU + TAU) % TAU - Math.PI; return a + d * Math.min(1, k); }
 
 // ================= 人物の見た目 =================
@@ -515,7 +519,7 @@ const adTex = canvasTex(720, 400, (c, w, h) => {
   c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = '#FFFFFF'; c.font = `800 46px ${MINCHO}`; c.fillText('今日も、', 40, 120); c.fillText('全員無事に', 40, 180); c.fillText('帰ろーね！', 40, 240);
   c.fillStyle = '#F2C230'; c.font = `900 26px ${GOTHIC}`; c.fillText('陽盾警備保障', 40, 320); c.fillStyle = '#C8D0E0'; c.font = `700 16px ${GOTHIC}`; c.fillText('天環グループ　困ったときは、陽盾相談窓口へ', 40, 356); });
 const tickerTex = canvasTex(2048, 64, (c, w, h) => { c.fillStyle = '#0C0E14'; c.fillRect(0, 0, w, h); c.font = `700 30px ${GOTHIC}`; c.textBaseline = 'middle'; c.fillStyle = '#F2A040';
-  c.fillText('【速報】断偽文鳥門、B.U.N からの独立を改めて宣言　門主メス・ゼロ「偽りを断つ」　　　【天環】界域協定の次期改定、来春にも閣議へ　　　', 10, h / 2); });
+  const t = '【速報】断偽文鳥門、B.U.N からの独立を改めて宣言　門主メス・ゼロ「偽りを断つ」　　【天環】界域協定の次期改定、来春にも閣議へ　　'; const tw = c.measureText(t).width; for (let x = 0; x < w; x += tw) c.fillText(t, x, h / 2 + 1); });
 tickerTex.wrapS = THREE.RepeatWrapping;
 makeArea('station', { place: '春日井駅前　午前8時12分', bounds: [-14, 14, -10, 7], spawn: [0, -8.6], spawnFace: 0, cam: [0, 11, 12.5], music: 'city', bg: 0xBFD4E8, fog: [40, 120], light: 0.62,
   build(a) { const g = a.g;
@@ -529,7 +533,7 @@ makeArea('station', { place: '春日井駅前　午前8時12分', bounds: [-14, 
     block(34, 10, 5, 0xE6E8EC, 0, 5, -13.6, g); block(34, 2.2, 0.2, 0x7C98B6, 0, 3.4, -11.05, g); block(6, 3, 0.3, 0x2A3040, 0, 1.5, -11, g);
     plane(9, 1.3, signTex(900, 130, [{ t: 'JR  春日井駅　KASUGAI STATION', size: 64, w: 900 }], { bg: '#1E3A6A', fg: '#FFFFFF' }), 0, 6.2, -11.1, g);
     block(7.8, 4.6, 0.3, 0x1A1E28, -8.5, 6.8, -11.15, g); plane(7.2, 4, adTex, -8.5, 6.8, -10.98, g, { fog: false });
-    block(10, 0.8, 0.2, 0x1A1E28, 7.5, 4.4, -11.15, g); const tk = plane(9.6, 0.6, tickerTex, 7.5, 4.4, -11.03, g, { fog: false }); tk.material.map.repeat.set(0.55, 1); a.ticker = tk.material.map;
+    block(10.2, 0.9, 0.3, 0x1A1E28, 7.5, 5.3, -10.85, g); const tk = plane(9.8, 0.66, tickerTex, 7.5, 5.3, -10.68, g, { fog: false }); tk.material.map.repeat.set(0.42, 1); a.ticker = tk.material.map;
     // 街並み
     for (let i = 0; i < 26; i++) { const x = -70 + i * 5.6 + rand(-1, 1), h = rand(16, 58); tower(g, x, -34 - rand(0, 20), rand(6, 11), h, rand(6, 10), i % 3 ? 0xE8ECF4 : 0xD8E0EE); }
     for (let i = 0; i < 18; i++) { const x = -60 + i * 7 + rand(-1, 1); tower(g, x, 26 + rand(0, 14), rand(6, 10), rand(12, 40), rand(6, 9), 0xE0E6F0); }
@@ -551,7 +555,7 @@ makeArea('station', { place: '春日井駅前　午前8時12分', bounds: [-14, 
     { const b2 = makeBird({ coat: 0x2E4A3A, vest: 0x3FA37F }); npc(a, 'w3', b2, -6, -9, 0, { path: [[-6, -9.4, 0.4], [-6, 6, 0], [-13, 6, 0.3]], speed: 1.7 }); }
     // 調べるもの
     addItem(a, { id: 'ad', x: -8.2, z: -8.4, y: 3.2, label: '広告を見る', on: evAd });
-    addItem(a, { id: 'ticker', x: 7.2, z: -8.8, y: 3.2, label: '電光掲示を読む', on: evTicker });
+    addItem(a, { id: 'ticker', x: 7.2, z: -8.8, y: 4.0, label: '電光掲示を読む', on: evTicker });
     addItem(a, { id: 'bird', x: 3.8, z: 4.3, label: '様子を見る', on: evBird });
     addItem(a, { id: 'map', x: -11.4, z: -0.6, label: '案内板を読む', on: evMap });
     addItem(a, { id: 'asaiT', x: 0, z: 0, r: 1.6, label: '話す', once: false, col: 0xE3B428, avail: () => !S.flags.phone && a.asai.follow, on: evAsai, dyn: a.asai });
@@ -772,7 +776,24 @@ makeArea('space', { noPlayer: true, place: '', bounds: [-1, 1, -1, 1], spawn: [0
     for (const s of a.ships) { const u = s.userData; u.a += u.sp * dt; s.position.set(30 + Math.cos(u.a) * u.r, 30 + u.y, -40 + Math.sin(u.a) * u.r); s.rotation.y = -u.a; } a.kas.material.opacity = 0.6 + Math.sin(T.now * 2) * 0.25; }
 });
 
-// ---- Dictator の艦橋 ----
+
+// 大勢の文鳥（インスタンス描画）。list = [[x, y, z, face], ...]
+function birdCrowd(parent, list, o = {}) { const n = list.length, s = o.s || 1.3, q = new THREE.Quaternion(), m4 = new THREE.Matrix4(), V = new THREE.Vector3(), Sc = new THREE.Vector3(s, s, s), up = new THREE.Vector3(0, 1, 0);
+  const geo = (g, sx, sy, sz, x, y, z) => { g.scale(sx, sy, sz); g.translate(x, y, z); return g; };
+  const parts = [
+    [geo(new THREE.SphereGeometry(0.5, 10, 8), 1.05, 1.12, 0.85, 0, 1.05, 0), o.coat || 0x1A1A20],
+    [geo(new THREE.SphereGeometry(0.36, 10, 8), 1, 1, 1, 0, 1.8, 0.04), o.cap || 0x16161A],
+    [geo(new THREE.ConeGeometry(0.17, 0.42, 8).rotateX(Math.PI / 2), 1, 1, 1, 0, 1.72, 0.48), o.beak || 0xE2505B],
+    [geo(new THREE.SphereGeometry(0.17, 8, 6), 0.6, 0.9, 0.8, -0.24, 1.72, 0.2), 0xF4F4F4], [geo(new THREE.SphereGeometry(0.17, 8, 6), 0.6, 0.9, 0.8, 0.24, 1.72, 0.2), 0xF4F4F4],
+    [geo(new THREE.CylinderGeometry(0.11, 0.09, 0.56, 6), 1, 1, 1, -0.17, 0.3, 0), o.pants || 0x22222A], [geo(new THREE.CylinderGeometry(0.11, 0.09, 0.56, 6), 1, 1, 1, 0.17, 0.3, 0), o.pants || 0x22222A],
+    [geo(new THREE.CylinderGeometry(0.13, 0.11, 0.6, 6), 1, 1, 1, -0.55, 1.0, 0), o.coat || 0x1A1A20], [geo(new THREE.CylinderGeometry(0.13, 0.11, 0.6, 6), 1, 1, 1, 0.55, 1.0, 0), o.coat || 0x1A1A20] ];
+  if (o.vest) parts.push([geo(new THREE.SphereGeometry(0.505, 10, 8), 1.0, 0.8, 0.86, 0, 1.0, 0.02), o.vest]);
+  if (o.core) parts.push([geo(new THREE.SphereGeometry(0.08, 6, 4), 1, 1, 1, 0, 1.25, 0.44), o.core, o.core]);
+  const meshes = parts.map(([g, col, em]) => { const im = new THREE.InstancedMesh(g, toon(col, em), n); parent.add(im); return im; });
+  const set = (bow = 0) => { list.forEach((p, i) => { q.setFromAxisAngle(up, p[3] || 0); if (bow) q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), bow * (p[4] ?? 1))); V.set(p[0], p[1], p[2]); m4.compose(V, q, Sc); for (const im of meshes) im.setMatrixAt(i, m4); }); for (const im of meshes) im.instanceMatrix.needsUpdate = true; };
+  set(); return { meshes, set, list }; }
+
+// ---- Dictator の艦橋と、大広間 ----
 const holoKas = canvasTex(1024, 512, (c, w, h) => { c.fillStyle = '#050810'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(120,150,220,.25)'; c.lineWidth = 1; for (let x = 0; x < w; x += 32) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } for (let y = 0; y < h; y += 32) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
   c.strokeStyle = 'rgba(200,220,255,.8)'; c.lineWidth = 3; c.beginPath(); c.moveTo(60, 380); c.bezierCurveTo(300, 300, 600, 340, 960, 200); c.stroke(); c.font = `700 22px ${GOTHIC}`;
   for (const [x, y, t, col] of [[230, 330, '春日井', '#FFD860'], [520, 300, '高蔵寺', '#FFD860'], [700, 270, '神領', '#FFD860'], [380, 160, '鉄翼興業 / 紅鱗 抗争区域', '#FF5060'], [140, 460, '辻society 春日井支部', '#FF5060'], [760, 420, '外神竜 主家', '#F2C230']]) { c.fillStyle = col; c.beginPath(); c.arc(x, y, 9, 0, TAU); c.fill(); c.fillText(t, x + 16, y + 8); }
@@ -783,16 +804,29 @@ const holoUlt = canvasTex(512, 640, (c, w, h) => { const g = c.createRadialGradi
   c.strokeStyle = 'rgba(255,110,60,.85)'; c.lineWidth = 2; for (let i = 0; i < 40; i++) { c.beginPath(); const x = 160 + Math.random() * 200, y = 270 + Math.random() * 280; c.moveTo(x, y); c.lineTo(x + rand(-30, 30), y + rand(-30, 30)); c.stroke(); }
   const r = c.createRadialGradient(w / 2, 300, 0, w / 2, 300, 40); r.addColorStop(0, '#FFF0E0'); r.addColorStop(0.3, '#FF3A20'); r.addColorStop(1, 'rgba(255,0,0,0)'); c.fillStyle = r; c.fillRect(w / 2 - 40, 260, 80, 80);
   c.fillStyle = '#FFFFFF'; c.font = `800 30px ${MINCHO}`; c.textAlign = 'center'; c.fillText('B.U.N society No.1　絶尊', w / 2, 610); });
-makeArea('bridge', { noPlayer: true, place: '', bounds: [-8, 8, -6, 6], spawn: [0, 999], cam: [0, 9, 9], music: 'night', bg: 0x05060C, fog: null, light: 0.35, sun: 0.25,
-  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.CircleGeometry(12, 6), new THREE.MeshPhongMaterial({ color: 0x0C0C14, specular: 0x404860, shininess: 80 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
-    for (let k = 0; k < 6; k++) { const a2 = k / 6 * TAU; block(0.2, 6, 0.2, 0x1A1A24, Math.sin(a2) * 11, 3, Math.cos(a2) * 11, g); }
-    const scrn = plane(16, 8, holoKas, 0, 4.6, -9, g, { transparent: true, opacity: 0.92, fog: false }); scrn.material.blending = THREE.AdditiveBlending; a.scrn = scrn;
-    const ult = plane(4.4, 5.5, holoUlt, 0, 5.2, -6, g, { transparent: true, opacity: 0, fog: false }); ult.material.blending = THREE.AdditiveBlending; a.ult = ult;
-    for (const [x, z, ry] of [[-5, -4, 0.5], [5, -4, -0.5], [-6.5, 0, 1.2], [6.5, 0, -1.2]]) { const c2 = block(2.4, 1, 1, 0x14141C, x, 0.5, z, g, { ry }); void c2; const sc = block(2.0, 0.05, 0.7, 0x2A60C0, x, 1.02, z, g, { ry, emis: 0x10306A }); void sc;
-      const op = npc(a, 'op' + x, makeBird({ coat: 0x1A1A22, vest: 0x3A3A48, s: 1.0 }), x * 0.8, z + 1.2, Math.atan2(x * 0.2 - x * 0.8, z - (z + 1.2))); op.st.sit = false; }
-    const ko = npc(a, 'koshi', makeBird({ coat: 0x6C6A72, vest: 0x2A2830, cap: 0x17141A, beak: 0xE8A0A8, scarf: 0xFF3D55, muscle: true, s: 1.7, core: 0xFF3D55 }), 0, 1.5, Math.PI); a.koshi = ko;
-    for (let i = 0; i < 8; i++) { const s = glowSprite(0x3A60C0, 5, 0.18); s.position.set(rand(-10, 10), 6, rand(-10, 4)); g.add(s); } },
-  tick(a, dt) { a.scrn.material.opacity = 0.85 + Math.sin(T.now * 8) * 0.04; }
+makeArea('bridge', { noPlayer: true, place: '', bounds: [-8, 8, -6, 6], spawn: [0, 999], cam: [0, 9, 9], music: 'night', bg: 0x0A0A14, fog: [70, 210], light: 0.75, sun: 0.45,
+  build(a) { const g = a.g;
+    // 艦橋の壇（六角）と手すり
+    const fl = new THREE.Mesh(new THREE.CylinderGeometry(13, 13.5, 1.2, 6), new THREE.MeshPhongMaterial({ color: 0x0E0E16, specular: 0x404860, shininess: 80 })); fl.position.y = -0.6; g.add(fl);
+    for (let k = 0; k < 6; k++) { const a1 = k / 6 * TAU + Math.PI / 6, a2 = a1 + TAU / 6, x1 = Math.sin(a1) * 13, z1 = Math.cos(a1) * 13, x2 = Math.sin(a2) * 13, z2 = Math.cos(a2) * 13; const L = Math.hypot(x2 - x1, z2 - z1), rl = block(L, 0.08, 0.08, 0xC8D0FF, (x1 + x2) / 2, 1.1, (z1 + z2) / 2, g, { emis: 0x404880 }); rl.rotation.y = -Math.atan2(z2 - z1, x2 - x1); }
+    // 赤い光の帯（壇の縁）
+    const edge = new THREE.Mesh(new THREE.TorusGeometry(13.2, 0.08, 6, 6), new THREE.MeshBasicMaterial({ color: 0xFF3040 })); edge.rotation.x = Math.PI / 2; edge.rotation.z = Math.PI / 6; edge.position.y = 0.02; g.add(edge);
+    // 大広間の床（はるか下）
+    const hall = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshPhongMaterial({ color: 0x1C1C28, specular: 0x30344A, shininess: 40 })); hall.rotation.x = -Math.PI / 2; hall.position.y = -12; g.add(hall);
+    for (let i = -10; i <= 10; i++) { block(400, 0.02, 0.06, 0x3A2028, 0, -11.98, i * 12, g, { emis: 0x2A0A10 }); block(0.06, 0.02, 400, 0x3A2028, i * 12, -11.98, 0, g, { emis: 0x2A0A10 }); }
+    for (let k = 0; k < 24; k++) { const a2 = (k + 0.5) / 24 * TAU; block(1.2, 60, 1.2, 0x12121A, Math.sin(a2) * 90, 18, Math.cos(a2) * 90, g); const l = glowSprite(0xFF3040, 3, 0.7); l.position.set(Math.sin(a2) * 89, 10, Math.cos(a2) * 89); g.add(l); }
+    // 数えきれない文鳥：壇を囲み、壇のほうを向いて整列
+    const mass = []; for (let x = -86; x <= 86; x += 2.3) for (let z = -86; z <= 86; z += 2.5) { const d = Math.hypot(x, z); if (d < 18 || d > 86 || (Math.abs(x) < 3 && z < 0)) continue; mass.push([x, -12, z, Math.atan2(-x, -z)]); }
+    a.mass = birdCrowd(g, mass, { s: 1.25, coat: 0x34343F, vest: 0x46424E, pants: 0x2A2A34, core: 0xFF3040 }); for (let k = 0; k < 40; k++) { const l = glowSprite(0xFF4050, 10, 0.25); const r = rand(24, 80), a3 = rand(0, TAU); l.position.set(Math.sin(a3) * r, -9, Math.cos(a3) * r); g.add(l); }
+    // 監視画面と、No.1 の影
+    const scrn = plane(18, 9, holoKas, 0, 6, -10, g, { transparent: true, opacity: 0.92, fog: false }); scrn.material.blending = THREE.AdditiveBlending; a.scrn = scrn;
+    const ult = plane(5, 6.2, holoUlt, 0, 7, -7.5, g, { transparent: true, opacity: 0, fog: false }); ult.material.blending = THREE.AdditiveBlending; a.ult = ult;
+    // ザ・コシ（中央）と、上位 rate の側近たち（一糸乱れぬ隊列）
+    const ko = npc(a, 'koshi', makeBird({ coat: 0x6C6A72, vest: 0x2A2830, cap: 0x17141A, beak: 0xE8A0A8, scarf: 0xFF3D55, muscle: true, s: 1.8, core: 0xFF3D55 }), 0, 0, Math.PI); a.koshi = ko;
+    a.elite = []; const ranks = [[-2.6, 2.4], [2.6, 2.4], [-4.6, 3.6], [4.6, 3.6], [-6.4, 5.0], [6.4, 5.0], [-1.5, 5.4], [1.5, 5.4], [-3.6, 6.8], [3.6, 6.8], [-5.6, 8.2], [5.6, 8.2], [0, 7.6], [-2.0, 9.2], [2.0, 9.2], [0, 10.6]];
+    ranks.forEach(([x, z], i) => { const e = npc(a, 'el' + i, makeBird({ coat: 0x16141A, vest: 0x26222C, cap: 0x0C0A10, beak: 0xC9A3AA, scarf: i < 6 ? 0x5A1220 : 0x2A2830, muscle: true, s: 1.5, core: 0xFF3040 }), x, z, Math.PI); e.still = true; a.elite.push(e); });
+    for (let i = 0; i < 8; i++) { const s = glowSprite(0x3A60C0, 5, 0.18); s.position.set(rand(-10, 10), 7, rand(-10, 4)); g.add(s); } },
+  tick(a, dt) { a.scrn.material.opacity = 0.85 + Math.sin(T.now * 8) * 0.04; if (a.bowT > 0) { a.bowT -= dt; const b = Math.sin(Math.min(1, (1.6 - a.bowT) / 1.6) * Math.PI) * 0.35; a.mass.set(b); } }
 });
 
 // ---- 異種族の街（午前の大通り） ----
@@ -809,11 +843,13 @@ makeArea('aliens', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spaw
     // 歩く人々（大半が異種族の女性、ところどころに人間）
     const crowd = [['elf2'], ['exec'], ['patron'], ['stuC'], ['luc'], ['sal1'], ['elf2'], ['exec'], ['sal2'], ['stuA']];
     crowd.forEach(([k], i) => { const z = i % 2 ? -7.5 : 7.5, x0 = rand(-24, 24), dir = i % 2 ? 1 : -1; npc(a, 'cr' + i, mk(k), x0, z, 0, { path: [[x0, z, 0], [x0 + dir * 26, z + rand(-1, 1), 0.2], [x0 - dir * 10, z, 0.4]], speed: rand(1.3, 1.9) }); });
+    for (let i = 0; i < 5; i++) { const b = makeBird({ coat: pick([0x34425E, 0x2E4A3A, 0x5A3A2A]), vest: pick([0xF2A040, 0x3FA37F, 0xE3B428]), helmet: i % 2 ? 0xF2C230 : null, s: 1.3 }); const z = i % 2 ? 7.2 : -7.2, x0 = rand(-20, 20); npc(a, 'ab' + i, b, x0, z, 0, { path: [[x0, z, 0], [x0 + (i % 2 ? -22 : 22), z, 0.3]], speed: 1.6 }); }
+    birdCrowd(g, Array.from({ length: 14 }, (_, i) => [-30 + i * 4.4, 0, 9.3, Math.PI]), { s: 1.2, coat: 0x34425E, vest: 0xF2A040 });
     // 頭を下げる人間の会社員と、竜族の役員
     const ex = npc(a, 'ex2', mk('exec'), 3, -6.6, Math.PI / 2 + 0.3); ex.st.cross = true; const sl = npc(a, 'sl2', mk('young'), 4.6, -6.4, -Math.PI / 2); sl.st.bow = true; a.bowman = sl;
     // 大通りの車
     a.cars = []; for (let i = 0; i < 6; i++) { const c3 = new THREE.Group(); block(3.6, 1.0, 1.7, pick([0x1A1A22, 0xE8E8EC, 0x8A1A2A, 0x2A3A5A]), 0, 0.7, 0, c3); block(2.0, 0.7, 1.5, 0x2A3040, -0.2, 1.4, 0, c3); c3.userData = { x: rand(-60, 60), z: i % 2 ? -2.4 : 2.4, v: (i % 2 ? 1 : -1) * rand(8, 13) }; c3.rotation.y = c3.userData.v > 0 ? 0 : Math.PI; g.add(c3); a.cars.push(c3); } },
-  tick(a, dt) { for (const c3 of a.cars) { const u = c3.userData; u.x += u.v * dt; if (u.x > 70) u.x = -70; if (u.x < -70) u.x = 70; c3.position.set(u.x, 0, u.z); } a.bowman.st.bow = Math.sin(T.now * 0.6) > -0.6; }
+  tick(a, dt) { for (const c3 of a.cars) { const u = c3.userData; u.x += u.v * dt; if (u.x > 70) u.x = -70; if (u.x < -70) u.x = 70; c3.position.set(u.x, 0, u.z); } a.bowman.st.bow = (T.now % 5) < 3.4; }
 });
 
 // ---- B.U.N の街（辻society 春日井支部の界隈） ----
@@ -821,39 +857,82 @@ function banner(g, x, z, ry, text, col = '#B01020') { const t = canvasTex(140, 6
   const p = plane(1.4, 6, t, x, 5, z, g, { ry, double: true }); return p; }
 makeArea('buntown', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'stealth', bg: 0x8A8478, fog: [24, 90], light: 0.6,
   build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshLambertMaterial({ color: 0x6A665E })); gr.rotation.x = -Math.PI / 2; g.add(gr);
-    for (let i = 0; i < 10; i++) { const x = -40 + i * 9; block(8, rand(8, 16), 9, pick([0x7A766C, 0x6A6A68, 0x857E72]), x, 0, -13, g).position.y = 5; block(8, rand(6, 14), 9, pick([0x7A766C, 0x6A6A68]), x, 4, 13, g); }
+    for (let i = 0; i < 10; i++) { const x = -40 + i * 9; block(8, rand(8, 16), 9, pick([0x7A766C, 0x6A6A68, 0x857E72]), x, 0, -13, g).position.y = 5; block(8, rand(2, 3.5), 9, pick([0x7A766C, 0x6A6A68]), x, 1.2, 14, g); }
     banner(g, -10, -8.4, 0, '強さこそ秩序'); banner(g, -4, -8.4, 0, 'レートがすべて', '#2A2A2E'); banner(g, 4, -8.4, 0, '鍛えよ屈するな'); banner(g, 10, -8.4, 0, '偽りを断て', '#2A2A2E');
     plane(9, 1.6, signTex(900, 160, [{ t: '辻society　春日井支部　／　G.A.C.H.I Fight 公式道場', size: 52, w: 900 }], { bg: '#1A1A1E', fg: '#FF4A3A' }), 0, 9, -8.45, g);
     plane(4, 2.2, signTex(400, 220, [{ t: '本日のレート', size: 36, w: 900 }, { t: '1位 剛羽　2814', size: 30 }, { t: '2位 鉄嘴　2790', size: 30 }], { bg: '#0C0C10', fg: '#FFB040' }), 15, 4, -8.45, g);
     plane(5, 1.4, signTex(500, 140, [{ t: '鉄翼興業（株）', size: 64, f: MINCHO, w: 800 }], { bg: '#F0ECE0', fg: '#1A1A1E' }), -16, 6.5, 8.45, g, { ry: Math.PI });
     // 鍛える文鳥たち、組の若い衆
     a.flex = []; for (let i = 0; i < 9; i++) { const b = makeBird({ coat: pick([0x2A2A30, 0x1A1A1E, 0x3A3030]), vest: i % 3 === 0 ? 0xB01020 : null, muscle: true, shades: i % 2 === 0, s: rand(1.4, 1.7) }); const x = -14 + (i % 5) * 6 + rand(-1, 1), z = i < 5 ? -5.5 : 5.5; const n = npc(a, 'bb' + i, b, x, z, i < 5 ? 0 : Math.PI); n.st.cross = i % 2 === 1; a.flex.push(n); }
+    { const cr = []; for (let i = 0; i < 70; i++) cr.push([-34 + (i % 35) * 2, 0, i < 35 ? -7.6 : 7.6, i < 35 ? 0 : Math.PI]); for (let r = 0; r < 7; r++) for (let k = 0; k < 12; k++) cr.push([-8 + k * 1.5 + (r % 2) * 0.7, 0, -3.6 + r * 1.3, Math.PI]); birdCrowd(g, cr, { s: 1.45, coat: 0x1E1E24, vest: 0x2A2A30 }); }
+    { const pod = block(4, 1, 2.4, 0x2A2A30, 0, 0.5, -6.4, g); void pod; const sp2 = npc(a, 'spk', makeBird({ coat: 0x0E0E12, vest: 0xB01020, muscle: true, scarf: 0xB01020, s: 1.9 }), 0, -6.4, 0); sp2.y = 1; sp2.st.armsUp = true; a.speaker = sp2; }
     // 街宣車
     const tr = new THREE.Group(); block(7, 2.4, 2.4, 0x1A1A20, 0, 1.6, 0, tr); block(2, 2, 2.3, 0x2A2A30, 4.2, 1.4, 0, tr); for (const x of [-2, 0, 2]) { const sp = part(G_('spk', () => new THREE.ConeGeometry(0.5, 0.9, 10, 1, true)), 0xE8E8E8, x, 3.2, 0, tr); sp.rotation.z = x < 0 ? 1.2 : -1.2; }
     plane(6.6, 1.2, signTex(660, 120, [{ t: '強さこそ秩序　辻society', size: 60, f: MINCHO, w: 800 }], { bg: '#B01020', fg: '#FFFFFF' }), 0, 1.7, 1.22, tr); g.add(tr); a.truck = tr; a.truckX = -40; },
-  tick(a, dt) { a.truckX += dt * 4; if (a.truckX > 40) a.truckX = -40; a.truck.position.set(a.truckX, 0, 0); for (const n of a.flex) n.model.torso.rotation.x = n.st.cross ? 0 : Math.sin(T.now * 4 + n.pos.x) * 0.25; }
+  tick(a, dt) { a.truckX += dt * 4; if (a.truckX > 40) a.truckX = -40; a.truck.position.set(a.truckX, 0, 0); for (const n of a.flex) { n.st.bow = !n.st.cross && Math.sin(T.now * 4 + n.pos.x) > 0.3; n.st.bowA = 0.35; } a.speaker.st.armsUp = Math.sin(T.now * 2) > -0.2; }
 });
 
-// ---- 抗争と企業戦争（夜の交差点） ----
-makeArea('clash', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'stealth', bg: 0x0A0C16, fog: [20, 90], light: 0.32, sun: 0.2,
+// ---- 抗争と企業戦争（夜の交差点）：文鳥の組 vs 異種族の女たち ----
+const SPEC = {
+  dragon: { skin: SK, hair: 0xC02A3A, eye: 0xF0B030, top: 0x2A1A20, sleeve: 0x2A1A20, bottom: 'skirt', bc: 0x2A1A20, leg: 0x2A1A20, shoe: 0x1A1A1E, s: 1.12, w: 1.05, st: ['long', 'horns', 'dtail', 'narrow'], hornCol: 0xE8D8B8, tailCol: 0xC02A3A, fx: 0xFF7A30, name: '竜' },
+  fox: { skin: SK, hair: 0xF0A040, eye: 0x8A3A10, top: 0xF4F0E8, sleeve: 0xC02A2A, bottom: 'skirt', bc: 0xC02A2A, leg: SK, shoe: 0x2A2A30, s: 0.95, w: 0.95, st: ['long', 'foxears', 'narrow'], tail: true, fx: 0x60C0FF, name: '妖狐' },
+  elf: { skin: 0xFFF2EA, hair: 0xE8E0B0, eye: 0x3A9A60, top: 0x3A6A4A, sleeve: 0x3A6A4A, bc: 0x2A3A30, leg: 0x2A3A30, shoe: 0x5A4030, s: 1.05, w: 0.95, st: ['long', 'ears'], fx: 0x80FF90, name: 'エルフ' },
+  demon: { skin: 0xE8D0E8, hair: 0x6A2A8A, eye: 0xFF4060, top: 0x1A1020, sleeve: 0x1A1020, bottom: 'skirt', bc: 0x1A1020, leg: 0x1A1020, shoe: 0x0A0A0E, s: 1.0, w: 1.0, st: ['long', 'horns', 'wings'], hornCol: 0x2A1A2A, wingCol: 0x3A1A4A, fx: 0xB060FF, name: '魔族' },
+  vamp: { skin: 0xF4F0F4, hair: 0xE8E8F0, eye: 0xD01030, top: 0x1A1A22, sleeve: 0x1A1A22, bottom: 'skirt', bc: 0x5A0A18, leg: 0x1A1A22, shoe: 0x0A0A0E, s: 1.0, w: 0.95, st: ['long', 'cape', 'narrow'], capeCol: 0x5A0A18, fx: 0xFF2040, name: '吸血鬼' },
+  oni: { skin: 0xF0D0C0, hair: 0x2A2A30, eye: 0xF0A020, top: 0xE8E4D8, sleeve: SK, bc: 0x8A2A2A, leg: SK, shoe: 0x3A2A20, s: 1.15, w: 1.25, st: ['short', 'horns'], hornCol: 0xF0E0A0, muscle: true, fx: 0xFFC040, name: '鬼' },
+};
+function shards(x, y, z, col, n = 10, sp = 6) { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(box(0.16, 0.16, 0.16), fxMat(col, 1)); m.material.blending = THREE.NormalBlending; m.position.set(x, y, z); const v = new THREE.Vector3(rand(-1, 1) * sp, rand(0.4, 1.2) * sp, rand(-1, 1) * sp);
+  fxAdd(m, rand(0.5, 0.9), u => { v.y -= 0.6; m.position.addScaledVector(v, 0.016); if (m.position.y < 0.05) { m.position.y = 0.05; v.multiplyScalar(0.5); } m.rotation.x += 0.3; m.rotation.z += 0.2; m.material.opacity = 1 - u; }); } }
+function boom(x, y, z, col, big) { fxFlash(x, y, z, col, big ? 7 : 4, 0.35); fxFlash(x, y, z, 0xFFFFFF, big ? 3 : 1.6, 0.15); fxRing(x, 0.08, z, big ? 5 : 3, col, 0.5); shards(x, y, z, big ? 0xFFB060 : col, big ? 14 : 7, big ? 8 : 5); G.shake = Math.max(G.shake, big ? 0.35 : 0.12); if (AC && sound) noise(0, big ? 0.5 : 0.18, big ? 0.12 : 0.05, big ? 300 : 900, 'lowpass'); }
+function orb(from, to, col, big, onHit) { const s = glowSprite(col, big ? 1.8 : 1.1); const core = glowSprite(0xFFFFFF, big ? 0.7 : 0.45); const g = new THREE.Group(); g.add(s); g.add(core); g.position.copy(from); let done = false; const dur = big ? 0.55 : 0.4;
+  fxAdd(g, dur, u => { g.position.lerpVectors(from, to, u); g.position.y += Math.sin(u * Math.PI) * (big ? 1.4 : 0.5); if (Math.random() < 0.6) { const tr = glowSprite(col, 0.7, 0.6); tr.position.copy(g.position); fxAdd(tr, 0.25, v => { tr.material.opacity = 0.6 * (1 - v); }); } if (u >= 0.99 && !done) { done = true; boom(to.x, to.y, to.z, col, big); onHit && onHit(); } }); }
+makeArea('clash', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'stealth', bg: 0x0A0C16, fog: [24, 100], light: 0.36, sun: 0.22,
   build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshLambertMaterial({ color: 0x2A2C34 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
     for (let x = -12; x <= 12; x += 1.2) block(0.6, 0.02, 4, 0xC8C8C8, x * 0.9, 0.02, 0, g);
-    for (let i = 0; i < 12; i++) { tower(g, -60 + i * 11, -22 - rand(0, 8), 9, rand(20, 60), 9, 0x8090B0, 1); tower(g, -55 + i * 11, 22 + rand(0, 8), 9, rand(16, 50), 9, 0x8090B0, 1); }
-    adBoard(g, -12, 16, -17.9, 0, 10, 3, [{ t: '鉄翼興業', size: 120, f: MINCHO, w: 800 }], '#0C0C10', '#FF4A3A');
-    adBoard(g, 12, 18, -17.9, 0, 10, 3, [{ t: '紅鱗コンツェルン', size: 100, f: MINCHO, w: 800 }], '#2A0810', '#FFD0B0');
-    const tick2 = canvasTex(2048, 64, (c, w, h) => { c.fillStyle = '#05060A'; c.fillRect(0, 0, w, h); c.font = `700 30px ${GOTHIC}`; c.textBaseline = 'middle'; c.fillStyle = '#5AE08A'; c.fillText('紅鱗コンツェルン、鉄翼興業へ敵対的TOB　▲12.4%　　九尾HD、辻系建設3社の債権を買い取り　　鉄翼興業、赤嶺重工の下請け入札から排除　　', 10, h / 2); });
-    tick2.wrapS = THREE.RepeatWrapping; const tk = plane(20, 0.8, tick2, 0, 6, -12, g, { fog: false }); tk.material.map.repeat.set(0.5, 1); a.tk = tk.material.map;
-    for (const x of [-14, 14]) { const l = glowSprite(0xFFE0A0, 6, 0.5); l.position.set(x, 6, -6); g.add(l); block(0.2, 6, 0.2, 0x3A3A44, x, 3, -6.3, g); }
-    a.left = []; a.right = [];
-    for (let i = 0; i < 6; i++) { const b = makeBird({ coat: 0x0E0E12, vest: i === 0 ? 0xB01020 : 0x1A1A20, muscle: true, shades: true, s: 1.55 }); const n = npc(a, 'm' + i, b, -7 - (i % 3) * 2, -3 + Math.floor(i / 3) * 4 + rand(-0.5, 0.5), Math.PI / 2); a.left.push(n); }
-    const girls = ['stuC', 'stuA', 'exec', 'patron', 'elf2', 'stuC'];
-    girls.forEach((k, i) => { const n = npc(a, 'g' + i, mk(k), 7 + (i % 3) * 2, -3 + Math.floor(i / 3) * 4 + rand(-0.5, 0.5), -Math.PI / 2); a.right.push(n); });
-    a.fxT = 0; },
-  tick(a, dt) { a.tk.offset.x = (a.tk.offset.x + dt * 0.05) % 1; a.fxT -= dt; if (a.fxT > 0) return; a.fxT = rand(0.25, 0.7);
-    const L = pick(a.left), R = pick(a.right), lp = new THREE.Vector3(L.pos.x, 1.6, L.pos.z), rp = new THREE.Vector3(R.pos.x, 1.4, R.pos.z);
-    if (Math.random() < 0.5) { fxBeam(rp, lp, pick([0xA070FF, 0xFF8A40, 0x60D0FF]), 0.22); fxFlash(lp.x, lp.y, lp.z, 0xC8A0FF, 3); L.model.nod = 0.3; }
-    else { fxRing((L.pos.x + R.pos.x) / 2, 0.1, (L.pos.z + R.pos.z) / 2, 4, 0xFF4A3A); fxFlash(rp.x, rp.y, rp.z, 0xFF6A40, 3.5); R.model.nod = 0.3; }
-    G.shake = Math.max(G.shake, 0.06); }
+    for (let i = 0; i < 12; i++) { tower(g, -60 + i * 11, -24 - rand(0, 8), 9, rand(20, 60), 9, 0x8090B0, 1); tower(g, -55 + i * 11, 24 + rand(0, 8), 9, rand(16, 50), 9, 0x8090B0, 1); }
+    adBoard(g, -14, 16, -19.9, 0, 10, 3, [{ t: '鉄翼興業', size: 120, f: MINCHO, w: 800 }], '#0C0C10', '#FF4A3A');
+    adBoard(g, 14, 18, -19.9, 0, 10, 3, [{ t: '紅鱗コンツェルン', size: 100, f: MINCHO, w: 800 }], '#2A0810', '#FFD0B0');
+    const tick2 = canvasTex(2048, 64, (c, w, h) => { c.fillStyle = '#05060A'; c.fillRect(0, 0, w, h); c.font = `700 30px ${GOTHIC}`; c.textBaseline = 'middle'; c.fillStyle = '#5AE08A'; const t = '紅鱗コンツェルン、鉄翼興業へ敵対的TOB　▲12.4%　　九尾HD、辻系建設3社の債権を買い取り　　鉄翼興業、赤嶺重工の下請け入札から排除　　'; const tw = c.measureText(t).width; for (let x = 0; x < w; x += tw) c.fillText(t, x, h / 2 + 1); });
+    tick2.wrapS = THREE.RepeatWrapping; block(20.4, 1.0, 0.3, 0x05060A, 0, 7, -14.2, g); const tk = plane(20, 0.8, tick2, 0, 7, -14, g, { fog: false }); tk.material.map.repeat.set(0.5, 1); a.tk = tk.material.map;
+    for (const x of [-16, 16]) { const l = glowSprite(0xFFE0A0, 6, 0.5); l.position.set(x, 6, -8); g.add(l); block(0.2, 6, 0.2, 0x3A3A44, x, 3, -8.3, g); }
+    // 盾になる車と、燃える火
+    a.fires = []; for (const [x, z, ry, col] of [[-4.5, -3.5, 0.3, 0x1A1A22], [-5, 3.8, -0.4, 0x2A2A30], [4.6, -3.2, 2.6, 0x8A1A2A], [5.2, 4.2, 3.4, 0xE8E8EC], [0.4, 7, 1.4, 0x1A1A22]]) { const c3 = new THREE.Group(); c3.position.set(x, 0, z); c3.rotation.y = ry; block(3.6, 1.0, 1.7, col, 0, 0.6, 0, c3); block(2.0, 0.7, 1.5, 0x1A1E28, -0.2, 1.3, 0, c3); g.add(c3);
+      if (Math.random() < 0.7) for (let k = 0; k < 3; k++) { const f = glowSprite(0xFF7A20, 1.6, 0.8); f.position.set(x + rand(-1, 1), 1.6 + k * 0.4, z + rand(-0.5, 0.5)); g.add(f); a.fires.push(f); } }
+    for (const [x, z] of [[-9, 0], [9, -1]]) { block(0.6, 1.1, 4, 0xC8B030, x, 0.55, z, g); for (let k = -1; k <= 1; k++) block(0.62, 0.2, 0.6, 0x1A1A1E, x, 0.8, z + k * 1.3, g); }
+    // 文鳥の組（銃と拳）
+    a.F = []; const bpos = [[-12, -5], [-11, -1.5], [-12.5, 2], [-11, 5.5], [-8, -6], [-7.5, 6.5], [-14.5, -3], [-14, 3.8], [-6.5, -1.4], [-6.8, 1.6]];
+    bpos.forEach(([x, z], i) => { const brawl = i >= 8 || i % 4 === 3; const b = makeBird({ coat: i % 3 ? 0x0E0E12 : 0x2A2A30, vest: i === 0 ? 0xB01020 : i % 2 ? 0x1A1A20 : null, muscle: true, shades: i % 2 === 0, s: brawl ? 1.75 : rand(1.4, 1.6), scarf: i === 0 ? 0xB01020 : null });
+      if (!brawl) part(box(0.12, 0.14, 0.7), 0x0A0A0C, 0, -0.62, 0.3, b.arms[1], { outline: false });
+      const n = npc(a, 'b' + i, b, x, z, Math.PI / 2); a.F.push({ n, side: 'L', type: brawl ? 'fist' : 'gun', home: new THREE.Vector3(x, 0, z), cd: rand(0.3, 2), ph: rand(0, 6), down: 0, kv: new THREE.Vector3() }); });
+    // 異種族の女たち（それぞれの力）
+    const kinds = ['dragon', 'fox', 'elf', 'demon', 'vamp', 'oni', 'dragon', 'fox', 'demon', 'elf', 'oni', 'vamp'];
+    const gpos = [[11, -5], [12, -1.5], [11.5, 2.2], [12.5, 5.6], [8.4, -6.2], [8, 6.4], [14.5, -3.4], [14.8, 3.5], [16, 0], [17, -5.5], [7.2, -1.2], [16.8, 6]];
+    kinds.forEach((k, i) => { const n = npc(a, 'f' + i, makeChar(SPEC[k]), gpos[i][0], gpos[i][1], -Math.PI / 2); a.F.push({ n, side: 'R', type: k === 'oni' ? 'fist' : 'magic', kind: k, col: SPEC[k].fx, home: new THREE.Vector3(gpos[i][0], 0, gpos[i][1]), cd: rand(0.3, 2), ph: rand(0, 6), down: 0, kv: new THREE.Vector3() }); });
+    // 後ろに控える大勢の文鳥と、見物人
+    const back = []; for (let r = 0; r < 4; r++) for (let k = 0; k < 16; k++) back.push([-18 - r * 1.8, 0, -9 + k * 1.2 + (r % 2) * 0.6, Math.PI / 2]); birdCrowd(g, back, { s: 1.4, coat: 0x111116, vest: 0x1E1E24 });
+    a.smokeT = 0; },
+  tick(a, dt) { a.tk.offset.x = (a.tk.offset.x + dt * 0.05) % 1; for (const f of a.fires) { f.material.opacity = 0.55 + Math.random() * 0.4; f.scale.setScalar(1.3 + Math.random() * 0.6); }
+    a.smokeT -= dt; if (a.smokeT <= 0) { a.smokeT = 0.25; const f = pick(a.fires); if (f) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0x5A5A60, transparent: true, depthWrite: false, opacity: 0.4 })); s.position.copy(f.position); s.scale.setScalar(1.5); fxAdd(s, 2.4, u => { s.position.y += 0.03; s.scale.setScalar(1.5 + u * 3); s.material.opacity = 0.4 * (1 - u); }); } }
+    const alive = side => a.F.filter(f => f.side === side && f.down <= 0);
+    for (const f of a.F) { const n = f.n; f.down = Math.max(0, f.down - dt); n.st.down = f.down > 0; f.cd -= dt; f.ph += dt;
+      n.pos.addScaledVector(f.kv, dt); f.kv.multiplyScalar(Math.exp(-4 * dt));
+      if (f.down > 0) continue;
+      if (f.charge) { const t = f.charge, dx = t.n.pos.x - n.pos.x, dz = t.n.pos.z - n.pos.z, L = Math.hypot(dx, dz); n.facing = Math.atan2(dx, dz);
+        if (L > 1.5) { n.pos.x += dx / L * 9 * dt; n.pos.z += dz / L * 9 * dt; n.extMove = true; n.st.run = true; } else { f.charge = null; n.st.run = false; boom(t.n.pos.x, 1.3, t.n.pos.z, f.side === 'L' ? 0xFF5040 : 0xFFC040, true); t.kv.set(Math.sign(dx) * 9, 0, rand(-2, 2)); t.down = 1.8; t.n.model.nod = 0.4; f.ret = 1.2; } continue; }
+      if (f.ret > 0) { f.ret -= dt; const dx = f.home.x - n.pos.x, dz = f.home.z - n.pos.z, L = Math.hypot(dx, dz); if (L > 0.3) { n.pos.x += dx / L * 5 * dt; n.pos.z += dz / L * 5 * dt; n.facing = Math.atan2(dx, dz); n.extMove = true; } continue; }
+      // 物陰で横に動く
+      const tz = f.home.z + Math.sin(f.ph * 0.9) * 1.4, tx = f.home.x + Math.sin(f.ph * 0.6) * 0.8; const mx = tx - n.pos.x, mz = tz - n.pos.z; n.pos.x += mx * dt * 2; n.pos.z += mz * dt * 2; if (Math.hypot(mx, mz) > 0.2) n.extMove = true;
+      const foes = alive(f.side === 'L' ? 'R' : 'L'); if (!foes.length) continue; const t = f.tgt && f.tgt.down <= 0 && foes.includes(f.tgt) ? f.tgt : (f.tgt = pick(foes));
+      n.facing = turn(n.facing, Math.atan2(t.n.pos.x - n.pos.x, t.n.pos.z - n.pos.z), dt * 8); n.st.aim = f.type === 'gun'; n.st.cast = f.type === 'magic' && f.cd < 0.4;
+      if (f.cd > 0) continue;
+      const from = new THREE.Vector3(n.pos.x + Math.sin(n.facing) * 0.6, 1.5, n.pos.z + Math.cos(n.facing) * 0.6), to = new THREE.Vector3(t.n.pos.x + rand(-0.4, 0.4), 1.3, t.n.pos.z + rand(-0.4, 0.4));
+      if (f.type === 'gun') { f.cd = rand(0.6, 1.4); for (let k = 0; k < 4; k++) setTimeout(() => { if (G.skip || S.area !== 'clash') return; fxBeam(from, to.clone().add(new THREE.Vector3(rand(-0.6, 0.6), rand(-0.3, 0.5), rand(-0.6, 0.6))), 0xFFE070, 0.05, 0.07); fxFlash(from.x, from.y, from.z, 0xFFD060, 1.2, 0.06); if (AC && sound) noise(0, 0.04, 0.05, 2500, 'highpass'); }, k * 70);
+        if (Math.random() < 0.35) setTimeout(() => { if (S.area !== 'clash') return; fxFlash(to.x, to.y, to.z, 0xFFE070, 1.4, 0.1); t.kv.x += Math.sign(to.x - from.x) * 2.5; if (Math.random() < 0.3) t.down = 1.4; }, 260); }
+      else if (f.type === 'magic') { f.cd = rand(1.0, 2.2); const big = Math.random() < 0.3;
+        if (f.kind === 'elf') { fxBeam(from, to, 0x80FF90, 0.08, 0.2); setTimeout(() => { if (S.area !== 'clash') return; fxFlash(to.x, to.y, to.z, 0x80FF90, 2, 0.2); t.kv.x += -2; if (Math.random() < 0.4) t.down = 1.4; }, 120); }
+        else if (f.kind === 'demon' && big) { for (let k = 0; k < 3; k++) { const z2 = to.z + rand(-2, 2), x2 = to.x + rand(-1.5, 1.5); setTimeout(() => { if (S.area !== 'clash') return; fxBeam(new THREE.Vector3(x2, 14, z2), new THREE.Vector3(x2, 0, z2), 0xB060FF, 0.3, 0.25); boom(x2, 0.4, z2, 0xB060FF, false); }, k * 120); } t.down = 1.6; t.kv.x = -4; }
+        else orb(from, to, f.col, big, () => { t.kv.x += (f.side === 'R' ? -1 : 1) * (big ? 6 : 3); if (big || Math.random() < 0.35) t.down = 1.6; }); }
+      else { f.cd = rand(2.5, 4.5); if (Math.random() < 0.6) f.charge = t; } } }
 });
 
 // ---- 外神竜一族（夜明けの丘） ----
@@ -895,64 +974,245 @@ makeArea('family', { noPlayer: true, place: '', bounds: [-20, 20, -10, 10], spaw
     a.fam = FAMI.map((f, i) => { const ang = -1.15 + i * (2.3 / (FAMI.length - 1)), x = Math.sin(ang) * 9, z = -Math.cos(ang) * 4 + 1; const n = npc(a, f.k, makeChar(FAMLK[f.k]), x, z, Math.atan2(-x, 6 - z)); if (f.k === 'yuria') n.st.v = true; if (f.k === 'zaina') n.st.cross = true; return n; }); }
 });
 
+// ---- 一族が預かる組織と、その職場 ----
+// 12の小さな舞台を、x 方向に 44 ずつ並べる。各舞台は w(i) でずらして置く
+const WORKS = [
+  { k: 'yuria', b: 'ユリア', s: '長女', e: '陽盾警備保障株式会社', col: '#E3B428', where: '春日井駅前　本社・作戦司令室',
+    p: '要人・施設・輸送路の警護から、侵略への対処まで。一般の警備会社よりはるかに軍事的。撃退だけでなく、無力化、隔離、後始末までを組み合わせる。基本は不殺。',
+    staff: '更生文鳥の警備隊、竜族・鬼族の隊員、人間の指令員', line: 'はーい、今日の巡回ルート確認ねー。全員、無事に帰るまでがお仕事だから♪' },
+  { k: 'vol', b: 'ヴォル', s: '次女', e: '蒼生バイオメディカル株式会社', col: '#7FAEE0', where: '蒼生メディカルセンター春日井　研究棟と病棟',
+    p: '生体工学、化合物と医薬品、治療技術。研究室で生まれた技術が、同じ建物の病棟でそのまま人を救う。人間の患者の多くが、ここに命を預けている。',
+    staff: 'エルフの医師、人間の看護師、白衣の更生文鳥', line: '次の方。……大丈夫。痛いのは、ここで終わりにする。' },
+  { k: 'zaina', b: 'ザイナ', s: '三女', e: '赤嶺重工株式会社', col: '#C0394B', where: '中央線沿線　再開発の建設現場',
+    p: '重工業、大型設備、土木と建設。街の骨格を組み、壊れた設備を元に戻す。現場で働くのは、大柄な更生文鳥たち。重いものは、だいたい社長が自分で持つ。',
+    staff: 'ヘルメットの更生文鳥、魔族の重機技師、人間の現場監督', line: '……吊るぞ。下、空けろ。' },
+  { k: 'rurika', b: 'ルリカ', s: '四女', e: '正律法務機構', col: '#6B63C9', where: '正律法務機構　春日井相談窓口',
+    p: '法務と制度、行政との調整。契約を審査し、被害の訴えを手続きに乗せる。能力で「正常化」できても、何が正当かは、話を聞かなければ決められない。',
+    staff: '妖狐の弁護士、人間の相談員、書類を運ぶ文鳥', line: 'もう！　書類はあとでいいから、先に話を聞かせて。' },
+  { k: 'miria', b: 'ミリア', s: '五女', e: '千路ロジスティクス株式会社', col: '#8DBE2E', where: '千路ロジスティクス　春日井ハブ',
+    p: '物資、倉庫、輸送、緊急配送。病院の薬も、現場の鋼材も、避難所の水も、ここから出ていく。危険地帯からの移送も、千路の仕事だ。',
+    staff: '文鳥のドライバー、エルフの配車係、人間の仕分け班', line: '遅い。三分で積んで。間に合わないのは、なし。' },
+  { k: 'rin', b: '燐', s: '六女', e: '結電工株式会社', col: '#3FA37F', where: '高蔵寺　送電線の保守現場',
+    p: '電力、電気設備、配線の工事と保守。……表向きは。その工事の配置と巡回が、日本中に結界の網を張るための隠れ蓑になっている。電線が光るのは、ほんの一瞬だけ。',
+    staff: '高所作業の文鳥、人間の電気工事士', line: '……電気の点検、です。それ以上のことは、何も。' },
+  { k: 'terues', b: 'テルエス', s: '七女', e: '天環ホールディングス株式会社', col: '#E07A1E', where: '天環本社　最上階の取締役会',
+    p: '一族の財閥の大元。資本の配分、重要な契約、長期の方針。陽盾と翠絡を中核に、各社がここへつながる。「テルエス財閥」と呼ぶ者もいる。',
+    staff: '竜族・魔族・エルフ・妖狐の役員、人間の秘書', line: '数字は嘘をつかない。つくのは、人だけ。……続けて。' },
+  { k: 'reune', b: 'レウネ', s: '八女', e: '翠絡情報技研株式会社', col: '#2E9E83', where: '翠絡　高蔵寺データセンター',
+    p: '通信、情報基盤、観測、記録、分析。一族の各社の共通システムも、ここが回す。ただし、記録されない被害までは、見えない。',
+    staff: '人間のエンジニア、エルフの解析官、文鳥の保守員', line: '観測、継続。……ニルメの会社の会議、三十分後に移しといたから。' },
+  { k: 'nirume', b: 'ニルメ', s: '九女', e: 'ネムリア・エンタテインメント株式会社', col: '#E889AE', where: 'ネムリア・フェス　会場',
+    p: 'ゲーム、配信、イベント、サブカル。……の、名義を持っている。日々の会議も、制作も、契約も、ほぼすべてレウネが取り仕切る。本人は、だいたい眠そうにしている。',
+    staff: '人間のスタッフ、妖狐の配信者、ファンの群れ', line: '……すぅ……すぅ……' },
+  { k: 'edel', b: 'エデル', s: '十女', e: '未完画廊（本人は経営しない）', col: '#8C80B8', where: '神領　エデルのアトリエ',
+    p: '作品と存在に惹かれた者たちが、勝手に集まって作った芸術至上の組織。大家、指導者、学徒。講評と採点が、そこでの身分を決める。エデル本人は、自分の絵を描いている。',
+    staff: 'マエストロ、ドーセント、スチューデント', line: '……そこ、光が違う。どいてくれ。' },
+  { k: 'asela', b: 'アセラ', s: '十一女', e: '転星救急機構', col: '#D9602E', where: '転星　神領出張所',
+    p: '消防、救助、緊急搬送。事故の衝撃や落下の運動を奪い、安全な向きへ転じる。アセラが助け出し、ヴォルの病院が受け入れ、ザイナの会社が直す。',
+    staff: '防火服の文鳥、竜族の救急隊員、人間の通信指令員', line: '行くよ！　落ちてくるものは、全部、向きを変える！' },
+  { k: 'furuuru', b: 'フルル', s: '母', e: '一族の根源', col: '#E79AB4', where: '春日井　主家',
+    p: '十一人全員が「ママ」と呼ぶ、外神竜一族の母。会社は持たない。娘たちは、どれだけ忙しくても、夜にはここへ帰ってくる。',
+    staff: '', line: 'おかえりぃ。みんな、いっぱい食べてねぇ♡' },
+];
+const WX = i => i * 44;
+function pad(g, x, w, d, col) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshLambertMaterial({ color: col })); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.01, 0); g.add(m); }
+function sign(g, x, y, z, w, h, t1, t2, bg, fg, ry = 0) { plane(w, h, signTex(Math.round(w * 110), Math.round(h * 110), t2 ? [{ t: t1, size: Math.round(h * 40), f: MINCHO, w: 800 }, { t: t2, size: Math.round(h * 20) }] : [{ t: t1, size: Math.round(h * 56), f: MINCHO, w: 800 }], { bg, fg }), x, y, z, g, { ry }); }
+function crate(g, x, y, z, s = 0.8, col = 0xC8A878) { block(s, s, s, col, x, y + s / 2, z, g); }
+makeArea('works', { noPlayer: true, place: '', bounds: [-20, 600, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: 'city', bg: 0xB8C8DC, fog: [40, 110], light: 0.66, sun: 0.5,
+  build(a) { const g = a.g; a.anim = []; a.sis = {};
+    const gr = new THREE.Mesh(new THREE.PlaneGeometry(700, 200), new THREE.MeshLambertMaterial({ color: 0x8A9098 })); gr.rotation.x = -Math.PI / 2; gr.position.x = 240; g.add(gr);
+    const sis = (i, x, z, face, st = {}) => { const f = WORKS[i]; const n = npc(a, f.k, makeChar(FAMLK[f.k]), x, z, face); Object.assign(n.st, st); a.sis[f.k] = n; return n; };
+    const walker = (key, model, path, sp = 1.6) => npc(a, key, model, path[0][0], path[0][1], 0, { path, speed: sp });
+    // 0 陽盾：本社前の装甲車、隊列、司令ホロ
+    { const X = WX(0); pad(g, X, 30, 20, 0x6A6E78); block(16, 9, 6, 0x2A2C34, X, 4.5, -9, g); block(16, 0.6, 6.1, 0xE3B428, X, 7.5, -9, g); sign(g, X, 6, -5.9, 9, 1.4, '陽盾警備保障　本社', '', '#14161C', '#F2C230');
+      for (const [dx, dz] of [[-8, -1], [8, -2]]) { const v = new THREE.Group(); v.position.set(X + dx, 0, dz); block(4.6, 1.8, 2.2, 0x1E2026, 0, 1.2, 0, v); block(4.62, 0.25, 2.22, 0xE3B428, 0, 1.6, 0, v); block(1.6, 0.6, 2.0, 0x2A3040, 1.2, 2.3, 0, v); g.add(v); }
+      const holo = plane(5, 2.8, signTex(500, 280, [{ t: '春日井　警備網', size: 40, w: 900 }, { t: '巡回 312 / 待機 88 / 介入 0', size: 26 }, { t: '全員、無事に帰ろう', size: 30 }], { bg: '#1A1608', fg: '#F2C230' }), X + 5, 3, -3, g, { transparent: true, opacity: 0.8, double: true }); holo.material.blending = THREE.AdditiveBlending;
+      for (let i = 0; i < 6; i++) walker('yg' + i, makeBird({ coat: 0x22242C, vest: 0xE3B428, helmet: 0x1A1A1E, s: 1.35 }), [[X - 6 + i * 0.01, 3 + i * 1.3 - 4, 0], [X + 3, 3 + i * 1.3 - 4, 0.5], [X + 3, 3.5 + i * 1.3 - 4, 0], [X - 6, 3.5 + i * 1.3 - 4, 0.5]].map(p => [p[0] - i * 0.9, p[1]]), 1.8);
+      npc(a, 'yo1', makeChar(SPEC.oni), X - 3, -4, 0.4).st.cross = true; npc(a, 'yo2', makeChar(SPEC.dragon), X + 9, 2, -1.8); sis(0, X, 1.5, 0, { v: true }); }
+    // 1 蒼生：研究棟と病棟
+    { const X = WX(1); pad(g, X, 30, 20, 0xE8ECF0); block(20, 8, 6, 0xF4F6FA, X, 4, -9, g); block(20, 0.8, 6.1, 0x7FAEE0, X, 6.5, -9, g); sign(g, X, 5, -5.9, 11, 1.4, '蒼生メディカルセンター春日井', '', '#FFFFFF', '#2A5A9A');
+      for (let i = 0; i < 4; i++) { block(1.0, 0.5, 2.1, 0xFFFFFF, X - 9 + i * 2.4, 0.45, 2, g); block(1.0, 0.2, 0.5, 0xC8D8F0, X - 9 + i * 2.4, 0.8, 1.2, g); const pt = npc(a, 'pt' + i, mk(i % 2 ? 'old' : 'young'), X - 9 + i * 2.4, 2.3, 0); pt.st.sit = true; pt.model.root.rotation.x = 0; }
+      for (let i = 0; i < 3; i++) { block(3, 0.9, 1, 0xDCE4EC, X + 4 + i * 3.4, 0.45, -2, g); for (let k = 0; k < 4; k++) { const fl = part(cyl(0.12, 0.16, 0.4, 8), [0x7FD8FF, 0xA0FF9A, 0xFFB0D0][k % 3], X + 3 + i * 3.4 + k * 0.6, 1.1, -2, g, { outline: false }); fl.material = new THREE.MeshBasicMaterial({ color: [0x7FD8FF, 0xA0FF9A, 0xFFB0D0][k % 3], transparent: true, opacity: 0.8 }); } }
+      walker('vn1', mk('sal2'), [[X - 10, 4], [X, 4.5], [X - 4, 3.8]], 1.3); walker('vn2', makeChar(SPEC.elf), [[X + 2, 1], [X + 12, 1], [X + 8, 0]], 1.2);
+      { const b = makeBird({ coat: 0xF4F6FA, vest: 0xDCE6F4, s: 1.25 }); npc(a, 'vb', b, X + 10, -0.5, Math.PI); }
+      sis(1, X + 6, 0.2, 0.3); }
+    // 2 赤嶺：建設現場（鉄骨、クレーン、鋼材を運ぶ文鳥）
+    { const X = WX(2); pad(g, X, 32, 22, 0x8A7A62);
+      for (let fx = -2; fx <= 2; fx++) for (let fy = 0; fy < 4; fy++) { block(0.3, 3, 0.3, 0xC0394B, X + fx * 3, fy * 3 + 1.5, -8, g); block(3, 0.3, 0.3, 0xC0394B, X + fx * 3, fy * 3 + 3, -8, g); }
+      block(1, 22, 1, 0xE8C030, X + 10, 11, -6, g); const jib = new THREE.Group(); jib.position.set(X + 10, 22, -6); g.add(jib); block(20, 0.8, 0.8, 0xE8C030, -6, 0, 0, jib); const hook = new THREE.Group(); hook.position.set(-12, 0, 0); jib.add(hook); block(0.05, 8, 0.05, 0x2A2A2A, 0, -4, 0, hook); block(5, 0.4, 0.4, 0x8A8A90, 0, -8.2, 0, hook);
+      a.anim.push(t => { jib.rotation.y = Math.sin(t * 0.25) * 0.6; hook.rotation.z = Math.sin(t * 1.3) * 0.04; });
+      sign(g, X - 9, 2.4, -4, 6, 1.2, '赤嶺重工　中央線沿線再開発', '', '#F4F2EE', '#C0394B');
+      for (let i = 0; i < 5; i++) { const b = makeBird({ coat: 0x5A4A3A, vest: 0xFF7A20, helmet: 0xF2C230, muscle: true, s: 1.45 }); part(box(0.2, 0.2, 2.4), 0x8A8A90, 0, 1.95, 0, b.torso, { outline: false }); const n = walker('zb' + i, b, [[X - 12 + i * 1.5, 3 + (i % 2)], [X + 6, 3 + (i % 2)], [X + 6, 2], [X - 12 + i * 1.5, 2]], 1.4); n.st.armsUp = true; }
+      npc(a, 'zm', makeChar(SPEC.demon), X + 3, -3, 0.5); npc(a, 'zh', mk('sal1'), X - 4, -3.5, 0.3).st.point = true;
+      const z = sis(2, X - 1, 0, 0, { armsUp: true }); part(box(3.4, 0.35, 0.35), 0x8A8A90, 0, 2.3, 0, z.model.torso); }
+    // 3 正律：相談窓口
+    { const X = WX(3); pad(g, X, 30, 20, 0xD8D4E8); block(22, 5, 1, 0xF4F4FA, X, 2.5, -7, g); sign(g, X, 4.2, -6.45, 9, 1.2, '正律法務機構　相談窓口', '', '#FFFFFF', '#3A38A8');
+      sign(g, X + 7, 2.2, -6.45, 4, 1.6, '被害相談　受付中', '会食・接待・雇用の圧力も', '#3A38A8', '#FFFFFF');
+      for (let i = 0; i < 4; i++) { block(3.6, 1.1, 0.8, 0xFFFFFF, X - 7.5 + i * 4.4, 0.55, -3, g); block(3.4, 0.9, 0.04, 0xC8D8F0, X - 7.5 + i * 4.4, 1.55, -3.2, g, { mat: new THREE.MeshLambertMaterial({ color: 0xC8D8F0, transparent: true, opacity: 0.4 }) }); }
+      const staff = [SPEC.fox, LK.sal2, SPEC.elf]; staff.forEach((L, i) => npc(a, 'rs' + i, makeChar(L), X - 7.5 + i * 4.4, -4.1, 0));
+      for (let i = 0; i < 7; i++) { const q = npc(a, 'rq' + i, mk(['young', 'sal2', 'old', 'sal1'][i % 4]), X - 7.5 + (i % 3) * 4.4, -1.6 + Math.floor(i / 3) * 1.1, Math.PI); if (i % 3 === 0) q.st.bow = true, q.st.bowA = 0.25; }
+      for (let i = 0; i < 6; i++) block(0.5, 0.25 + Math.random() * 0.4, 0.35, 0xF4F2E8, X + 7.5 + rand(-0.6, 0.6), 1.2 + i * 0.05, -3.2, g);
+      { const b = makeBird({ coat: 0x3A3868, vest: 0xF4F4FA, s: 1.2 }); walker('rb', b, [[X - 10, 2], [X + 10, 2], [X + 9, 3]], 1.4).st.carry = true; }
+      sis(3, X + 7.5, -4.2, 0, { point: true }); }
+    // 4 千路：物流ハブ（棚、コンベア、出入りするトラック）
+    { const X = WX(4); pad(g, X, 32, 22, 0x7A7E86); for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) for (let h = 0; h < 3; h++) crate(g, X - 12 + c * 1.1, h * 0.9, -9 + r * 2.4, 0.85, [0xC8A878, 0xB89868, 0xD8B888][(r + c + h) % 3]);
+      sign(g, X + 4, 6, -9.4, 9, 1.4, '千路ロジスティクス　春日井ハブ', '', '#F4F8EC', '#5A8A1A');
+      block(14, 0.6, 1.2, 0x3A3E46, X + 3, 0.9, -4, g); a.boxes = []; for (let i = 0; i < 10; i++) { const b = block(0.6, 0.45, 0.6, 0xD8B888, X - 4 + i * 1.4, 1.42, -4, g); a.boxes.push(b); }
+      a.anim.push(t => { a.boxes.forEach((b, i) => { b.position.x = X - 4 + ((i * 1.4 + t * 1.8) % 14); }); });
+      a.trucks = []; for (let i = 0; i < 2; i++) { const tr = new THREE.Group(); block(5, 2.4, 2.2, 0xF4F6F0, 0, 1.6, 0, tr); block(5.02, 0.4, 2.22, 0x8DBE2E, 0, 0.9, 0, tr); block(1.6, 1.8, 2.1, 0x2A3040, 3.2, 1.3, 0, tr); g.add(tr); a.trucks.push(tr); }
+      a.anim.push(t => { a.trucks.forEach((tr, i) => { const u = ((t * 0.12 + i * 0.5) % 1); tr.position.set(X - 18 + u * 36, 0, 4.5 + i * 2.6); }); });
+      for (let i = 0; i < 4; i++) { const b = makeBird({ coat: 0x2A4A2A, vest: 0x8DBE2E, s: 1.3 }); walker('mb' + i, b, [[X - 10 + i, -1], [X + 2, -1.2], [X + 2, -2], [X - 10 + i, -2]], 1.7).st.carry = true; }
+      npc(a, 'me', makeChar(SPEC.elf), X + 9, -1, -1.2).st.point = true; npc(a, 'mh', mk('sal1'), X + 6, -2.5, 0.4);
+      sis(4, X + 7, 1, -0.6, { point: true }); }
+    // 5 結電工：電柱と送電線、光る結界の網
+    { const X = WX(5); pad(g, X, 34, 20, 0x5E8A5A); for (let i = 0; i < 5; i++) tree(g, X - 14 + i * 7, -8, 1.3);
+      const poles = [-12, -4, 4, 12]; for (const px of poles) { block(0.4, 9, 0.4, 0x8A8070, X + px, 4.5, -3, g); block(3, 0.25, 0.25, 0x6A6050, X + px, 8.6, -3, g); }
+      a.wires = []; for (let w2 = 0; w2 < 3; w2++) for (let k = 0; k < 3; k++) { const m = new THREE.Mesh(box(8, 0.05, 0.05), new THREE.MeshBasicMaterial({ color: 0x2A2A2A })); m.position.set(X + poles[k] + 4, 8.5 - w2 * 0.05, -3 - 1 + w2); g.add(m); a.wires.push(m); }
+      a.anim.push(t => { const on = (Math.sin(t * 0.9) + 1) / 2; a.wires.forEach((m, i) => m.material.color.setHex(on > 0.85 ? 0x60FFC0 : 0x2A2A2A)); a.dome.material.opacity = on > 0.85 ? (on - 0.85) * 2.5 : 0; });
+      a.dome = new THREE.Mesh(new THREE.SphereGeometry(16, 24, 12, 0, TAU, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x60FFC0, wireframe: true, transparent: true, opacity: 0 })); a.dome.position.set(X, 0, -3); g.add(a.dome);
+      const bt = new THREE.Group(); bt.position.set(X - 2, 0, 1.5); block(4.4, 1.8, 2, 0xF4F4F0, 0, 1.1, 0, bt); block(4.42, 0.3, 2.02, 0x3FA37F, 0, 1.4, 0, bt); block(0.3, 5, 0.3, 0xD8D8D8, -1, 4, 0, bt); block(1.2, 0.8, 1.0, 0xF4F4F0, -1, 6.6, 0, bt); g.add(bt);
+      { const b = makeBird({ coat: 0x2A4A3A, vest: 0x3FA37F, helmet: 0xF4F4F0, s: 1.15 }); b.root.position.set(-1, 6.9, 0); bt.add(b.root); b.arms.forEach(ar => ar.rotation.x = -2.6); }
+      sign(g, X + 9, 1.6, 2, 4, 1.0, '結電工　送電線点検中', '', '#F4F8F4', '#2A7A5A'); npc(a, 'rh', mk('sal1'), X + 6, 1, -0.6).st.point = true;
+      sis(5, X + 3, 3, 0); }
+    // 6 天環：最上階の取締役会
+    { const X = WX(6); pad(g, X, 30, 20, 0x2A2832); block(26, 10, 0.3, 0x9AB0C8, X, 5, -9, g, { mat: new THREE.MeshLambertMaterial({ color: 0x9AB0C8, transparent: true, opacity: 0.35 }) });
+      for (let i = 0; i < 10; i++) tower(g, X - 30 + i * 7, -40, 5, rand(10, 50), 5, 0xC8D0E0);
+      block(12, 0.15, 3, 0x3A2A20, X, 1.0, -2, g); block(11.6, 0.9, 2.6, 0x2A2018, X, 0.5, -2, g);
+      sign(g, X, 7, -8.8, 6, 1.4, '天環ホールディングス', '取締役会', '#1A1816', '#F0B060');
+      const ch = plane(5, 3, canvasTex(500, 300, (c, w, h) => { c.fillStyle = 'rgba(10,8,4,.6)'; c.fillRect(0, 0, w, h); c.strokeStyle = '#F0A040'; c.lineWidth = 6; c.beginPath(); for (let i = 0; i <= 10; i++) c.lineTo(20 + i * 46, 260 - i * 18 - Math.random() * 30); c.stroke(); c.fillStyle = '#F0B060'; c.font = `800 30px ${GOTHIC}`; c.fillText('天環グループ連結　売上', 20, 40); }), X + 6, 3.4, -5, g, { transparent: true, double: true }); ch.material.blending = THREE.AdditiveBlending;
+      const execs = [SPEC.dragon, SPEC.demon, SPEC.elf, SPEC.fox, LK.patron, LK.exec]; execs.forEach((L, i) => { const sx = i % 2 ? 1 : -1, xx = X - 4 + Math.floor(i / 2) * 3.4; const e = npc(a, 'te' + i, makeChar(L), xx, -2 + sx * 2.0, sx > 0 ? Math.PI : 0); e.st.sit = true; });
+      npc(a, 'tsec', mk('sal2'), X + 8, 0.5, -1.4); sis(6, X - 7.4, -2, Math.PI / 2, { point: true }); }
+    // 7 翠絡：データセンター
+    { const X = WX(7); pad(g, X, 30, 20, 0x1A2024); a.leds = [];
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) { const rx = X - 10 + c * 2.2, rz = -8 + r * 3; block(1.4, 3, 1, 0x14181C, rx, 1.5, rz, g); for (let k = 0; k < 6; k++) { const l = block(0.08, 0.08, 0.02, 0x2EE8A0, rx - 0.5 + (k % 3) * 0.3, 0.8 + Math.floor(k / 3) * 1.2, rz + 0.51, g, { emis: 0x0A6A40 }); a.leds.push(l); } }
+      a.anim.push(t => { a.leds.forEach((l, i) => { l.visible = Math.sin(t * 7 + i * 1.7) > -0.3; }); });
+      for (let i = 0; i < 5; i++) block(2.4, 1.4, 0.1, 0x0A1A14, X + 4 + (i % 3) * 2.6, 2.4 + Math.floor(i / 3) * 1.6, -4, g, { emis: 0x0A5A3A });
+      sign(g, X + 7, 5.6, -3.9, 7, 1.1, '翠絡情報技研　高蔵寺DC', '', '#0A1A14', '#2EE8A0');
+      for (let i = 0; i < 4; i++) { const o = npc(a, 'ro' + i, i === 3 ? makeBird({ coat: 0x1A3A30, vest: 0x2E9E83, s: 1.2 }) : makeChar(i === 1 ? SPEC.elf : LK.sal1), X + 4 + i * 1.6, -2.6, Math.PI); o.st.sit = i < 3; }
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.04, 6, 40), new THREE.MeshBasicMaterial({ color: 0x2EE8A0 })); ring.position.set(X + 8, 1.4, 1.5); ring.rotation.x = Math.PI / 2; g.add(ring); a.anim.push(t => { ring.rotation.z = t; ring.position.y = 1.4 + Math.sin(t * 2) * 0.2; });
+      sis(7, X + 8, 1.5, Math.PI); }
+    // 8 ネムリア：フェス会場（ステージ、観客、寝ている社長）
+    { const X = WX(8); pad(g, X, 34, 22, 0x2A2238); block(14, 1.2, 5, 0x1A1420, X, 0.6, -7, g); const scr2 = plane(12, 5, signTex(1200, 500, [{ t: 'NEMURIA FES', size: 150, w: 900 }, { t: 'ネムリア・エンタテインメント', size: 60 }], { bg: '#2A1430', fg: '#FFB0D8' }), X, 5, -9.4, g, { fog: false }); void scr2;
+      a.spots = []; for (let i = 0; i < 5; i++) { const s = glowSprite([0xFF80C0, 0x80C0FF, 0xFFE080][i % 3], 4, 0.6); s.position.set(X - 6 + i * 3, 7, -6); g.add(s); a.spots.push(s); }
+      a.anim.push(t => a.spots.forEach((s, i) => { s.material.opacity = 0.4 + 0.4 * Math.sin(t * 3 + i); s.position.x = X - 6 + i * 3 + Math.sin(t + i) * 1.2; }));
+      const idol = npc(a, 'idol', makeChar(SPEC.fox), X, -6, 0); idol.y = 1.2; idol.st.v = true;
+      const fans = []; for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) { const L = pick([LK.sal1, LK.young, LK.sal2, SPEC.elf, LK.stuB]); const f = npc(a, 'fan' + r + c, makeChar(L), X - 7 + c * 2, -1.5 + r * 1.8, Math.PI); f.st.armsUp = (r + c) % 3 === 0; fans.push(f); }
+      a.anim.push(t => fans.forEach((f, i) => { f.y = Math.max(0, Math.sin(t * 6 + i)) * 0.18; }));
+      for (let i = 0; i < 2; i++) { const b = makeBird({ coat: 0x2A2A30, vest: 0xE889AE, s: 1.3 }); npc(a, 'nb' + i, b, X - 10 + i * 20, -4, i ? -1.2 : 1.2).st.cross = true; }
+      part(sph(1.3, 14, 10), 0xF8D8E8, X + 11, 0.6, 3, g, { s: [1.4, 0.5, 1.1] }); const nr = sis(8, X + 11, 3, -1.6, { down: true }); nr.y = 0.45;
+      const holoR = makeChar(FAMLK.reune); holoR.root.position.set(X + 8.5, 0, 4.5); holoR.root.rotation.y = -0.8; holoR.root.traverse(m => { if (m.material) { m.material = new THREE.MeshBasicMaterial({ color: 0x2EE8A0, transparent: true, opacity: 0.35, depthWrite: false }); } }); g.add(holoR.root); }
+    // 9 未完画廊：エデルのアトリエ
+    { const X = WX(9); pad(g, X, 30, 20, 0xE6E3DC); block(24, 5, 0.3, 0xF4F4F2, X, 2.5, -8, g);
+      for (let i = 0; i < 5; i++) { block(2.2, 2.8, 0.1, 0xC8B080, X - 9 + i * 4.4, 2.6, -7.8, g); plane(1.9, 2.4, artTex(11 + i * 7, i % 3), X - 9 + i * 4.4, 2.6, -7.7, g); }
+      sign(g, X + 8, 4.6, -7.8, 5, 0.9, '未完画廊　神領', '', '#F4F4F2', '#5A5470');
+      block(0.1, 2.2, 0.1, 0x8A6A4A, X, 1.1, -2.5, g); const cv = plane(1.6, 2.0, artTex(99, 0), X, 1.9, -2.42, g); void cv;
+      sis(9, X, -1.2, Math.PI, { paint: true });
+      for (let i = 0; i < 5; i++) { const s2 = npc(a, 'es' + i, makeChar(i % 2 ? LK.stuA : LK.stuB), X - 8 + i * 4, 2.5 + (i % 2), Math.PI + rand(-0.3, 0.3)); s2.st.cross = i % 2 === 0; }
+      const dc = npc(a, 'edoc', makeChar(LK.luc), X + 3, -0.6, -2.4); dc.st.bow = true; dc.st.bowA = 0.5; }
+    // 10 転星：出動する消防・救急
+    { const X = WX(10); pad(g, X, 30, 22, 0x6A6E76); block(18, 6, 6, 0xE8E4DC, X - 2, 3, -9, g); for (let i = 0; i < 3; i++) block(4.6, 4, 0.2, 0x2A2A30, X - 8 + i * 6, 2, -5.9, g);
+      sign(g, X - 2, 5.3, -5.85, 8, 1.1, '転星救急機構　神領出張所', '', '#F4F2EE', '#C04A20');
+      a.reds = []; for (const [dx, dz, col, len] of [[-6, 1, 0xD02A20, 7], [3, 3.5, 0xF4F4F4, 5]]) { const v = new THREE.Group(); v.position.set(X + dx, 0, dz); block(len, 2.4, 2.3, col, 0, 1.4, 0, v); block(len + 0.02, 0.3, 2.32, col === 0xD02A20 ? 0xF4F4F4 : 0xD9602E, 0, 1.0, 0, v); const lt = glowSprite(0xFF3020, 1.6); lt.position.set(len / 2 - 0.6, 2.8, 0); v.add(lt); a.reds.push(lt); g.add(v); }
+      a.anim.push(t => a.reds.forEach((l, i) => { l.material.color.setHex(Math.sin(t * 10 + i * 2) > 0 ? 0xFF3020 : 0x3060FF); }));
+      for (let i = 0; i < 5; i++) { const b = makeBird({ coat: 0xC8782A, vest: 0xF2D040, helmet: 0xF4F4F4, s: 1.3 }); const n = walker('ab' + i, b, [[X - 10 + i * 1.6, -3.5], [X + 8, -3.5 + i * 0.4], [X + 12, 0], [X - 10 + i * 1.6, -3]], 3.2); n.st.run = true; }
+      npc(a, 'adr', makeChar(SPEC.dragon), X + 6, 0, -0.8).st.carry = true; npc(a, 'ahm', mk('sal2'), X + 10, -4, -1.2).st.phone = true;
+      const as = sis(10, X - 4, 4.5, 0, { run: true }); as.path = [[X - 12, 5, 0.4], [X + 12, 5, 0.4]]; as.speed = 6.5; }
+    // 11 主家：フルルの食卓
+    { const X = WX(11); pad(g, X, 30, 20, 0xC8A888); block(24, 5, 0.3, 0xF4E8DC, X, 2.5, -7, g); const lamp = glowSprite(0xFFD8A0, 9, 0.7); lamp.position.set(X, 4.5, -1); g.add(lamp);
+      block(9, 0.15, 3, 0x8A5A3A, X, 0.9, -1, g); block(8.6, 0.8, 2.6, 0x6A4A30, X, 0.42, -1, g);
+      for (let i = 0; i < 9; i++) { part(cyl(0.4, 0.3, 0.06, 12), 0xFFFFFF, X - 4 + i, 1.0, -1 + (i % 2 ? 0.7 : -0.7), g, { outline: false }); part(sph(0.25, 8, 6), [0xE8A040, 0xF4D0A0, 0xC04030, 0x8AC060][i % 4], X - 4 + i, 1.15, -1 + (i % 2 ? 0.7 : -0.7), g, { s: [1, 0.6, 1] }); }
+      part(cyl(0.6, 0.6, 0.6, 16), 0xFFF4F0, X, 1.3, -1, g); part(cyl(0.62, 0.62, 0.1, 16), 0xE79AB4, X, 1.65, -1, g);
+      sis(11, X, 1.5, Math.PI, { armsUp: true });
+      const kids = ['yuria', 'nirume', 'asela', 'miria']; kids.forEach((k, i) => { const n = npc(a, 'home' + k, makeChar(FAMLK[k]), X - 3 + i * 2, -3.4, 0); n.st.sit = true; }); }
+  },
+  tick(a, dt) { for (const f of a.anim) f(T.now); }
+});
+
+
 // ---- 序章の台本 ----
-async function worldIntro() {
+const SKIP = {};
+async function goA(id) { if (G.skip) throw SKIP; await goArea(id); }
+async function worldIntro() { try { await worldIntroBody(); } catch (e) { if (e !== SKIP) throw e; } G.pan = null; $('skipBtn').hidden = true; nameCard(null); loc(null); G.skip = false; }
+async function worldIntroBody() {
   G.mode = 'cine'; $('skipBtn').hidden = false;
   // 一：星の夜
-  await goArea('space'); pan([10, 40, 200], [-30, -40, -20], [-20, 12, 140], [-30, -30, -10], 30);
+  await goA('space'); pan([10, 40, 200], [-30, -40, -20], [-20, 12, 140], [-30, -30, -10], 30);
   await card('序章', 'この国を決めている者たち', 2600);
   loc('地球　夜の側', '日本', 'JAPAN');
-  await narr('この星には、人間のほかに、竜、魔族、エルフ、妖狐をはじめとする、多くの知的な種族が暮らしている。');
+  await narr('この星には、人間のほかに、竜、魔族、エルフ、妖狐、鬼、吸血鬼をはじめとする、多くの知的な種族が暮らしている。');
   await narr('彼女たちは、人間には扱えない魔法を操り、人間の遠く及ばない力を持つ。生き物として人間より優れていることを、もう誰も疑わない。');
   // 二：異種族が牛耳る街
-  await goArea('aliens'); pan([-30, 3.2, 3], [0, 3, -4], [6, 3.0, 3.5], [36, 3.4, -3], 34); loc('日本　中部経済圏', '異種族の街', 'THE NEIGHBORS WHO RULE');
+  await goA('aliens'); pan([-30, 3.2, 3], [0, 3, -4], [6, 3.0, 3.5], [36, 3.4, -3], 34); loc('日本　中部経済圏', '異種族の街', 'THE NEIGHBORS WHO RULE');
   await narr('彼女たちは伝説ではない。同じ電車に乗り、同じ会社で働き、企業を経営し、国の意思決定に関わる隣人だ。');
   await narr('大企業の代表、政治家、大資産家。その多くが異種族の女たちで占められている。竜の資本、妖狐の金融、エルフの医療、魔族の議員連盟。');
-  pan([2, 3.2, 1], [4, 1.4, -6.5], [7, 2.6, -1], [3.6, 1.4, -6.6], 14);
+  pan([0.6, 2.4, -2.4], [3.8, 1.3, -6.5], [7.4, 2.2, -3.2], [3.8, 1.2, -6.5], 14);
   await narr('表向きに人間の代表が立つ役所や会社もある。だが資金と契約と人事を握っているのは、たいてい、その背後の誰かだ。');
   await narr('彼女たちの多くは、人間がひどく好きだ。愛情も、庇護欲も、独占欲も、人間の手には余るほど強い。');
   await narr('会食の席に差し出される社員がいる。目をつけられて、逃げられない人がいる。それでも、声を上げれば何を失うかを、誰もが知っている。');
   // 三：B.U.N の街
-  await goArea('buntown'); pan([-24, 3.6, 6.5], [-6, 3, -6], [20, 4.2, 6.5], [6, 3.6, -6], 36); loc('春日井圏　北部', '辻society 春日井支部', 'B.U.N SOCIETY — MUSCLE QUARTER');
+  await goA('buntown'); pan([-24, 3.6, 6.5], [-6, 3, -6], [20, 4.2, 6.5], [6, 3.6, -6], 36); loc('春日井圏　北部', '辻society 春日井支部', 'B.U.N SOCIETY — MUSCLE QUARTER');
   await narr('一方で、この国には、もう一つの文明がいる。B.U.N society。約十の二十一乗羽のマッスル文鳥が属する、宇宙規模の文明圏だ。');
   await narr('彼らは科学も、医療も、物流も持つ。人間の暮らしを支えている文鳥も多い。……だが、その社会の真ん中には、強さとレートがある。');
+  pan([0, 16, 26], [0, 0, -2], [8, 10, 18], [0, 1, -4], 18);
   await narr('辻society系の強硬派は、異種族を、とりわけ女を敵とみなす。彼らは女を「メス肉」と呼び、人格を持つ者から、資源へと数え直そうとする。');
   await narr('その数え方には、人間の女も入っている。強い男には種族を超えて敬意を払うが、弱い人間や、巻き込まれた住民が守られる保証は、どこにもない。');
   // 四：抗争と企業戦争
-  await goArea('clash'); pan([0, 14, 20], [0, 1, 0], [-10, 5, 9], [0, 1.4, 0], 30); loc('春日井駅北口　深夜', '抗争', 'GANG WAR / CORPORATE WAR');
+  await goA('clash'); pan([0, 18, 24], [0, 1, 0], [-4, 6, 13], [0, 1.4, 0], 22); loc('春日井駅北口　深夜', '抗争', 'GANG WAR / CORPORATE WAR');
   await narr('夜になると、街の境目で、それはぶつかる。B.U.N 系の組――表の顔は「鉄翼興業」――と、異種族の女たちが率いる組織。');
-  await narr('魔法の光と、鍛えた拳。翌朝のニュースは、それを「事故」と呼ぶ。');
-  pan([0, 8, 14], [0, 6, -12], [0, 7, 10], [0, 6, -12], 12);
+  pan([-12, 6, 13], [-3, 1.4, 0], [-12, 6.4, -12], [-3, 1.4, 0], 12);
+  await narr('文鳥の組は銃と拳で。鍛え上げた体で車を盾にし、正面から突っ込んでいく。');
+  pan([22, 4.4, -9], [10, 1.4, 0], [22, 4.8, 9], [10, 1.4, 0], 12);
+  await narr('女たちは種族の力で。竜の炎、妖狐の狐火、エルフの光の矢、魔族の落雷、吸血鬼の血の弾、鬼の怪力。');
+  pan([0, 9, 16], [0, 1.4, 0], [3, 13, 20], [0, 1, 0], 14);
+  await narr('翌朝のニュースは、それを「事故」と呼ぶ。');
+  pan([0, 8, 6], [0, 7, -14], [0, 7.4, 4], [0, 7, -14], 12);
   await narr('昼の戦いは、もっと静かだ。敵対的買収、債権の買い占め、入札からの締め出し。紅鱗コンツェルンと鉄翼興業の争いは、株価の数字で毎日続いている。');
   await narr('どちらが勝っても、損をするのは、その間で働いている人間だ。');
-  // 五：外神竜一族
-  await goArea('family'); pan([0, 3, 18], [0, 1.6, 0], [0, 2.4, 13], [0, 1.6, 0], 8); loc('春日井　高蔵寺の丘　夜明け', '外神竜一族', 'THE OUTER DRAGON FAMILY');
+  // 五：外神竜一族と、その組織
+  await goA('family'); pan([0, 3, 18], [0, 1.6, 0], [0, 2.6, 13], [0, 1.6, 0], 10); loc('春日井　高蔵寺の丘　夜明け', '外神竜一族', 'THE OUTER DRAGON FAMILY');
   await narr('その全部を、少し離れた場所から見ている者たちがいる。');
   await narr('春日井に暮らす、外神竜一族。十一人の姉妹と、その母。彼女たちは、どちらか一方に世界を渡すことを許さない。');
-  const A5 = AREAS.family; for (let i = 0; i < FAMI.length; i++) { const f = FAMI[i], n = A5.fam[i]; const fx = Math.sin(Math.atan2(n.pos.x, 6 - n.pos.z));
-    pan([n.pos.x + fx * 1.5, 2.0, n.pos.z + 4.6], [n.pos.x, 1.4, n.pos.z], [n.pos.x + fx * 1.2, 1.8, n.pos.z + 3.6], [n.pos.x, 1.45, n.pos.z], 6);
-    nameCard({ s: f.s, b: f.b, e: f.e, p: f.p, col: f.col }); await narr(f.b + '。' + f.e + '。'); }
-  nameCard(null); pan([0, 6, 20], [0, 1.6, 0], [0, 10, 26], [0, 2, -20], 16);
-  await narr('文鳥強硬派の侵略を止め、異種族が人間へ向ける過剰な支配にも歯止めをかける。ユリアの武力が「壊させない」を支え、テルエスの資本が「止められても暮らせる」を支える。');
+  await narr('一族は、それぞれが組織を預かっている。事業の大元はテルエスの天環グループ。その周りに、家族全員の仕事がつながっている。');
+  await goA('works'); const W = AREAS.works;
+  for (let i = 0; i < WORKS.length; i++) { const f = WORKS[i], X = WX(i), n = W.sis[f.k];
+    pan([X - 15, 9, 20], [X, 1.5, -2], [X + 12, 7, 17], [X, 1.5, -2], 16);
+    loc(f.where, f.e, f.b);
+    nameCard({ s: f.s + '　' + f.b, b: f.e, e: f.where, p: f.p + (f.staff ? '\n働く者：' + f.staff : ''), col: f.col });
+    await narr(f.p);
+    pan([n.pos.x + 3.4, 2.4, n.pos.z + 4.6], [n.pos.x, 1.5, n.pos.z], [n.pos.x + 2.2, 2.0, n.pos.z + 3.6], [n.pos.x, 1.6, n.pos.z], 6);
+    await say(f.k, f.line); }
+  nameCard(null);
+  await goA('family'); pan([0, 6, 20], [0, 1.6, 0], [0, 10, 26], [0, 2, -20], 16); loc('春日井　高蔵寺の丘　夜明け', '外神竜一族', 'THE OUTER DRAGON FAMILY');
+  await narr('一族の下では、多くの異種族と、更生したB.U.N出身の文鳥たちが、必死に働いている。かつて強さを奪うために使った腕で、いまは鋼材を運び、避難者を背負う。');
+  await narr('ユリアの武力が「壊させない」を支え、テルエスの資本が「止められても暮らせる」を支える。');
   await narr('彼女たちもまた、人間が好きだ。その庇護は優しく、重い。春日井は、その庇護のいちばん近くにある街として、大きく、豊かになった。');
-  // 六：宇宙の要塞と、No.4
-  await goArea('space'); pan([60, 40, 60], [30, 30, -40], [34, 32, -5], [30, 30, -40], 22); loc('静止軌道', 'B.U.N DICTATOR', 'ABSOLUTE ENVIRONMENT CONTROL FORTRESS');
+  // 六：宇宙の要塞と、No.3
+  await goA('space'); pan([60, 40, 60], [30, 30, -40], [34, 32, -5], [30, 30, -40], 22); loc('静止軌道', 'B.U.N DICTATOR', 'ABSOLUTE ENVIRONMENT CONTROL FORTRESS');
   await narr('そして、その上。星の夜の側に、黒い多面体が浮かんでいる。');
   await narr('B.U.N society の絶対環境制御要塞、B.U.N DICTATOR。この星の文鳥たちへの命令は、ここから降りてくる。');
-  await goArea('bridge'); const B = AREAS.bridge; B.koshi.pos.set(0, 0, 1.5); B.koshi.facing = Math.PI; pan([0, 3.4, 9], [0, 3.4, -6], [0, 2.6, 5.5], [0, 2.6, -2], 10); loc('B.U.N DICTATOR　艦橋', 'B.U.N society No.4', 'THE KOSHI — HYPER ACCELERATION');
+  await goA('bridge'); const B = AREAS.bridge; B.koshi.pos.set(0, 0, 0); B.koshi.facing = Math.PI;
+  pan([30, 18, 70], [0, -10, 20], [10, 8, 40], [0, -6, 0], 14); loc('B.U.N DICTATOR　中央大広間', '数えきれない文鳥', 'B.U.N SOCIETY');
+  await narr('要塞の中心には、果ての見えない大広間がある。そこに並ぶ文鳥の列は、どこまで数えても終わらない。');
+  await narr('すべての列が、ひとつの壇を向いている。');
+  pan([0, 4.2, 22], [0, 2.4, 0], [0, 3.6, 14], [0, 2.6, 0], 12); loc('B.U.N DICTATOR　艦橋', 'B.U.N society No.3', 'THE KOSHI — HYPER ACCELERATION');
+  await narr('壇の上には、上位 rate の文鳥たちが、一糸乱れず並んでいる。誰も、首ひとつ動かさない。');
+  pan([0, 3.6, -6], [0, 6, -10], [0, 3.0, -3.6], [0, 6, -10], 8);
   await say('op', '地表監視、報告します。春日井圏、鉄翼興業が後退。紅鱗の私兵と、外神竜の陽盾が介入しました。', { nod: false });
-  await narr('艦橋の中央に、灰色の大きな文鳥が立っている。赤い襟巻き。胸の奥で、炉心が赤く脈打つ。');
-  nameCard({ s: 'B.U.N society Rate No.4', b: 'ザ・コシ', e: '超高加速', col: '#FF3D55', p: 'B.U.N DICTATOR から、この星の作戦を指揮する上位個体。言葉は少なく、判断は速い。' });
+  await narr('その中心に、灰色の大きな文鳥が立っている。赤い襟巻き。胸の奥で、炉心が赤く脈打つ。');
+  nameCard({ s: 'B.U.N society Rate No.3', b: 'ザ・コシ', e: '超高加速', col: '#FF3D55', p: 'B.U.N DICTATOR から、この星の作戦を指揮する上位個体。言葉は少なく、判断は速い。' });
   await say('koshi', '……遅い。');
-  B.koshi.goal = null; for (let i = 0; i < 20; i++) { B.koshi.facing = turn(B.koshi.facing, 0, 0.2); await sleep(G.skip ? 0 : 20); }
-  pan([2.4, 2.6, 5.4], [0, 2.6, 1.5], [1.6, 2.5, 4.4], [0, 2.7, 1.5], 8);
+  for (let i = 0; i < 20; i++) { B.koshi.facing = turn(B.koshi.facing, 0, 0.2); await sleep(G.skip ? 0 : 20); }
+  pan([2.6, 3.2, 5.6], [0, 3.0, 0], [1.8, 3.0, 4.4], [0, 3.1, 0], 8);
   await say('koshi', '外神竜が、地表の偽りを庇っている。');
   await say('koshi', '……邪魔だ。加速する。');
-  nameCard(null); B.ult.material.opacity = 0; for (let i = 0; i < 30; i++) { B.ult.material.opacity = i / 30 * 0.95; await sleep(G.skip ? 0 : 30); }
-  pan([0, 3, 7], [0, 4.6, -6], [0, 3.4, 8.5], [0, 5, -6], 10);
+  nameCard(null); for (let i = 0; i < 30; i++) { B.ult.material.opacity = i / 30 * 0.95; await sleep(G.skip ? 0 : 30); }
+  pan([0, 3, 9], [0, 6.6, -7.5], [0, 3.6, 12], [0, 7, -7.5], 10);
   await narr('天井の闇に、もう一つの影が映る。B.U.N society No.1、絶尊。');
   await say('ult', '余の命は、命令そのもの。余の裁定は、宇宙の終着。');
+  B.koshi.facing = Math.PI; pan([0, 14, 40], [0, 0, 0], [0, 22, 70], [0, -4, 0], 10);
+  for (const e of B.elite) { e.st.bow = true; e.st.bowA = 0.45; } B.koshi.st.bow = true; B.koshi.st.bowA = 0.3; B.bowT = 1.6; setTimeout(() => { B.bowT = 1.6; }, 0);
   await say('koshi', '……御意。');
+  for (const e of B.elite) e.st.bow = false; B.koshi.st.bow = false;
   loc(null); B.ult.material.opacity = 0;
   await narr('人類より優れた隣人たちと、宇宙から命令を受ける文鳥たちと、その間に立つ竜の一族。');
   await narr('――そのすべての真ん中で、一人の人間が、今朝も、穏やかに頭を下げる。');
@@ -985,7 +1245,7 @@ async function evAd() { markI('ad'); cine(-5, 2.2, -5, -8.5, 6.4, -11);
   else { await say('kuze', '安心、ですか。'); await say('asai', 'え？　……久世さん、たまに難しい顔しますよね。'); await say('kuze', 'すみません。寝不足で。'); }
   await ura('あの女がいると安心する。それは、分かっている。', '……では、あの女がいなくても生きられる国は、どこへ行った。');
   addNote('yuria_ad', '陽盾の広告', '外神竜一族の長女ユリア。陽盾警備保障の顔。街の人間は彼女を「安心」と呼ぶ。'); }
-async function evTicker() { markI('ticker'); cine(5, 2.4, -5, 7.5, 4.4, -11);
+async function evTicker() { markI('ticker'); cine(5, 2.6, -5, 7.5, 5.2, -11);
   await narr('駅舎の電光掲示に、二つの見出しが流れていく。');
   await narr('【速報】断偽文鳥門、B.U.N からの独立を改めて宣言　門主メス・ゼロ「偽りを断つ」\n【天環】界域協定の次期改定、来春にも閣議へ');
   await ura('界域協定。……来春か。', '改定されれば、人間の拒否権は、書類の上からも消える。');
@@ -1260,6 +1520,6 @@ $('sndBtn').addEventListener('click', () => { sound = !sound; $('sndBtn').setAtt
 $('startBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(async () => { await worldIntro(); await prologue(); }); });
 $('ch1Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(prologue); });
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goGallery, goArchive, evClimax, finale, showReport };
+window.__kz = { pan, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goGallery, goArchive, evClimax, finale, showReport };
 })();
 </script>
