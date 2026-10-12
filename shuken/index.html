@@ -149,7 +149,21 @@ body.ura #uraVeil { opacity: 1; }
 #nameCard em { display: block; font-style: normal; font-size: 12.5px; font-weight: 700; margin-top: 4px; color: var(--gold); }
 #nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; white-space: pre-line; }
 #skipBtn { position: fixed; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 21; border: 1px solid var(--line); background: rgba(10,13,22,.8); padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
-@media (max-width: 560px) { #nameCard { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); } }
+/* 紹介中は画面を分ける：映像は左（スマホは上）、説明は右（スマホは下）に置き、重ねない */
+body.withCard #stage { right: 400px; }
+body.withCard #nameCard { top: 0; right: 0; bottom: 0; width: 400px; max-width: none; transform: none; background: #0E131E; border-left-width: 6px; padding: calc(env(safe-area-inset-top, 0px) + 64px) 22px 22px; overflow-y: auto; }
+body.withCard #nameCard b { font-size: 30px; }
+body.withCard #nameCard p { font-size: 13.5px; line-height: 1.85; }
+body.withCard #dlg { left: calc((100% - 400px) / 2); width: min(calc(100vw - 432px), 760px); }
+body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
+@media (max-width: 760px) {
+  body.withCard #stage { right: 0; bottom: 48%; }
+  body.withCard #nameCard { top: 52%; left: 0; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 124px); border-left: 0; border-top: 4px solid; border-top-color: inherit; padding: 12px 16px; }
+  body.withCard #nameCard b { font-size: 22px; }
+  body.withCard #nameCard p { font-size: 12.5px; line-height: 1.7; }
+  body.withCard #dlg { left: 50%; width: 94vw; min-height: 0; }
+  body.withCard #loc { top: calc(env(safe-area-inset-top, 0px) + 10px); }
+}
 @media (max-width: 560px) { #dText { font-size: 14.5px; } #choices button { font-size: 13.5px; } #act { width: 80px; height: 80px; } #prompt { bottom: calc(env(safe-area-inset-bottom, 0px) + 124px); } }
 @media (prefers-reduced-motion: reduce) { .pop { animation-duration: .01s; } #dNext { animation: none; } }
 </style>
@@ -210,7 +224,7 @@ $('stage').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xBFD2E4);
 const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 400);
-function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+function resize() { const el = $('stage'), w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 const hemi = new THREE.HemisphereLight(0xffffff, 0xB8C0D0, 0.85); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(12, 30, 18); scene.add(sun);
@@ -446,7 +460,7 @@ function fade(on) { $('fade').style.opacity = on ? 1 : 0; return sleep(G.skip ? 
 function pan(p0, l0, p1, l1, sec) { G.pan = { p0: new THREE.Vector3(...p0), l0: new THREE.Vector3(...l0), p1: new THREE.Vector3(...p1), l1: new THREE.Vector3(...l1), t: 0, dur: sec }; G.cine = { pos: G.pan.p0.clone(), look: G.pan.l0.clone() }; camSnap = true; }
 function panTick(dt) { const P2 = G.pan; if (!P2 || !G.cine) return; P2.t = Math.min(P2.dur, P2.t + dt); const u = P2.t / P2.dur, e = u * u * (3 - 2 * u); G.cine.pos.lerpVectors(P2.p0, P2.p1, e); G.cine.look.lerpVectors(P2.l0, P2.l1, e); }
 function loc(s, b, i) { if (!b) { $('loc').classList.remove('on'); return; } $('locS').textContent = s || ''; $('locB').textContent = b; $('locI').textContent = i || ''; $('loc').classList.add('on'); }
-function nameCard(o) { const c = $('nameCard'); if (!o) { c.classList.remove('on'); return; } $('ncS').textContent = o.s || ''; $('ncB').textContent = o.b; $('ncE').textContent = o.e || ''; $('ncP').textContent = o.p || ''; c.style.borderLeftColor = o.col || ''; $('ncE').style.color = o.col || ''; c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); }
+function nameCard(o) { const c = $('nameCard'); const was = document.body.classList.contains('withCard'); document.body.classList.toggle('withCard', !!o); if (was !== !!o) resize(); if (!o) { c.classList.remove('on'); return; } c.style.borderTopColor = o.col || ''; $('ncS').textContent = o.s || ''; $('ncB').textContent = o.b; $('ncE').textContent = o.e || ''; $('ncP').textContent = o.p || ''; c.style.borderLeftColor = o.col || ''; $('ncE').style.color = o.col || ''; c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); }
 let toastT = 0; function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; toastT = 2.6; }
 function setObj(t) { $('objT').textContent = t; }
 function addCover(d) { S.cover = clamp(S.cover + d, 0, 100); updHud(); const p = P.model ? scr(P.pos.x, 2.6, P.pos.z) : null; if (p) popAt(p, '擬態 ' + (d > 0 ? '+' : '') + d, d < 0 ? 'down' : 'up'); }
@@ -1258,7 +1272,7 @@ async function worldIntroBody() {
   await goA('corps'); const C = AREAS.corps;
   for (let i = 0; i < CORPS.length; i++) { const f = CORPS[i], X = CX(i), n = C.rep[f.k];
     pan([X - 14, 8, 19], [X, 1.5, -2], [X + 11, 6.5, 16], [X, 1.5, -2], 14); loc(f.where, f.e, f.s);
-    nameCard({ s: f.s, b: f.b, e: f.e, p: f.biz + '\n' + f.p, col: f.col }); await narr(f.p);
+    nameCard({ s: f.s, b: f.b, e: f.e, p: f.biz + '\n' + f.p, col: f.col }); await narr(f.p.split('。')[0] + '。');
     pan([n.pos.x + 3.2, 2.6, n.pos.z + 4.4], [n.pos.x, 1.6 + (n.y || 0), n.pos.z], [n.pos.x + 2.0, 2.2, n.pos.z + 3.4], [n.pos.x, 1.7 + (n.y || 0), n.pos.z], 6);
     await say(f.k, f.line); }
   nameCard(null);
@@ -1291,7 +1305,7 @@ async function worldIntroBody() {
     pan([X - 15, 9, 20], [X, 1.5, -2], [X + 12, 7, 17], [X, 1.5, -2], 16);
     loc(f.where, f.e, f.b);
     nameCard({ s: f.s + '　' + f.b, b: f.e, e: f.where, p: f.biz + '\n' + f.p + (f.staff ? '\n働く者：' + f.staff : ''), col: f.col });
-    await narr(f.p);
+    await narr(f.b + '。' + f.p.split('。')[0] + '。');
     pan([n.pos.x + 3.4, 2.4, n.pos.z + 4.6], [n.pos.x, 1.5, n.pos.z], [n.pos.x + 2.2, 2.0, n.pos.z + 3.6], [n.pos.x, 1.6, n.pos.z], 6);
     await say(f.k, f.line); }
   nameCard(null);
@@ -1660,6 +1674,6 @@ $('sndBtn').addEventListener('click', () => { sound = !sound; $('sndBtn').setAtt
 $('startBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(async () => { await worldIntro(); await prologue(); }); });
 $('ch1Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(prologue); });
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { pan, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport };
+window.__kz = { pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport };
 })();
 </script>
