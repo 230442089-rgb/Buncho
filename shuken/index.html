@@ -2025,7 +2025,7 @@ makeArea('gala', { place: '夜宴ホテル名古屋　大宴会場「月の間�
     await narr('崩れた梁が、肩をかすめた。煙が肺に入り、視界が、白く、遠くなる。');
     addCover(-5); await fade(true);
     const as = AREAS.gala.asela || (AREAS.gala.asela = npc(AREAS.gala, 'asela', makeChar(FAMLK.asela), 0, 6.2, Math.PI)); as.hidden = false;
-    P.pos.set(0.8, 0, 7.4); for (const n of a.follow) n.pos.set(P.pos.x + rand(-1, 1), 0, P.pos.z - 1.2); camSnap = true; a.det = 0; as.pos.set(-0.6, 0, 6.0); faceEach(as); await fade(false);
+    P.pos.set(1.0, 0, 6.4); for (const n of a.follow) n.pos.set(P.pos.x + rand(-1, 1), 0, P.pos.z - 1.2); camSnap = true; a.det = 0; as.pos.set(-0.6, 0, 4.6); faceEach(as); await fade(false);
     otsCam(as, 2.0, 0.9);
     if (!S.flags.c3asela) { S.flags.c3asela = true; await say('asela', 'いっちばーん！　……っと、おにーさん確保ー！　転星救急、到着だよっ！'); await say('asela', '止まって考えるより、走りながら決めたほうが早いじゃん！　ほら、出口はすぐそこ！'); await say('kuze', '……ありがとう、ございます。まだ、中に人が。'); await say('asela', 'じゃあ、おにーさんは連れてきて。運ぶのは、あたしたちがやる！'); await ura('助けられた。……竜の一族に、また。'); }
     else await say('asela', 'また煙のなか突っ込んでたでしょー！　……もー、ちゃんと戻ってきてよ？');
@@ -2052,18 +2052,18 @@ makeArea('galaback', { place: '夜宴ホテル名古屋　関係者控室', boun
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(21, 13), new THREE.MeshLambertMaterial({ color: 0x6A4A50 })); fl.rotation.x = -Math.PI / 2; g.add(fl); block(21, 0.01, 2.2, 0x7A2A34, 0, 0.01, 0, g);
     for (const [w, d, x, z] of [[21, 0.3, 0, -6.3], [21, 0.3, 0, 6.3], [0.3, 13, -10.3, 0], [0.3, 13, 10.3, 0]]) block(w, 3.2, d, 0x2A161C, x, 1.6, z, g);
     // 廊下の両側に控室（扉の切れ目つきの壁）
-    for (const z of [-1.4, 1.4]) for (const [x0, x1] of [[-10, -6.6], [-4.8, 1.0], [2.8, 10]]) { const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2; block(hw * 2, 3.0, 0.24, 0x6A4450, cx, 1.5, z, g); a.obs.push({ x: cx, z, hx: hw, hz: 0.14, tall: true }); }
-    for (const x of [-5.7, 1.9]) for (const z of [-1.4, 1.4]) { const l = glowSprite(0xFFC8A0, 1.4, 0.6); l.position.set(x, 2.8, z); g.add(l); }
+    for (const z of [-1.4, 1.4]) for (const [x0, x1] of [[-10, -6.6], [-4.8, 1.0], [2.8, 7.0], [8.6, 10]]) { const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2; block(hw * 2, 3.0, 0.24, 0x6A4450, cx, 1.5, z, g); a.obs.push({ x: cx, z, hx: hw, hz: 0.14, tall: true }); }
+    for (const x of [-5.7, 1.9, 7.8]) for (const z of [-1.4, 1.4]) { const l = glowSprite(0xFFC8A0, 1.4, 0.6); l.position.set(x, 2.8, z); g.add(l); }
     plane(1.6, 0.4, signTex(320, 80, [{ t: '幹事長控室', size: 40, w: 900 }], { bg: '#C8A040', fg: '#1E0E14' }), -5.7, 2.6, -1.25, g);
     plane(1.6, 0.4, signTex(320, 80, [{ t: '協議会控室', size: 40, w: 900 }], { bg: '#C8A040', fg: '#1E0E14' }), -5.7, 2.6, 1.25, g, { ry: Math.PI });
     plane(1.6, 0.4, signTex(320, 80, [{ t: '主催者控室', size: 40, w: 900 }], { bg: '#C8A040', fg: '#1E0E14' }), 1.9, 2.6, -1.25, g);
     plane(1.6, 0.4, signTex(320, 80, [{ t: '警備詰所', size: 40, w: 900 }], { bg: '#5A0A18', fg: '#FFFFFF' }), 1.9, 2.6, 1.25, g, { ry: Math.PI });
     // 机、鏡台、衣装掛け（物陰）
-    for (const [x, z, w, d, c, tall] of [[-8.2, -4.6, 2.2, 1.0, 0x2A1A20, false], [-3.2, -4.8, 1.2, 0.8, 0xE8E0D8, true], [5.2, -4.6, 2.2, 1.0, 0x2A1A20, false], [8.0, -3.0, 0.8, 1.6, 0x5A0A18, true], [-7.6, 4.6, 2.2, 1.0, 0x2A1A20, false], [-2.4, 3.6, 0.9, 1.6, 0x4A2A3A, true], [5.4, 4.6, 2.0, 1.0, 0x1A1A1E, false], [8.4, 3.0, 0.8, 1.4, 0x3A3A44, true]]) { block(w, tall ? 2.0 : 0.85, d, c, x, tall ? 1.0 : 0.43, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall }); }
+    for (const [x, z, w, d, c, tall] of [[-8.2, -4.6, 2.2, 1.0, 0x2A1A20, false], [-3.2, -4.8, 1.2, 0.8, 0xE8E0D8, true], [5.2, -4.6, 2.2, 1.0, 0x2A1A20, false], [6.6, -2.5, 0.8, 1.7, 0x5A0A18, true], [-7.6, 4.6, 2.2, 1.0, 0x2A1A20, false], [-2.4, 3.6, 0.9, 1.6, 0x4A2A3A, true], [5.4, 4.6, 2.0, 1.0, 0x1A1A1E, false], [6.6, 2.5, 0.8, 1.7, 0x3A3A44, true]]) { block(w, tall ? 2.0 : 0.85, d, c, x, tall ? 1.0 : 0.43, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall }); }
     for (const [x, z] of [[-8.2, -4.6], [5.2, -4.6], [-7.6, 4.6], [5.4, 4.6]]) { const l = glowSprite(0xFFD890, 1.6, 0.5); l.position.set(x, 1.4, z); g.add(l); block(0.5, 0.02, 0.35, 0xF4F0EA, x, 0.87, z, g); }
     a.watch = [];
-    const v1 = npc(a, 'vg1', makeChar(LK.vguard), 8, 0, -Math.PI / 2, { path: [[8, 0, 1.4], [-8.4, 0, 1.6]], speed: 1.4 });
-    const v2 = npc(a, 'vg2', makeChar(LK.vguard), -1.6, -3.4, 0, { path: [[-1.6, -3.4, 1.2], [3.6, -3.4, 1.2], [3.6, -5.2, 0.8], [-1.6, -5.2, 0.8]], speed: 1.2 });
+    const v1 = npc(a, 'vg1', makeChar(LK.vguard), -8.4, 0, Math.PI / 2, { path: [[-8.4, 0, 1.6], [4.2, 0, 2.0]], speed: 1.3 });
+    const v2 = npc(a, 'vg2', makeChar(LK.vguard), -2.6, -3.4, 0, { path: [[-2.6, -3.4, 1.4], [2.6, -3.4, 1.6], [2.6, -5.2, 0.8], [-2.6, -5.2, 0.8]], speed: 1.1 });
     const v3 = npc(a, 'astaSec', makeChar(LK.astaSec), -5, 3.4, 0, { path: [[-5, 3.4, 1.4], [2, 3.4, 1.4], [2, 5.0, 0.6]], speed: 1.15 });
     for (const w of [v1, v2, v3]) { w.cone = makeCone(5.6, 0.5, 0xFFE9A0); w.model.root.add(w.cone); a.watch.push(w); }
     a.det = 0; a.R = 5.6;
@@ -2144,40 +2144,40 @@ async function chapter3() { G.mode = 'cine'; S.chapter = 3; S.cover = Math.max(S
   await narr('地表から三万六千キロ。黒い多面体の艦橋で、上位の文鳥たちが、一糸乱れず立っている。');
   await narr('――一羽を、除いて。');
   pan([4.6, 2.4, -4.6], [2.6, 1.4, -1.8], [4.0, 2.2, -4.0], [2.6, 1.5, -1.8], 7);
-  nameCard({ s: 'B.U.N society No.4　辻society', b: 'シ・ロブン', e: '文火の太刀　SHIROBUN', col: '#FF8A50', p: '辻society の剣。かつては、ひと振りで街区ごと焼いたという。\n今は「だいぶ丸くなった」――本人いわく。\n傍若無人、自由奔放。礼儀は、気が向いたときだけ。' });
-  await say('shirobun', 'ふぁ……。なげえよ。いつまで待たせんだ、コシ。');
+  nameCard({ s: 'B.U.N society No.4　辻society', b: 'シ・ロブン', e: '文火の太刀　SHIROBUN', col: '#FF8A50', p: '辻society の剣。かつては、ひと振りで街区ごと焼いたという。\n今は「だいぶ丸くなった」――本人いわく。\n言葉づかいは丁寧。中身は、傍若無人で自由奔放。' });
+  await say('shirobun', 'ふぁ……。長いですね。いつまで待たせるんですか、コシ。');
   nameCard(null); pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6);
   await say('koshi', '……座るな。');
-  await say('shirobun', '立ってると腹減んだよ。');
+  await say('shirobun', '立っていると、お腹が空くんですよ。');
   // 記録官、入る
   await say('op', '中央記録管理官、No.5。入ります。', { nod: false });
   pan([-4.8, 3.0, -0.6], [-1.6, 2.2, -5.0], [-4.4, 2.8, -1.0], [-1.6, 2.3, -2.6], 6); walkTo(B.ch, -1.6, -2.6, 1.2);
-  nameCard({ s: 'B.U.N society No.5　タカハラsociety', b: 'チャ・ニュユー', e: '中央記録管理官　Cha Newyou', col: '#A8B8FF', p: '文明圏のあらゆる記録を「記録結晶」に封じて管理する。\n平静、思考、観測。……の、はずだが、\n最近は、だいたい胃のあたりを押さえている。' });
+  nameCard({ s: 'B.U.N society No.5　タカハラsociety', b: 'チャ・ニュユー', e: '中央記録管理官　Cha Newyou', col: '#A8B8FF', p: '文明圏のあらゆる記録を「記録結晶」に封じて管理する。\n冷静、真面目、理知的。誰に対しても、一人称は「私」。\n……最近は、胃のあたりを押さえていることが多い。' });
   await sleep(G.skip ? 0 : 1600); B.ch.facing = 0.55;
   await say('chanyu', '……はぁ。');
   const faceOff = () => { B.ch.facing = Math.atan2(B.sb.pos.x - B.ch.pos.x, B.sb.pos.z - B.ch.pos.z); B.sb.facing = Math.atan2(B.ch.pos.x - B.sb.pos.x, B.ch.pos.z - B.sb.pos.z); }, three = () => pan([0.8, 3.0, -8.4], [0.5, 2.0, -2.0], [0.6, 2.8, -7.6], [0.5, 2.0, -2.0], 8);
   faceOff(); three(); nameCard(null);
-  await say('shirobun', '出たよ、ため息。辛気くせえツラしやがって。');
-  await say('chanyu', '誰のせいだと思ってる。先月の始末書、まだ三件残ってるぞ、シロブン。');
-  await say('shirobun', '知らね。燃えたもんは戻んねえし。');
-  await narr('灰色の文鳥は、もう一度、深く息を吐いた。');
+  await say('shirobun', 'また、ため息ですか。辛気くさい顔をしていますね、チャ。');
+  await say('chanyu', '原因の大半は、あなただ。先月分の始末書が、まだ三件残っている。');
+  await say('shirobun', '知りませんよ。燃えたものは、戻りませんから。');
+  await narr('灰色の文鳥は、表情を変えないまま、静かに息を吐いた。');
   B.ch.facing = 0.55; pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6); await say('koshi', '……報告。');
-  await say('chanyu', '地表、日本。界域協定の、改定案だ。');
+  await say('chanyu', '地表、日本。界域協定の改定案を提出する。');
   for (let i = 0; i <= 30; i++) { B.holo.material.opacity = i / 30 * 0.95; await sleep(G.skip ? 0 : 25); }
   pan([0, 3.4, -9.4], [0, 4.6, -4.6], [0, 3.8, -8.6], [0, 4.8, -4.6], 6);
-  await say('chanyu', '第三十条、留保条項が消されてる。附則で、日本の残りの主権は、異種族評議のものになる。');
-  await say('chanyu', '通れば、協定に名前の載ってるうちの席は、紙切れだ。');
+  await say('chanyu', '第三十条、留保条項が削除されている。附則により、日本の残余主権は、異種族評議に帰属する。');
+  await say('chanyu', '成立すれば、協定に署名した当文明の席は、意味を失う。');
   pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6);
   await say('koshi', '……誰が書いた。');
-  await say('chanyu', '魔族議員連盟の幹事長、アスタ・ベルフェ。来週、名古屋の夜宴ホテルで、「人間の代表」に確認させる。……形の上では、人間が決めたことになる。');
+  await say('chanyu', '魔族議員連盟幹事長、アスタ・ベルフェ。来週、名古屋の夜宴ホテルで「人間の代表」に確認させる予定だ。形式上は、人間が自ら決めたことになる。');
   faceOff(); three();
-  await say('shirobun', 'ハッ。だったら話は早えじゃねえか。議場ごと焼きゃ、確認もクソもねえ。');
-  await say('chanyu', '焼けば、記録が残らない。手続きを潰すなら、記録で潰す。……お前のやり方だと、後始末が全部こっちに回ってくるんだよ。');
+  await say('shirobun', 'それなら、話は早いでしょう。議場ごと焼いてしまえば、確認も何もありません。');
+  await say('chanyu', '焼けば、記録が残らない。手続きを潰すなら、記録で潰すべきだ。……あなたのやり方では、後始末がすべて私に回ってくる。');
   B.sb.st.sit = false; faceOff();
-  await say('shirobun', '回ってこいよ。お前、片付け好きだろ。');
-  await say('chanyu', '好きでやってると思ってるのか。');
-  await say('shirobun', 'あ？　……やんのか、記録係。');
-  await say('chanyu', '……やらない。疲れる。');
+  await say('shirobun', 'では、回してください。あなた、片付けがお好きでしょう。');
+  await say('chanyu', '好きでやっていると思っているのか。');
+  await say('shirobun', '……おや。やりますか、記録係さん。');
+  await say('chanyu', '……やらない。消耗するだけだ。');
   // No.3 が止める
   G.shake = 0.5; sfx('down'); pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.6, -4.6], [0, 3.3, 0], 4);
   await say('koshi', '――やめろ。');
@@ -2185,19 +2185,19 @@ async function chapter3() { G.mode = 'cine'; S.chapter = 3; S.cover = Math.max(S
   await narr('番号の差は、ひとつかふたつ。いつ入れ替わってもおかしくない三羽だった。それでも、いまの壇の中心は、この灰色の文鳥だ。');
   await say('koshi', '……両方だ。');
   await say('koshi', 'シロブン。行け。燃やすのは、議場だけだ。');
-  await say('chanyu', '……待て、コシ。一桁を、ほいほい地表に出すのか。');
-  await say('chanyu', 'こいつが表に出た時点で、「B.U.N が本気で殴りに来た」って記録が残る。竜の一族も、異種族評議も、全部そう読む。……この手の仕事は、二桁の部隊で足りる。');
-  await say('shirobun', 'だーから、オレが行くんだろ。二桁じゃ、竜の長女に一発で畳まれて終わりだ。');
-  await say('chanyu', '……お前の気質なら、行くとは思ってたよ。思ってたけどな。');
+  await say('chanyu', '……待て、コシ。一桁を、軽々しく地表に出すのか。');
+  await say('chanyu', 'No.4 が表に出た時点で、「B.U.N が本気で動いた」という記録が残る。竜の一族も、異種族評議も、そう読む。……この種の仕事は、二桁の部隊で足りる。');
+  await say('shirobun', 'ですから、私が行くんですよ。二桁では、竜のご長女に一発で畳まれて終わりです。');
+  await say('chanyu', '……あなたの気質なら、行くだろうとは思っていた。思ってはいたが。');
   await say('koshi', '……行け。');
-  await say('shirobun', 'へいへい。……久々に「西」、着てくか。');
-  await say('chanyu', '着るな。文日獄衣は、地表で着るもんじゃない。お前が全力で着たら、議場どころか、名古屋の街区ごと消える。');
-  await say('shirobun', '昔ほどは燃えねえって。丸くなったからな、オレも。ヒャハッ！');
+  await say('shirobun', 'はい、はい。……久しぶりに、「西」を着ていきましょうか。');
+  await say('chanyu', '着るな。文日獄衣は、地表で着るものではない。あなたが全力で着れば、議場どころか、名古屋の街区がひとつ消える。');
+  await say('shirobun', '昔ほどは燃えませんよ。私も、ずいぶん丸くなりましたから。……ふふ。');
   await say('chanyu', '……丸くなって、あれか。');
   await say('koshi', 'チャ。記録を残せ。……止めた、という記録を。');
-  await say('chanyu', '……了解。');
+  await say('chanyu', '……了解した。');
   walkTo(B.sb, 6, -7, 2.2).then(() => { B.sb.hidden = true; }); B.ch.facing = 0.55; pan([-3.8, 3.0, 1.4], [-1.6, 2.3, -2.6], [-3.4, 2.9, 1.0], [-1.6, 2.3, -2.6], 5);
-  await narr('白い侍が、笑いながら艦橋を出ていく。残された灰色の文鳥は、胸の徽章のあたりを押さえた。');
+  await narr('白い侍が、楽しそうに艦橋を出ていく。残された灰色の文鳥は、誰にも見えない角度で、胸の徽章のあたりを押さえた。');
   await say('chanyu', '……胃が痛い。');
   loc(null); for (let i = 0; i <= 20; i++) { B.holo.material.opacity = 0.95 * (1 - i / 20); await sleep(G.skip ? 0 : 25); } B.elite[0].hidden = B.elite[1].hidden = false; B.sb.hidden = false; G.pan = null;
   await goGiin(); }
@@ -2297,7 +2297,7 @@ async function evKatsu2() { S.flags.c3kat = true; const a = AREAS.gala; P.pos.se
   addNote('c3kat', '葛城の告白', '確認書には先月、白紙のまま署名した。改定案は一頁目しか見ていない。最終頁は幹事長控室にある。');
   a.kt.lookAt = null; setObj('会場の左奥、「関係者控室」の扉から、最終頁を探しにいく'); }
 async function goGalaBack() { sfx('door'); G.mode = 'cine'; await goArea('galaback'); AREAS.galaback.det = 0; G.mode = 'play';
-  await ura('夜宴の警護は、吸血鬼だ。夜目が利く。', '灯りの扇を読め。鏡台と衣装掛けの陰を伝え。');
+  await ura('夜宴の警護は、吸血鬼だ。夜目が利く。', '廊下は見回りの通り道だ。入ってすぐ脇の切れ目から、控室の側へ回れ。', '灯りの扇を読め。鏡台と衣装掛けの陰を伝え。');
   setObj('警護の灯りを避けて、控室の書類を撮影する（0／3）'); saveGame(true); }
 async function evBackOut() { const n = ['fp', 'kc', 'memo'].filter(x => S.ev.has('c3' + x)).length;
   if (n < 3) { const c = await choose([{ t: 'まだ撮れていない書類がある。戻る', k: '表' }, { t: '式が始まる。会場へ戻る', k: '裏声' }]); if (c === 0) return; }
@@ -2331,12 +2331,17 @@ async function goCeremony() { G.mode = 'cine'; S.flags.c3back = true; await goAr
   cine(10.2, 2.2, -4.6, 8.6, 1.7, -7.6); a.yu.lookAt = null; a.yu.facing = Math.PI;
   await narr('舞台の脇で、ユリアが、ふっと天井を見上げた。いつもの笑顔が、消えている。');
   await say('yuria', '……全員、伏せて。');
-  sfx('glass'); G.shake = 0.9; a.sky.visible = false; for (let k = 0; k < 4; k++) shards(rand(-4, 4), 7, rand(-7, -3), 0xB8D0FF, 12, 7);
-  pan([0, 2.6, 0], [0, 7, -5], [0, 3.0, 1.0], [0, 5, -7], 2.0);
-  await narr('天井の硝子が、一斉に砕けた。');
+  pan([0, 2.6, 2.0], [0, 6, -5], [0, 3.2, 3.0], [0, 5, -6], 2.4);
+  sfx('ban'); sfx('glass'); G.shake = 1.8; flashCam(); a.sky.visible = false;
+  for (let k = 0; k < 8; k++) boom(rand(-7, 7), rand(4, 7.5), rand(-9, -1), k % 2 ? 0xFF6A20 : 0xFFE0A0, true);
+  for (let k = 0; k < 7; k++) shards(rand(-6, 6), 7, rand(-9, -1), k % 2 ? 0xB8D0FF : 0x8A6A50, 18, 11);
+  for (const l of a.lights) l.material.color.setHex(0xFF8A50);
+  await narr('轟音。天井が、まるごと吹き飛んだ。');
+  setTimeout(() => { if (S.area === 'gala') { boom(-4, 6, -6, 0xFF6A20, true); boom(5, 6.5, -4, 0xFFB040, true); G.shake = 1.2; } }, 300);
+  await narr('硝子と梁と、名古屋の夜空が、まとめて降ってくる。爆風が円卓を薙ぎ、シャンデリアが火の粉になって弾けた。');
   const sb = a.sb; sb.hidden = false; sb.pos.set(-0.4, 0, -6.6); sb.facing = 0; sb.st.bow = false; if (sb.model.blade) sb.model.blade.visible = true; sb.st.aim = true; for (const s2 of a.aura) { s2.visible = true; s2.scale.setScalar(9); }
   a.phoenix.material.opacity = 1; a.phoenix.scale.setScalar(16); sb.y = 7.6; G.pan = null; cine(2.6, 1.6, 2.4, -0.4, 6.2, -6.6);
-  await say('shirobun', '文火の太刀・西――文日獄衣ァッ！！');
+  await say('shirobun', '文火の太刀・西――文日獄衣。');
   await narr('全身に炎を纏った白い影が、落ちてくる。その炎は、広間ひとつを丸ごと呑み込める大きさだった。');
   // 開ききる前に、金の光が叩きつけられる
   a.yu.y = 4; a.yu.pos.set(1.6, 0, -6.6); boom(0.4, 5.6, -6.6, 0xF2C230, true); boom(-0.4, 6.2, -6.6, 0xFFFFFF, true); G.shake = 1.1; sfx('ban');
@@ -2346,9 +2351,9 @@ async function goCeremony() { G.mode = 'cine'; S.flags.c3back = true; await goAr
   sb.pos.set(-1.6, 0, -9.4); sb.y = 0.8; a.yu.pos.set(1.6, 0, -9.4); a.yu.y = 0.8; a.yu.facing = -Math.PI / 2; sb.facing = Math.PI / 2; boom(0, 1.6, -9.4, 0xFF6A20, true);
   a.asta.pos.set(4.4, 0, -6.4); a.asta.y = 0; a.kt.pos.set(3.2, 0, -6.0);
   bgm('raid'); cine(3.4, 2.4, -4.6, -0.6, 2.0, -9.4);
-  await say('shirobun', 'あ゛？　……ンだよ。もう嗅ぎつけやがったか、外神竜の長女サマはよォ。');
+  await say('shirobun', 'おや。……もう嗅ぎつけましたか。さすがは、外神竜のご長女ですね。');
   await say('yuria', '……ここ、人間がいるんだけど。');
-  await say('shirobun', '知るかよ。燃えるもんは燃える。ヒャハッ！');
+  await say('shirobun', 'ええ、存じています。燃えるものは、燃えますから。');
   pan([0, 9, 8], [0, 0, -2], [0, 11, 12], [0, 0, -1], 3.0); a.setMode('raid'); a.det = 0; P.pos.set(2.0, 0, 6.8); P.facing = Math.PI; for (const f of a.fires) boom(f.x, 0.8, f.z, 0xFF6A20, false); a.asta.hidden = false;
   await narr('押さえ込まれた炎が、それでも溢れた。円卓の布が、天井の梁が、一斉に燃え上がる。');
   await say('asta', '……文鳥が、議場に土足で？');
@@ -2404,38 +2409,47 @@ async function goRiver() { const a = AREAS.front; await fade(true); a.night = tr
   a.ch.hidden = false; a.chHalo.visible = true; a.ch.pos.set(-12.4, 0, -3.4); a.ch.facing = 0.35; a.ch.lookAt = null;
   cine(-7.6, 2.6, 2.8, -11.8, 1.6, -2.8); await fade(false);
   await narr('午前零時。堀川の河岸に、人影はほとんどなかった。黒い水に、消えかけたサイレンの色だけが揺れている。');
-  await narr('手すりの前に、白い外套の文鳥が一羽。灰色の頭を垂れて、光る端末に何かを打ち込んでいる。まわりを、青い結晶が、力なく回っていた。');
+  await narr('手すりの前に、白い外套の文鳥が一羽。灰色の頭をわずかに傾けて、光る端末に何かを打ち込んでいる。まわりを、青い結晶が静かに回っていた。');
   cine(-11.2, 2.3, -0.4, -12.4, 2.1, -3.4);
-  await say('chanyu', '……議場、半壊。負傷者、十四。うち重傷、ゼロ。');
-  await say('chanyu', 'ゼロ。……あの馬鹿がゼロで済んだのは、竜の長女が初動を潰したからだ。……これ、報告書にどう書くんだ。');
-  await say('chanyu', '「No.4、地表にて文日獄衣を使用。外神竜により、半分で停止」。……はぁ。半分で、あれか。');
-  await say('chanyu', 'そもそも、一桁が、ほいほい地表に出てくるな。あれが全力だったら、外神竜以外は、全部焼け焦げてた。議員も、給仕も、竜の役員も、あの広間ごと。');
-  await say('chanyu', '……あいつは、それを分かってて、半分で笑ってる。だから余計に、たちが悪い。');
+  await say('chanyu', '……議場、半壊。負傷者、十四。重傷、ゼロ。');
+  await say('chanyu', '重傷がゼロで済んだのは、外神竜の長女が初動を潰したからだ。……報告書には、そう書くしかない。');
+  await say('chanyu', '「No.4、地表にて文日獄衣を使用。外神竜により、半分で停止」。……半分で、あれだ。');
+  await say('chanyu', 'そもそも、一桁が軽々しく地表に出るべきではない。あれが全力であれば、外神竜以外は、すべて焼け焦げていた。議員も、給仕も、竜の役員も、あの広間ごと。');
+  await say('chanyu', '……あの男は、それを理解したうえで、半分で笑っている。');
   await narr('長い、長いため息が、黒い水に落ちた。');
   await ura('B.U.N の上位個体だ。……関わるな。通り過ぎろ。');
   const c0 = await choose([{ t: '（会釈だけして、通り過ぎる）', k: '表', cover: 2 }, { t: '「……大変ですね。」と声をかける', k: '温情', warm: 1 }]);
   faceEach(a.ch); otsCam(a.ch, 2.4, 1.5);
-  if (c0 === 0) { await narr('通り過ぎようとした背中に、声が掛かった。'); await say('chanyu', '……ん。ああ、あんた。さっき、給仕を担いで出てきた人間か。'); }
-  else { await say('kuze', '……大変ですね。'); await say('chanyu', '……っ。聞いてたのか。今の独り言、記録しないでくれ。……あんた、さっき給仕を担いで出てきた人間か。'); }
-  await say('chanyu', 'B.U.N の記録官、チャ・ニュユーだ。……今夜の件は、うちの馬鹿が悪かった。謝罪は、たぶん公式には出ないけど。');
+  if (c0 === 0) { await narr('通り過ぎようとした背中に、静かな声が掛かった。'); await say('chanyu', '……失礼。先ほど、給仕を担いで出てきた方ですね。'); }
+  else { await say('kuze', '……大変ですね。'); await say('chanyu', '聞かれていましたか。……今の独り言は、記録しないでいただきたい。'); }
+  await say('chanyu', 'B.U.N 中央記録管理官、チャ・ニュユーです。今夜の件は、当文明の No.4 の不始末です。公式な謝罪は、おそらく出ませんが。');
   const res = (S.flags.c3res || []).length;
-  await say('chanyu', 'あんた、煙の中を' + (res >= 2 ? res + '往復' : '一往復') + 'した。普通の事務局員は、一往復目で座り込む。');
-  await say('chanyu', 'それに、崩れる天井の下を、落ちる前に抜けてた。……どこで覚えた、その歩き方。');
+  await say('chanyu', 'あなたは、煙の中を' + (res >= 2 ? res + '往復' : '一往復') + 'した。普通の事務局員であれば、一往復目で座り込みます。');
+  await say('chanyu', 'それに、崩れる天井の下を、落ちる前に抜けていた。……どこで身につけた歩き方ですか。');
   const c = await choose([{ t: '「火事場の馬鹿力、というやつでしょうか。」', k: '表', cover: 3 }, { t: '「……運が良かっただけです。」', k: '裏声', cold: 1 }, { t: '「中に、まだ人がいましたから。」', k: '本音', warm: 1, cover: -4 }]);
   if (c === 0) await say('kuze', '火事場の馬鹿力、というやつでしょうか。'); if (c === 1) await say('kuze', '……運が良かっただけです。'); if (c === 2) await say('kuze', '中に、まだ人がいましたから。');
-  await say('chanyu', '……ふうん。');
+  await say('chanyu', '……そうですか。');
+  await narr('灰色の文鳥は、手すりの向こうの黒い水を見た。');
+  await say('chanyu', '今夜のことも、明日には「火災」と「延期」の二語になります。誰が燃やし、誰が運び出したのかは、どこにも残らない。');
+  const d = await choose([{ t: '「……私には、難しいことは分かりません。」', k: '表', cover: 2 }, { t: '「記録が残っていれば、誰も“なかったこと”にはできません。……大事なお仕事だと思います。」', k: '本音', warm: 1, cover: -3 }]);
+  if (d === 0) { await say('kuze', '……私には、難しいことは分かりません。'); await say('chanyu', 'でしょうね。……ですが、記録は、最後に残るものです。私は、それを正しく残したいだけだ。'); }
+  else { S.flags.c3chaSoul = true; await say('kuze', '記録が残っていれば、誰も“なかったこと”にはできません。……大事なお仕事だと思います。');
+    await narr('灰色の文鳥が、はじめて、こちらをまっすぐ見た。赤い目の縁が、わずかに動く。');
+    await say('chanyu', '……人間に、そう言われたのは、初めてです。');
+    await say('chanyu', '剣は燃やし、炉心は加速する。ですが、最後に残るのは記録だ。何が決められ、誰が、どうやって決めたのか。');
+    await say('chanyu', '私は、それを正しく残したい。正しく残された記録で、この星の「決め方」そのものを、組み替えたい。……そのための計画が、私には――');
+    await narr('言いかけて、文鳥は口を閉じた。結晶の光が、ひとつだけ強くなる。');
+    await say('chanyu', '……失礼。喋りすぎました。どうやら、疲れているようだ。'); }
   await narr('灰色の文鳥が、端末を一度だけ叩いた。結晶のひとつが、青く光る。');
   await say('chanyu', '静州商事、事業管理部。……久世、躁一郎。');
-  await say('chanyu', '覚えておく。記録官の、悪い癖でね。……気になったものは、全部残す。');
-  await ura('名前を、記録された。', '……顔を動かすな。');
-  await say('chanyu', '改定は、止まった。……人間にとっても、悪い夜じゃなかっただろ。');
-  await say('kuze', '……何のお話でしょう。');
-  await say('chanyu', 'いや。独り言だ。……疲れてるんだ、今日は。');
-  await narr('文鳥は、もう一度だけため息をついて、河岸の向こうへ歩いていった。結晶の青い光が、遠ざかる。');
-  await say('chanyu', '……帰って、シロブンの始末書だ。三件が、四件。');
+  await say('chanyu', '覚えておきます。記録官の、悪い癖でして。気になったものは、すべて残す。');
+  if (S.flags.c3chaSoul) await say('chanyu', 'またお会いすることがあるでしょう。……そのときは、あなたの「記録」も、見せていただきたい。');
+  await ura('名前を、記録された。', S.flags.c3chaSoul ? '……あの目は、理解者を見つけた目か。それとも、駒を見つけた目か。' : '……顔を動かすな。');
+  await narr('文鳥は、静かに一礼して、河岸の向こうへ歩いていった。結晶の青い光が、遠ざかる。');
+  await say('chanyu', '……帰って、No.4 の始末書だ。三件が、四件になった。');
   await fade(true); a.ch.hidden = true; a.chHalo.visible = false; await fade(false);
   await ura('あの鳥は、まだ何も知らない。', '……だが、見始めた。');
-  S.flags.c3chaNoticed = true; addNote('c3cha', 'チャ・ニュユー', 'B.U.N No.5、中央記録管理官（タカハラsociety）。堀川の河岸で会った。煙の中を往復したことと、崩落を抜けた歩き方を見られ、名前を記録された。');
+  S.flags.c3chaNoticed = true; addNote('c3cha', 'チャ・ニュユー', 'B.U.N No.5、中央記録管理官（タカハラsociety）。堀川の河岸で会った。煙の中を往復したことと、崩落を抜けた歩き方を見られ、名前を記録された。' + (S.flags.c3chaSoul ? '「記録で、この星の決め方を組み替えたい」と、計画を口にしかけた。' : ''));
   await goHQ3(); }
 
 // ---- 留保班　報告 ----
