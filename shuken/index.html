@@ -5938,8 +5938,8 @@ AREAS.overpass6.restore = a => { a.ke.hidden = false; a.ke.lookAt = a.tg.pos; };
 // ================= 第六章　中　餌：人物・場所 =================
 // 文鳥セントラルサプライ文食品（辻society 系）の文鳥：白い作業着、ねじり鉢巻き、筋肉
 function bunshokuBird(o = {}) { const m = makeBird(Object.assign({ coat: 0xF2F0EA, pants: 0x22242A, sleeve: 0xF2F0EA, muscle: true, badge: 0xC8323C, s: 1.1 }, o));
-  part(G_('hachi', () => new THREE.TorusGeometry(0.35, 0.055, 6, 18)), o.band || 0xF4F4F4, 0, 0.1, 0, m.head, { rx: Math.PI / 2 + 0.15, outline: false });
-  part(box(0.12, 0.1, 0.1), o.band2 || 0xC8323C, 0, 0.12, 0.34, m.head, { outline: false }); return m; }
+  part(G_('hachi2', () => new THREE.TorusGeometry(0.285, 0.05, 6, 18)), o.band || 0xF4F4F4, 0, 0.24, -0.01, m.head, { rx: Math.PI / 2 - 0.18, outline: false });
+  part(box(0.12, 0.09, 0.08), o.band2 || 0xC8323C, 0, 0.3, 0.27, m.head, { outline: false, rx: -0.5 }); return m; }
 const gantetsuBird = () => bunshokuBird({ s: 1.36, scarf: 0xC8323C, band: 0xF4F4F4, band2: 0xC8323C, armMark: 0xC8323C });
 const konjoBird = () => bunshokuBird({ s: 1.2, band: 0x1A1A1E, band2: 0xF2C230, vest: 0xC8323C });
 LK.saeki = Object.assign({}, LK.member, { top: 0x3A4A5A, sleeve: 0x3A4A5A });
