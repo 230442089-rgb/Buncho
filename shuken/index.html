@@ -5970,7 +5970,7 @@ makeArea('bunfac', { place: '文鳥セントラルサプライ文食品　春日
     for (let i = 0; i < 3; i++) { const l = glowSprite(0xFFF4D8, 4, 0.3); l.position.set(-5 + i * 5, 4.4, 0); g.add(l); } }
 });
 // ---- 立ち食い　漢の文鳥飯　春日井駅前店 ----
-makeArea('shop6', { place: '立ち食い　漢の文鳥飯　春日井駅前店　午前一時', bounds: [-4, 4, -0.6, 2.6], spawn: [0.5, -0.1], spawnFace: Math.PI, cam: [0, 5, 5], music: '', bg: 0x14141A, fog: null, light: 0.85, sun: 0.4,
+makeArea('shop6', { place: '立ち食い　漢の文鳥飯　春日井駅前店　午前一時', bounds: [-4, 4, -2.6, 2.6], spawn: [0.5, -0.1], spawnFace: Math.PI, cam: [0, 5, 5], music: '', bg: 0x14141A, fog: null, light: 0.85, sun: 0.4,
   build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(9, 7), new THREE.MeshLambertMaterial({ color: 0x5A5048 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
     block(9, 3.4, 0.2, 0xE8D8B0, 0, 1.7, -3.0, g); block(0.2, 3.4, 6, 0xE8D8B0, -4.4, 1.7, 0, g); block(0.2, 3.4, 6, 0xE8D8B0, 4.4, 1.7, 0, g);
     block(8, 0.1, 0.7, 0xC8A060, 0, 1.08, -1.0, g); block(8, 1.0, 0.5, 0x6A4A30, 0, 0.5, -1.1, g); a.obs.push({ x: 0, z: -1.0, hx: 4, hz: 0.35 });
@@ -5994,7 +5994,7 @@ makeArea('gym6', { place: '勝川　貸し倉庫　「人間主権回復同盟�
     a.sh = npc(a, 'shou', makeChar(LK.shou), -3.2, -1.4, 0.4);
     a.kj = npc(a, 'konjo', konjoBird(), 2.6, -2.4, -0.6);
     a.sa = npc(a, 'saeki', makeChar(LK.saeki), 4.8, 0.7, 0);
-    a.vg = [[-6.2, 1.0], [-5.0, 0.2], [-2.0, 1.2]].map(([x, z], i) => { const n = npc(a, 'vg' + i, makeChar(LK.vang), x, z, Math.PI * 0.9); n.st.armsUp = i === 1; return n; });
+    a.vg = [[-6.2, 1.0], [-5.0, 0.2], [-6.4, 2.8]].map(([x, z], i) => { const n = npc(a, 'vg' + i, makeChar(LK.vang), x, z, Math.PI * 0.9); n.st.armsUp = i === 1; return n; });
     addItem(a, { id: 'g6sh', x: -2.4, z: -0.4, label: '話す', col: 0xE3B428, avail: () => S.flags.c10st === 'gym', on: () => evGym10('sh') });
     addItem(a, { id: 'g6kj', x: 2.0, z: -1.4, label: '話す', col: 0xE3B428, avail: () => S.flags.c10st === 'gym', on: () => evGym10('kj') });
     addItem(a, { id: 'g6sa', x: 4.0, z: -0.2, label: '話す', col: 0xE3B428, avail: () => S.flags.c10st === 'gym', on: () => evGym10('sa') });
@@ -6030,13 +6030,13 @@ makeArea('plant6', { place: '文食品　春日井第三工場　加工棟　午
 // ---- 落合公園　大集会 ----
 makeArea('rally6', { place: '春日井　落合公園　「人間主権回復 一万人集会」　午後七時', bounds: [-14, 14, -6.4, 6.4], spawn: [12.4, 5.2], spawnFace: -Math.PI * 0.75, cam: [0, 11, 10], music: 'crowd9', bg: 0x10121C, fog: [30, 90], light: 0.6, sun: 0.3,
   build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(30, 15), new THREE.MeshLambertMaterial({ color: 0x3A4A34 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
-    block(12, 1.0, 2.6, 0x2A2A30, -1, 0.5, -5.4, g); a.obs.push({ x: -1, z: -5.4, hx: 6, hz: 1.3, tall: true });
+    block(12, 1.0, 2.6, 0x2A2A30, -1, 0.5, -5.4, g); a.obs.push({ x: -1, z: -5.4, hx: 6, hz: 1.3 });
     plane(10, 1.4, signTex(1400, 200, [{ t: '人間主権回復 一万人集会　――人間の尊厳を、取り戻せ', size: 78, f: MINCHO, w: 900 }], { bg: '#B01A1A', fg: '#FFFFFF' }), -1, 3.4, -6.5, g, { fog: false });
     for (const x of [-6.6, 4.6]) { block(0.2, 3.8, 0.2, 0x2A2A2A, x, 1.9, -6.4, g); const l = glowSprite(0xFFF0C0, 5, 0.5); l.position.set(x, 3.9, -5.8); g.add(l); }
     for (let i = 0; i < 14; i++) { const x = -13 + (i % 7) * 4.2, z = 6.9 + Math.floor(i / 7) * 0.8; const b = glowSprite(0xFFE0A0, 0.6, 0.6); b.position.set(x, 1.6, -9 - (i % 3)); g.add(b); void z; }
     // 文食品の炊き出しトラック（荷台に檻）
     block(5.0, 2.4, 2.2, 0xF2F0EA, 9.6, 1.2, -3.6, g); plane(4.4, 1.0, signTex(880, 200, [{ t: '漢の文鳥飯　無料炊き出し', size: 70, w: 900 }, { t: '協賛：文鳥セントラルサプライ文食品', size: 40 }], { bg: '#C8323C', fg: '#FFFFFF' }), 9.6, 1.6, -2.48, g); a.obs.push({ x: 9.6, z: -3.6, hx: 2.5, hz: 1.1, tall: true });
-    a.cage = new THREE.Group(); a.cage.position.set(12.6, 0, -1.4); g.add(a.cage); for (let k = 0; k < 7; k++) part(cyl(0.03, 0.03, 1.9, 6), 0x8A8A90, -0.8 + k * 0.27, 0.95, 0.7, a.cage, { outline: false }); block(1.8, 0.1, 1.5, 0x5A5A60, 0, 1.9, 0, a.cage); block(1.8, 0.1, 1.5, 0x5A5A60, 0, 0.05, 0, a.cage); a.obs.push({ x: 12.6, z: -1.4, hx: 0.9, hz: 0.75, tall: true });
+    a.cage = new THREE.Group(); a.cage.position.set(12.6, 0, -1.4); g.add(a.cage); for (let k = 0; k < 7; k++) part(cyl(0.03, 0.03, 1.9, 6), 0x8A8A90, -0.8 + k * 0.27, 0.95, 0.7, a.cage, { outline: false }); block(1.8, 0.1, 1.5, 0x5A5A60, 0, 1.9, 0, a.cage); block(1.8, 0.1, 1.5, 0x5A5A60, 0, 0.05, 0, a.cage); a.obs.push({ x: 12.6, z: -1.4, hx: 0.9, hz: 0.75 });
     // PA ブース
     block(2.2, 0.06, 1.0, 0x6A6A6A, -11.0, 0.9, -2.6, g); block(2.1, 0.86, 0.9, 0x3A3A40, -11.0, 0.43, -2.6, g); a.obs.push({ x: -11.0, z: -2.6, hx: 1.1, hz: 0.5 }); for (const x of [-12.4, -9.6]) block(0.6, 1.6, 0.6, 0x1A1A1E, x, 0.8, -3.6, g);
     plane(1.6, 0.4, signTex(320, 80, [{ t: '音響・PA', size: 44, w: 900 }], { bg: '#1A1A1E', fg: '#FFFFFF' }), -11.0, 1.4, -2.08, g);
@@ -6059,14 +6059,14 @@ makeArea('rally6', { place: '春日井　落合公園　「人間主権回復 �
 async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden = true; nameCard(null); applySaku(); bgm(''); setClock('05:30');
   // ---- 冷たい序：文食品の朝礼 ----
   await goArea('bunfac'); const F = AREAS.bunfac, gt = F.gt; F.kj.hidden = true; F.ni.hidden = true; gt.pos.set(-3.2, 0, -3.6); gt.y = 0.5; gt.st = {}; bgm('guts');
-  cine(3.2, 3.4, 4.6, -3.2, 2.0, -3.0); await card('文鳥セントラルサプライ文食品', '春日井第三工場　午前五時三十分　朝礼', 2200);
+  cine(-3.2, 4.0, 3.6, -3.2, 2.4, -3.6); await card('文鳥セントラルサプライ文食品', '春日井第三工場　午前五時三十分　朝礼', 2200);
   await narr('文鳥セントラルサプライ文食品。主力は「漢の文鳥飯」シリーズ。焼肉、生姜焼き、唐揚げ。肉を中心にした、巨大な食品サプライ企業だ。');
   await narr('地球だけではない。B.U.N の宇宙の拠点、艦隊、植民圏。……文鳥の食卓のほとんどすべてに、ここの肉が並ぶ。');
   cine(-1.4, 2.4, -0.6, -3.2, 2.6, -3.6);
   nameCard({ s: 'B.U.N society No.14　辻society　文食品 製造本部長', b: 'ガ・ンテツ', e: 'が んてつ', col: '#FF6A4A', p: '辻society の、二桁の上位。\n肉で作った体、肉で作った根性。\n口癖は「気合いだ」。' });
   gt.st.armsUp = true; G.shake = 0.2; await say('gantetsu', 'おはようございまァァァす！！');
-  nameCard(null); cine(-3.2, 2.6, -1.8, -3.2, 1.4, 2.0); await say('bunw', 'おはようございまァァァす！！');
-  cine(3.2, 3.4, 4.6, -3.2, 2.0, -3.0); await say('gantetsu', '本日の生産目標ォ！　漢の文鳥飯、四千二百万食ゥ！　ガチ旨。シリーズ、十八万食ゥ！');
+  nameCard(null); cine(-3.2, 4.4, -2.5, -3.2, 1.4, 1.2); await say('bunw', 'おはようございまァァァす！！');
+  cine(-3.2, 4.0, 3.6, -3.2, 2.4, -3.6); await say('gantetsu', '本日の生産目標ォ！　漢の文鳥飯、四千二百万食ゥ！　ガチ旨。シリーズ、十八万食ゥ！');
   await say('gantetsu', '足りねえ時は、どうするゥ！');
   for (const n of F.rows) n.st.armsUp = true; await say('bunw', '気合いだァ！！');
   await say('gantetsu', '腹が減ったら、どうするゥ！'); await say('bunw', '肉を食うゥ！！');
@@ -6215,7 +6215,7 @@ async function goPlant10() { G.mode = 'cine'; S.flags.c10st = 'plant'; setClock(
   await saku('仕入れの計画。経験肉の出どころ。……それと、もう一つ。', '連れていかれた人間を戻す手がかりが、ここにあるかもしれない。');
   playOn(); setObj('仕入れの計画・検体台帳・冷凍庫の札を確かめる（見回りの灯りに入るな）'); saveGame(true); }
 async function evPlant10(k) { const a = AREAS.plant6; a.det = 0;
-  if (k === 'plan') { markI('p7plan'); sfx('shutter'); cine(5.6, 2.4, -2.6, 7.6, 1.0, -5.4);
+  if (k === 'plan') { markI('p7plan'); sfx('shutter'); cine(5.8, 2.6, -3.6, 7.6, 1.0, -5.4);
     await narr('端末の画面。「春日井集会　仕入れ計画（製造本部長 ガ・ンテツ 決裁）」。');
     await narr('「集会の怒号に引き寄せられる異種族（雌）、推計四百から六百。うち捕獲目標、八十。炊き出し車両の荷台に、檻を偽装」。');
     await narr('「前衛隊（KN-01 摂取者　十二名）は、異種族との交戦ののち、全員を『経過観察』として回収のこと」。');
@@ -6259,12 +6259,13 @@ async function goRally10() { G.mode = 'cine'; S.flags.c10st = 'rally'; setClock(
   await narr('集まったのは、一万二千人だった。');
   cine(1.4, 2.6, -1.6, -1.0, 2.2, -5.4); await say('saeki', '人間の尊厳を、取り戻せ！');
   for (const n of a.crowd) n.st.armsUp = true; cine(-1.0, 3.0, 4.2, -1.0, 1.4, -2.0); await say('crowd', '取り戻せ！！');
-  await say('saeki', '私たちは、ペットじゃない！　家畜でもない！');
+  cine(1.4, 2.6, -1.6, -1.0, 2.2, -5.4); await say('saeki', '私たちは、ペットじゃない！　家畜でもない！');
+  cine(-1.0, 3.0, 4.2, -1.0, 1.4, -2.0);
   await say('crowd', '家畜じゃない！！');
   cine(2.0, 1.6, 6.0, 2.0, 5.0, -4.0); await narr('公園の上空に、影が増えていった。翼。尾。角。……異種族の娘たちが、怒号に、引き寄せられていた。');
   await narr('ト・キワの言ったとおりだった。怒る人間ほど、深く、愛される。');
   a.dg.hidden = false; a.dg.pos.set(1.0, 0, 4.6); a.dg.lookAt = a.sh.pos; sfx('wind'); G.shake = 0.2;
-  cine(-1.0, 2.2, 6.0, -2.0, 1.4, 3.2); await say('dgirl', 'ねえ、いちばん怒ってる子、どこ？　……あ、いた♡　角の生えかけの、かわいい子。');
+  cine(-1.4, 2.6, 8.4, -1.4, 1.3, 3.4); await say('dgirl', 'ねえ、いちばん怒ってる子、どこ？　……あ、いた♡　角の生えかけの、かわいい子。');
   await say('shou', '来いよ、竜。……今度は、こっちが、囲ってやる。');
   sfx('hit'); G.shake = 0.4; a.sh.st.punch = true; await narr('翔の拳が、竜の娘の顎を、捉えた。');
   a.sh.st.punch = false; a.dg.st.reel = true; await say('dgirl', 'え……？　いた……い……？');
@@ -6295,7 +6296,7 @@ async function evRally10(k) { const a = AREAS.rally6;
     await say('bunw', 'あァ？　なんだ人間、荷台に近づくんじゃねえ！　仕入れ中だ！');
     await fight({ foe: bw, alien: true, need: 2, name: '文食品の文鳥', tempo: 1.1, win: 1.05, open: 0.9, dmg: 1, music: 'fight', after: 'crowd9', tip: '肉で鍛えた文鳥だ。倒せはしない。……怯ませて、檻の鍵を開けろ。' });
     bw.st.reel = false; bw.pos.set(9.2, 0, 1.6); sfx('metal'); a.cage.children.slice(0, 7).forEach(b => { b.visible = false; }); S.flags.c10cage = true;
-    cine(10.0, 1.8, 1.6, 12.6, 1.2, -1.4); a.hp.st.sit = false; await narr('檻の扉が、開いた。');
+    a.hp.st.sit = false; a.hp.pos.set(12.4, 0, 0.4); a.hp.lookAt = 'P'; cine(10.0, 1.8, 2.8, 12.4, 1.3, 0.2); await narr('檻の扉が、開いた。');
     await say('hgirl', 'あ……ありがと……人間の、おじさん……？');
     await say('kuze', '行け。……今夜は、怒っている人間に、近づくな。');
     sfx('wind'); walkTo(a.hp, 13.4, 3.0, 3.0).then(() => { a.hp.hidden = true; }); await narr('ハーピーの娘は、何度も振り返りながら、夜の上へ、逃げていった。');
