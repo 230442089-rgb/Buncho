@@ -3471,8 +3471,8 @@ makeArea('echigo', { place: '越後　山中の訓練場　二十一年前', bou
     a.snow = []; for (let i = 0; i < 60; i++) { const s = glowSprite(0xFFFFFF, rand(0.08, 0.16), 0.85); s.position.set(rand(-10, 10), rand(0, 8), rand(-8, 6)); g.add(s); a.snow.push(s); }
     a.wa = npc(a, 'washio', makeChar(LK.washio), -3.4, -2.6, 0.5);
     a.mk = npc(a, 'kgoka', maskedGoka(), 0, -1.4, 0);
-    a.tr1 = npc(a, 'tr1', makeChar(Object.assign({}, LK.kuzeTr, { hair: 0x3A2A1A, st: ['short', 'messy'] })), 4.6, 1.8, -Math.PI / 2); a.tr1.st.cross = true;
-    a.tr2 = npc(a, 'tr2', makeChar(Object.assign({}, LK.kuzeTr, { hair: 0x1A1A1A, s: 1.06 })), 5.4, 0.6, -Math.PI / 2); a.tr2.st.cross = true; },
+    a.tr1 = npc(a, 'tr1', makeChar(Object.assign({}, LK.kuzeTr, { hair: 0x3A2A1A, st: ['short', 'messy'] })), 4.6, 1.8, -Math.PI / 2);
+    a.tr2 = npc(a, 'tr2', makeChar(Object.assign({}, LK.kuzeTr, { hair: 0x1A1A1A, s: 1.06 })), 5.4, 0.6, -Math.PI / 2); },
   tick(a, dt) { for (const s of a.snow) { s.position.y -= dt * 0.9; s.position.x += Math.sin(T.now + s.position.z) * dt * 0.3; if (s.position.y < 0) { s.position.y = 8; s.position.x = rand(-10, 10); } } }
 });
 // 越後　尋問室
@@ -3536,13 +3536,13 @@ makeArea('onitake', { place: '春日井　鬼嶽建設　資材ヤード', bound
     a.gk = npc(a, 'goka', makeChar(EXEC.goka), 0.4, -3.0, 0);
     a.ts = npc(a, 'tsuyoshi', makeChar(LK.tsuyoshi), -5.0, -1.2, 0.6);
     a.ow = [npc(a, 'oniW', makeChar(LK.oniW1), -6.6, 1.4, 1.2), npc(a, 'oniW2', makeChar(LK.oniW2), 4.0, -1.6, -0.9), npc(a, 'oniW3', makeChar(LK.oniW3), 2.6, 3.2, 2.6)];
-    for (const n of a.ow) n.st.cross = true; },
+    },
   tick(a) { for (const f of a.fires) if (a.dusk) f.material.opacity = 0.75 + Math.sin(T.now * 11 + f.position.x) * 0.15; }
 });
 // 断偽文鳥門の隠れ家（鬼嶽建設の旧資材倉庫）
 makeArea('dangi', { place: '高蔵寺　鬼嶽建設 旧資材倉庫　午前零時', bounds: [-11, 11, -6.4, 6.4], spawn: [10.0, 5.2], spawnFace: -Math.PI * 0.75, cam: [0, 12.5, 8.5], music: 'stealth', bg: 0x0C0E14, fog: null, light: 0.62, sun: 0.3, stealth: true, detLabel: '気づかれ',
   build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(23, 14), new THREE.MeshLambertMaterial({ color: 0x3A3A36 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
-    for (const [w, d, x, z] of [[23, 0.3, 0, -6.8], [23, 0.3, 0, 6.8], [0.3, 14, -11.3, 0], [0.3, 14, 11.3, 0]]) block(w, 4, d, 0x24262A, x, 2, z, g);
+    for (const [w, d, x, z] of [[23, 0.3, 0, -6.8], [0.3, 14, -11.3, 0], [0.3, 14, 11.3, 0]]) block(w, 4, d, 0x24262A, x, 2, z, g); block(23, 0.5, 0.3, 0x24262A, 0, 0.25, 6.8, g);
     for (const [x, z, w, d] of [[-2.6, -3.6, 2.4, 1.6], [3.0, -1.0, 1.6, 3.0], [-6.8, 1.6, 2.0, 2.0], [-1.4, 3.6, 3.0, 1.4], [6.6, 2.6, 1.6, 1.6], [7.4, -4.4, 2.2, 1.4], [-9.4, -1.6, 1.4, 2.4]]) { block(w, 1.8, d, 0x6A5638, x, 0.9, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); }
     block(2.6, 0.08, 1.4, 0x5A4A3A, -7.2, 0.8, -4.8, g); block(2.4, 0.76, 1.2, 0x3A2E24, -7.2, 0.38, -4.8, g); a.obs.push({ x: -7.2, z: -4.8, hx: 1.3, hz: 0.7 });
     plane(1.8, 1.0, signTex(360, 200, [{ t: '偽りを断つ', size: 54, f: MINCHO, w: 800 }, { t: '断偽文鳥門', size: 30 }], { bg: '#E8E8E8', fg: '#1A1A1A' }), -7.2, 2.2, -6.6, g);
@@ -3760,11 +3760,11 @@ async function evJVFile() { markI('c5file'); cine(3.4, 2.2, 4.6, 2, 1.0, 2.2);
 
 // ---- 赤嶺重工の現場 ----
 async function goSite5() { G.mode = 'cine'; S.flags.c5st = 'site'; S.flags.c5bmode = 'day'; bridgeMode('day'); await goArea('bridge5', [13, 0.4], -Math.PI / 2); const a = AREAS.bridge5; bridgeCast(a); c5BridgeStage(a);
-  const zn = a.zn; zn.facing = Math.PI / 2; cine(10.6, 3.2, 3.6, 4, 1.4, 0); await card('高蔵寺　庄内川', '新しい橋の現場　午前十時半', 1800);
+  const zn = a.zn; zn.facing = Math.PI / 2; cine(10.6, 3.2, 3.6, 4, 1.4, 0); a.bw[0].st = {}; await card('高蔵寺　庄内川', '新しい橋の現場　午前十時半', 1800);
   await narr('川の上に、赤い鋼の骨が延びていた。');
   sfx('metal'); await narr('鉄骨を吊ったクレーンの下で、更生文鳥の作業員たちが声を掛け合う。その真ん中に、白い作業着の、大きな影があった。');
   // 落ちてくる鋼材
-  const b0 = a.bw[0]; b0.pos.set(2.4, 0, 1.4); cine(7.6, 2.4, 3.8, 3.2, 1.6, 1.0); await sleep(G.skip ? 0 : 400);
+  const b0 = a.bw[0]; b0.pos.set(1.0, 0, 2.0); cine(4.8, 2.0, -2.4, 2.6, 1.9, 1.3); await sleep(G.skip ? 0 : 400);
   await say('akaB', '危ねえ！　玉掛けが外れた――！');
   const beam = a.fallBeam || (a.fallBeam = block(3.2, 0.3, 0.3, 0x8A3A40, 2.6, 8, 1.4, a.g)); beam.visible = true; beam.position.set(2.6, 8, 1.4); beam.rotation.set(0, 0, 0.3);
   zn.goal = null; walkTo(zn, 2.6, 1.2, 9); for (let i = 0; i <= 16; i++) { beam.position.y = 8 - i / 16 * 5.6; await sleep(G.skip ? 0 : 18); }
@@ -3822,7 +3822,7 @@ async function goOni5() { G.mode = 'cine'; S.flags.c5st = 'oni'; await goArea('o
   await narr('門に、太い墨の字で「鬼嶽建設」。その下を、角のある大男たちが、鋼管を肩に担いで行き交っている。');
   await narr('一人が、こちらに気づいた。笑うと、牙が見えた。');
   await say('oniW', 'お？　人間だ。……迷子か、兄ちゃん。');
-  faceEach(a.gk); otsCam(a.gk, 2.6, 1.5);
+  P.pos.set(2.4, 0, 0.4); faceEach(a.gk); otsCam(a.gk, 2.6, 1.5);
   nameCard({ s: '鬼族　鬼嶽建設 代表取締役', b: '鬼嶽 ゴウカ', e: '鬼嶽建設', col: '#FFC040', p: '赤嶺重工の最大の競争相手。入札も、地上げも、力ずく。\n鬼の掟：強い奴が仕事を取る。契りは破らない。嘘は、つかない。' });
   await say('goka', 'あんたが、静州の課長かい。……鋼材屋が、何の用だ。');
   nameCard(null); await say('kuze', '共同企業体の調整役を仰せつかりました。ご挨拶に。');
@@ -4001,7 +4001,7 @@ async function evRescued() { const a = AREAS.bridge5, zn = a.zn; G.mode = 'cine'
 // ---- 翌朝：鬼と竜 ----
 async function goSiteMorning5() { G.mode = 'cine'; S.flags.c5st = 'morning'; S.flags.c5bmode = 'day'; bridgeMode('day'); await goArea('bridge5', [11, 1.6], -Math.PI / 2); const a = AREAS.bridge5;
   bridgeShow(a, ['zn', 'gk', 'ow0', 'ow1', 'b0', 'b1', 'ob']); a.zn.pos.set(2.4, 0, 0.2); a.zn.facing = Math.PI / 2; a.gk.pos.set(6.4, 0, 0.0); a.gk.facing = -Math.PI / 2; a.ow[0].pos.set(7.6, 0, -1.4); a.ow[1].pos.set(7.8, 0, 1.4);
-  a.bw[0].pos.set(1.0, 0, 1.6); a.bw[1].pos.set(1.0, 0, -1.4); a.ob.pos.set(0.4, 0, 0.2); a.ob.facing = Math.PI / 2; for (const n of [a.ow[0], a.ow[1]]) n.st.cross = true;
+  a.bw[0].pos.set(1.0, 0, 1.6); a.bw[1].pos.set(1.0, 0, -1.4); a.ob.pos.set(0.4, 0, 0.2); a.ob.facing = Math.PI / 2; 
   cine(4.4, 2.6, 4.8, 4.4, 1.4, 0); await card('高蔵寺新橋', '翌朝　午前七時', 1600);
   await narr('橋の真ん中に、線が一本、引かれているようだった。こちらに、赤嶺の文鳥たちと、肩に包帯を巻いたザイナ。あちらに、鬼嶽の鬼たちと、ゴウカ。');
   await narr('久世は、「調整役」として、その線の横に立っていた。');
@@ -4054,8 +4054,8 @@ async function startCh5() { const m = meta(); if (m.ch4) unpackS(m.ch4); else if
 
 // ================= 第五章　下　鬼は嘘をつかない =================
 async function chapter6() { G.mode = 'cine'; S.chapter = 6; S.caught = 0; $('report').hidden = true; nameCard(null); applySaku(); bgm('');
-  await goArea('kouan'); const K = AREAS.kouan, iu = K.inui, td = K.todo; iu.hidden = false; td.hidden = false; iu.pos.set(-1.6, 0, -2.6); iu.facing = Math.PI; td.pos.set(1.8, 0, -1.8);
-  cine(2.6, 2.2, 2.6, -1.4, 1.7, -3.4); bgm('noir'); await card('名古屋　警察庁 中部分室', '爆破の翌々日　午前八時', 2000);
+  await goArea('kouan'); const K = AREAS.kouan, iu = K.inui, td = K.todo; iu.hidden = false; td.hidden = false; iu.pos.set(-1.6, 0, -2.6); iu.facing = Math.PI; td.pos.set(2.8, 0, -3.2); td.facing = Math.PI;
+  cine(2.0, 2.2, 2.8, -1.4, 1.7, -3.4); bgm('noir'); await card('名古屋　警察庁 中部分室', '爆破の翌々日　午前八時', 2000);
   await narr('白い板の前で、男が一人、ミントの飴を噛み砕いていた。');
   await say('inui', '鬼頭剛。十九歳。取り調べで、三十時間、同じことしか言わない。');
   await say('inui', '「拾った札を、ポケットに入れた。俺は、やってない」。……それだけだ。');
@@ -4177,7 +4177,7 @@ async function evZaina6() { markI('b6zaina'); const a = AREAS.bridge5, zn = a.zn
   const c = await choose([{ t: '「……ゴウカさんにも、そう伝えましょうか」', k: '温情', warm: 1 }, { t: '「……分かりました」', k: '表' }]);
   if (c === 0) { await say('zaina', '……いい。言ったら、もっと怒る。'); await say('zaina', '……でも、あなたが、行くなら。……ゴウカ、嘘、嫌い。本当のこと、言って。'); S.flags.c6zMsg = true; }
   else { await say('zaina', '……うん。'); await say('zaina', '……あなたが、行くなら。本当のこと、言って。鬼、嘘、分かるから。'); }
-  await saku('……本当のこと、か。', 'お前の口から一番遠い言葉だな。'); }
+  await saku('……本当のこと、か。', 'お前の口から一番遠い言葉だな。'); setObj('鬼嶽建設のヤードへ（橋の東の端へ）'); }
 
 // ---- 鬼嶽建設：夕暮れ ----
 async function goOniDusk6() { G.mode = 'cine'; S.flags.c6st = 'oni'; await goArea('onitake', [10.4, 5.2], -Math.PI * 0.75); const a = AREAS.onitake, gk = a.gk; a.ts.hidden = true; bgm('oni');
@@ -4329,7 +4329,7 @@ async function evUnderBox() { const a = AREAS.underB, hj = a.hj; G.mode = 'cine'
   // 竜、支える
   const zn = a.zn || (a.zn = npc(a, 'zaina', makeChar(FAMLK.zaina), -9, 2.2, 0)); zn.hidden = false; zn.pos.set(-9.0, 0, 2.0); zn.y = 9;
   for (let i = 0; i <= 12; i++) { zn.y = 9 - i / 12 * 9; await sleep(G.skip ? 0 : 20); } zn.y = 0; zn.st.armsUp = true; zn.facing = Math.PI; sfx('metal'); G.shake = 0.9;
-  cine(-5.4, 1.6, 5.0, -9.0, 2.6, 1.0); await narr('白い作業着が、崩れかけた橋脚の上に飛び降り、桁を、両腕で押し上げた。');
+  cine(-5.6, 1.8, -3.0, -9.0, 2.4, 1.4); await narr('白い作業着が、崩れかけた橋脚の上に飛び降り、桁を、両腕で押し上げた。');
   await say('zaina', '……ゴウカ。そいつ、離さないで。');
   await say('goka', 'あたしに、指図すんじゃないよ！　……離さないけどさ！');
   await say('zaina', '……静州の人。残り、二つ。……切って。');
@@ -4389,7 +4389,7 @@ async function evDefused() { const a = AREAS.underB, hj = a.hj, gk = a.gk, zn = 
 // ---- 二日後 ----
 async function goAfter6() { G.mode = 'cine'; S.flags.c6st = 'after'; await goArea('policeF', [3.6, 2.2], -Math.PI / 2); const a = AREAS.policeF, kt = a.kt; kt.st.sit = false; kt.pos.set(-2.0, 0, 0.8); bgm('dawn');
   const ts = a.ts || (a.ts = npc(a, 'tsuyoshi', makeChar(LK.tsuyoshi), 0, -3.2, 0)); ts.hidden = false; ts.pos.set(0, 0, -3.0);
-  const gk = a.gk || (a.gk = npc(a, 'goka', makeChar(EXEC.goka), 2.4, -1.6, -Math.PI / 2)); gk.hidden = false; gk.pos.set(2.6, 0, -1.2); gk.st.cross = true;
+  const gk = a.gk || (a.gk = npc(a, 'goka', makeChar(EXEC.goka), 2.4, -1.6, -Math.PI / 2)); gk.hidden = false; gk.pos.set(2.6, 0, -1.2);
   cine(4.6, 2.2, 3.4, -0.8, 1.4, -1.0); await card('春日井警察署', '二日後　午前九時', 1600);
   await narr('自動扉が開いて、背の高い若い鬼が、出てきた。');
   await say('kito', '……剛！');
