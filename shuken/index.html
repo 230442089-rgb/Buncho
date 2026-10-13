@@ -6568,8 +6568,8 @@ function abStart(cfg, phase = 0) { AB.cfg = cfg; AB.boss = cfg.boss; AB.phase = 
   $('abFoeN').textContent = cfg.name; $('abMeN').textContent = cfg.me; $('abTip').textContent = cfg.tips[phase] || ''; $('abFoeRow').style.display = AB.swarm ? 'none' : ''; $('ab').hidden = false; abHud();
   if (!AB.glow) { AB.glow = glowSprite(0xF2C230, 2.4, 0); } AB.boss.model.root.add(AB.glow); AB.glow.position.set(0, 1.2, 0); AB.on = true; playOn(); }
 function abStop() { AB.on = false; abClear(); $('ab').hidden = true; if (AB.glow) AB.glow.material.opacity = 0; }
-function abPhaseEnd() { const k = AB.phase; AB.on = false; abClear(); AB.glow.material.opacity = 0; run(async () => { await AB.cfg.onPhase(k); }); }
-function abFail() { AB.on = false; abClear(); S.flags[AB.cfg.failKey] = (S.flags[AB.cfg.failKey] || 0) + 1; run(async () => { G.mode = 'cine'; await AB.cfg.onFail(AB.phase); await fade(true); AB.cfg.reset(); camSnap = true; await fade(false); abStart(AB.cfg, AB.phase); }); }
+function abPhaseEnd() { const k = AB.phase; AB.on = false; abClear(); $('ab').hidden = true; AB.glow.material.opacity = 0; run(async () => { await AB.cfg.onPhase(k); }); }
+function abFail() { AB.on = false; abClear(); $('ab').hidden = true; S.flags[AB.cfg.failKey] = (S.flags[AB.cfg.failKey] || 0) + 1; run(async () => { G.mode = 'cine'; await AB.cfg.onFail(AB.phase); await fade(true); AB.cfg.reset(); camSnap = true; await fade(false); abStart(AB.cfg, AB.phase); }); }
 function abTween(n, x, z, dur) { AB.tweens.push({ n, x0: n.pos.x, z0: n.pos.z, x, z, t: 0, dur }); }
 function abTick(a, dt) { if (!AB.on) return; if (G.mode !== 'play' || G.busy) return;
   AB.inv = Math.max(0, AB.inv - dt); AB.dodgeT = Math.max(0, (AB.dodgeT || 0) - dt); AB.dashCd = Math.max(0, AB.dashCd - dt); AB.atkCd = Math.max(0, AB.atkCd - dt); AB.open = Math.max(0, AB.open - dt);
@@ -6963,7 +6963,7 @@ async function goFox11() { G.mode = 'cine'; S.flags.c11st = 'fox'; S.flags.c11fF
   cine(0, 8.4, 8.0, 0, 0.8, -2.6); await card('鳥居松稲荷　境内', '同じ日　午後五時四十分　――逢魔が時', 1800);
   await narr('昼に来たときより、境内は、ずっと広く見えた。朱い鳥居が、どこまでも、続いている。');
   await saku('……化かされている。狐の庭だ。奴が、広げている。');
-  cine(1.6, 2.6, -2.4, -0.4, 1.2, -6.0); await narr('ナツキは、篝の膝の上で、目を細めていた。');
+  cine(2.4, 2.8, -1.6, -0.4, 1.1, -6.0); await narr('ナツキは、篝の膝の上で、目を細めていた。');
   await say('kagari', 'その瓶。……何を、返しに来た、人の子。');
   await say('kuze', '日向ナツキさんのものを、日向ナツキさんに。');
   await say('natsuki', '……篝さま、この人、だれ？　……こわい。');
@@ -6980,10 +6980,10 @@ const FOXCFG = (a) => ({ boss: a.kg, name: '篝', me: '久世', hp: 6, needs: [3
     if (k === 0) { await say('kagari', '……ほう。人の拳が、狐の膝を、折りかけたか。'); await say('kagari', 'ならば、こちらも、本気で化かそう。'); sfx('rise'); await narr('篝の輪郭が、三つに、ぶれた。'); await saku('幻だ。……本物は、一体だけ。');
       abStart(FOXCFG(a), 1); setObj('本物の篝を見抜き、体勢を崩す'); return; }
     await say('kagari', '……見事じゃ、人の子。じゃがな。');
-    sfx('blast'); G.shake = 0.6; cine(0, 8.4, 8.0, 0, 0.8, -2.0); await narr('境内の鳥居が、いっせいに、燃え上がった。');
+    sfx('blast'); G.shake = 0.6; cine(3.4, 8.0, 7.4, 0, 0.8, -2.0); await narr('境内の鳥居が、いっせいに、燃え上がった。');
     await say('kagari', 'これが、拾うた者を守る火じゃ。……九重の、狐火。');
     await saku('……避けきれない。');
-    const te = a.te; te.hidden = false; te.pos.set(0, 0, -0.4); te.facing = 0; sfx('wind'); boom(0, 1.2, -0.6, 0xF08A24, true); cine(2.2, 2.2, 1.6, 0, 1.4, -1.4);
+    const te = a.te; te.hidden = false; te.pos.set(0, 0, -0.4); te.facing = Math.PI; sfx('wind'); boom(0, 1.2, -0.6, 0xF08A24, true); cine(3.0, 2.1, -0.8, -0.2, 1.4, -1.4);
     await narr('炎と久世のあいだに、黒いスーツの竜が、立っていた。素手で、狐火を、受け止めて。');
     nameCard({ s: '外神竜　天環ホールディングス', b: 'テルエス', e: 'てるえす', col: '#F08A24', p: '数字から入る。\n好きの代わりに、ゼロを九個並べる。' });
     await say('terues', '……数字から。'); nameCard(null);
@@ -7019,7 +7019,7 @@ async function goVamp11() { G.mode = 'cine'; S.flags.c11st = 'vamp'; S.flags.c11
   cine(0, 8.4, 8.6, 0, 0.8, -2.6); await card('ヴェイン家の別邸　月の大広間', '同じ夜　午後九時　――村瀬', 1800);
   await narr('扉の向こうで、セレネが、待っていた。');
   faceEach(se); otsCam(se, 2.6, 1.4); await say('selene', '留保の、遊撃さん？　……陸に会いたいなら、わたくしを、通って。');
-  cine(1.4, 2.2, -3.6, 0, 1.1, -6.0); await say('riku', 'セレネさま……その人、だれ……？');
+  cine(2.4, 2.6, -2.4, 0, 1.1, -6.0); await say('riku', 'セレネさま……その人、だれ……？');
   faceEach(se); otsCam(se, 2.6, 1.4); await say('selene', 'だいじょうぶよ、陸。……すぐ、終わるから。');
   await mu11('……一歩目で、届かせます。');
   cine(0, 7.6, 7.4, 0, 0.8, -1.6); await narr('月が、赤く、滲んだ。');
@@ -7033,7 +7033,7 @@ const VAMPCFG = (a) => ({ boss: a.se, name: 'セレネ', me: '村瀬', hp: 6, ne
     await say('selene', '……ふふ。押されたの、二度目。');
     await say('selene', 'ヴェイン家の夜を、あなたに。');
     sfx('blast'); G.shake = 0.6; cine(0, 8.4, 8.0, 0, 0.8, -1.6); await narr('大広間の影が、すべて、立ち上がった。月が、消えた。');
-    const yu = a.yu; yu.hidden = false; yu.pos.set(0.5, 0, -0.2); yu.facing = Math.PI; sfx('door'); boom(0.4, 1.2, -0.8, 0xF4D35E, true); se.st.punch = true; cine(2.4, 2.2, 1.8, 0.2, 1.4, -1.0);
+    const yu = a.yu; yu.hidden = false; yu.pos.set(0.5, 0, -0.2); yu.facing = Math.PI; sfx('door'); boom(0.4, 1.2, -0.8, 0xF4D35E, true); se.st.punch = true; cine(-2.9, 2.0, -0.9, 0.3, 1.4, -1.0);
     await narr('振り下ろされた爪を、白い手が、受け止めていた。');
     nameCard({ s: '外神竜　陽盾警備保障', b: 'ユリア', e: 'ゆりあ', col: '#F2C230', p: '春日井の、みんなのおうちを守る。\n好きだから、帰りたい子は、帰す。' });
     await say('yuria', 'はーい、陽盾でーす♪'); nameCard(null);
