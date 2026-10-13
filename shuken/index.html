@@ -5482,7 +5482,7 @@ async function startCh8() { const m = meta(); if (m.ch7) unpackS(m.ch7); else if
 { const r0 = AREAS.bazaar.restore; AREAS.bazaar.restore = a => { if (r0) r0(a); if (S.chapter === 8) playAsMinato(true); }; }
 
 // ================= 第六章　上　旗：人物・場所 =================
-const takaBird = (o = {}) => makeBird(Object.assign({ coat: 0xDCE2EA, pants: 0x2A3440, cap: 0xC8D0DA, beak: 0xE8606A, longcoat: 0xF6F8FA, inner: 0x1E2A34, trim: 0x3FC8C0, sleeve: 0xF6F8FA, hand: 0x2A3440, badge: 0x3FC8C0, shades: true, core: 0x6AF0E0, tablet: 0x6AF0E0, s: 1.28 }, o));
+const takaBird = (o = {}) => { const m = makeBird(Object.assign({ coat: 0xDCE2EA, pants: 0x2A3440, cap: 0xC8D0DA, beak: 0xE8606A, longcoat: 0xF6F8FA, inner: 0x1E2A34, trim: 0x3FC8C0, sleeve: 0xF6F8FA, hand: 0x2A3440, badge: 0x3FC8C0, shades: true, core: 0x6AF0E0, tablet: 0x6AF0E0, s: 1.28 }, o)); const k = o.s || 1.28; m.g.scale.set(k * 0.8, k * 1.1, k * 0.84); return m; };
 LK.riku = { skin: SK, hair: 0x2A2A2E, eye: 0x2A2A30, top: 0x3A5A3A, sleeve: 0x3A5A3A, bc: 0x2A2A34, leg: 0x2A2A34, shoe: 0xE8E8E8, s: 1.0, w: 0.95, st: ['short', 'messy'] };
 LK.natsuki = { skin: SK, hair: 0x5A3A2A, eye: 0x3A2A20, top: 0x8A8A90, sleeve: 0x8A8A90, bc: 0x2A3A5A, leg: 0x2A3A5A, shoe: 0x3A3A3A, s: 0.94, w: 0.9, st: ['short', 'cap'], capCol: 0x2A2A30 };
 LK.kento = { skin: SK, hair: 0xC8A030, eye: 0x2A2A30, top: 0x1A1A1E, sleeve: 0x1A1A1E, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0xE84A3A, s: 1.02, w: 0.96, st: ['short', 'messy'], prop: 'tablet', propHand: 1 };
@@ -5508,7 +5508,7 @@ makeArea('lab6', { place: '春日井上空　タカハラsociety 観測艇', noP
 // ---- 春日井駅前　巨大都市の広場 ----
 const placard = (t1, t2) => signTex(360, 220, [{ t: t1, size: 44, f: MINCHO, w: 800 }, { t: t2, size: 44, f: MINCHO, w: 800 }], { bg: '#F8F4E8', fg: '#B01A1A', border: '#1A1A1A' });
 makeArea('plaza6', { place: '春日井駅　北口広場', bounds: [-14, 14, -6, 7], spawn: [12, 6.2], spawnFace: -Math.PI * 0.75, cam: [0, 10, 10], music: 'rally', bg: 0xA8C0D8, fog: [40, 160], light: 0.95, sun: 0.6,
-  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(40, 20), new THREE.MeshLambertMaterial({ color: 0xB8B4AC })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(40, 20), new THREE.MeshLambertMaterial({ color: 0x7E7C78 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
     for (let i = 0; i < 18; i++) { const x = -60 + i * 7 + rand(-2, 2), z = -18 - rand(0, 40); tower(g, x, z, rand(6, 10), rand(40, 140), rand(6, 10), [0xC8D0DC, 0xB8C4D4, 0xD8D8E0][i % 3], 1); }
     tower(g, 0, -40, 14, 220, 14, 0xE8E0C8, 1); plane(16, 2.2, signTex(1600, 220, [{ t: '天環 春日井タワー　――人口　五百十一万人の街へ、ようこそ', size: 72, w: 800 }], { bg: '#1A1A20', fg: '#F2C230' }), 0, 9.2, -6.6, g, { fog: false });
     block(26, 7, 0.4, 0xD8DCE4, 0, 3.5, -7.0, g); plane(8, 3.6, signTex(800, 360, [{ t: '陽盾警備保障', size: 70, w: 900 }, { t: '今日も、全員無事に帰ろーね！', size: 52 }], { bg: '#FFFFFF', fg: '#E3B428' }), -7, 4.4, -6.78, g);
@@ -5518,12 +5518,12 @@ makeArea('plaza6', { place: '春日井駅　北口広場', bounds: [-14, 14, -6,
     a.na = npc(a, 'natsuki', makeChar(LK.natsuki), 6.4, 2.2, -Math.PI / 2); a.ke = npc(a, 'kento', makeChar(LK.kento), -6.4, 1.6, Math.PI / 2);
     a.mem = [[-1.6, -0.8], [1.4, -0.6], [-3.0, 0.6], [3.2, 0.8]].map(([x, z], i) => npc(a, 'pm' + i, i % 2 ? makeChar(LK.member) : mk('young'), x, z, Math.PI));
     a.walkers = []; const kinds = [() => makeChar(LK.catgirl), () => makeChar(LK.elfExec), () => mk('young'), () => makeChar(LK.doggirl), () => makeChar(LK.dragonExec), () => mk('old'), () => makeChar(LK.harpy), () => mk('young')];
-    for (let i = 0; i < 8; i++) { const z = i % 2 ? 4.8 : 3.8, x0 = -12 + i * 3.2, pth = i % 2 ? [[13, z, 0.6], [-13, z, 0.6]] : [[-13, z, 0.6], [13, z, 0.6]]; a.walkers.push(npc(a, 'pw' + i, kinds[i](), x0, z, 0, { path: pth, speed: rand(1.1, 1.6) })); }
+    for (let i = 0; i < 8; i++) { const pth = [[13, 3.9, 0], [13, 5.2, 0], [-13, 5.2, 0], [-13, 3.9, 0]], x0 = -12 + (i % 4) * 6.5, top = i >= 4; a.walkers.push(npc(a, 'pw' + i, kinds[i](), top ? -x0 : x0, top ? 5.2 : 3.9, 0, { path: pth, pi: top ? 2 : 0, speed: 1.3 })); }
     block(4.6, 1.4, 2.0, 0x101014, 10.0, 0.7, -2.6, g); block(3.0, 0.9, 1.9, 0x0A0A0E, 10.2, 1.8, -2.6, g); for (const [dx, dz] of [[-1.5, -1.0], [1.5, -1.0], [-1.5, 1.0], [1.5, 1.0]]) part(cyl(0.38, 0.38, 0.3, 12), 0x1A1A1A, 10.0 + dx, 0.38, -2.6 + dz, g, { rx: Math.PI / 2 }); a.obs.push({ x: 10.0, z: -2.6, hx: 2.3, hz: 1.0, tall: true });
     a.car = glowSprite(0xE0203A, 0.4, 0.8); a.car.position.set(9.0, 1.9, -1.6); g.add(a.car);
     addItem(a, { id: 'p6ri', x: 0, z: -1.2, label: '話す', col: 0xE3B428, avail: () => S.flags.c9st === 'plaza', on: () => evPlaza('ri') });
-    addItem(a, { id: 'p6na', x: 6.4, z: 3.2, label: 'ビラを受け取る', col: 0xE3B428, dyn: a.na, avail: () => S.flags.c9st === 'plaza', on: () => evPlaza('na') });
-    addItem(a, { id: 'p6ke', x: -6.4, z: 2.6, label: '話す', col: 0xE3B428, dyn: a.ke, avail: () => S.flags.c9st === 'plaza', on: () => evPlaza('ke') });
+    addItem(a, { id: 'p6na', x: 5.0, z: 2.2, label: 'ビラを受け取る', col: 0xE3B428, avail: () => S.flags.c9st === 'plaza', on: () => evPlaza('na') });
+    addItem(a, { id: 'p6ke', x: -5.0, z: 1.6, label: '話す', col: 0xE3B428, avail: () => S.flags.c9st === 'plaza', on: () => evPlaza('ke') });
     addItem(a, { id: 'p6car', x: 10.0, z: -1.2, label: '黒い車を見る', avail: () => S.flags.c9st === 'plaza', on: () => evPlaza('car') });
     addItem(a, { id: 'p6out', x: 12.6, z: 6.2, r: 1.3, label: '同盟の事務所へ（夜）', col: 0xC8323C, once: false, avail: () => S.flags.c9st === 'plaza' && ['p6ri', 'p6na', 'p6ke'].filter(k => S.seen.has('i:' + k)).length >= 3, on: () => goOffice9() }); }
 });
@@ -5621,7 +5621,7 @@ async function goBrief9() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Mat
   await say('kuroiwa', 'だが、出どころのわからない金で振られる旗は、誰の旗だかわからん。……近づけ、久世。金の出どころを洗え。');
   await say('kuze', '……潜りますか。');
   await say('kuroiwa', '潜るほどのものでもない。「話を聞きに来た、人間の会社員」でいい。……あの団体は、人間なら、誰でも歓迎する。');
-  await say('nishina', '……旗ってのはね、振ってる本人より、見てる側のほうが、よく覚えてるもんだよ。');
+  cine(-3.6, 2.0, 0.6, -6.2, 1.5, 2.9); await say('nishina', '……旗ってのはね、振ってる本人より、見てる側のほうが、よく覚えてるもんだよ。');
   await saku('見てる側。……この街で、旗を見てるのは、誰だ。');
   await goPlaza9(); }
 
@@ -5631,7 +5631,7 @@ async function goPlaza9() { G.mode = 'cine'; S.flags.c9st = 'plaza'; setClock('1
   cine(4.0, 4.6, 7.4, 0, 2.2, -3.0); await card('春日井駅　北口広場', '午前十時二十分', 1600);
   await narr('駅前の広場には、毎朝、二十万人が流れていく。');
   await narr('その流れの真ん中で、二十人ほどの若者が、手書きの看板を掲げていた。');
-  cine(1.8, 2.0, 1.4, 0, 1.8, -2.4); a.ri.lookAt = null; await say('riku', '人間の尊厳を、取り戻せ！');
+  cine(-0.4, 2.4, 1.4, 0, 1.8, -2.4); a.ri.lookAt = null; await say('riku', '人間の尊厳を、取り戻せ！');
   await say('member', '取り戻せ！');
   await say('riku', '魔族による支配を、終わらせろ！　俺たちは、ペットじゃない！　家畜でもない！');
   await say('member', '終わらせろ！');
@@ -5641,7 +5641,7 @@ async function goPlaza9() { G.mode = 'cine'; S.flags.c9st = 'plaza'; setClock('1
   await saku('……怒られてもいない。', '相手にされてもいない。……愛でられている。');
   playOn(); setObj('同盟の人たちと話す（三人）'); saveGame(true); }
 async function evPlaza(k) { const a = AREAS.plaza6;
-  if (k === 'ri') { markI('p6ri'); a.ri.lookAt = 'P'; a.ri.st.point = false; cine(2.0, 2.0, 0.6, 0, 1.9, -2.4);
+  if (k === 'ri') { markI('p6ri'); a.ri.lookAt = 'P'; a.ri.st.point = false; cine(-0.5, 2.3, 0.9, 0, 1.9, -2.4);
     nameCard({ s: '人間　中部学院大学 法学部三年（二十一歳）', b: '尾形 陸', e: 'おがた りく', col: '#78C060', p: '人間主権回復同盟 代表。\n声が大きく、まっすぐで、少しだけ、無鉄砲。\n五年前、姉がエルフに「待たれ」たきり、会えていない。' });
     await say('riku', 'お、話、聞いてくれるんですか！　会社員の方？　……人間の？');
     await say('kuze', '久世です。……ビラを、読みました。「界域協定第九条を廃止せよ」。');
@@ -5743,13 +5743,13 @@ async function goAlley9() { G.mode = 'cine'; S.flags.c9st = 'alley'; setClock('2
     await say('kuze', '……そこまでだ。彼は、帰るところだ。');
     await say('butler', 'お嬢さまのお招きを、遮らないでくださいまし。');
     await fight({ foe: bt, alien: true, need: 2, name: 'ヴェイン家の侍女', tempo: 1.1, win: 1.1, open: 0.9, dmg: 1, music: 'fight', after: 'noir', tip: '吸血鬼の侍女だ。倒せはしない。……怯ませて、陸に逃げる隙を作れ。' });
-    bt.st.reel = false; await narr('侍女が、半歩、退いた。……その半歩のあいだに、セレネが、こちらを見た。');
+    bt.st.reel = false; bt.pos.set(0.4, 0, -1.8); await narr('侍女が、半歩、退いた。……その半歩のあいだに、セレネが、こちらを見た。');
     se.lookAt = 'P'; cine(-0.6, 1.8, 2.6, 1.4, 1.6, -0.4); await say('selene', '人間の殿方。……すてき。あなたも、抵抗するのね。');
     await say('selene', 'でも、だめ。今夜は、この子の夜なの。');
     sfx('ura'); document.body.classList.add('flash'); await narr('赤い瞳が、光った。……体が、指一本、動かなくなった。'); document.body.classList.remove('flash');
     await saku('……魅了だ。体の、主導権を、取られた。', '見ていることしか、できない。'); }
   else await saku('……賢明だ。', '今のお前に、吸血鬼の公爵家は、止められない。……見届けろ。それしかできないなら、せめて、全部。');
-  se.lookAt = ri.pos; se.pos.set(-0.2, 0, -0.2); ri.pos.set(-1.0, 0, -0.2); ri.lookAt = se.pos; cine(-2.6, 1.6, 1.6, -0.6, 1.4, -0.2);
+  se.lookAt = ri.pos; se.pos.set(-0.2, 0, -0.2); ri.pos.set(-1.0, 0, -0.2); if (c === 0) P.pos.set(-2.6, 0, -1.6); ri.lookAt = se.pos; cine(-2.6, 1.6, 1.6, -0.6, 1.4, -0.2);
   await say('riku', 'く……来るなよ……！');
   await say('selene', 'ふふ。震えてる。……かわいい。');
   await say('selene', 'ねえ、陸。明日からは、もう旗を振らなくていいのよ。……わたくしだけを、見ていればいいの。');
@@ -5845,9 +5845,9 @@ async function evOverpass9() { const a = AREAS.overpass6, ke = a.ke, tg = a.tg; 
   await say('kento', 'は、離せ……！　離せって！');
   await saku('……ケントの抵抗が、あいつを喜ばせている。', '久世。人間の拳じゃ、あれは倒せない。', '怯ませろ。ケントを、引き剥がす隙だけ、作れ。');
   P.pos.set(-1.6, 0, 2.6); await fight({ foe: tg, alien: true, need: 3, name: '触手の娘（不法越境者）', tempo: 1.15, win: 1.0, open: 0.9, dmg: 1, music: 'fight', after: 'stealth', tip: '触手の振りかぶりを見ろ。かわして、金の「打」で、付け根を叩け。' });
-  ke.st.reel = false; ke.pos.set(-1.0, 0, 1.4); await narr('触手が、一瞬、ほどけた。ケントが、尻もちをついて、転がり出た。');
+  ke.st.reel = false; ke.pos.set(-1.0, 0, 1.4); cine(2.0, 2.4, 4.4, -2.4, 1.2, 1.0); await narr('触手が、一瞬、ほどけた。ケントが、尻もちをついて、転がり出た。');
   await say('kuze', '走れ！');
-  sfx('zapline'); a.gateOn = true; cine(2.0, 2.6, 4.6, -5.0, 1.6, 0.6); await narr('高架の柱の向こうで、空気が、紫色に、裂けた。……門だ。登録されていない、小さな門。');
+  sfx('zapline'); a.gateOn = true; cine(-1.0, 2.4, -0.4, -5.4, 1.6, 0.8); await narr('高架の柱の向こうで、空気が、紫色に、裂けた。……門だ。登録されていない、小さな門。');
   await say('tentacle', 'まって。……まだ、おこってるとこ、ぜんぶ、みてない。');
   sfx('chain'); G.shake = 0.3; await narr('今度は、七本、全部だった。');
   await say('kento', 'う、うわああああっ！　おっさん！　おっさ——');
@@ -5898,7 +5898,8 @@ async function goBrief9b() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Ma
   await say('saegusa', 'しかも、台帳の「抵抗意識　五」の人から、順番に。');
   cine(-1.4, 2.0, 3.2, -3.2, 1.6, 1.6); await say('kuroiwa', '……人間の旗を、文鳥が立てている。');
   await say('kuroiwa', '怒った人間ほど、深く愛される。だから、怒らせて、並べて、見せる。……誘蛾灯だな。');
-  await say('nishina', '旗ってのはね、振ってる本人より、見てる側のほうが、よく覚えてる。……言ったろ。');
+  cine(-3.6, 2.0, 0.6, -6.2, 1.5, 2.9); await say('nishina', '旗ってのはね、振ってる本人より、見てる側のほうが、よく覚えてる。……言ったろ。');
+  cine(-1.4, 2.0, 3.2, -3.2, 1.6, 1.6);
   await say('kuroiwa', '同盟は、潰せん。潰せば、人間が声を上げる場が、ひとつ消える。それは、異種族の思う壺だ。');
   await say('kuroiwa', '……かといって、放っておけば、旗の下から、一人ずつ、いなくなる。');
   const c = await choose([{ t: '「同盟に、真実を伝えるべきです」', k: '伝える', warm: 1 }, { t: '「逆に、こちらが旗を使う」', k: '使う', cold: 1 }]);
