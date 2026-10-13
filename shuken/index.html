@@ -6594,7 +6594,7 @@ async function chapter11() { G.mode = 'cine'; S.chapter = 11; $('report').hidden
   await goBrief11(); }
 
 // ---- 留文堂：三か所、同時に ----
-async function goBrief11() { G.mode = 'cine'; playAsMurase(false); await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P'; setClock('23:58');
+async function goBrief11() { G.mode = 'cine'; setObj(''); playAsMurase(false); await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P'; setClock('23:58');
   const mu = oCast11(a, 'murase', LK.murase, 0.4, 2.9, -Math.PI * 0.6), iu = oCast11(a, 'inui', LK.inui, 2.6, 2.6, -Math.PI / 2); mu.lookAt = 'P';
   cine(-1.4, 2.0, 3.2, -3.2, 1.6, 1.6); await card('留文堂　地下', '同じ夜　午後十一時五十八分', 1400);
   await say('kuroiwa', '異種族が、動く。……午前二時。鬼嶽の鬼と紅鱗の私兵が、文食品の春日井第三工場を襲う。');
@@ -6621,7 +6621,7 @@ async function goBrief11() { G.mode = 'cine'; playAsMurase(false); await goArea(
 
 // ---- 鬼嶽建設：出陣の前 ----
 async function goYard11() { G.mode = 'cine'; setClock('00:40'); await goArea('onitake', [10.4, 5.2], -Math.PI * 0.75); const a = AREAS.onitake; bgm('oni'); a.dusk = true; a.gk.hidden = false; a.gk.pos.set(0.4, 0, -3.0); a.gk.st = {};
-  P.pos.set(1.6, 0, -0.4); faceEach(a.gk); const za = oCast11(a, 'zaina', FAMLK.zaina, 11.0, -0.6, -Math.PI / 2); za.hidden = true;
+  P.pos.set(1.6, 0, -0.4); faceEach(a.gk); const za = oCast11(a, 'zaina', FAMLK.zaina, 11.0, -0.6, -Math.PI / 2); za.hidden = true; a.ow[1].pos.set(4.4, 0, 1.0);
   cine(6.0, 4.0, 6.0, 0, 1.2, -1.6); await card('鬼嶽建設　資材ヤード', '午前零時四十分', 1600);
   await narr('篝火のまわりで、鬼たちが、黙って、拳に布を巻いていた。');
   otsCam(a.gk, 2.4, 1.4);
@@ -6657,7 +6657,7 @@ async function goShip11() { G.mode = 'cine'; S.flags.c11st = 'ship'; setClock('0
   await narr('高度一二〇〇メートル。整備用のハッチは、記録の上では、閉まっていた。');
   await mu11('……四分。行きます。');
   playOn(); setObj('原本の検体ケースを取り出す（観測員の灯りに入らない）'); saveGame(true); }
-async function evShip11() { const a = AREAS.ship6; markI('m6vault'); a.det = 0; for (const w of a.watch) { w._p = w._p || w.path; w.path = null; } sfx('chime'); cine(2.6, 2.2, -0.4, 0, 1.2, -4.2);
+async function evShip11() { const a = AREAS.ship6; markI('m6vault'); a.det = 0; for (const w of a.watch) { w._p = w._p || w.path; w.path = null; } sfx('chime'); cine(-1.6, 2.4, -2.6, 0.6, 1.2, -3.6);
   await narr('棚の扉が、音もなく開いた。冷たい光の中に、小さな硝子の管が、整然と並んでいた。');
   a.ch.hidden = false; a.ch.pos.set(1.8, 0, -3.0); a.ch.lookAt = 'P'; await sleep(G.skip ? 0 : 500);
   await say('chanyu', '……留保の、遊撃。');
@@ -6685,13 +6685,13 @@ async function goGate11() { G.mode = 'cine'; setClock('02:00'); await goArea('ov
   if (O.truck11) O.truck11.visible = O.trucksign.visible = false; for (const k of ['o11_hsis', 'o11_dra11', 'o11_cat11']) if (O[k]) O[k].hidden = true;
   for (const n of [O.tg, O.ke, O.tk]) n.hidden = true; O.gateOn = false;
   if (!O.forest11) { O.forest11 = plane(2.5, 2.5, forestTex, -7.72, 1.6, 0.6, O.g, { ry: Math.PI / 2, transparent: true, opacity: 0, fog: false }); }
-  const iu = O.iu; iu.hidden = false; iu.pos.set(-4.6, 0, 2.2); iu.facing = -Math.PI / 2; const td = oCast11(O, 'todo', LK.todo, -3.4, 3.4, -Math.PI * 0.6);
+  const iu = O.iu; iu.hidden = false; iu.pos.set(-4.6, 0, 2.2); iu.facing = -Math.PI / 2; const td = oCast11(O, 'todo', LK.todo, -3.0, 1.0, -Math.PI * 0.6);
   cine(-1.0, 2.6, 5.2, -6.0, 1.4, 1.0); await card('庄内川　環状道路の高架下', '午前二時　――乾', 1800);
   await narr('公安の押収品倉庫から、乾は、一本の「門鍵」を持ち出していた。不法越境者から取り上げた、骨のような、白い鍵。');
   await say('todo', '（読み上げ音声）……乾。規則違反。三件。');
   await say('inui', '四件だ。……君を連れてきた分も、入れておけ。');
   sfx('zapline'); O.gateOn = true; for (let i = 0; i <= 20; i++) { O.forest11.material.opacity = i / 20; await sleep(G.skip ? 0 : 30); }
-  cine(-4.0, 1.8, 2.6, -7.6, 1.6, 0.6); await narr('輪の向こうに、紫の森が見えた。');
+  cine(-2.2, 2.0, 4.4, -6.0, 1.5, 1.2); await narr('輪の向こうに、紫の森が見えた。');
   await narr('森の奥。木の根もとに、男が一人、座っていた。手の中で、スマートフォンが光っている。');
   await say('inui', '……鷺沼健人。公安だ。迎えに来た。');
   await say('kento', '……え？　公安？　……あ、高架下で、おっさんと一緒にいた……。');
@@ -6748,12 +6748,12 @@ async function evRaid11(k) { const a = AREAS.raid6;
   if (k === 'vault') { await finale11(); return; }
   if (S.seen.has('i:x1cells') && S.seen.has('i:x2core')) setObj('原版保管庫へ（北の壁ぎわ）'); playOn(); saveGame(true); }
 async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.za, sb = a.sb; markI('x3vault'); G.mode = 'cine'; a.calm = true; for (const [o, b] of a.brawl) { o.st = {}; b.st = {}; }
-  gk.hidden = false; gk.pos.set(-5.8, 0, -4.3); gk.st = {}; P.pos.set(-3.2, 0, -3.6); faceEach(gk); cine(-1.6, 2.4, -1.4, -5.2, 1.2, -4.6);
+  gk.hidden = false; gk.pos.set(-5.8, 0, -4.3); gk.st = {}; P.pos.set(-3.2, 0, -3.6); faceEach(gk); cine(-2.2, 3.0, -2.5, -5.2, 1.2, -4.4);
   await narr('原版保管庫の前に、ゴウカが、膝をついていた。腕の中に、霜のついた、小さな箱。');
   await say('goka', '……冷たいね。七年も、こんなところに。');
   await say('goka', 'おっかさん。……帰るよ。うちに。');
   sfx('blast'); G.shake = 0.5; gt.hidden = false; gt.pos.set(4.0, 0, -2.8); walkTo(gt, 0.4, -3.4, 3.0); bgm('fight');
-  cine(0.6, 2.8, 1.6, -1.6, 1.4, -3.6); await say('gantetsu', 'テメェらァァァ！！　オレの工場で、何してやがるゥゥ！！');
+  cine(-2.6, 4.2, -2.3, -1.6, 1.0, -4.0); await say('gantetsu', 'テメェらァァァ！！　オレの工場で、何してやがるゥゥ！！');
   await say('gantetsu', 'ガチ旨。の鬼が、ガチ旨。の原版、抱いてやがる！　ガハハハ！　いい絵だァ！');
   gk.st.windup = true; await say('goka', '…………今、なんて言った。');
   sfx('hit'); G.shake = 0.6; gk.st.windup = false; gk.st.punch = true; gk.pos.set(-1.6, 0, -3.6); await narr('ゴウカの拳が、ガ・ンテツの胸を打った。白い作業着が、裂けた。');
@@ -6764,7 +6764,7 @@ async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.
   gt.st.reel = false; gt.lookAt = 'P'; await say('gantetsu', 'しつけえ人間だなァ……！　気に入ったぜ。テメェから、肉にしてやる！！');
   gt.st.windup = true; await sleep(G.skip ? 0 : 500);
   sfx('blast'); fxBeam(new THREE.Vector3(-2.4, 9, -2.9), new THREE.Vector3(-2.4, 0, -2.9), 0xFFFFFF, 0.8, 0.6); boom(-2.4, 1.0, -2.9, 0xFFF0D0, true); G.shake = 0.8;
-  za.hidden = false; za.pos.set(-2.4, 0, -2.9); za.lookAt = gt.pos; gt.st.windup = false; cine(-0.2, 2.2, 0.6, -1.4, 1.5, -3.0);
+  za.hidden = false; za.pos.set(-2.4, 0, -2.9); za.lookAt = gt.pos; gt.st.windup = false; cine(0.6, 3.6, -2.4, -2.0, 1.2, -3.4);
   await narr('天井が、白く、溶け落ちた。');
   await say('gantetsu', '外神竜……！？');
   await say('zaina', '……返して。');
@@ -6779,7 +6779,7 @@ async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.
   await say('shirobun', 'B.U.N society No.4、シ・ロブンです。……外神竜のお嬢さん。今夜は、引きましょう。この子は、連れて帰ります。お説教は、コシがしますので。');
   await say('shirobun', 'でも、覚えておいてくださいね。……竜が、文鳥を、焼いた。それは、記録に残ります。チャが、嫌な顔をしながら。');
   sfx('wind'); gt.hidden = true; sb.hidden = true; await narr('炎の向こうに、二羽の影が、消えた。');
-  gk.st = {}; gk.pos.set(-3.6, 0, -3.4); za.lookAt = gk.pos; gk.lookAt = za.pos; cine(-1.0, 2.0, -0.6, -3.0, 1.3, -3.2);
+  gk.st = {}; gk.pos.set(-3.6, 0, -3.4); za.lookAt = gk.pos; gk.lookAt = za.pos; cine(-1.0, 3.0, -2.4, -3.0, 1.2, -3.4);
   await narr('ザイナが、手を差し出した。ゴウカは、しばらく、それを見て……掴んだ。');
   await say('goka', '……あんた、殴らないんじゃ、なかったのかい。');
   await say('zaina', '……殴ってない。……溶かした。');
@@ -6789,13 +6789,14 @@ async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.
   S.flags.c11st = 'done'; await goReturn11(); }
 
 // ---- 夜明け：返す ----
-async function goReturn11() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; bgm('dawn11'); setClock('05:10'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P';
+async function goReturn11() { G.mode = 'cine'; setObj(''); await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; bgm('dawn11'); setClock('05:10'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P';
   const mu = oCast11(a, 'murase', LK.murase, 0.4, 2.9, -Math.PI * 0.6), sh = oCast11(a, 'shou', LK.shouOni, 2.4, 2.6, -Math.PI * 0.8);
   if (!a.tk11) a.tk11 = npc(a, 'tokiwa', takaBird(), 4.4, 1.6, -Math.PI * 0.7); a.tk11.hidden = false; a.tk11.lookAt = sh.pos;
   if (!a.dev11) { a.dev11 = glowSprite(0xE8323C, 1.6, 0); a.dev11.position.set(0, 1.3, 0.2); a.g.add(a.dev11); }
   cine(-1.4, 2.4, 4.6, 0.8, 1.2, 1.6); await card('留文堂　地下', '午前五時十分　――返す', 1800);
   await mu11('……村瀬、戻りました。ケースは、ここに。');
-  await say('saegusa', '原本と、装置。……揃いました。');
+  cine(4.6, 2.0, -0.6, 6.0, 1.2, -3.4); await say('saegusa', '原本と、装置。……揃いました。');
+  cine(5.6, 2.2, 3.8, 4.4, 1.5, 1.6);
   await say('tokiwa', '始めましょう。……私は、触りません。見るだけです。');
   await narr('一人目は、戸川翔だった。');
   for (let i = 0; i <= 20; i++) { a.dev11.material.opacity = i / 20 * 0.9; await sleep(G.skip ? 0 : 30); }
@@ -6815,7 +6816,7 @@ async function goReturn11() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], M
   a.dev11.material.opacity = 0; a.tk11.hidden = true; mu.hidden = true; sh.hidden = true; shb.hidden = true;
   // 鬼嶽：夜明け
   await goArea('onitake', [10.4, 5.2], -Math.PI * 0.75); const Y = AREAS.onitake; Y.dusk = false; setClock('06:02'); Y.gk.hidden = false; Y.gk.pos.set(0.4, 0, -3.0); Y.gk.st = {};
-  const s2 = oCast11(Y, 'shou', LK.shou, 1.0, -0.8, Math.PI), z2 = oCast11(Y, 'zaina', FAMLK.zaina, -1.4, -2.4, 0.6); P.pos.set(3.2, 0, 0.4); s2.lookAt = Y.gk.pos; Y.gk.lookAt = s2.pos;
+  const s2 = oCast11(Y, 'shou', LK.shou, 1.0, -0.8, Math.PI), z2 = oCast11(Y, 'zaina', FAMLK.zaina, -1.4, -2.4, 0.6); P.pos.set(5.0, 0, -0.8); s2.lookAt = Y.gk.pos; Y.gk.lookAt = s2.pos;
   cine(4.6, 2.6, 2.6, 0.4, 1.3, -2.0); await card('鬼嶽建設　資材ヤード', '午前六時二分', 1600);
   await say('shou', 'ゴウカ、さん……ですよね。');
   await say('goka', 'あんたが、おっかさんを、食わされた子かい。');
@@ -6848,12 +6849,12 @@ async function goRiku11() { G.mode = 'cine'; await goArea('mansion6'); const a =
   await saku('返したのは、旗だった。……旗を持ったまま、あいつは、そこに残った。');
   a.ri.st.sit = true; a.ri.y = 0.6; a.ri.pos.set(0.5, 0, -2.0);
   await goNatsuki11(); }
-async function goNatsuki11() { G.mode = 'cine'; await goArea('shrine6', [2.2, 1.6], -Math.PI * 0.8); const a = AREAS.shrine6; bgm('home'); setClock('16:30');
+async function goNatsuki11() { G.mode = 'cine'; await goArea('shrine6', [2.8, -0.4], -Math.PI * 0.6); const a = AREAS.shrine6; bgm('home'); setClock('16:30');
   cine(2.4, 1.8, 2.2, -0.2, 1.1, -0.6); await card('鳥居松　小さな稲荷の社', '翌日　午後四時三十分', 1600);
   await narr('ナツキは、篝の膝の上で、小さな瓶を、手のひらに転がしていた。');
   await say('natsuki', 'あ……。お母さんの病院の、廊下……。夜の、コンビニ……。');
   await say('natsuki', 'あたし……五つも、仕事してたんだ。');
-  a.na.st.sit = false; a.na.y = 0; a.na.pos.set(0.6, 0, 0.6); a.na.lookAt = a.kg.pos;
+  a.na.st.sit = false; a.na.y = 0; a.na.pos.set(1.0, 0, 0.1); a.na.lookAt = a.kg.pos;
   await say('natsuki', '篝さま。あたし、働く。……一個だけ。');
   await say('kagari', '……ほう。');
   await say('natsuki', 'お母さんの手術代、返す。何十年かかっても。……施しじゃなくて、借金にして。');
