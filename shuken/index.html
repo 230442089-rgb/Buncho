@@ -248,6 +248,14 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
 
 /* 戦闘 */
 #fight { position: fixed; inset: 0; z-index: 12; pointer-events: none; }
+#ab { position: fixed; inset: 0; z-index: 3; pointer-events: none; } #ab[hidden] { display: none; }
+#abHud { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px); transform: translateX(-50%); width: min(80vw, 460px); display: grid; gap: 5px; }
+#abTip { font-size: 12px; color: #E8E2D2; text-shadow: 0 1px 3px #000; text-align: center; }
+#abFlash { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(200,20,30,.6)); opacity: 0; transition: opacity .25s; } #abFlash.on { opacity: 1; transition: none; }
+#abPop { position: absolute; left: 50%; top: 34%; transform: translate(-50%, 0); font-size: 30px; font-weight: 900; text-shadow: 0 2px 6px #000; opacity: 0; pointer-events: none; white-space: nowrap; }
+#abPop.on { animation: abPop .9s ease-out; } @keyframes abPop { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.8); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -16px); } }
+#abDash { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 122px); bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); width: 70px; height: 70px; border-radius: 50%; border: 2px solid rgba(255,255,255,.8); background: rgba(40,80,150,.88); color: #fff; font-size: 22px; font-weight: 900; pointer-events: auto; display: grid; place-items: center; line-height: 1; touch-action: manipulation; }
+#abDash small { font-size: 10px; opacity: .8; } @media (max-width: 560px) { #abDash { right: calc(env(safe-area-inset-right, 0px) + 108px); width: 62px; height: 62px; } }
 #fight[hidden] { display: none; }
 #fHud { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 12px); transform: translateX(-50%); width: min(92vw, 520px); display: grid; gap: 6px; }
 .fRow { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: #E9EDF4; text-shadow: 0 1px 2px #000; }
@@ -289,7 +297,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
 <button type="button" id="act" hidden>調べる</button>
 <div id="hint" hidden>左側をドラッグで歩く／右の丸ボタンで調べる・話す（WASD・矢印＋Space／E、手帳はN）</div>
 <div id="choices" hidden></div>
-<div id="fight" hidden><div id="fFlash"></div><div id="fHud"><div class="fRow"><b id="fFoeN">相手</b><div class="fBar foe" id="fFoeB"><i id="fFoe"></i></div></div><div class="fRow"><b id="fMeN">久世</b><div class="fBar"><i id="fMe"></i></div></div><div id="fTip"></div></div><div id="fCue" hidden><div id="fRing"></div><div id="fArrow"></div><div id="fCueT"></div></div><div id="fPad"><button type="button" data-k="L" aria-label="左へかわす">←<small>左へ</small></button><button type="button" data-k="D" aria-label="伏せる">↓<small>伏せる</small></button><button type="button" data-k="R" aria-label="右へかわす">→<small>右へ</small></button><button type="button" data-k="H" class="hit" aria-label="打つ">打つ<small>Space</small></button></div></div>
+<div id="ab" hidden><div id="abFlash"></div><div id="abHud"><div class="fRow" id="abFoeRow"><b id="abFoeN">相手</b><div class="fBar alien"><i id="abFoe"></i></div></div><div class="fRow"><b id="abMeN">久世</b><div class="fBar"><i id="abMe"></i></div></div><div id="abTip"></div></div><div id="abPop"></div><button type="button" id="abDash">避<small>K</small></button></div><div id="fight" hidden><div id="fFlash"></div><div id="fHud"><div class="fRow"><b id="fFoeN">相手</b><div class="fBar foe" id="fFoeB"><i id="fFoe"></i></div></div><div class="fRow"><b id="fMeN">久世</b><div class="fBar"><i id="fMe"></i></div></div><div id="fTip"></div></div><div id="fCue" hidden><div id="fRing"></div><div id="fArrow"></div><div id="fCueT"></div></div><div id="fPad"><button type="button" data-k="L" aria-label="左へかわす">←<small>左へ</small></button><button type="button" data-k="D" aria-label="伏せる">↓<small>伏せる</small></button><button type="button" data-k="R" aria-label="右へかわす">→<small>右へ</small></button><button type="button" data-k="H" class="hit" aria-label="打つ">打つ<small>Space</small></button></div></div>
 
 <div id="dlg" hidden><div id="dName"></div><div id="dText"></div><div id="dNext">▼</div></div>
 <div id="phone" hidden><div class="ph"><div class="bar2" id="phTime">08:14</div><div class="from" id="phFrom"></div><div class="msg" id="phMsg"></div><div class="tap">画面を押して閉じる</div></div></div>
@@ -6524,6 +6532,123 @@ makeArea('raid6', { place: '文食品　春日井第三工場　午前二時　�
   tick(a, dt) { a.fires.forEach((f, i) => { f.material.opacity = 0.55 + Math.sin(T.now * 9 + i * 1.7) * 0.2; }); a.smoke.forEach((s, i) => { s.position.y = 3.4 + Math.sin(T.now * 0.4 + i) * 0.4; });
     if (!a.calm) a.brawl.forEach(([o, b], i) => { const ph = Math.sin(T.now * 3.2 + i * 2); o.st.punch = ph > 0.55; o.st.guard = ph < -0.6; b.st.reel = ph > 0.7; b.st.punch = ph < -0.5; }); }
 });
+
+// ================= アクション戦闘（星墓戦闘の流儀） =================
+// 床の赤い予兆を見て、動いて避ける。金色に光った「隙」にだけ、打ち込める。人間は異種族を倒せない――体勢を崩すだけだ。
+const AB = { on: false, auto: false };
+const abMat = (col, op) => new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide });
+function abPop(t, col) { const e = $('abPop'); e.textContent = t; e.style.color = col || '#FFFFFF'; e.classList.remove('on'); void e.offsetWidth; e.classList.add('on'); }
+function abHud() { $('abFoe').style.width = Math.max(0, 100 * (1 - AB.stag / AB.need)) + '%'; $('abMe').style.width = Math.max(0, 100 * AB.hp / AB.maxHp) + '%'; }
+// 予兆：disc（円）／sector（扇）／ring（輪）／rect（帯）。dur 秒で発動。
+function abTele(o) { const g = new THREE.Group(); g.position.set(o.x, 0.04 + (AB.teles.length % 7) * 0.003, o.z); A.g.add(g); let gi, go;
+  if (o.kind === 'disc') { gi = new THREE.CircleGeometry(o.r, 40); go = new THREE.RingGeometry(o.r - 0.07, o.r, 40); }
+  if (o.kind === 'sector') { gi = new THREE.CircleGeometry(o.r, 32, Math.PI / 2 - o.arc / 2, o.arc); go = new THREE.RingGeometry(o.r - 0.07, o.r, 32, 1, Math.PI / 2 - o.arc / 2, o.arc); }
+  if (o.kind === 'ring') { gi = new THREE.RingGeometry(o.r, o.r2, 56); go = new THREE.RingGeometry(o.r2 - 0.07, o.r2, 56); }
+  if (o.kind === 'rect') { gi = new THREE.PlaneGeometry(o.w, o.len); gi.translate(0, o.len / 2, 0); go = new THREE.PlaneGeometry(o.w, 0.12); go.translate(0, o.len, 0); }
+  const mi = new THREE.Mesh(gi, abMat(o.col || 0xFF2A3A, 0.12)), mo = new THREE.Mesh(go, abMat(o.col || 0xFF2A3A, 0.85)); for (const m of [mi, mo]) { m.rotation.x = -Math.PI / 2; g.add(m); }
+  g.rotation.y = (o.face || 0) + Math.PI; const t = Object.assign({ g, mi, mo, t: 0, dmg: 1 }, o); t.dur *= AB.slow; AB.teles.push(t); return t; }
+function abInside(t, x, z, pad = 0.32) { const dx = x - t.x, dz = z - t.z, d = Math.hypot(dx, dz);
+  if (t.kind === 'disc') return d < t.r + pad;
+  if (t.kind === 'ring') return d > t.r - pad && d < t.r2 + pad;
+  if (t.kind === 'sector') { if (d > t.r + pad) return false; if (d < 0.6) return true; const a = Math.atan2(dx, dz) - t.face; const w = Math.atan2(Math.sin(a), Math.cos(a)); return Math.abs(w) < t.arc / 2 + 0.12; }
+  if (t.kind === 'rect') { const fx = Math.sin(t.face), fz = Math.cos(t.face), along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx); return along > -pad && along < t.len + pad && side < t.w / 2 + pad; } return false; }
+function abHurt(dmg) { if (AB.auto) return; AB.hp -= dmg; sfx('hurt'); G.shake = 0.35; const f = $('abFlash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 160); AB.inv = 0.7; abHud(); }
+function abDash() { if (!AB.on || G.mode !== 'play' || G.busy || AB.dashCd > 0) return; let mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x, mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y;
+  if (Math.hypot(mx, mz) < 0.2) { mx = Math.sin(P.facing); mz = Math.cos(P.facing); } const L = Math.hypot(mx, mz); AB.dash = { x: mx / L, z: mz / L, t: 0.2 }; AB.dodgeT = 0.34; AB.dashCd = 0.62; sfx('swing');
+  const gs = glowSprite(AB.cfg.dashCol || 0x9AC0FF, 1.2, 0.6); gs.position.set(P.pos.x, 1.0, P.pos.z); fxAdd(gs, 0.3, u => { gs.material.opacity = 0.6 * (1 - u); }); }
+function abAttack() { if (!AB.on || G.mode !== 'play' || G.busy || AB.atkCd > 0) return; AB.atkCd = 0.42; const b = AB.boss; P.st.punch = true; setTimeout(() => { P.st.punch = false; }, 200);
+  const d = Math.hypot(b.pos.x - P.pos.x, b.pos.z - P.pos.z); P.facing = Math.atan2(b.pos.x - P.pos.x, b.pos.z - P.pos.z);
+  if (d > 2.3) { sfx('swing'); return; }
+  if (AB.open > 0) { const k = AB.fine ? 2 : 1; AB.fine = false; AB.stag += k; AB.open = 0; sfx('hit'); G.shake = 0.3; boom(b.pos.x, 1.2, b.pos.z, 0xF2C230, false); abPop(k > 1 ? AB.cfg.fineHit || '会心！' : '隙！', '#F2C230'); b.st.reel = true; setTimeout(() => { b.st.reel = false; }, 380); abHud();
+    if (AB.cfg.onHit) AB.cfg.onHit(AB.stag); if (AB.stag >= AB.need) abPhaseEnd(); }
+  else { sfx('metal'); abPop('弾かれた', '#9AA6BC'); } }
+function abClear() { for (const t of AB.teles) A.g.remove(t.g); AB.teles = []; AB.tweens = []; if (AB.cfg && AB.cfg.clones) for (const c of AB.cfg.clones) c.hidden = true; }
+function abStart(cfg, phase = 0) { AB.cfg = cfg; AB.boss = cfg.boss; AB.phase = phase; AB.stag = 0; AB.need = cfg.needs[phase] || 3; AB.maxHp = cfg.hp || 6; AB.hp = AB.maxHp; AB.teles = AB.teles || []; abClear();
+  AB.open = 0; AB.inv = 0; AB.dodgeT = 0; AB.busyT = 0; AB.dash = null; AB.dashCd = 0; AB.atkCd = 0; AB.next = 1.2; AB.fine = false; AB.swarm = !!cfg.swarm; AB.slow = (cfg.slow || 1) * ((S.flags[cfg.failKey] || 0) >= 2 ? 1.25 : 1) * (phase ? 0.9 : 1); AB.moveI = 0;
+  $('abFoeN').textContent = cfg.name; $('abMeN').textContent = cfg.me; $('abTip').textContent = cfg.tips[phase] || ''; $('abFoeRow').style.display = AB.swarm ? 'none' : ''; $('ab').hidden = false; abHud();
+  if (!AB.glow) { AB.glow = glowSprite(0xF2C230, 2.4, 0); } AB.boss.model.root.add(AB.glow); AB.glow.position.set(0, 1.2, 0); AB.on = true; playOn(); }
+function abStop() { AB.on = false; abClear(); $('ab').hidden = true; if (AB.glow) AB.glow.material.opacity = 0; }
+function abPhaseEnd() { const k = AB.phase; AB.on = false; abClear(); AB.glow.material.opacity = 0; run(async () => { await AB.cfg.onPhase(k); }); }
+function abFail() { AB.on = false; abClear(); S.flags[AB.cfg.failKey] = (S.flags[AB.cfg.failKey] || 0) + 1; run(async () => { G.mode = 'cine'; await AB.cfg.onFail(AB.phase); await fade(true); AB.cfg.reset(); camSnap = true; await fade(false); abStart(AB.cfg, AB.phase); }); }
+function abTween(n, x, z, dur) { AB.tweens.push({ n, x0: n.pos.x, z0: n.pos.z, x, z, t: 0, dur }); }
+function abTick(a, dt) { if (!AB.on) return; if (G.mode !== 'play' || G.busy) return;
+  AB.inv = Math.max(0, AB.inv - dt); AB.dodgeT = Math.max(0, (AB.dodgeT || 0) - dt); AB.dashCd = Math.max(0, AB.dashCd - dt); AB.atkCd = Math.max(0, AB.atkCd - dt); AB.open = Math.max(0, AB.open - dt);
+  if (AB.dash) { const v = 13 * dt; P.pos.x += AB.dash.x * v; P.pos.z += AB.dash.z * v; P.facing = Math.atan2(AB.dash.x, AB.dash.z); AB.dash.t -= dt; if (AB.dash.t <= 0) AB.dash = null; }
+  const b = AB.boss; AB.glow.material.opacity = AB.open > 0 ? 0.55 + Math.sin(T.now * 18) * 0.25 : 0;
+  for (let i = AB.tweens.length - 1; i >= 0; i--) { const w = AB.tweens[i]; w.t += dt; const u = Math.min(1, w.t / w.dur); w.n.pos.x = w.x0 + (w.x - w.x0) * u; w.n.pos.z = w.z0 + (w.z - w.z0) * u; if (u >= 1) AB.tweens.splice(i, 1); }
+  // 予兆の進行と発動
+  for (let i = AB.teles.length - 1; i >= 0; i--) { const t = AB.teles[i]; t.t += dt; const u = Math.min(1, t.t / t.dur);
+    if (!t.fired) { t.mi.material.opacity = 0.1 + 0.36 * u; if (u >= 1) { t.fired = true; t.mi.material.color.setHex(0xFFFFFF); t.mi.material.opacity = 0.75; if (t.onFire) t.onFire(t); sfx(t.snd || 'slash');
+        if (abInside(t, P.pos.x, P.pos.z)) { if (AB.dodgeT > 0) { if (!AB.auto) { AB.fine = true; abPop(AB.cfg.fineWord || 'ファインプレー！', '#7AC8FF'); sfx('chime'); } } else if (AB.inv <= 0) abHurt(t.dmg); } } }
+    else { t.mi.material.opacity -= dt * 4; t.mo.material.opacity -= dt * 4; if (t.mi.material.opacity <= 0) { A.g.remove(t.g); AB.teles.splice(i, 1); } } }
+  if (AB.hp <= 0) { abFail(); return; }
+  // ボスの立ち回り
+  if (!AB.swarm && !AB.tweens.some(w => w.n === b)) { const dx = P.pos.x - b.pos.x, dz = P.pos.z - b.pos.z, d = Math.hypot(dx, dz) || 1; b.facing = turn(b.facing, Math.atan2(dx, dz), dt * 6);
+    if (AB.open <= 0 && AB.busyT <= 0) { const want = AB.cfg.keep || 3.4, v = (d - want) * Math.min(1, dt * 1.6); b.pos.x += dx / d * v; b.pos.z += dz / d * v; const B = a.bounds; b.pos.x = clamp(b.pos.x, B[0] + 1, B[1] - 1); b.pos.z = clamp(b.pos.z, B[2] + 1, B[3] - 1); } }
+  AB.busyT = Math.max(0, (AB.busyT || 0) - dt);
+  // 次の技
+  AB.next -= dt; if (AB.next <= 0) { const pool = AB.swarm ? AB.cfg.swarmMoves : AB.cfg.moves[AB.phase]; const mv = pool[AB.moveI % pool.length]; AB.moveI++; AB.next = mv(b) * AB.slow; }
+  // 自動（試験用）：隙が出たら寄って打つ
+  if (AB.auto && AB.open > 0 && !AB.swarm) { const ang = Math.atan2(P.pos.x - b.pos.x, P.pos.z - b.pos.z); P.pos.set(b.pos.x + Math.sin(ang) * 1.3, 0, b.pos.z + Math.cos(ang) * 1.3); abAttack(); } }
+addEventListener('keydown', e => { if (!AB.on || G.mode !== 'play' || G.busy) return;
+  if (['Space', 'KeyJ', 'KeyH', 'Enter', 'KeyE'].includes(e.code)) { if (nearItem()) return; e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) abAttack(); }
+  if (['KeyK', 'KeyX', 'KeyL'].includes(e.code)) { e.preventDefault(); if (!e.repeat) abDash(); } }, true);
+document.addEventListener('pointerdown', e => { if (!AB.on || G.mode !== 'play' || G.busy) return; if (e.target && e.target.id === 'act' && !nearItem()) { e.preventDefault(); e.stopPropagation(); abAttack(); } }, true);
+$('abDash').addEventListener('pointerdown', e => { e.preventDefault(); abDash(); });
+
+// ---- 技：セレネ（吸血鬼） ----
+const toP = (b) => Math.atan2(P.pos.x - b.pos.x, P.pos.z - b.pos.z);
+const SEL = {
+  claw(b) { const f = toP(b); b.facing = f; abTele({ kind: 'sector', x: b.pos.x, z: b.pos.z, face: f, r: 4.4, arc: 1.9, dur: 0.85, onFire: () => { b.st.punch = true; setTimeout(() => { b.st.punch = false; }, 260); } }); AB.busyT = 1.0; return 1.6; },
+  dash(b) { const f = toP(b), L = 9, B = A.bounds; const ex = clamp(b.pos.x + Math.sin(f) * L, B[0] + 1, B[1] - 1), ez = clamp(b.pos.z + Math.cos(f) * L, B[2] + 1, B[3] - 1);
+    abTele({ kind: 'rect', x: b.pos.x, z: b.pos.z, face: f, len: Math.hypot(ex - b.pos.x, ez - b.pos.z) + 0.6, w: 1.7, dur: 0.95, onFire: () => { abTween(b, ex, ez, 0.16); AB.open = 1.5; sfx('wind'); } }); AB.busyT = 2.6; return 2.5; },
+  rain(b) { const n = AB.phase ? 5 : 4; for (let i = 0; i < n; i++) { const x = P.pos.x + (i ? rand(-3, 3) : 0), z = P.pos.z + (i ? rand(-3, 3) : 0); setTimeout(() => { if (AB.on) abTele({ kind: 'disc', x, z, r: 1.3, dur: 1.05, col: 0xC0102A, snd: 'hit' }); }, i * 140); } return 1.9; },
+  waltz(b) { abTele({ kind: 'ring', x: b.pos.x, z: b.pos.z, r: 2.1, r2: 7.0, dur: 1.25, onFire: () => { AB.open = 1.7; b.st.armsUp = true; setTimeout(() => { b.st.armsUp = false; }, 500); } }); AB.busyT = 3.0; return 3.0; },
+  bats(b) { for (let i = 0; i < 3; i++) setTimeout(() => { if (AB.on) abTele({ kind: 'disc', x: P.pos.x, z: P.pos.z, r: 1.25, dur: 0.78, col: 0x8A2AC0, snd: 'wind' }); }, i * 430); return 2.1; } };
+// ---- 技：篝（妖狐） ----
+const KAG = {
+  line(b) { const f = toP(b) + Math.PI / 2, cx = P.pos.x, cz = P.pos.z; for (let i = -2; i <= 2; i++) abTele({ kind: 'disc', x: cx + Math.sin(f) * i * 2.0, z: cz + Math.cos(f) * i * 2.0, r: 1.1, dur: 1.0, col: 0xFF7A2A, snd: 'blast' }); return 1.7; },
+  tails(b) { abTele({ kind: 'disc', x: b.pos.x, z: b.pos.z, r: 3.5, dur: 0.95, col: 0xFF5A2A, onFire: () => { AB.open = 1.5; b.st.armsUp = true; setTimeout(() => { b.st.armsUp = false; }, 400); } }); AB.busyT = 2.6; return 2.6; },
+  rush(b) { const f = toP(b), L = 10, B = A.bounds; const ex = clamp(b.pos.x + Math.sin(f) * L, B[0] + 1, B[1] - 1), ez = clamp(b.pos.z + Math.cos(f) * L, B[2] + 1, B[3] - 1);
+    abTele({ kind: 'rect', x: b.pos.x, z: b.pos.z, face: f, len: Math.hypot(ex - b.pos.x, ez - b.pos.z) + 0.6, w: 1.9, dur: 0.9, col: 0xFF7A2A, onFire: () => { abTween(b, ex, ez, 0.2); sfx('wind'); } }); AB.busyT = 1.4; return 1.6; },
+  rain(b) { for (let i = 0; i < 6; i++) { const x = P.pos.x + rand(-4, 4), z = P.pos.z + rand(-3.5, 3.5); setTimeout(() => { if (AB.on) abTele({ kind: 'disc', x, z, r: 1.0, dur: 1.15, col: 0xFF9A3A, snd: 'blast' }); }, i * 110); } abTele({ kind: 'disc', x: P.pos.x, z: P.pos.z, r: 1.0, dur: 1.2, col: 0xFF9A3A, snd: 'blast' }); return 2.0; },
+  illusion(b) { const cl = AB.cfg.clones; const pts = [[-3.2, 0.6], [3.2, 0.6]]; cl.forEach((c, i) => { c.hidden = false; c.pos.set(clamp(P.pos.x + pts[i][0], A.bounds[0] + 1, A.bounds[1] - 1), 0, clamp(P.pos.z - 2.6 + pts[i][1], A.bounds[2] + 1, A.bounds[3] - 1)); c.facing = Math.atan2(P.pos.x - c.pos.x, P.pos.z - c.pos.z); });
+    for (const s of [b, ...cl]) { const f = Math.atan2(P.pos.x - s.pos.x, P.pos.z - s.pos.z); abTele({ kind: 'rect', x: s.pos.x, z: s.pos.z, face: f, len: 9, w: 1.4, dur: 1.05, col: 0xFF7A2A, onFire: s === b ? () => { AB.open = 1.9; setTimeout(() => { for (const c of cl) c.hidden = true; }, 300); } : null }); }
+    AB.busyT = 3.0; return 3.1; },
+  wisps(b) { for (let i = 0; i < 3; i++) setTimeout(() => { if (AB.on) abTele({ kind: 'disc', x: P.pos.x, z: P.pos.z, r: 1.2, dur: 0.8, col: 0xFF9A3A, snd: 'blast' }); }, i * 450); return 2.0; } };
+
+// ---- ヴェイン家の別邸　大広間（村瀬 対 セレネ） ----
+makeArea('ball6', { place: '名古屋　ヴェイン家の別邸　月の大広間　午後九時', bounds: [-10, 10, -7, 6], spawn: [0, 4.6], spawnFace: Math.PI, cam: [0, 13.5, 10.5], music: 'raid11', bg: 0x0A0408, fog: [26, 70], light: 0.55, sun: 0.3,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(21, 14), new THREE.MeshPhongMaterial({ map: canvasTex(512, 340, (c, w, h) => { for (let y = 0; y < 10; y++) for (let x = 0; x < 15; x++) { c.fillStyle = (x + y) % 2 ? '#2A0A12' : '#140608'; c.fillRect(x * w / 15, y * h / 10, w / 15 + 1, h / 10 + 1); } }), shininess: 80, specular: 0x6A3A4A })); fl.rotation.x = -Math.PI / 2; fl.position.z = -0.5; g.add(fl);
+    block(21, 6, 0.3, 0x1A0A10, 0, 3, -7.4, g); block(0.3, 6, 14, 0x1A0A10, -10.4, 3, -0.5, g); block(0.3, 6, 14, 0x1A0A10, 10.4, 3, -0.5, g);
+    const moon = glowSprite(0xF4E8D8, 6, 0.6); moon.position.set(0, 5.0, -7.2); g.add(moon); plane(5, 3.6, canvasTex(256, 180, (c, w, h) => { c.fillStyle = '#0A1020'; c.fillRect(0, 0, w, h); c.fillStyle = '#F4ECD8'; c.beginPath(); c.arc(w / 2, h / 2, 50, 0, TAU); c.fill(); c.strokeStyle = '#2A1A20'; c.lineWidth = 8; c.strokeRect(4, 4, w - 8, h - 8); c.beginPath(); c.moveTo(w / 2, 0); c.lineTo(w / 2, h); c.moveTo(0, h / 2); c.lineTo(w, h / 2); c.stroke(); }), 0, 3.8, -7.22, g, { fog: false });
+    for (const [x, z] of [[-8, -5], [8, -5], [-8, 3.6], [8, 3.6]]) { part(cyl(0.45, 0.5, 6, 12), 0x3A1A22, x, 3, z, g); a.obs.push({ x, z, hx: 0.5, hz: 0.5, tall: true }); }
+    for (const x of [-4.5, 0, 4.5]) { const ch = glowSprite(0xF0B070, 2.4, 0.55); ch.position.set(x, 5.2, -1.2); g.add(ch); }
+    block(1.6, 0.5, 1.2, 0x5A1A2A, 0, 0.25, -6.2, g); block(1.6, 2.2, 0.3, 0x5A1A2A, 0, 1.1, -6.75, g); a.obs.push({ x: 0, z: -6.3, hx: 0.9, hz: 0.7 });
+    a.dome = new THREE.Mesh(new THREE.SphereGeometry(1.7, 24, 16, 0, TAU, 0, Math.PI / 2), abMat(0xC0102A, 0.22)); a.dome.position.set(0, 0, -6.1); g.add(a.dome);
+    a.ri = npc(a, 'riku', makeChar(Object.assign({}, LK.riku, { top: 0xF4F0F0, sleeve: 0xF4F0F0 })), 0, -6.1, 0); a.ri.y = 0.5; a.ri.st.sit = true;
+    a.se = npc(a, 'selene', makeChar(LK.selene), 0, -2.6, 0); a.yu = npc(a, 'yuria', makeChar(FAMLK.yuria), 7.0, 3.0, -Math.PI * 0.75); a.yu.hidden = true;
+    addItem(a, { id: 'v7give', x: 0, z: -4.6, r: 1.3, label: '陸に、陸の経験を返す（長押し）', hold: true, col: 0x7AC8FF, avail: () => S.flags.c11st === 'vamp' && !!S.flags.c11vFinal, on: () => evVampGive11() }); },
+  tick(a, dt) { abTick(a, dt); if (a.dome) a.dome.material.opacity = a.domeOff ? 0 : 0.18 + Math.sin(T.now * 2) * 0.06; },
+  restore(a) { playAsMurase(S.chapter === 11); }
+});
+// ---- 鳥居松稲荷　境内（久世 対 篝） ----
+makeArea('inari6', { place: '春日井　鳥居松稲荷　境内　午後五時四十分　――逢魔が時', bounds: [-11, 11, -6.6, 6], spawn: [0, 4.4], spawnFace: Math.PI, cam: [0, 13.5, 10.5], music: 'raid11', bg: 0xE09060, fog: [24, 70], light: 0.8, sun: 0.5,
+  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(24, 15), new THREE.MeshLambertMaterial({ color: 0xC8B48C })); gr.rotation.x = -Math.PI / 2; gr.position.z = -0.4; g.add(gr);
+    const path = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 13), new THREE.MeshLambertMaterial({ color: 0xA89878 })); path.rotation.x = -Math.PI / 2; path.position.set(0, 0.01, 0); g.add(path);
+    block(7, 3.0, 3.2, 0x8A5A3A, 0, 1.5, -8.4, g); part(G_('shrRoof2', () => new THREE.ConeGeometry(5.6, 1.8, 4)), 0x3A3A3A, 0, 3.8, -8.4, g, { ry: Math.PI / 4 }); block(6.6, 0.5, 1.2, 0x6A4A30, 0, 0.25, -6.4, g); a.obs.push({ x: 0, z: -6.5, hx: 3.3, hz: 0.6 });
+    for (const sx of [-1, 1]) for (let k = 0; k < 6; k++) { const z = -5 + k * 2.0, x = sx * 9.6; block(0.22, 2.6, 0.22, 0xC8302A, x - 0.7, 1.3, z, g); block(0.22, 2.6, 0.22, 0xC8302A, x + 0.7, 1.3, z, g); block(1.9, 0.18, 0.3, 0xC8302A, x, 2.6, z, g); }
+    for (const x of [-1.7, 1.7]) { block(0.3, 3.4, 0.3, 0xC8302A, x, 1.7, 8.2, g); } block(4.2, 0.32, 0.4, 0xC8302A, 0, 3.4, 8.2, g);
+    for (const x of [-3.6, 3.6]) { part(sph(0.45, 10, 8), 0xE8E0D0, x, 1.0, -5.4, g); block(0.7, 0.7, 0.7, 0x9A9A90, x, 0.35, -5.4, g); a.obs.push({ x, z: -5.4, hx: 0.4, hz: 0.4 }); }
+    a.wall = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.08, 6, 30), abMat(0xFF7A2A, 0.6)); a.wall.rotation.x = Math.PI / 2; a.wall.position.set(0, 0.2, -5.8); g.add(a.wall);
+    a.na = npc(a, 'natsuki', makeChar(LK.natsuki), 0, -6.0, 0); a.na.y = 0.5; a.na.st.sit = true;
+    a.kg = npc(a, 'kagari', makeChar(LK.kagari), 0, -2.6, 0); a.te = npc(a, 'terues', makeChar(FAMLK.terues), -7.0, 3.2, Math.PI * 0.75); a.te.hidden = true;
+    a.clones = [npc(a, 'kgc1', makeChar(LK.kagari), -3, 0, 0), npc(a, 'kgc2', makeChar(LK.kagari), 3, 0, 0)]; for (const c of a.clones) c.hidden = true;
+    a.fx = []; for (let i = 0; i < 10; i++) { const f = glowSprite(0xFF8A3A, 0.7, 0.7); f.position.set(rand(-9, 9), 1.6, rand(-5, 4)); g.add(f); a.fx.push(f); }
+    addItem(a, { id: 'f7give', x: 0, z: -4.8, r: 1.3, label: 'ナツキに、ナツキの経験を返す（長押し）', hold: true, col: 0x7AC8FF, avail: () => S.flags.c11st === 'fox' && !!S.flags.c11fFinal, on: () => evFoxGive11() }); },
+  tick(a, dt) { abTick(a, dt); a.fx.forEach((f, i) => { f.position.y = 1.6 + Math.sin(T.now * 2 + i) * 0.4; }); if (a.wall) a.wall.material.opacity = a.wallOff ? 0 : 0.5 + Math.sin(T.now * 4) * 0.2; },
+  restore(a) { playAsMurase(false); }
+});
 // ================= 第六章　下　奪還 =================
 const forestTex = canvasTex(512, 512, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, 300); gr.addColorStop(0, '#6A2A8A'); gr.addColorStop(1, '#14061E'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
   for (let i = 0; i < 26; i++) { const x = Math.random() * w; c.strokeStyle = ['#8A3AAA', '#A04ABA', '#5A1A7A'][i % 3]; c.lineWidth = 6 + Math.random() * 10; c.beginPath(); c.moveTo(x, h); c.bezierCurveTo(x + rand(-80, 80), h * 0.6, x + rand(-80, 80), h * 0.3, x + rand(-60, 60), rand(0, 60)); c.stroke(); }
@@ -6621,7 +6746,7 @@ async function goBrief11() { G.mode = 'cine'; setObj(''); playAsMurase(false); a
 
 // ---- 鬼嶽建設：出陣の前 ----
 async function goYard11() { G.mode = 'cine'; setClock('00:40'); await goArea('onitake', [10.4, 5.2], -Math.PI * 0.75); const a = AREAS.onitake; bgm('oni'); a.dusk = true; a.gk.hidden = false; a.gk.pos.set(0.4, 0, -3.0); a.gk.st = {};
-  P.pos.set(1.6, 0, -0.4); faceEach(a.gk); const za = oCast11(a, 'zaina', FAMLK.zaina, 11.0, -0.6, -Math.PI / 2); za.hidden = true; a.ow[1].pos.set(4.4, 0, 1.0);
+  P.pos.set(1.6, 0, -0.4); faceEach(a.gk); const za = oCast11(a, 'zaina', FAMLK.zaina, 11.0, -0.6, -Math.PI / 2); za.hidden = true; a.ow[1].hidden = true;
   cine(6.0, 4.0, 6.0, 0, 1.2, -1.6); await card('鬼嶽建設　資材ヤード', '午前零時四十分', 1600);
   await narr('篝火のまわりで、鬼たちが、黙って、拳に布を巻いていた。');
   otsCam(a.gk, 2.4, 1.4);
@@ -6648,7 +6773,7 @@ async function goYard11() { G.mode = 'cine'; setClock('00:40'); await goArea('on
   await say('goka', '……ふん。好きにしな。');
   await say('goka', '……あんたの火花はね。おっかさんの次に、きれいだ。昔から、そう思ってた。');
   await say('zaina', '……知ってる。');
-  za.hidden = true; a.dusk = false;
+  za.hidden = true; a.dusk = false; a.ow[1].hidden = false;
   await goShip11(); }
 
 // ---- 村瀬：タカハラの観測艇 ----
@@ -6706,7 +6831,7 @@ async function goGate11() { G.mode = 'cine'; setClock('02:00'); await goArea('ov
   await say('todo', '（読み上げ音声）門、崩壊まで、十秒。乾。手を、抜け。');
   await say('inui', '…………。');
   await say('kento', 'ばいばい、公安のおっさん。……これからも、よろしくね。');
-  td.pos.set(-5.4, 0, 1.8); sfx('blast'); G.shake = 0.5; iu.pos.set(-4.6, 0, 2.2); await narr('轟が、乾の肩を掴んで、引き戻した。');
+  td.pos.set(-5.4, 0, 1.8); sfx('blast'); G.shake = 0.5; iu.pos.set(-4.6, 0, 2.2); await narr('轟が、乾の肩を掴んで、引き戻した。'); td.pos.set(-5.2, 0, 3.4);
   boom(-7.6, 1.6, 0.6, 0xC040F0, true); O.gateOn = false; O.forest11.material.opacity = 0;
   await narr('門は、閉じた。二度と、開かなかった。');
   cine(-2.4, 1.8, 4.0, -4.6, 1.6, 2.2); await say('inui', '……届かなかった。');
@@ -6761,10 +6886,10 @@ async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.
   sfx('blast'); G.shake = 0.6; gk.st.punch = false; gk.st.down = true; gk.pos.set(-4.8, 0, -3.0); await narr('No.14 の腕が、鬼嶽の当主を、床に叩きつけた。');
   await saku('No.14 だ。……倒せない。', '怯ませろ。ゴウカが立つまで。……一秒でも、長く。');
   P.pos.set(-1.0, 0, -2.6); await fight({ foe: gt, alien: true, need: 3, name: 'ガ・ンテツ（No.14）', tempo: 1.3, win: 0.95, open: 0.85, dmg: 1, me: 6, music: 'fight', after: 'fight', tip: '倒せない。……怯ませて、時間を稼げ。' });
-  gt.st.reel = false; gt.lookAt = 'P'; await say('gantetsu', 'しつけえ人間だなァ……！　気に入ったぜ。テメェから、肉にしてやる！！');
+  gt.st.reel = false; gt.lookAt = 'P'; gt.pos.set(0.4, 0, -3.4); P.pos.set(-1.0, 0, -2.6); cine(-6.0, 3.8, -4.8, -1.2, 1.2, -3.0); await say('gantetsu', 'しつけえ人間だなァ……！　気に入ったぜ。テメェから、肉にしてやる！！');
   gt.st.windup = true; await sleep(G.skip ? 0 : 500);
   sfx('blast'); fxBeam(new THREE.Vector3(-2.4, 9, -2.9), new THREE.Vector3(-2.4, 0, -2.9), 0xFFFFFF, 0.8, 0.6); boom(-2.4, 1.0, -2.9, 0xFFF0D0, true); G.shake = 0.8;
-  za.hidden = false; za.pos.set(-2.4, 0, -2.9); za.lookAt = gt.pos; gt.st.windup = false; cine(0.6, 3.6, -2.4, -2.0, 1.2, -3.4);
+  za.hidden = false; za.pos.set(-2.4, 0, -2.9); za.lookAt = gt.pos; gt.st.windup = false; cine(-6.0, 3.8, -4.8, -1.2, 1.2, -3.0);
   await narr('天井が、白く、溶け落ちた。');
   await say('gantetsu', '外神竜……！？');
   await say('zaina', '……返して。');
@@ -6779,7 +6904,7 @@ async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.
   await say('shirobun', 'B.U.N society No.4、シ・ロブンです。……外神竜のお嬢さん。今夜は、引きましょう。この子は、連れて帰ります。お説教は、コシがしますので。');
   await say('shirobun', 'でも、覚えておいてくださいね。……竜が、文鳥を、焼いた。それは、記録に残ります。チャが、嫌な顔をしながら。');
   sfx('wind'); gt.hidden = true; sb.hidden = true; await narr('炎の向こうに、二羽の影が、消えた。');
-  gk.st = {}; gk.pos.set(-3.6, 0, -3.4); za.lookAt = gk.pos; gk.lookAt = za.pos; cine(-1.0, 3.0, -2.4, -3.0, 1.2, -3.4);
+  gk.st = {}; gk.pos.set(-3.8, 0, -2.6); za.pos.set(-2.6, 0, -3.6); za.lookAt = gk.pos; gk.lookAt = za.pos; cine(-6.4, 3.0, -4.6, -3.0, 1.2, -3.2);
   await narr('ザイナが、手を差し出した。ゴウカは、しばらく、それを見て……掴んだ。');
   await say('goka', '……あんた、殴らないんじゃ、なかったのかい。');
   await say('zaina', '……殴ってない。……溶かした。');
@@ -6831,37 +6956,113 @@ async function goReturn11() { G.mode = 'cine'; setObj(''); await goArea('hq', [-
   await say('zaina', '……泣いてない。……火花が、目に、入った。');
   await saku('鬼は、嘘をつかない。……竜は、ときどき、つく。');
   s2.hidden = true; z2.hidden = true;
-  await goRiku11(); }
-async function goRiku11() { G.mode = 'cine'; await goArea('mansion6'); const a = AREAS.mansion6; bgm(''); setClock('20:00');
-  cine(0, 1.6, 1.6, 0, 1.2, -2.2); await card('名古屋　ヴェイン家の別邸', '同じ日　午後八時', 1600);
-  await say('selene', '陸を、返せと？');
-  await say('kuze', '返すのは、陸さんのものを、陸さんに、です。……選ぶのは、陸さんです。');
-  await say('selene', '……ふふ。いいわ。わたくし、負ける気が、しないもの。');
-  await narr('小さな硝子の瓶。旗を振っていたころの、陸の経験。');
+  await goFox11(); }
+// ---- 奪還（一）：久世　対　篝（妖狐） ----
+async function goFox11() { G.mode = 'cine'; S.flags.c11st = 'fox'; S.flags.c11fFinal = false; setObj(''); playAsMurase(false); await goArea('inari6', [0, 4.4], Math.PI); const a = AREAS.inari6, kg = a.kg, na = a.na; bgm(''); setClock('17:40');
+  a.wallOff = false; a.te.hidden = true; for (const c of a.clones) c.hidden = true; kg.hidden = false; kg.st = {}; kg.pos.set(-0.9, 0, -6.1); kg.y = 0.5; kg.st.sit = true; kg.facing = 0; na.st = { sit: true }; na.y = 0.5; na.pos.set(0.2, 0, -6.0); na.facing = -0.3;
+  cine(0, 8.4, 8.0, 0, 0.8, -2.6); await card('鳥居松稲荷　境内', '同じ日　午後五時四十分　――逢魔が時', 1800);
+  await narr('昼に来たときより、境内は、ずっと広く見えた。朱い鳥居が、どこまでも、続いている。');
+  await saku('……化かされている。狐の庭だ。奴が、広げている。');
+  cine(1.6, 2.6, -2.4, -0.4, 1.2, -6.0); await narr('ナツキは、篝の膝の上で、目を細めていた。');
+  await say('kagari', 'その瓶。……何を、返しに来た、人の子。');
+  await say('kuze', '日向ナツキさんのものを、日向ナツキさんに。');
+  await say('natsuki', '……篝さま、この人、だれ？　……こわい。');
+  await say('kagari', 'だいじょうぶじゃ。……この人の子は、わしの膝から、おまえを剥がしに来たそうな。');
+  await say('kagari', '拾うたものは、わしのものじゃ。返せと言うなら、力で来い。……狐の流儀でな。');
+  kg.st.sit = false; kg.y = 0; kg.pos.set(-0.9, 0, -5.0); walkTo(kg, 0, -2.6, 1.6); sfx('blast'); a.wallOff = false;
+  cine(0, 7.6, 7.4, 0, 0.8, -1.6); await narr('ナツキのまわりに、狐火の輪が、灯った。');
+  await saku('人間の拳じゃ、狐は倒れない。……だが、体勢は、崩せる。', '赤い印から、出ろ。金に光ったら、打て。');
+  abStart(FOXCFG(a), 0); setObj('篝の体勢を崩す（赤い印から逃げ、金に光ったら打つ）'); }
+const FOXCFG = (a) => ({ boss: a.kg, name: '篝', me: '久世', hp: 6, needs: [3, 3], keep: 3.6, clones: a.clones, failKey: 'c11fFail', fineWord: '見切り', fineHit: '朔の一撃', dashCol: 0xC8D0E0,
+  moves: [[KAG.line, KAG.tails, KAG.rush, KAG.rain, KAG.tails], [KAG.illusion, KAG.rush, KAG.line, KAG.tails, KAG.rain, KAG.illusion]], swarmMoves: [KAG.wisps],
+  tips: ['赤い印から出ろ（K／「避」で回避）。尾を払ったあと、金に光ったら打て（Space／「打」）', '本物は一体だけ。幻が撃ち終わった瞬間、本物が光る'],
+  onPhase: async (k) => { G.mode = 'cine'; const kg = a.kg; P.pos.set(0, 0, 2.2); kg.pos.set(0, 0, -2.6); faceEach(kg); cine(2.2, 3.0, 3.4, 0, 1.4, -2.0);
+    if (k === 0) { await say('kagari', '……ほう。人の拳が、狐の膝を、折りかけたか。'); await say('kagari', 'ならば、こちらも、本気で化かそう。'); sfx('rise'); await narr('篝の輪郭が、三つに、ぶれた。'); await saku('幻だ。……本物は、一体だけ。');
+      abStart(FOXCFG(a), 1); setObj('本物の篝を見抜き、体勢を崩す'); return; }
+    await say('kagari', '……見事じゃ、人の子。じゃがな。');
+    sfx('blast'); G.shake = 0.6; cine(0, 8.4, 8.0, 0, 0.8, -2.0); await narr('境内の鳥居が、いっせいに、燃え上がった。');
+    await say('kagari', 'これが、拾うた者を守る火じゃ。……九重の、狐火。');
+    await saku('……避けきれない。');
+    const te = a.te; te.hidden = false; te.pos.set(0, 0, -0.4); te.facing = 0; sfx('wind'); boom(0, 1.2, -0.6, 0xF08A24, true); cine(2.2, 2.2, 1.6, 0, 1.4, -1.4);
+    await narr('炎と久世のあいだに、黒いスーツの竜が、立っていた。素手で、狐火を、受け止めて。');
+    nameCard({ s: '外神竜　天環ホールディングス', b: 'テルエス', e: 'てるえす', col: '#F08A24', p: '数字から入る。\n好きの代わりに、ゼロを九個並べる。' });
+    await say('terues', '……数字から。'); nameCard(null);
+    await say('terues', '日向ナツキの母親の手術費。天環の病院で、今朝、精算した。あなたが払った分は、天環が、全額、あなたに返した。');
+    await say('terues', 'あなたの恩の残高は、ゼロ。……拾った理由は、もう、ない。');
+    await say('kagari', '……竜が、狐の恩を、金で買い戻すか。');
+    await say('terues', '買い戻してない。……ゼロに、しただけ。');
+    await say('terues', 'あとは、あの子が決めること。……だから、今は、待って。');
+    await narr('篝の尾が、ゆっくりと、下りた。……主の手を離れた狐火だけが、境内を、さまよっていた。');
+    a.wallOff = true; S.flags.c11fFinal = true; te.pos.set(-1.4, 0, -1.0); kg.pos.set(1.6, 0, -2.4);
+    await saku('今だ。……ナツキのもとへ。残り火を避けて、返せ。');
+    abStart(Object.assign(FOXCFG(a), { swarm: true, name: '残り火' , tips: ['ナツキのもとへ。残り火を避けて、長押しで返せ'] }), 0); setObj('ナツキのもとへ（長押しで、経験を返す）'); },
+  onFail: async () => { await say('kagari', 'まだまだじゃのう、人の子。'); await saku('……立て。もう一度だ。'); },
+  reset: () => { P.pos.set(0, 0, 4.4); a.kg.pos.set(0, 0, -2.6); P.model.root.visible = true; } });
+async function evFoxGive11() { const a = AREAS.inari6, na = a.na, kg = a.kg, te = a.te; abStop(); G.mode = 'cine'; markI('f7give'); P.pos.set(0, 0, -4.4); faceEach(na); bgm('dawn11');
+  cine(2.2, 2.2, -2.6, 0, 1.0, -5.8); await narr('小さな硝子の瓶。ナツキの、連れていかれる前の、ナツキ。');
+  await say('natsuki', 'あ……。お母さんの病院の、廊下……。夜の、コンビニ……。');
+  await say('natsuki', 'あたし……五つも、仕事、してたんだ。……ビラ、二千三百枚……。');
+  na.st = {}; na.y = 0; na.pos.set(0.4, 0, -5.0); na.lookAt = kg.pos; cine(4.2, 3.2, -1.0, 0.6, 1.2, -3.6);
+  await say('natsuki', '……篝さま。あたし、帰る。お母さんのとこ。');
+  await say('kagari', '……そうか。');
+  await say('natsuki', '手術代は、借りにする。……天環のお姉さんが返したって、あたしは、返してない。いつか、自分で、返しに来る。');
+  await say('kagari', 'あはは。……強がる子のほうが、好きじゃ。');
+  await say('kagari', '利子は、たまに、顔を見せること。……膝は、空けておくでな。');
+  await say('natsuki', '……それは、まあ、いいけど。');
+  te.lookAt = na.pos; await say('terues', 'お母さん、待ってるわよ。……早く、帰ってあげて。');
+  await saku('取り返した。……いや。', '返しただけだ。……帰ると決めたのは、あいつだ。');
+  na.st = { sit: true }; na.y = 0.5; na.pos.set(0.2, 0, -6.0); kg.hidden = false; te.hidden = true;
+  await goVamp11(); }
+// ---- 奪還（二）：村瀬　対　セレネ（吸血鬼） ----
+async function goVamp11() { G.mode = 'cine'; S.flags.c11st = 'vamp'; S.flags.c11vFinal = false; setObj(''); playAsMurase(true); await goArea('ball6', [0, 4.6], Math.PI); const a = AREAS.ball6, se = a.se, ri = a.ri; bgm(''); setClock('21:00');
+  a.domeOff = false; a.yu.hidden = true; se.hidden = false; se.st = {}; se.pos.set(0, 0, -2.6); se.facing = 0; ri.st = { sit: true }; ri.y = 0.5; ri.pos.set(0, 0, -6.1); ri.facing = 0;
+  cine(0, 8.4, 8.6, 0, 0.8, -2.6); await card('ヴェイン家の別邸　月の大広間', '同じ夜　午後九時　――村瀬', 1800);
+  await narr('扉の向こうで、セレネが、待っていた。');
+  faceEach(se); otsCam(se, 2.6, 1.4); await say('selene', '留保の、遊撃さん？　……陸に会いたいなら、わたくしを、通って。');
+  cine(1.4, 2.2, -3.6, 0, 1.1, -6.0); await say('riku', 'セレネさま……その人、だれ……？');
+  faceEach(se); otsCam(se, 2.6, 1.4); await say('selene', 'だいじょうぶよ、陸。……すぐ、終わるから。');
+  await mu11('……一歩目で、届かせます。');
+  cine(0, 7.6, 7.4, 0, 0.8, -1.6); await narr('月が、赤く、滲んだ。');
+  abStart(VAMPCFG(a), 0); setObj('セレネの体勢を崩す（赤い印から逃げ、金に光ったら打つ）'); }
+const VAMPCFG = (a) => ({ boss: a.se, name: 'セレネ', me: '村瀬', hp: 6, needs: [3, 3], keep: 3.2, failKey: 'c11vFail', fineWord: 'ファインプレー！', fineHit: 'ダイビングキャッチ', dashCol: 0x7AA8F0,
+  moves: [[SEL.claw, SEL.rain, SEL.dash, SEL.claw, SEL.dash], [SEL.waltz, SEL.bats, SEL.dash, SEL.claw, SEL.rain, SEL.waltz]], swarmMoves: [SEL.bats],
+  tips: ['赤い印から出ろ（K／「避」で回避）。影渡りのあと、金に光ったら打て（Space／「打」）', '円舞は、懐に入るか、遠くへ。踊り終わりが、隙'],
+  onPhase: async (k) => { G.mode = 'cine'; const se = a.se; P.pos.set(0, 0, 1.8); se.pos.set(0, 0, -1.8); faceEach(se); cine(2.2, 3.0, 3.6, 0, 1.4, -1.4);
+    if (k === 0) { await say('selene', '……速いのね。人間の殿方なのに。'); await say('selene', 'でも、夜は、まだ、始まったばかり。'); sfx('wind'); await narr('大広間の天井から、黒い羽音が、降りてきた。'); await mu11('……守備範囲が、広がりました。');
+      abStart(VAMPCFG(a), 1); setObj('円舞と蝙蝠をかわし、体勢を崩す'); return; }
+    await say('selene', '……ふふ。押されたの、二度目。');
+    await say('selene', 'ヴェイン家の夜を、あなたに。');
+    sfx('blast'); G.shake = 0.6; cine(0, 8.4, 8.0, 0, 0.8, -1.6); await narr('大広間の影が、すべて、立ち上がった。月が、消えた。');
+    const yu = a.yu; yu.hidden = false; yu.pos.set(0.5, 0, -0.2); yu.facing = Math.PI; sfx('door'); boom(0.4, 1.2, -0.8, 0xF4D35E, true); se.st.punch = true; cine(2.4, 2.2, 1.8, 0.2, 1.4, -1.0);
+    await narr('振り下ろされた爪を、白い手が、受け止めていた。');
+    nameCard({ s: '外神竜　陽盾警備保障', b: 'ユリア', e: 'ゆりあ', col: '#F2C230', p: '春日井の、みんなのおうちを守る。\n好きだから、帰りたい子は、帰す。' });
+    await say('yuria', 'はーい、陽盾でーす♪'); nameCard(null);
+    await say('yuria', '……あーしの街で、おうちに帰れない子がいるって、窓口に連絡あったんだけど。');
+    se.st.punch = false; await say('selene', '外神竜……！　これは、ヴェイン家の「招き」よ。第九条の――');
+    await say('yuria', 'うん、知ってる。だから、殴らない。');
+    await say('yuria', '……ちょっと、止まってて♪　動くな、って言ったよね。次は、ないよ。');
+    await mu11('ユリアさん……どうして、ここに。');
+    await say('yuria', 'テルエス姉から、電話。……あと、あーしの街の子だから。');
+    a.domeOff = true; S.flags.c11vFinal = true; await narr('陸を囲んでいた赤い膜が、音もなく、ほどけた。……主を失った蝙蝠だけが、まだ、広間を舞っていた。');
+    yu.pos.set(-1.4, 0, -1.6); se.pos.set(-0.4, 0, -1.9); se.lookAt = yu.pos;
+    await mu11('……つなぎます。');
+    abStart(Object.assign(VAMPCFG(a), { swarm: true, name: '蝙蝠', tips: ['陸のもとへ。蝙蝠を避けて、長押しで返せ'] }), 0); setObj('陸のもとへ（長押しで、経験を返す）'); },
+  onFail: async () => { await say('selene', 'あら。もう、おしまい？'); await mu11('……まだです。もう一歩、深く守ります。'); },
+  reset: () => { P.pos.set(0, 0, 4.6); a.se.pos.set(0, 0, -2.6); } });
+async function evVampGive11() { const a = AREAS.ball6, ri = a.ri, se = a.se, yu = a.yu; abStop(); G.mode = 'cine'; markI('v7give'); P.pos.set(0.6, 0, -4.2); faceEach(ri); bgm('dawn11');
+  cine(2.4, 2.2, -2.8, 0, 1.0, -5.8); await narr('小さな硝子の瓶。旗を振っていたころの、陸の経験。');
   await say('riku', '……姉ちゃん。……旗。……声……。');
   await say('riku', '俺……俺、何してたんだ。……「セレネさま」って……。');
-  a.ri.st.sit = false; a.ri.y = 0; a.ri.pos.set(0.9, 0, -1.2); a.ri.lookAt = a.se.pos; cine(0.8, 1.6, 1.2, 0.2, 1.3, -1.8);
+  ri.st = {}; ri.y = 0; ri.pos.set(0.9, 0, -5.0); ri.lookAt = se.pos; se.lookAt = ri.pos; cine(3.6, 3.0, -0.8, 0.2, 1.2, -3.4);
   await say('riku', 'セレネ。……俺は、お前の、ペットじゃない。');
   await narr('セレネの赤い目が、大きく、開いた。');
-  await say('riku', 'でも。……ここに、いる。それは、俺が、決める。日曜は、駅前に立つ。……旗を、振りに。');
+  await say('riku', '帰る。……家に。日曜は、駅前に立つ。旗を振りに。');
+  await say('riku', '……会いたきゃ、玄関から来い。');
   await say('selene', '…………また、押した。');
-  await say('selene', 'ああ……やっぱり、あなたで、よかった♡');
-  await saku('返したのは、旗だった。……旗を持ったまま、あいつは、そこに残った。');
-  a.ri.st.sit = true; a.ri.y = 0.6; a.ri.pos.set(0.5, 0, -2.0);
-  await goNatsuki11(); }
-async function goNatsuki11() { G.mode = 'cine'; await goArea('shrine6', [2.8, -0.4], -Math.PI * 0.6); const a = AREAS.shrine6; bgm('home'); setClock('16:30');
-  cine(2.4, 1.8, 2.2, -0.2, 1.1, -0.6); await card('鳥居松　小さな稲荷の社', '翌日　午後四時三十分', 1600);
-  await narr('ナツキは、篝の膝の上で、小さな瓶を、手のひらに転がしていた。');
-  await say('natsuki', 'あ……。お母さんの病院の、廊下……。夜の、コンビニ……。');
-  await say('natsuki', 'あたし……五つも、仕事してたんだ。');
-  a.na.st.sit = false; a.na.y = 0; a.na.pos.set(1.0, 0, 0.1); a.na.lookAt = a.kg.pos;
-  await say('natsuki', '篝さま。あたし、働く。……一個だけ。');
-  await say('kagari', '……ほう。');
-  await say('natsuki', 'お母さんの手術代、返す。何十年かかっても。……施しじゃなくて、借金にして。');
-  await say('kagari', 'あはは！　それでよい。強がる子のほうが、好きじゃ。');
-  await say('kagari', '……利子は、毎晩、膝の上で、もらうがの。');
-  await say('natsuki', '……それは、まあ、いいけど。');
-  a.na.st.sit = true; a.na.y = 0.88; a.na.pos.set(-0.1, 0, -0.3);
+  await say('selene', '……ええ。玄関から、招きに行くわ。何度でも♡');
+  yu.lookAt = ri.pos; await say('yuria', 'はい、決まり♪　じゃ、帰ろ。おうちまで、送ってく。');
+  await mu11('……つなぎました。');
+  ri.st = { sit: true }; ri.y = 0.5; ri.pos.set(0, 0, -6.1); yu.hidden = true; playAsMurase(false);
   await goKento11(); }
 async function goKento11() { G.mode = 'cine'; await goArea('overpass6', [-1.0, 3.0], -Math.PI / 2); const O = AREAS.overpass6; bgm(''); setClock('06:40');
   for (const k of ['o11_hsis', 'o11_dra11', 'o11_cat11', 'o11_todo']) if (O[k]) O[k].hidden = true; if (O.truck11) O.truck11.visible = O.trucksign.visible = false; O.gateOn = false; if (O.forest11) O.forest11.material.opacity = 0;
@@ -7246,13 +7447,13 @@ function loop(now) { requestAnimationFrame(loop); const dt = Math.min(0.05, (now
   if (A) { panTick(dt); fxTick(dt); // 歩く
     let mx = 0, mz = 0; if (G.mode === 'play' && !G.busy && $('note').hidden && $('files').hidden) { mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x; mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y; }
     const L = Math.hypot(mx, mz); P.st.walk = L > 0.15; P.st.run = L > 0.85 && (keys.ShiftLeft || keys.ShiftRight || Math.hypot(stick.x, stick.y) > 0.9);
-    if (P.st.walk) { const sp = (P.st.run ? 5.2 : 3.2) * Math.min(1, L); P.pos.x += mx / Math.max(1, L) * sp * dt; P.pos.z += mz / Math.max(1, L) * sp * dt; P.facing = turn(P.facing, Math.atan2(mx, mz), dt * 12); }
+    if (P.st.walk) { const sp = (P.st.run ? 5.2 : (AB.on ? 4.4 : 3.2)) * Math.min(1, L); P.pos.x += mx / Math.max(1, L) * sp * dt; P.pos.z += mz / Math.max(1, L) * sp * dt; P.facing = turn(P.facing, Math.atan2(mx, mz), dt * 12); }
     resolve(P.pos, 0.36); P.model.root.position.set(P.pos.x, 0, P.pos.z); P.model.root.rotation.y = P.facing; animChar(P.model, P.st, dt);
     if (A.tick) A.tick(A, dt); for (const n of A.npcs) npcTick(n, dt);
     for (const it of A.items) { if (it.dyn) { it.x = it.dyn.pos.x; it.z = it.dyn.pos.z; } it.mark.position.set(it.x, (it.y || 2.9) + Math.sin(T.now * 3 + it.x) * 0.08, it.z); it.mark.visible = G.mode === 'play' && itemOn(it) && !G.busy; }
     // 近くのもの
     near = G.mode === 'play' && !G.busy ? nearItem() : null; const pr = $('prompt');
-    if (near) { pr.hidden = false; pr.innerHTML = '<kbd>Space</kbd>'; pr.append(near.label); $('act').textContent = near.hold ? '撮影' : near.label.length <= 4 ? near.label : '調べる'; $('act').classList.remove('dim'); } else { pr.hidden = true; $('act').textContent = G.busy ? '次へ' : '調べる'; $('act').classList.toggle('dim', !G.busy); }
+    if (near) { pr.hidden = false; pr.innerHTML = '<kbd>Space</kbd>'; pr.append(near.label); $('act').textContent = near.hold ? '撮影' : near.label.length <= 4 ? near.label : '調べる'; $('act').classList.remove('dim'); } else { pr.hidden = true; $('act').textContent = G.busy ? '次へ' : AB.on ? '打' : '調べる'; $('act').classList.toggle('dim', !G.busy && !AB.on); }
     if (near && near.hold && actDown && !G.busy) { holdT += dt; $('holdRing').hidden = false; $('holdF').style.width = Math.min(100, holdT / 1.3 * 100) + '%'; if (holdT >= 1.3) { holdT = 0; $('holdRing').hidden = true; useItem(near); } } else { holdT = 0; $('holdRing').hidden = true; }
     // 駅前で、電話が鳴る
     if (S.area === 'station' && G.mode === 'play' && !G.busy && !S.flags.phone) { stationT += dt; const seenN = ['ad', 'ticker', 'bird', 'map'].filter(seenI).length; if (seenN >= 2 || P.pos.z > 3 || stationT > 45) run(evPhone); }
@@ -7286,6 +7487,6 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, showReport11, startCh11, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE };
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE };
 })();
 </script>
