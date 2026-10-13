@@ -27,6 +27,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 #stage { position: fixed; inset: 0; touch-action: none; }
 #stage canvas { display: block; width: 100%; height: 100%; transition: filter .5s; }
 body.ura #stage canvas { filter: grayscale(.85) contrast(1.25) brightness(.7); }
+body.flash #stage canvas { filter: sepia(.75) saturate(.8) contrast(1.05) brightness(.92) blur(.4px); transition: filter .8s; }
+body.flash #stage::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 45%, rgba(40,24,8,.55) 100%); }
 #uraVeil { position: fixed; inset: 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 35%, rgba(90,0,10,.55) 100%); }
 body.ura #uraVeil { opacity: 1; }
 #layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
@@ -281,7 +283,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
     <div class="sub" id="tSub">久世躁一郎の帰還</div>
     <div class="ch" id="tCh"><i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i></div>
     <p id="tP">人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。</p>
-    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
+    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="ch4Btn" hidden>第四章から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
     <div class="cinfo" id="contInfo" hidden></div>
     <div class="keys">歩く：画面左をドラッグ／WASD・矢印　調べる・話す・台詞送り：右の丸ボタン／Space・E　手帳：N</div>
   </div>
@@ -604,7 +606,7 @@ let camSnap = true; const camPos = new THREE.Vector3(), camLook = new THREE.Vect
 function camTick(dt) { let tp, tl; if (G.cine) { tp = G.cine.pos; tl = G.cine.look; } else { const c = A.cam; tp = _cp.set(P.pos.x + c[0], c[1], P.pos.z + c[2]); tl = _cl.set(P.pos.x, 1.3, P.pos.z - (c[3] || 0)); if (innerWidth < innerHeight) { tp.y += 3; tp.z += 3; } }
   const k = camSnap ? 1 : Math.min(1, dt * (G.cine ? 2.2 : 5)); camPos.lerp(tp, k); camLook.lerp(tl, k); camSnap = false; camera.position.copy(camPos); if (G.shake > 0.01) { camera.position.x += rand(-1, 1) * G.shake; camera.position.y += rand(-1, 1) * G.shake; G.shake *= Math.exp(-6 * dt); } camera.lookAt(camLook); }
 const _cp = new THREE.Vector3(), _cl = new THREE.Vector3();
-function cine(px, py, pz, lx, ly, lz) { G.cine = { pos: new THREE.Vector3(px, py, pz), look: new THREE.Vector3(lx, ly, lz) }; }
+function cine(px, py, pz, lx, ly, lz) { G.pan = null; G.cine = { pos: new THREE.Vector3(px, py, pz), look: new THREE.Vector3(lx, ly, lz) }; }
 // 人物を歩かせる（台本用）
 function walkTo(n, x, z, speed = 1.8) { return new Promise(res => { n.goal = { x, z, speed, res }; }); }
 function npcTick(n, dt) { let moving = false;
@@ -1613,7 +1615,7 @@ const meta = () => readJSON(META_KEY) || {};
 function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); cloudPut('meta', m); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
-const CHN = ['序章', '第一章', '第二章', '第三章', '第四章'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', ''];
+const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', ''];
 // ---- 記録ファイル：自動記録 1 冊と、手で記録する 3 冊 ----
 const SLOTS = [['auto', '自動記録'], ['f1', 'FILE 01'], ['f2', 'FILE 02'], ['f3', 'FILE 03']];
 function readFiles() { const f = readJSON(FILES_KEY) || {}; if (!f.auto) { const old = readJSON(SAVE_KEY); if (old) { f.auto = old; writeJSON(FILES_KEY, f); try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 消せなくても困らない */ } } } return f; }
@@ -1639,7 +1641,7 @@ async function cloudInit() { if (!(window.claude && window.claude.use)) return; 
     else if (l && (!r || l.t > r.t)) cloudPut(id, l); }
   if (changed) writeJSON(FILES_KEY, f);
   // 章の記録（タイトルの変化、章のクリア）は足し合わせる
-  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm); for (const k of ['revealed', 'ch1Clear', 'ch2Clear', 'ch3Clear']) m[k] = !!(lm[k] || (rm && rm[k])); for (const k of ['ch1', 'ch2', 'ch3', 'ch1Done', 'ch2Done', 'ch3Done']) if (!lm[k] && rm && rm[k]) m[k] = rm[k];
+  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm); for (const k of ['revealed', 'ch1Clear', 'ch2Clear', 'ch3Clear', 'ch4Clear']) m[k] = !!(lm[k] || (rm && rm[k])); for (const k of ['ch1', 'ch2', 'ch3', 'ch4', 'ch1Done', 'ch2Done', 'ch3Done', 'ch4Done']) if (!lm[k] && rm && rm[k]) m[k] = rm[k];
     writeJSON(META_KEY, m); if (JSON.stringify(m) !== JSON.stringify(rm || {})) cloudPut('meta', m); }
   refreshTitle(); if (!$('files').hidden) renderFiles(); }
 function playOn() { G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; }
@@ -1694,8 +1696,8 @@ function refreshTitle() { const m = meta(), l = latestFile(), d = l && l.d, rev 
   $('tEye').textContent = rev ? '内閣 留保班　機密ファイル' : '春日井　外神竜一族の街';
   $('tH').textContent = rev ? 'RÉSERVE' : '主権留保'; $('tSub').textContent = rev ? '留保班　久世躁一郎の帰還' : '久世躁一郎の帰還';
   $('tP').textContent = rev ? '表の名は、主権保全室。封印された閣議の記録に残る名は、留保班。――この国の主権を、まだ誰にも渡していない者たち。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。' : '人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。';
-  $('tCh').innerHTML = '<i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i>' + (m.ch1Clear ? '<i><span>第二章</span>二つの顔</i>' : '') + (m.ch2Clear ? '<i><span>第三章</span>人間の代表</i>' : '');
-  $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('contBtn').hidden = !d; $('filesBtn').hidden = !d;
+  $('tCh').innerHTML = '<i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i>' + (m.ch1Clear ? '<i><span>第二章</span>二つの顔</i>' : '') + (m.ch2Clear ? '<i><span>第三章</span>人間の代表</i>' : '') + (m.ch3Clear ? '<i><span>第四章</span>救われた者たち</i>' : '');
+  $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('ch4Btn').hidden = !m.ch3Clear; $('contBtn').hidden = !d; $('filesBtn').hidden = !d;
   $('contInfo').hidden = !d; if (d) $('contInfo').textContent = '最新の記録：' + CHN[d.s.chapter || 1] + '　' + (d.place || '') + '　' + fmtT(d.t) + (cloud ? '　（アカウントに保存）' : '');
   $('startBtn').className = d ? 'ghost' : 'go'; }
 
@@ -2532,9 +2534,803 @@ function showReport3() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden
     '<tr><td>葛城議員</td><td>' + (S.flags.c3katRead ? '「次は、最後の頁を読んでから決める」' : (S.flags.c3res || []).includes('r_kat') ? '救出。ただし、また呼ばれれば署名する見込み' : '安否不明（陽盾が搬出）') + '</td></tr>' +
     '<tr><td>B.U.N との接触</td><td>No.4 シ・ロブンが文日獄衣で襲撃（ユリアが初動を抑える）。No.5 チャ・ニュユーと河岸で接触し、名前を記録された。黒岩室長が別の筋から B.U.N の記録結晶を入手</td></tr>' +
     '<tr><td>擬態の残り</td><td>' + Math.round(S.cover) + '％</td></tr><tr><td>判断の傾き</td><td>' + leanT + '（温情 ' + S.warm + '・冷徹 ' + S.cold + '）</td></tr></table>' +
-    '<p class="close">人間の代表は、一人だけ立ち止まった。それを止めたのは文鳥の炎で、人を救ったのは竜の一族だった。<br>――渉の手術は、来月。<br>第四章（準備中）</p><div class="trow"><button type="button" class="go" id="titleBtn3">タイトルへ</button></div>';
-  $('report').hidden = false; $('titleBtn3').addEventListener('click', () => location.reload()); }
+    '<p class="close">人間の代表は、一人だけ立ち止まった。それを止めたのは文鳥の炎で、人を救ったのは竜の一族だった。<br>――渉の手術は、来月。</p><div class="trow"><button type="button" class="go" id="ch4Go">第四章へ</button><button type="button" class="ghost" id="titleBtn3">タイトルへ</button></div>';
+  $('report').hidden = false; $('titleBtn3').addEventListener('click', () => location.reload()); $('ch4Go').addEventListener('click', () => { $('report').hidden = true; run(chapter4); }); }
 async function startCh3() { const m = meta(); if (m.ch2) unpackS(m.ch2); else if (m.ch1) unpackS(m.ch1); DONE = new Set(m.ch2Done || m.ch1Done || []); S.flags.revealed = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter3(); }
+
+// ================= 第四章　救われた者たち：人物と場所 =================
+EXEC.hakko.eye = 0x9A5AD8; // 紫の瞳
+LK.hakkoBig = Object.assign({}, EXEC.hakko, { s: 1.5 });
+LK.asaiY = Object.assign({}, LK.asai, { top: 0xF4F2EC, sleeve: 0xF4F2EC, bc: 0xF4F2EC, leg: SK, shoe: 0xD8C8A8, shirt: undefined, tie: undefined, belt: 0xB8A888 });
+LK.kito = { skin: 0xE8C8B8, hair: 0xDADADA, eye: 0x6A3A2A, top: 0x6A4A6A, sleeve: 0x6A4A6A, bottom: 'skirt', bc: 0x4A3A3A, leg: 0xE8C8B8, shoe: 0x5A4A3A, s: 1.18, w: 1.35, st: ['bun', 'horns'], hornCol: 0xF0E0A0 };
+LK.wataru = { skin: SK, hair: 0x2A2A2A, eye: 0x2A2A30, top: 0xD8E8F0, sleeve: 0xD8E8F0, bc: 0xD8E8F0, leg: 0xD8E8F0, shoe: 0xE8E8E8, s: 0.95, w: 0.88, st: ['short'] };
+LK.kuzeBoy = { skin: SK2, hair: 0x121318, eye: 0x24242A, top: 0x2A3A5A, sleeve: 0x2A3A5A, bc: 0x3A3A44, leg: SK2, shoe: 0x2A2420, s: 0.66, w: 0.9, st: ['short', 'messy'] };
+LK.kuzeMom = { skin: SK2, hair: 0x2A2020, eye: 0x2A2A2A, top: 0x8A7A6A, sleeve: 0x8A7A6A, bottom: 'skirt', bc: 0x5A5048, leg: 0xD8C8B8, shoe: 0x3A3030, s: 0.96, w: 0.95, st: ['bun'] };
+LK.clerkH = { skin: SK, hair: 0x3A3A3A, eye: 0x2A2A2A, top: 0xE8E8EC, sleeve: 0xE8E8EC, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x1A1A1E, shirt: 0xFFFFFF, tie: 0x8A6A2A, s: 0.97, w: 0.95, st: ['short', 'glasses'] };
+LK.foxGuard = { skin: SK, hair: 0xF0E8D8, eye: 0xC08A20, top: 0x1A1A22, sleeve: 0x1A1A22, bc: 0x1A1A22, leg: 0x1A1A22, shoe: 0x0A0A0E, shirt: 0xF4F0E8, tie: 0xC8A040, s: 1.1, w: 1.05, st: ['long', 'foxears', 'narrow'], tail: true };
+LK.nurse = { skin: SK, hair: 0x4A3A2A, eye: 0x3A2A20, top: 0xE8F4F4, sleeve: 0xE8F4F4, bottom: 'skirt', bc: 0xE8F4F4, leg: 0xF4F4F4, shoe: 0xF4F4F4, s: 0.96, w: 0.95, st: ['bun'] };
+Object.assign(SPK, { asai: ['浅井', '#B8C8E8'], asaiIn: ['浅井（心の声）', '#9AB0D8'], kito: ['大家の鬼頭さん', '#E8C0A0'], paper: ['新聞配達の文鳥', '#C8D8E8'], vol: ['ヴォル', '#7FAEE0'], mother: ['母', '#D8C8B8'], boy: ['躁一郎（十歳）', '#C8D0E0'], clerk: ['人間の査定補助員', '#C8D0E0'], fg1: ['九尾の警護', '#F0C070'], fg2: ['九尾の警護', '#F0C070'], nurse: ['看護師', '#C8E8E8'], wataru: ['渉', '#A8D8E8'] });
+SFX.zap = () => { tone(2400, 0, 0.12, 'square', 0.05, { f1: 300 }); noise(0, 0.15, 0.12, 4000, 'highpass'); };
+SFX.wind = () => { noise(0, 1.6, 0.1, 400, 'lowpass'); noise(0.2, 1.4, 0.05, 1200, 'bandpass'); };
+SFX.heart = () => { tone(55, 0, 0.18, 'sine', 0.12); tone(50, 0.22, 0.2, 'sine', 0.09); };
+BGM.dawn = { bpm: 58, f(s, t, sp) { const ch = [[52, 55, 59], [48, 52, 55], [50, 53, 57], [47, 50, 55]][(s >> 5) & 3]; if (s % 32 === 0) ch.forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.011, { a: 1.5 })); if (s % 16 === 8) tone(mf(ch[1] + 24), t, sp * 12, 'triangle', 0.008); } };
+BGM.fox = { bpm: 64, f(s, t, sp) { if (s % 16 === 0) tone(mf(45), t, sp * 14, 'sine', 0.03); if (s % 32 === 4) [69, 72, 76].forEach((m, i) => tone(mf(m), t + i * sp, sp * 8, 'triangle', 0.009)); if (s % 32 === 20) tone(mf(81), t, sp * 10, 'sine', 0.008); if (s % 8 === 6) noise(t, 0.05, 0.006, 6000, 'highpass'); } };
+BGM.ward = { bpm: 72, f(s, t, sp) { if (s % 16 === 0) tone(mf(84), t, sp * 1, 'sine', 0.01); if (s % 32 === 0) [57, 60, 64].forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.009, { a: 1 })); } };
+
+const cityNight = canvasTex(1024, 1024, (c, w, h) => { c.fillStyle = '#05070E'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(255,170,80,.55)'; c.lineWidth = 3; for (let i = 0; i < 18; i++) { const p = i * 60 + 10; c.beginPath(); c.moveTo(p, 0); c.lineTo(p + 30, h); c.stroke(); c.beginPath(); c.moveTo(0, p); c.lineTo(w, p - 20); c.stroke(); }
+  for (let i = 0; i < 2600; i++) { c.fillStyle = Math.random() < 0.7 ? 'rgba(255,220,160,.8)' : 'rgba(170,200,255,.7)'; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); } });
+
+// ---- 天環スカイタワー　屋上（午前四時） ----
+makeArea('roof4', { noPlayer: true, place: '', bounds: [-9, 9, -9, 9], spawn: [0, 999], cam: [0, 9, 9], music: '', bg: 0x070B18, fog: null, light: 0.32, sun: 0.12,
+  build(a) { const g = a.g; stars(g, 900, 300);
+    block(18, 1, 18, 0x3A3E48, 0, -0.5, 0, g); plane(5, 5, signTex(256, 256, [{ t: 'H', size: 180, w: 900 }], { bg: '#3A3E48', fg: '#C8CCD4' }), 0, 0.01, -2, g, { rx: -Math.PI / 2 });
+    for (const s of [-1, 1]) for (let k = -7.6; k <= 7.6; k += 1.52) { block(0.08, 2.2, 0.08, 0xEEF0F3, k, 1.1, s * 7.6, g); block(0.08, 2.2, 0.08, 0xEEF0F3, s * 7.6, 1.1, k, g); }
+    for (const s of [-1, 1]) for (const y of [0.9, 1.9]) { block(15.3, 0.06, 0.06, 0xEEF0F3, 0, y, s * 7.6, g); block(0.06, 0.06, 15.3, 0xEEF0F3, s * 7.6, y, 0, g); }
+    for (const [x, z] of [[-8.6, -8.6], [8.6, -8.6], [-8.6, 8.6], [8.6, 8.6]]) { const l = glowSprite(0xFF3040, 1.2, 0.9); l.position.set(x, 0.4, z); g.add(l); a.blink = (a.blink || []).concat(l); }
+    const city = plane(1600, 1600, cityNight, 0, -400, 0, g, { rx: -Math.PI / 2, fog: false }); void city;
+    for (let i = 0; i < 26; i++) { const ang = rand(0, TAU), r = rand(40, 160), h = rand(220, 390); const t = tower(g, Math.cos(ang) * r, Math.sin(ang) * r, rand(12, 26), h, rand(12, 26), 0x6A7898, 1); t.position.y -= 400; }
+    a.wind = []; for (let i = 0; i < 26; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xC8D8FF, transparent: true, opacity: 0.15, depthWrite: false })); s.scale.set(0.06, 0.06, 1); s.scale.x = 1.6; s.position.set(rand(-8, 8), rand(0.5, 4), rand(-12, 12)); g.add(s); a.wind.push(s); }
+    a.as = npc(a, 'asai', makeChar(LK.asai), 0, 8.3, 0); },
+  tick(a, dt) { for (const s of a.wind) { s.position.z += dt * (a.gust ? 30 : 8); if (s.position.z > 14) s.position.z = -12; } for (const l of a.blink || []) l.material.opacity = (T.now % 1.6) < 0.8 ? 0.9 : 0.1; }
+});
+// ---- 大通り（塔の足もと） ----
+makeArea('avenue4', { noPlayer: true, place: '', bounds: [-10, 10, -10, 10], spawn: [0, 999], cam: [0, 9, 9], music: '', bg: 0x0A0E1A, fog: [40, 160], light: 0.38, sun: 0.15,
+  build(a) { const g = a.g; const gr = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: 0x2E3038 })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+    for (let x = -60; x <= 60; x += 4) block(2, 0.02, 0.2, 0xC8C8C8, x, 0.02, 3, g); block(200, 0.15, 5, 0x55565C, 0, 0.07, -6, g); block(200, 0.15, 5, 0x55565C, 0, 0.07, 10, g);
+    const base = tower(g, 0, -22, 30, 260, 22, 0x8090B0, 1); void base; plane(14, 2.2, signTex(1400, 220, [{ t: '天環スカイタワー', size: 120, f: MINCHO, w: 800 }], { bg: '#1A1608', fg: '#F2C230' }), 0, 8, -10.9, g);
+    for (const x of [-14, -4, 6, 16]) { block(0.15, 5, 0.15, 0x3A4050, x, 2.5, -3.6, g); const l = glowSprite(0xFFE0B0, 3, 0.7); l.position.set(x, 5, -3.6); g.add(l); }
+    for (const x of [-9, 9]) { block(0.2, 3.4, 0.2, 0x2A2A30, x, 1.7, -3.4, g); const s = glowSprite(0x30FF60, 0.9, 0.9); s.position.set(x, 3.2, -3.4); g.add(s); a.sig = (a.sig || []).concat(s); }
+    a.as = npc(a, 'asai', makeChar(LK.asai), 0, -4, 0); a.as.hidden = true;
+    a.hk = npc(a, 'hakko', makeChar(LK.hakkoBig), 8, 2, -Math.PI / 2); a.hk.hidden = true; const gl = glowSprite(0xFFF4E0, 7, 0); gl.position.set(0, 2, 0); a.hk.model.root.add(gl); a.hkGlow = gl; },
+  tick(a) { for (const s of a.sig || []) s.material.color.setHex((T.now % 8) < 4 ? 0x30FF60 : 0xFF3030); }
+});
+// ---- 九尾の塔　百階 ----
+makeArea('penthouse', { noPlayer: false, place: '名古屋　九尾の塔　百階', bounds: [-8, 8, -5.6, 5.6], spawn: [5.8, 4.4], spawnFace: -Math.PI * 0.8, cam: [0, 8.4, 8.4], music: 'fox', bg: 0xF0E4EC, fog: [10, 40], light: 0.85, sun: 0.4,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(17, 12), new THREE.MeshPhongMaterial({ color: 0xF4F0EC, shininess: 70, specular: 0xC8C0D0 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    plane(17, 5, skyTex, 0, 2.5, -5.9, g, { fog: false }); for (let x = -8; x <= 8; x += 2.8) block(0.12, 5, 0.12, 0xC8A040, x, 2.5, -5.8, g);
+    block(0.3, 5, 12, 0xF4EEF0, -8.4, 2.5, 0, g); block(0.3, 5, 12, 0xF4EEF0, 8.4, 2.5, 0, g); block(17, 0.5, 0.3, 0xE8E0E4, 0, 0.25, 6, g);
+    block(5.2, 0.6, 3.6, 0xFFFFFF, 0, 0.3, -1.4, g); block(5.4, 0.9, 0.3, 0xE8E0D8, 0, 0.75, -3.3, g); for (const x of [-1.6, 0, 1.6]) part(sph(0.45, 12, 8), 0xF8F4F0, x, 0.75, -2.7, g, { s: [1.4, 0.5, 1] }); a.obs.push({ x: 0, z: -1.4, hx: 2.7, hz: 1.9 });
+    part(cyl(0.3, 0.4, 0.5, 10), 0xC8A040, 4.2, 0.25, -2.6, g); a.obs.push({ x: 4.2, z: -2.6, hx: 0.45, hz: 0.45 });
+    a.haze = []; for (let i = 0; i < 16; i++) { const s = glowSprite(0xFFB0D0, rand(3, 6), 0.22); s.position.set(rand(-7, 7), rand(0.6, 3), rand(-5, 5)); g.add(s); a.haze.push(s); }
+    plane(1.4, 3.2, signTex(140, 320, [{ t: '九', size: 90, f: MINCHO, w: 800 }, { t: '尾', size: 90, f: MINCHO, w: 800 }], { bg: '#F4ECD8', fg: '#8A2A2A' }), -8.22, 2.4, -2, g, { ry: Math.PI / 2 });
+    for (const x of [-6.4, 6.4]) { part(G_('foxst', () => new THREE.ConeGeometry(0.5, 1.6, 6)), 0xF4F0E8, x, 0.8, -5.2, g); part(sph(0.35, 10, 8), 0xF4F0E8, x, 1.8, -5.2, g); }
+    a.hk = npc(a, 'hakko', makeChar(LK.hakkoBig), 0.6, -1.0, Math.PI * 0.9); a.hk.y = 0.6; a.hk.st.sit = true;
+    a.as = npc(a, 'asai', makeChar(LK.asaiY), -0.9, -1.0, 0.2); a.as.y = 0.6; a.as.st.sit = true;
+    a.mark = glowSprite(0xF2C230, 0.7, 0.9); a.mark.position.set(0, -0.5, 0.05); a.as.model.arms[0].add(a.mark); },
+  tick(a, dt) { for (const s of a.haze) { s.position.x += Math.sin(T.now * 0.3 + s.position.z) * dt * 0.2; s.material.opacity = 0.16 + Math.sin(T.now + s.position.x) * 0.06; } if (a.mark) a.mark.material.opacity = a.markOff ? 0 : 0.6 + Math.sin(T.now * 4) * 0.3; }
+});
+// ---- 浅井のアパート ----
+makeArea('asaiApt', { place: '春日井　浅井のアパート（三〇二号室）', bounds: [-4, 4, -3, 3], spawn: [2.8, 2.2], spawnFace: -Math.PI * 0.75, cam: [0, 6.8, 6.4], music: 'night', bg: 0x1A1A22, fog: null, light: 0.62, sun: 0.35,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(9, 7), new THREE.MeshLambertMaterial({ color: 0x8A7A62 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    block(9, 3, 0.2, 0xE8E4DA, 0, 1.5, -3.5, g); block(0.2, 3, 7, 0xE8E4DA, -4.5, 1.5, 0, g); block(0.2, 1, 7, 0xE8E4DA, 4.5, 0.5, 0, g); block(9, 0.4, 0.2, 0xD8D4CA, 0, 0.2, 3.5, g);
+    plane(2.6, 1.6, skyTex, 1.4, 1.9, -3.38, g); block(2.8, 0.08, 0.1, 0xF4F4F4, 1.4, 1.1, -3.35, g);
+    block(1.6, 0.08, 0.7, 0x6A4A30, -2.8, 0.76, -2.9, g); block(1.5, 0.72, 0.6, 0x5A3A28, -2.8, 0.36, -2.9, g); a.obs.push({ x: -2.8, z: -2.9, hx: 0.8, hz: 0.4 });
+    block(0.36, 0.02, 0.26, 0xF4F0E4, -3.0, 0.81, -2.8, g); block(0.22, 0.04, 0.14, 0xE8D8B8, -2.4, 0.82, -2.8, g); const lamp = glowSprite(0xFFE0B0, 1.2, 0.6); lamp.position.set(-3.3, 1.2, -3.0); g.add(lamp);
+    block(1.0, 0.45, 2.0, 0x4A5A7A, -3.8, 0.23, 1.6, g); block(1.0, 0.1, 2.0, 0xE8E8F0, -3.8, 0.5, 1.6, g); a.obs.push({ x: -3.8, z: 1.6, hx: 0.55, hz: 1.05 });
+    block(0.6, 0.9, 0.6, 0xE8E8EC, 3.8, 0.45, -3.0, g); a.obs.push({ x: 3.8, z: -3.0, hx: 0.35, hz: 0.35 });
+    block(1.6, 1.2, 0.35, 0x6A5040, 1.0, 0.6, -3.2, g); a.obs.push({ x: 1.0, z: -3.2, hx: 0.8, hz: 0.2 }); for (const x of [0.5, 1.0, 1.5]) block(0.26, 0.32, 0.04, 0xD8C8A8, x, 1.36, -3.2, g);
+    block(0.2, 2.4, 1.0, 0x8A6A4A, 4.4, 1.2, 2.4, g);
+    a.kt = npc(a, 'kito', makeChar(LK.kito), 3.0, 1.0, -Math.PI * 0.7); a.kt.lookAt = 'P';
+    a.pb = npc(a, 'paper', makeBird({ coat: 0x3A5A8A, vest: 0xF4F4F0, cap: 0x1A1A1E, s: 1.15 }), 3.6, 2.8, -Math.PI * 0.8); a.pb.st.carry = true;
+    addItem(a, { id: 'isho', x: -2.9, z: -2.1, label: '机の上の手紙を読む', col: 0xC8323C, on: evIsho });
+    addItem(a, { id: 'env', x: -2.3, z: -2.1, label: '封筒を見る', on: evEnvelope });
+    addItem(a, { id: 'pfarm', x: 0.6, z: -2.5, label: '写真を見る（左）', on: evPhotoFarm });
+    addItem(a, { id: 'pmak', x: 1.4, z: -2.5, label: '写真を見る（右）', on: evPhotoMakabe });
+    addItem(a, { id: 'fridge', x: 3.6, z: -2.2, label: '冷蔵庫を開ける', on: evFridge });
+    addItem(a, { id: 'bed', x: -3.0, z: 1.6, label: 'ベッドを見る', on: evAptBed });
+    addItem(a, { id: 'kitoT', x: 3.0, z: 1.0, label: '話す', col: 0xE3B428, dyn: a.kt, on: evKito });
+    addItem(a, { id: 'paperT', x: 3.6, z: 2.8, label: '話す', col: 0xE3B428, dyn: a.pb, on: evPaper });
+    addItem(a, { id: 'outApt', x: 4.0, z: 2.4, r: 1.2, label: '部屋を出る', col: 0xC8323C, once: false, avail: () => S.seen.has('i:isho') && (S.seen.has('i:paperT') || S.seen.has('i:kitoT')), on: () => evLeaveApt() }); }
+});
+// ---- 蒼生メディカルセンター　第三病棟 ----
+makeArea('hospital', { place: '蒼生メディカルセンター　第三病棟', bounds: [-10, 10, -5, 5], spawn: [9.0, 0.2], spawnFace: -Math.PI / 2, cam: [0, 9, 8.4], music: 'ward', bg: 0xDCE6EC, fog: null, light: 0.8, sun: 0.4,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(21, 11), new THREE.MeshPhongMaterial({ color: 0xC8D4DC, shininess: 40 })); fl.rotation.x = -Math.PI / 2; g.add(fl); block(21, 0.01, 1.6, 0x9AC0D0, 0, 0.01, 0.2, g);
+    block(21, 3.2, 0.25, 0xF0F4F6, 0, 1.6, -5.2, g); block(0.25, 3.2, 11, 0xF0F4F6, -10.2, 1.6, 0, g); block(0.25, 3.2, 11, 0xF0F4F6, 10.2, 1.6, 0, g); block(21, 0.5, 0.25, 0xE0E8EC, 0, 0.25, 5.2, g);
+    for (const [x0, x1] of [[-10, -6.4], [-4.6, 10]]) { const cx = (x0 + x1) / 2, hw = (x1 - x0) / 2; block(hw * 2, 3.0, 0.2, 0xE8EEF2, cx, 1.5, -1.4, g); a.obs.push({ x: cx, z: -1.4, hx: hw, hz: 0.12, tall: true }); }
+    plane(2.4, 0.4, signTex(480, 80, [{ t: '三〇七号室　久世 渉 様', size: 34, w: 900 }], { bg: '#FFFFFF', fg: '#2A4A6A' }), -5.5, 2.6, -1.28, g);
+    plane(6, 0.6, signTex(1000, 100, [{ t: '蒼生メディカルセンター　第三病棟', size: 52, f: MINCHO, w: 800 }], { bg: '#F4F8FA', fg: '#2A5A8A' }), 3, 2.7, -1.27, g);
+    block(2.2, 0.55, 1.0, 0xF4F4F8, -7.6, 0.45, -3.6, g); block(2.2, 0.15, 1.0, 0xFFFFFF, -7.6, 0.8, -3.6, g); block(0.12, 1.2, 1.0, 0xC8D4DC, -8.65, 0.9, -3.6, g); a.obs.push({ x: -7.6, z: -3.6, hx: 1.1, hz: 0.55 });
+    block(0.7, 0.9, 0.5, 0xE8E8EC, -5.9, 0.45, -4.4, g); a.obs.push({ x: -5.9, z: -4.4, hx: 0.35, hz: 0.25 }); block(0.36, 0.02, 0.26, 0xF4F0E4, -5.9, 0.92, -4.4, g);
+    plane(3.0, 1.8, skyTex, -7.0, 2.0, -5.05, g); part(cyl(0.05, 0.05, 1.8, 6), 0xC8CCD4, -8.9, 0.9, -2.9, g, { outline: false }); const drip = glowSprite(0xD8F0FF, 0.6, 0.6); drip.position.set(-8.9, 1.9, -2.9); g.add(drip);
+    block(4.4, 1.1, 1.2, 0xE8F0F4, 4.6, 0.55, 3.6, g); block(4.5, 0.06, 1.3, 0x7AB0C8, 4.6, 1.12, 3.6, g); a.obs.push({ x: 4.6, z: 3.6, hx: 2.25, hz: 0.65 }); plane(2, 0.4, signTex(400, 80, [{ t: 'ナースステーション', size: 40, w: 900 }], { bg: '#7AB0C8', fg: '#FFFFFF' }), 4.6, 2.4, 2.9, g);
+    for (let i = 0; i < 4; i++) { block(0.6, 0.45, 0.6, 0x7AA0B8, -6 + i * 0.8, 0.23, 3.8, g); } a.obs.push({ x: -4.8, z: 3.8, hx: 1.6, hz: 0.35 });
+    for (let i = 0; i < 5; i++) { const l = glowSprite(0xF4FAFF, 3, 0.35); l.position.set(-8 + i * 4, 3.0, 0.2); g.add(l); }
+    a.wt = npc(a, 'wataru', makeChar(LK.wataru), -7.5, -3.6, Math.PI / 2); a.wt.y = 0.55; a.wt.st.sit = true;
+    a.vol = npc(a, 'vol', makeChar(FAMLK.vol), 4.6, 2.6, Math.PI); a.vol.lookAt = 'P';
+    a.nr = npc(a, 'nurse', makeChar(LK.nurse), 2.6, 2.8, 0, { path: [[2.6, 2.6, 2], [-3, 0.6, 1.4], [6.6, 0.2, 1.6]], speed: 1.1 });
+    addItem(a, { id: 'wtT', x: -6.6, z: -3.0, label: '渉と話す', col: 0xE3B428, avail: () => S.flags.c4hosp && !S.flags.c4wt1, on: evWataru1 });
+    addItem(a, { id: 'volT', x: 4.6, z: 1.8, label: 'ヴォルと話す', col: 0xE3B428, avail: () => S.flags.c4wt1 && !S.flags.c4vol, on: evVol });
+    addItem(a, { id: 'doui', x: -5.9, z: -3.6, label: '同意書を読む', col: 0xC8323C, avail: () => S.flags.c4vol && !S.flags.c4doui, on: evDoui });
+    addItem(a, { id: 'hwin', x: -7.0, z: -4.2, label: '窓の外を見る', on: evHospWindow });
+    addItem(a, { id: 'outH', x: 9.4, z: 0.2, r: 1.4, label: '病棟を出る', col: 0xC8323C, once: false, avail: () => !!S.flags.c4doui, on: () => evLeaveHosp() }); },
+  restore(a) { a.wt.hidden = false; }
+});
+// ---- 九尾ホールディングス　査定フロア（潜入） ----
+const scoreTex = canvasTex(512, 320, (c, w, h) => { c.fillStyle = '#0C0A06'; c.fillRect(0, 0, w, h); c.font = `900 26px ${GOTHIC}`; c.fillStyle = '#F0C060'; c.fillText('九尾HD　人間与信査定　本日', 18, 38);
+  c.font = `700 20px ${GOTHIC}`; const R = [['住宅ローン', '否決 211'], ['就職推薦', '停止 37'], ['医療ローン', '条件付き 96'], ['婚姻適性', 'A 判定 4'], ['素材提供の紹介', '2']]; R.forEach(([k, v], i) => { c.fillStyle = '#C8C0A8'; c.fillText(k, 22, 90 + i * 44); c.fillStyle = i === 4 ? '#FF6060' : '#F4E8C8'; c.fillText(v, 300, 90 + i * 44); }); });
+makeArea('kyubi', { place: '名古屋　九尾の塔　査定フロア　午後十一時', bounds: [-12, 12, -7, 7], spawn: [10.6, 5.6], spawnFace: -Math.PI * 0.75, cam: [0, 13, 8.5], music: 'stealth', bg: 0x14100A, fog: null, light: 0.78, sun: 0.42, stealth: true,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(25, 15), new THREE.MeshLambertMaterial({ color: 0x4A3E30 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (const [w, d, x, z] of [[25, 0.3, 0, -7.3], [25, 0.3, 0, 7.3], [0.3, 15, -12.3, 0], [0.3, 15, 12.3, 0]]) block(w, 3.4, d, 0x2A2218, x, 1.7, z, g);
+    plane(10, 0.7, signTex(1200, 84, [{ t: '九尾ホールディングス　人間与信査定部', size: 52, f: MINCHO, w: 800 }], { bg: '#1A140C', fg: '#F0C060' }), 0, 3.0, -7.13, g);
+    // 査定の島（低い机）と、仕切り（物陰）
+    for (const [x, z] of [[-7, -3], [-2, -3], [3, -3], [-7, 2.4], [-2, 2.4]]) { block(3.2, 0.8, 1.6, 0x3A3026, x, 0.4, z, g); for (const dx of [-0.8, 0.8]) { block(0.7, 0.45, 0.05, 0x1A140C, x + dx, 1.05, z - 0.4, g); plane(0.64, 0.38, scoreTex, x + dx, 1.05, z - 0.37, g); } a.obs.push({ x, z, hx: 1.6, hz: 0.8 }); }
+    for (const [x, z, w, d] of [[8.4, 3.2, 0.3, 3.6], [5.6, 0.2, 3.0, 0.3], [-4.6, -0.3, 0.3, 2.4], [0.6, 4.4, 2.6, 0.3], [9.6, -1.8, 2.6, 0.3]]) { block(w, 2.2, d, 0x5A4A36, x, 1.1, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); }
+    for (const [x, z] of [[-10.8, -5.6], [-10.8, -2.6], [10.8, -5.6]]) { block(1.0, 2.2, 1.6, 0x6A5A44, x, 1.1, z, g); a.obs.push({ x, z, hx: 0.5, hz: 0.8, tall: true }); }
+    block(2.6, 3.2, 0.3, 0xC8A040, 0, 1.6, -7.0, g); plane(1.6, 0.36, signTex(320, 72, [{ t: '社長専用', size: 40, w: 900 }], { bg: '#8A2A2A', fg: '#FFFFFF' }), 0, 3.1, -6.84, g);
+    plane(2.4, 1.5, scoreTex, 6.4, 2.0, -7.12, g);
+    for (let i = 0; i < 6; i++) { const l = glowSprite(0xFFD890, 3.6, 0.3); l.position.set(-10 + i * 4, 3.0, 0); g.add(l); }
+    const cl = npc(a, 'clerk', makeChar(LK.clerkH), 3.0, -2.2, Math.PI); cl.st.sit = true; a.cl = cl;
+    a.watch = [];
+    const f1 = npc(a, 'fg1', makeChar(LK.foxGuard), -10, 0.0, Math.PI / 2, { path: [[-10, 0.0, 1.6], [4.4, 0.0, 1.8]], speed: 1.2 });
+    const f2 = npc(a, 'fg2', makeChar(LK.foxGuard), -4, -5.4, Math.PI / 2, { path: [[-9.2, -5.4, 1.4], [6.0, -5.4, 1.6]], speed: 1.15 });
+    for (const w of [f1, f2]) { w.cone = makeCone(5.4, 0.48, 0xFFE9A0); w.model.root.add(w.cone); a.watch.push(w); }
+    a.det = 0; a.R = 5.4;
+    addItem(a, { id: 'board', x: 6.4, z: -6.0, label: '査定の表示板を読む', on: evScoreBoard });
+    addItem(a, { id: 'yoshin', x: -10.0, z: -2.6, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evKyuDoc('yoshin') });
+    addItem(a, { id: 'kon', x: -2.0, z: -4.2, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evKyuDoc('kon') });
+    addItem(a, { id: 'makabe', x: -10.0, z: -5.6, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evKyuDoc('makabe') });
+    addItem(a, { id: 'clerkT', x: 3.0, z: -1.2, label: '話す', col: 0xE3B428, on: evClerk });
+    addItem(a, { id: 'elev', x: 0, z: -6.2, r: 1.5, label: '社長専用エレベーター', col: 0xC8323C, once: false, on: () => evElevator() }); },
+  tick(a, dt) { stealthTick(a, dt); },
+  restore(a) { a.det = 0; },
+  async onCaught(a, w) { S.flags.c4caught = (S.flags.c4caught || 0) + 1; sfx('alert');
+    faceEach(w); otsCam(w, 2.4, 1.5);
+    await say(w.key, '……人間の方？　このフロアは、夜間は関係者以外、立ち入りできませんよ。');
+    const c = await choose([{ t: '「失礼しました。静州商事の者です。社長にお約束が……」', k: '表', cover: -6 }, { t: '（会釈して、黙って引き返す）', k: '裏声', cover: -4, cold: 1 }]);
+    if (c === 0) await say(w.key, '……社長は、今夜はどなたともお会いになりません。お引き取りを。');
+    if (S.flags.c4caught >= 3) { await narr('九尾の警護に、エレベーターの前まで丁寧に「案内」された。……これ以上は、探れない。'); await evElevator(true); return; }
+    await fade(true); P.pos.set(10.6, 0, 5.6); P.facing = -Math.PI * 0.75; camSnap = true; a.det = 0; for (const x of a.watch) { x.pi = 0; x.pos.set(x.path[0][0], 0, x.path[0][1]); } await fade(false);
+    await ura('狐は、耳がいい。……仕切りの陰を伝え。'); }
+});
+// ---- 三十五年前の応接室（回想） ----
+makeArea('memory', { noPlayer: true, place: '', bounds: [-5, 5, -4, 4], spawn: [0, 999], cam: [0, 7, 7], music: '', bg: 0x2A2218, fog: null, light: 0.7, sun: 0.35,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(11, 9), new THREE.MeshLambertMaterial({ color: 0x6A4A32 })); fl.rotation.x = -Math.PI / 2; g.add(fl); for (let z = -4; z <= 4; z += 0.5) block(11, 0.01, 0.04, 0x5A3A26, 0, 0.01, z, g);
+    block(11, 3, 0.2, 0xC8B8A0, 0, 1.5, -4.2, g); block(0.2, 3, 9, 0xC8B8A0, -5.2, 1.5, 0, g); plane(2.6, 1.6, skyTex, 2.2, 1.8, -4.08, g);
+    block(3.0, 0.5, 1.0, 0x6A2A2A, 0, 0.3, -2.4, g); block(3.0, 0.7, 0.2, 0x5A2020, 0, 0.75, -2.9, g); block(1.8, 0.4, 1.0, 0x4A3020, 0, 0.2, -0.6, g);
+    part(cyl(0.12, 0.1, 0.16, 10), 0xF4F0E8, 0.4, 0.48, -0.6, g, { outline: false });
+    a.hk = npc(a, 'hakko', makeChar(LK.hakkoBig), 0, -2.4, 0); a.hk.st.sit = true;
+    a.mom = npc(a, 'mother', makeChar(LK.kuzeMom), -0.7, 1.0, Math.PI); a.boy = npc(a, 'boy', makeChar(LK.kuzeBoy), 0.5, 1.1, Math.PI); }
+});
+// ---- B.U.N 中央記録庫 ----
+makeArea('bunrec', { noPlayer: true, place: '', bounds: [-6, 6, -6, 6], spawn: [0, 999], cam: [0, 7, 7], music: 'bun', bg: 0x04060E, fog: [10, 40], light: 0.35, sun: 0.2,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.MeshPhongMaterial({ color: 0x0E1220, shininess: 80, specular: 0x4050A0 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (let i = 0; i < 9; i++) { const x = -5 + (i % 3) * 5, z = -5 + Math.floor(i / 3) * 0.01 - 0.5; block(0.3, 4, 1.6, 0x1A2030, x * 0.9, 2, -4.6 + (i % 2) * 0.1, g); for (let k = 0; k < 5; k++) { const c = part(G_('crys2', () => new THREE.OctahedronGeometry(0.16, 0)), 0xB8C8FF, x * 0.9 + 0.3, 0.6 + k * 0.7, -4.4, g, { emis: 0x4060C0, outline: false, s: [1, 1.8, 1] }); void c; } void z; }
+    a.ch = npc(a, 'chanyu', chanyuBird(), 0, -1.6, 0); crystalHalo(a.ch.model.root, 6, 1.6, 1.6);
+    const hol = plane(3.6, 2.2, signTex(720, 440, [{ t: '中央記録　JP-CHU-0503', size: 40, w: 900 }, { t: '九尾HD 代表、人間一名を保護', size: 34 }, { t: '翌日、解放', size: 34 }, { t: '関与：静州商事　久世躁一郎', size: 34 }], { bg: '#081028', fg: '#C8D4FF' }), 0, 2.6, -0.2, g, { transparent: true, opacity: 0.85 }); hol.material.blending = THREE.AdditiveBlending; },
+  tick() { haloTick(0.016); }
+});
+
+// ================= 第四章　救われた者たち：台本 =================
+const ain = (t) => say('asaiIn', t, { cls: 'narr' });
+function c4Trust() { return ['isho', 'pfarm', 'pmak', 'kitoT', 'bed'].filter(k => S.seen.has('i:' + k)).length + (S.flags.c4asaiDesk ? 1 : 0); }
+
+async function chapter4() { G.mode = 'cine'; S.chapter = 4; S.cover = Math.max(S.cover, 70); $('report').hidden = true; nameCard(null); bgm('');
+  await card('この章について', '自殺未遂、および性的な強要をほのめかす描写を含みます', 4200);
+  // ---- 冷たい序：午前四時の屋上 ----
+  await goArea('roof4'); const R = AREAS.roof4, as = R.as; as.hidden = false; as.pos.set(0, 0, 8.3); as.facing = 0; as.model.root.rotation.set(0, 0, 0);
+  pan([0, 6, -2], [0, 1.4, 9], [0, 2.4, 4.6], [0, 1.3, 9], 12); loc('春日井　天環スカイタワー　屋上', '地上四百メートル', 'KASUGAI TENKAN SKY TOWER — 100F');
+  await narr('午前四時。春日井でいちばん高い塔の屋上に、一人の人間が立っていた。');
+  await narr('転落防止の白いフェンスの、外側。靴の幅ほどしかない縁の上に。');
+  loc(null); pan([2.4, 2.0, 6.0], [0, 1.6, 8.3], [1.8, 1.9, 6.8], [0, 1.6, 8.3], 10);
+  await ain('……風、冷たいな。');
+  await ain('二年。……よく、持ったほうだと思う。');
+  await narr('静州商事、事業管理部。浅井陽太、二十六歳。入社三年目。');
+  await narr('昼は書類と電話。夜は、取引先の接待。この街の取引先は、ほとんどが異種族だった。');
+  await narr('接待の席で、彼は気に入られた。気に入られる、というのは、この街では、断れない、ということだ。');
+  await narr('手を握られた。膝に座らされた。ホテルの部屋へ連れていかれた。断れば契約が飛ぶ。契約が飛べば、部長の顔が曇る。');
+  await ain('だから、笑った。……喜んでるふりをした。尻尾を振る犬みたいに。');
+  await ain('そうしたら、契約は面白いくらい取れた。部長は褒めてくれた。……褒められるたびに、何かが少しずつ、削れていった。');
+  await ain('付き合ってほしい、って言われたことも、何度もある。');
+  await ain('会社が、取引先の方との交際を禁止してるので。……そう言って断るたびに、相手は悲しそうな顔をした。');
+  await ain('悲しそうな顔をしてくれるなら、まだよかった。');
+  await narr('怒って、身体に「印」を刻もうとする者がいた。手を上げる者がいた。婚姻届を差し出して、署名するまで部屋から出さない、と言った者もいた。');
+  await ain('そのたびに、真壁が来てくれた。');
+  await narr('真壁悠。同じ町で育った幼馴染で、同じ会社の、営業二課。彼はいつも、ドアを叩いて、頭を下げて、浅井を連れて帰った。');
+  await narr('三か月前。神領での接待のあと、真壁は帰ってこなかった。会社は、自己都合の退職として処理した。');
+  await ain('真壁の仕事は、全部、僕に回ってきた。……あいつの接待も、全部。');
+  await ain('辞めます、って。言えばよかったんだ。');
+  await ain('……言えなかった。僕は、昔から、そういうのが言えない。');
+  await narr('昨日も、会社に泊まった。一昨日も。最後に自分の部屋で眠ったのがいつか、もう思い出せない。');
+  await ain('部屋の机に、手紙と、封筒を置いてきた。……大家さん、きっと心配する。ごめんなさい。');
+  pan([0, 3.2, 6.8], [0, -30, 40], [0, 3.0, 7.2], [0, -60, 30], 8);
+  await narr('見下ろした大通りに、動くものはなかった。誰もいない交差点で、信号だけが、律儀に色を変えている。');
+  pan([1.4, 1.7, 7.4], [0, 1.7, 8.3], [1.2, 1.7, 7.6], [0, 1.7, 8.3], 6);
+  await ain('……足が、動かない。決めたのに。');
+  await ain('身体のほうが、生きたいって言ってる。……でも、後ろのフェンスをもう一度越えたら、また、あの毎日が始まる。');
+  await ain('……息を、整えよう。');
+  await narr('腹の底から、息を吐いた。――その時だった。');
+  R.gust = true; sfx('wind'); G.shake = 0.5; await narr('背中から、強い風が吹いた。');
+  for (let i = 0; i <= 20; i++) { as.model.root.rotation.x = i / 20 * 0.9; as.pos.z = 8.3 + i / 20 * 0.8; await sleep(G.skip ? 0 : 30); }
+  await narr('細い縁の上の身体が、前へ、押し出された。');
+  R.gust = false; await fade(true);
+  // ---- 落下と、九本の尾 ----
+  await goArea('avenue4'); const V = AREAS.avenue4, fa = V.as, hk = V.hk; fa.hidden = false; fa.pos.set(0, 0, -4); fa.y = 60; fa.model.root.rotation.set(0, 0, Math.PI / 2); hk.hidden = true;
+  cine(4, 1.0, 8, 0, 18, -4);
+  await ain('――あ。');
+  for (let i = 0; i <= 30; i++) { fa.y = 60 - i / 30 * 48; await sleep(G.skip ? 0 : 22); }
+  await ain('……これで……やっと……');
+  await narr('目を閉じた。冷たい風と、下へ下へと加速していく感覚だけが、身体を包んでいた。');
+  hk.hidden = false; hk.pos.set(0.6, 0, -3.4); hk.y = 0; hk.facing = Math.PI; V.hkGlow.material.opacity = 0.9; sfx('holo'); boom(0, 2.4, -4, 0xFFF4E0, true); G.shake = 0.6;
+  for (let i = 0; i <= 12; i++) { fa.y = 12 - i / 12 * 10.4; await sleep(G.skip ? 0 : 20); } fa.pos.set(0.6, 0, -3.95); fa.y = 1.55; hk.st.carry = true;
+  cine(3.6, 2.2, -9.8, 0.2, 1.9, -3.0);
+  await say('hakko', '捕まえたで♡');
+  await narr('落ちていく身体が、止まった。代わりに、ふわりと、柔らかく包み込まれる感覚があった。');
+  await narr('ゆっくりと目を開けると、狐の目と、目が合った。白く、大きな、九本の尾が、背中の向こうで揺れている。');
+  nameCard({ s: '妖狐　九尾ホールディングス 代表取締役社長', b: '九重 白狐', e: 'ここのえ びゃっこ', col: '#F0B060', p: '人間の与信を握る、世界有数の金融の長。数千年を生きた九尾。\n表では、柔らかな敬語を話す。\n――ふたりきりになると、もっと古い言葉が出る。' });
+  await say('hakko', '危ないとこやったなぁ♡');
+  await narr('目の端に、地面が見えた。もう、目と鼻の先だった。あと一秒遅ければ、彼の身体はあそこに叩きつけられていた。');
+  await ain('……九重、社長……？　どうして、ここに……');
+  await say('hakko', 'まさか、お前さんが死ぬことまで考えとったなんてなぁ。');
+  await say('hakko', 'ウチの申し出を真正面から断った時は、勇気のある人間やと思て、見逃したったのに。');
+  nameCard(null); await say('asai', 'あ、あの……');
+  cine(1.4, 2.1, -5.8, 0.6, 2.4, -3.4); hk.facing = Math.PI * 0.95;
+  await say('hakko', '喋るな。');
+  await narr('さっきまでの、子どもをあやすような甘い声ではなかった。心の芯まで凍るような声だった。');
+  hk.st.point = true; await say('hakko', 'お前さんは今さっき、あそこから落ちて、ここで死んだんや。'); hk.st.point = false;
+  await say('hakko', '死んだもんは、拾たもんのもんや。……今日からお前さんは、ウチの持ちもんや。');
+  await say('hakko', '恋人や夫婦なんて、甘っちょろいもんやないで。一生、ウチのそばで飼うたる。');
+  await narr('紫の瞳が、細くなった。指一本で人間をどうにでもできる上位の存在が、自分ひとりに、重く、病んだ執着を向けている。');
+  await ain('これからずっと、この人の顔色を見て、笑って生きる。……嫌だ。それだけは、もう、嫌だ。');
+  G.shake = 0.3; await say('asai', 'は、離して……ください……！');
+  await say('hakko', 'あ゛？　お前さん、どこへ行く気や。');
+  await narr('細い腕の、どこにそんな力があるのか。身をよじっても、びくともしない。');
+  await say('hakko', 'しゃあないなぁ。……ちょっと、落ち着こか。ほれ。');
+  sfx('zap'); flashCam(); G.shake = 0.4; await narr('額に、指先が触れた。ぱちり、と音がして、頭の中を白い光が走った。');
+  await narr('浅井の意識は、そこで途切れた。');
+  await fade(true); hk.st.carry = false;
+  // ---- 目覚め：九尾の塔の百階 ----
+  await goArea('penthouse'); const PH = AREAS.penthouse; P.model.root.visible = false; PH.as.model.root.rotation.set(0, 0, 0); PH.as.st.sit = true; PH.as.st.down = false; PH.hk.st.sit = true; PH.markOff = true; PH.hk.facing = -Math.PI / 2; PH.as.facing = Math.PI / 2; PH.hk.lookAt = null; PH.as.lookAt = null; bgm('fox');
+  cine(-0.1, 2.1, 3.8, -0.15, 1.5, -1.0);
+  await narr('目を開けると、暗かった。顔に触れているものは、柔らかくて、温かい。');
+  await ain('……死んだ、のかな。死んだあとって、こんなに、あったかいのか。');
+  await say('hakko', 'お、やっと起きたか。');
+  await say('asai', 'ひっ……');
+  await say('hakko', 'ぎょうさん寝よったなぁ。……あんまり、眠れてへんかったんやろ？　ん？');
+  await say('asai', '……まぁ……');
+  await ain('ここ何年か、眠るということを忘れていた。部屋に帰ろうとすると電話が鳴った。少しでも遅れれば、怒鳴られた。');
+  await say('hakko', '気ぃが落ち着くお香、焚いといたんや。……人間には、よう効くなぁ。ほんま、おもろい生き物やね。');
+  await narr('部屋じゅうに、薄桃色の煙が漂っていた。甘い香りを吸うたびに、身体から力が抜けていく。');
+  pan([5, 3.4, 4], [0, 1.4, -2], [3.6, 3.0, 3.2], [0, 1.6, -3], 8);
+  await narr('塵ひとつない、白い部屋。窓の外に、建物は見えない。空だけがある。部屋の真ん中に、大きな白い寝台。');
+  await say('hakko', 'ええ部屋やろ。名古屋の、九尾の塔のてっぺんや。……お前さんと暮らすために、一年前から押さえとったんよ。');
+  await say('asai', '……一年前……？　社長と初めてお会いしたのは、半年前の、接待で……');
+  await say('hakko', 'そうや。一年前の今日。あの小さい会社に入っていく、疲れ切ったお前さんを、ウチは見たんや。');
+  await say('hakko', 'それからは、寝ても覚めても、お前さんのことが頭から離れへんかった。……数千年生きてきて、こんなん、初めてやったんよ。');
+  await ain('半年前の接待。料亭の座敷で、社長は商談をそっちのけにして、僕だけを見ていた。');
+  await ain('最後には、「この子、持って帰ってもええ？　あかんとは言わんやろ？」と言って、席を立った。部長は、何も言わなかった。');
+  await ain('……その夜のことは、思い出したくない。');
+  cine(-2.3, 1.9, -0.2, 0.6, 2.0, -1.0);
+  await say('hakko', 'せやから、やっぱり、お前さんは持ちもんやのうて、ウチのお婿さんや。毎日、甘ぁい夫婦で暮らすんが、いちばんええと思うんよ。');
+  await say('hakko', 'これから二人で市役所行こか。婚姻届、出しに。……な、旦那はん♡');
+  await narr('世界有数の大企業の社長。数千年を生きた伝説の九尾。その相手が、自分を夫に迎えると言っている。');
+  await narr('「はい」と、ひとこと言えばいい。それで一生、何にも困らない。誰もが羨む話だ。');
+  await ain('……でも。');
+  await ain('この街には、もう、いたくない。どこを歩いても、会社のことを思い出す。');
+  await ain('助けてもらった恩は、忘れない。……でも、僕は、地元に帰りたい。美濃の山あいの、父さんと母さんの柿の畑で、のんびり暮らしたい。');
+  cine(2.5, 2.2, -0.3, -0.9, 1.3, -1.0);
+  await say('asai', 'ご、ごめんなさい！　……助けていただいたことは、本当に、ありがたいと思っています。でも僕、地元に帰ろうと思ってて……');
+  cine(-1.5, 1.9, -0.5, 0.6, 2.1, -1.0); await sleep(G.skip ? 0 : 900);
+  await narr('白い顔から、微笑みが、すっと消えた。紫の瞳に見据えられると、指一本、動かせなかった。');
+  await say('hakko', '……脱げ。');
+  sfx('heart'); $('fade').style.transition = 'none'; $('fade').style.opacity = 1; await sleep(G.skip ? 0 : 1600); $('fade').style.transition = '';
+  P.model.root.visible = true;
+  await card('第四章　救われた者たち', '', 3200);
+  await goOffice4(); }
+
+// ---- 静州商事：空いた席 ----
+function office4Setup(a) { if (!a.c4) { a.c4 = true;
+    if (!a.hy) { a.hy = npc(a, 'hayase', mk('young'), -4, -0.58, Math.PI); a.hy.st.sit = true; }
+    addItem(a, { id: 'c4desk', x: 2, z: 3.4, label: '浅井の机を調べる', col: 0xC8323C, on: evAsaiDesk });
+    addItem(a, { id: 'c4kintai', x: 7.6, z: -3.4, label: '勤怠の記録を照会する', on: evKintai });
+    addItem(a, { id: 'c4box', x: 6, z: 3.2, label: '段ボール箱を見る', on: evMakabeBox });
+    addItem(a, { id: 'c4gondo', x: 0, z: -2.8, label: '話す', col: 0xE3B428, on: evGondo4 });
+    addItem(a, { id: 'c4ono', x: 4, z: 0.4, label: '話す', col: 0xE3B428, on: evOno4 });
+    addItem(a, { id: 'c4haya', x: -4, z: 0.4, label: '話す', col: 0xE3B428, on: evHaya4 });
+    addItem(a, { id: 'c4out', x: 0, z: 5.6, label: '浅井のアパートへ', col: 0xC8323C, once: false, avail: () => !!S.flags.c4kitoCall, on: () => goAsaiApt() }); }
+  for (const n of a.npcs) if (n.key === 'asai') n.hidden = true;
+  for (const it of a.items) if (!it.id.startsWith('c4') || DONE.has(a.id + ':' + it.id)) it.done = true;
+  a.hy.hidden = false; }
+{ const r0 = AREAS.office.restore; AREAS.office.restore = a => { if (r0) r0(a); if (S.chapter === 4) office4Setup(a); }; }
+async function goOffice4() { G.mode = 'cine'; await goArea('office', [0, 5.0], Math.PI); const a = AREAS.office; office4Setup(a); bgm('office');
+  cine(3.6, 2.6, 6.2, 2, 1.0, 2.2); await card('春日井　静州商事', '同じ日　午前八時五十分', 2000);
+  await narr('浅井の席が、空いていた。椅子が、机にきちんと押し込まれている。');
+  cine(3, 2.6, -1.2, 0, 1.5, -3.6);
+  await say('gondo', '久世くん……。浅井くんから、退職のメールが来た。朝の、五時だ。');
+  await say('gondo', 'それと、九尾ホールディングスの秘書室から電話があった。「浅井様は、本日付で弊社社長のもとへ移られます。お手続きは、こちらで」……だそうだ。');
+  await say('gondo', '引き抜き、なのかね。九尾さんの大口の担当は、浅井くんだったから……。いや、めでたい話かもしれん。あの九尾さんだぞ。');
+  await ura('朝の五時に、退職のメール。', '……あいつは、そんな時間に、どこで、何をしていた。');
+  playOn(); setObj('浅井の机と、勤怠の記録を確かめる'); saveGame(true); }
+async function evAsaiDesk() { S.flags.c4asaiDesk = true; cine(3.4, 2.2, 4.6, 2, 1.0, 2.2);
+  await narr('モニターの縁が、付箋で埋まっていた。');
+  await narr('「九尾HD　19:00　料亭 紫苑」「夜宴　21:30」「紅鱗 常務 会食（真壁さん分）」「九尾HD　19:00」「九尾HD　19:00」――');
+  await narr('引き出しには、胃薬の空き箱と、栄養剤の瓶が、十本以上。');
+  await narr('机の端に、小さなメモが一枚。浅井の字で、「辞めます」と書いて、二重線で消してあった。その下に、もう一度。「辞めます」。また、二重線。');
+  await ura('……三回、書いて、三回、消している。');
+  await ura('お前は、この机の、隣の島にいた。二年間。', '……何を見ていた。');
+  await say('kuze', '……国の話ばかり、していた。');
+  await checkC4Call(); }
+async function evKintai() { markI('c4kintai'); cine(6.2, 2.6, -2.2, 7.6, 1.2, -4.8);
+  await narr('勤怠管理システム　事業管理部　浅井陽太');
+  await narr('打刻上の退勤は、毎日、二十二時ちょうど。……ただ、入館ゲートの記録では、彼がビルを出たのは、午前二時、三時。昨夜は、出ていない。');
+  await narr('二十二時から先の時間は、どこにも、記録されていない。');
+  await ura('記録されない時間。……記録されない被害。', '数字の上では、浅井陽太は、ずっと定時で帰っていた。');
+  addNote('c4kintai', '浅井の勤怠', '打刻は毎日22:00で止まり、実際の退館は午前二時、三時。昨夜は会社に泊まっていた。二十二時以降の労働は、どこにも記録されていない。', true);
+  await checkC4Call(); }
+async function evMakabeBox() { markI('c4box'); cine(7.6, 2.2, 5.0, 6, 0.9, 2.2);
+  await narr('隣の島の机に、段ボール箱が一つ。「営業二課　真壁 悠　私物」。');
+  await narr('中に、名札と、湯呑みと、一枚の業務メモ。「神領　画廊　搬入立会い（先方指名）」。日付は、三か月前。');
+  await ura('真壁悠。……浅井の幼馴染。', '神領の、画廊。');
+  addNote('c4makabe', '真壁の私物', '営業二課の真壁悠。三か月前、「神領 画廊 搬入立会い（先方指名）」に出て、帰らなかった。会社は自己都合退職として処理した。'); }
+async function evGondo4() { markI('c4gondo'); const a = AREAS.office; cine(3, 2.6, -1.2, 0, 1.5, -3.6);
+  await say('kuze', '部長。浅井くんを、九尾さんの席に座らせたのは、誰ですか。');
+  await narr('権藤の顔から、血の気が引いた。');
+  await say('gondo', '……俺だ。白狐社長が、「浅井くんが担当でないなら、取引は見直す」と……。半年前からだ。');
+  await say('gondo', '真壁がいなくなってからは、真壁の分の席も、全部……。俺は、判を押すみたいに、名前を書いた。');
+  const c = await choose([{ t: '「……部長。浅井くんは、今朝、死のうとしたかもしれないんです。」', k: '本音', warm: 1, cover: -6 }, { t: '（何も言わず、頭を下げて離れる）', k: '表', cover: 3 }]);
+  if (c === 0) { await say('kuze', '……部長。浅井くんは、今朝、死のうとしたかもしれないんです。'); a.gondo.model.nod = 1; await say('gondo', '……な……'); await narr('権藤は椅子に崩れ落ちて、両手で顔を覆った。何か言おうとして、何も言えなかった。'); S.flags.c4gondoTold = true; }
+  else { await narr('久世は、何も言わずに頭を下げた。権藤は、その頭の下げ方の意味が、分からないようだった。'); } }
+async function evOno4() { markI('c4ono'); await say('onodera', '浅井くん……真壁くんがいなくなってから、ずっと一人で、全部やってました。');
+  await say('onodera', '「真壁が帰ってきたら、全部返すんだ」って。……返す相手、いないのに。');
+  await say('onodera', '昨日の夜、給湯室で、浅井くんが言ってたんです。「小野寺さん、春日井で一番高いところって、どこでしたっけ」って。……わたし、天環の塔ですよって、笑って答えて……'); await narr('小野寺の声が、途中で途切れた。'); }
+async function evHaya4() { markI('c4haya'); await say('hayase', '久世さん……。浅井さん、俺が紅鱗から戻ってきた日、一番に「よかった」って言ってくれたんです。');
+  await say('hayase', '自分のほうが、ずっと、ひどい顔してたのに。……俺、気づいてたのに、何も言えませんでした。'); await say('kuze', '……僕もです。'); }
+async function checkC4Call() { if (S.flags.c4kitoCall || !S.flags.c4asaiDesk || !S.seen.has('i:c4kintai')) return; S.flags.c4kitoCall = true;
+  { P.st.phone = true; sfx('vib'); cine(P.pos.x + 2.4, 2.2, P.pos.z + 2.6, P.pos.x, 1.4, P.pos.z);
+    await say('kito', 'もしもし、静州商事さん？　浅井さんのアパートの、大家の鬼頭です……！');
+    await say('kito', '浅井さんの部屋にね、手紙が……。あの、お宅の課長さん、久世さんって方、おられる？　浅井さん、いっつも、あんたの話しとったでね……');
+    await say('kuze', '久世です。……すぐに、伺います。');
+    P.st.phone = false; setObj('浅井のアパートへ（エレベーターへ）'); } }
+
+// ---- 浅井のアパート ----
+async function goAsaiApt() { G.mode = 'cine'; await goArea('asaiApt', [1.4, 1.8], -Math.PI * 0.6); const a = AREAS.asaiApt; bgm('dawn'); cine(1.0, 2.6, 3.0, 3.0, 1.5, 1.0);
+  await card('春日井　浅井のアパート', '午前十時', 1800);
+  await narr('会社から歩いて十分。異種族の住人が多い、立派な造りのアパートだった。人間は、家賃が八割引きになる。');
+  faceEach(a.kt); otsCam(a.kt, 2.0, 1.4);
+  nameCard({ s: '鬼族　アパート「ひなた荘」大家', b: '鬼頭 千代', e: 'きとう ちよ', col: '#E8C0A0', p: '心配性の大家さん。住人の誰にでも、朝のお味噌汁を届けて回る。\n浅井の部屋には、毎朝。' });
+  await say('kito', 'あんたが、久世さん……。来てくれて、ありがとうねぇ。');
+  await say('kito', '浅井さん、いっつも、あんたの話しとったでね。「課長が優しいで、まだ頑張れる」って。');
+  nameCard(null); await ura('……優しい課長。', '笑って、頭を下げるのが上手いだけの男を、あいつは、そう呼んでいた。');
+  await say('kito', '今朝、お味噌汁持ってったら、返事がなくてね。三日も帰っとらんで、心配で、合鍵で入ったら……机の上に、手紙と、封筒が。');
+  await say('kito', 'わたしね、読んでないの。宛名に、あんたの名前もあったで。……読んであげて。');
+  playOn(); setObj('浅井の部屋を見る（机の手紙、写真、そのほか）'); saveGame(true); }
+async function evIsho() { markI('isho'); const a = AREAS.asaiApt; cine(-1.6, 1.9, -1.2, -2.9, 0.9, -2.8);
+  await narr('便箋が五枚。几帳面な字だった。ところどころ、インクが滲んでいる。');
+  await narr('「父さん、母さんへ。\n先に、謝ります。ごめんなさい。」');
+  await narr('「柿は、今年もちゃんと実がなりましたか。秋になったら帰る、と毎年言って、二年、帰れませんでした。\n帰りたかった。でも、帰り方が、分からなくなってしまいました。」');
+  await narr('「仕事が嫌いだったわけじゃないです。ただ、毎晩、知らない人に笑いかけているうちに、自分がどんな顔で笑っていたのか、思い出せなくなりました。」');
+  await narr('「鬼頭さんへ。\n毎朝のお味噌汁、ありがとうございました。あれがなかったら、もっと早く、こうしていたと思います。封筒のお金は、部屋の掃除と修繕に使ってください。少しで、すみません。」');
+  await narr('「真壁へ。\nごめん。探しに行けなくて、ごめん。お前がいなくなってから、ドアを叩いてくれる人が、いなくなった。」');
+  await narr('「久世さんへ。」');
+  cine(-2.2, 1.6, -1.6, -2.9, 0.9, -2.8);
+  await narr('「いつも、ありがとうございました。\n久世さんは、頭を下げるとき、ちゃんと相手の目を見ていました。僕は、それができませんでした。いつか、できるようになりたかったです。」');
+  await narr('「久世さんも、ちゃんと寝てください。課長の顔、ずっと笑ってるのに、いつも疲れてるから。」');
+  await narr('最後の一行だけ、字が震えていた。\n「ほんとうは、まだ、生きていたかったです。」');
+  await sleep(G.skip ? 0 : 600);
+  await ura('相手の目を見て、頭を下げる。', '……それは、相手の顔色を読むためだ。あいつが思っていたような、誠実さじゃない。');
+  await say('kuze', '……分かってる。');
+  await ura('お前は、この国を取り戻すと言いながら、隣の机の男が、二年かけて壊れていくのを、見ていなかった。');
+  await ura('「一人の社員は、小さな点だ」。……黒岩の言葉を、お前は、いつから自分の目にしていた。');
+  const c = await choose([{ t: '「……違う。浅井は、小さな点じゃない。」', k: '本音', warm: 1 }, { t: '（手紙を、静かに畳む）', k: '表' }]);
+  if (c === 0) { await say('kuze', '……違う。浅井は、小さな点じゃない。'); await ura('なら、取り戻せ。……今度は、ちゃんと見ろ。'); }
+  else { await narr('久世は、手紙を折り目どおりに畳んで、封筒に戻した。指先が、少しだけ震えていた。'); }
+  addNote('c4isho', '浅井の手紙', '両親、大家の鬼頭さん、幼馴染の真壁、そして久世に宛てた五枚の手紙。最後の一行は「ほんとうは、まだ、生きていたかったです」。', true); }
+async function evEnvelope() { markI('env'); await narr('茶封筒に、鉛筆の字で「お部屋の修繕代」。中には、一万円札が三枚と、小銭が少し。');
+  await ura('二年働いて、残ったのが、これか。'); }
+async function evPhotoFarm() { markI('pfarm'); cine(0.4, 1.7, -1.2, 0.5, 1.3, -3.2);
+  await narr('写真立て。柿の木の下で、日焼けした夫婦と、高校生くらいの浅井が笑っている。脚立の上で、浅井が柿を一つ、高く掲げていた。');
+  await narr('裏に、マジックで。「美濃　浅井農園　陽太 十七歳」。');
+  await ura('……こんな顔で、笑うのか。', '会社で見ていた笑顔とは、まるで違う。'); }
+async function evPhotoMakabe() { markI('pmak'); cine(1.6, 1.7, -1.2, 1.5, 1.3, -3.2);
+  await narr('もう一枚。入社式の看板の前で、スーツの浅井と、背の高い青年が、肩を組んでいる。青年のほうは、歯を見せて笑っていた。');
+  await narr('裏に、別の字で。「お前は俺が守る。　真壁」');
+  await ura('真壁悠。……ドアを叩いて、浅井を連れて帰っていた男。'); }
+async function evFridge() { markI('fridge'); await narr('冷蔵庫の中は、栄養ドリンクが四本と、鬼頭さんのものらしい、ラップのかかった小鉢が三つ。手つかずのまま、日付だけが古くなっていた。'); }
+async function evAptBed() { markI('bed'); await narr('ベッドは、ほとんど使われた形跡がなかった。枕元に、目覚まし時計が三つ。全部、朝の五時に合わせてある。');
+  await ura('眠るためのベッドじゃない。……起きるためのベッドだ。'); }
+async function evKito() { markI('kitoT'); const a = AREAS.asaiApt; faceEach(a.kt); otsCam(a.kt, 2.0, 1.4);
+  await say('kito', '浅井さんね、毎朝、お味噌汁の鍋返しに来るとき、必ず「おいしかったです」って言うの。……三日も帰らん日でも、四日目の朝には、ちゃんと言いに来るの。');
+  await say('kito', '人間さんはね、家賃八割引きなの。うちみたいな鬼のアパートに、人間さんが住んでくれると、助かるでね。……でも、助かっとったの、わたしのほうばっかりだったかもしれんね。');
+  await say('kito', '今朝、陽盾さんに連絡したらね、天環の塔の下には、何にもなかったって。……ほんだで、生きとる。生きとるよね、久世さん。');
+  const c = await choose([{ t: '「生きています。……必ず、連れて帰ります。」', k: '本音', warm: 1, cover: -2 }, { t: '「……調べてみます。」', k: '表', cover: 2 }]);
+  if (c === 0) { await say('kuze', '生きています。……必ず、連れて帰ります。'); await say('kito', '……うん。うん。お味噌汁、温めて待っとるでね。'); S.flags.c4promise = true; }
+  else await say('kuze', '……調べてみます。'); }
+async function evPaper() { markI('paperT'); const a = AREAS.asaiApt; faceEach(a.pb); otsCam(a.pb, 2.2, 1.4);
+  await say('paper', 'チ……失礼します。この辺の新聞配達の者です。大家さんに頼まれて、見たことを話しに来ました。');
+  await say('paper', '今朝の四時過ぎ、天環の塔の前の大通りを走ってたんです。そしたら、上から、人が落ちてきて。');
+  await say('paper', 'ぶつかる、と思った瞬間に、真っ白な光が。……白くて、でっかい、九本の尻尾の方が、その人を抱えてました。');
+  await say('paper', 'それで、そのまま、名古屋のほうへ飛んでいったんです。……九本ですよ。この辺で九本っていったら、一人しかいないでしょう。');
+  await ura('九重白狐。……九尾ホールディングスの、社長。', '「引き抜き」じゃない。拾われたんだ。');
+  addNote('c4paper', '新聞配達の文鳥の証言', '午前四時過ぎ、天環スカイタワー前の大通り。落ちてきた人を、白い九尾の妖狐が地面の手前で抱え、名古屋の方へ飛んでいった。', true); }
+async function evLeaveApt() { const a = AREAS.asaiApt; sfx('door'); a.kt.lookAt = 'P';
+  await say('kito', '久世さん。……浅井さんに、伝えて。お部屋は、ちゃんと、このままにしとくでね、って。');
+  // 正律から
+  P.st.phone = true; sfx('vib'); cine(P.pos.x + 2.2, 2.2, P.pos.z + 2.4, P.pos.x, 1.4, P.pos.z);
+  await say('rurika', '久世さん？　正律のルリカ。……浅井陽太さんって、あなたの部下だよね。');
+  await say('rurika', '今朝の九時に、春日井市役所に婚姻届が出されたの。夫になる人、浅井陽太。妻になる人、九重白狐。');
+  await say('rurika', '本人の署名は、ある。……でもね、筆跡が、震えてる。それに、窓口に持ってきたのは本人じゃなくて、九尾の秘書室の人。証人欄も、二人とも九尾の役員。');
+  await say('rurika', '正律として、受理を一旦止めた。本人の意思を、直接確認するまで。……でも、相手は九尾の社長。いつまで止めておけるか、分からない。');
+  await say('rurika', 'ね、久世さん。浅井さんは、本当に、結婚したいの？');
+  const c = await choose([{ t: '「……したくないと思います。彼は、地元に帰りたがっていました。」', k: '本音', warm: 1, cover: -4 }, { t: '「部下の私生活のことは、分かりかねます。」', k: '表', cover: 3 }]);
+  if (c === 0) { await say('kuze', '……したくないと思います。彼は、地元に帰りたがっていました。'); await say('rurika', '……やっぱり。うん。止めておく。あたしの名前で、止めておくから。'); S.flags.c4ruTrust = true; }
+  else { await say('kuze', '部下の私生活のことは、分かりかねます。'); await say('rurika', '……そう。でも、止めておくよ。署名が震えてる婚姻届は、正常じゃないもん。'); }
+  S.flags.c4hold = true; addNote('c4hold', '婚姻届の受理保留', '九尾の秘書室が、浅井と九重白狐の婚姻届を春日井市役所に提出。署名は震え、証人は九尾の役員二人。正律のルリカが、本人の意思確認まで受理を止めた。');
+  P.st.phone = false; await sleep(G.skip ? 0 : 400);
+  // 留保班から
+  P.st.phone = true; sfx('vib');
+  await say('kuroiwa', '九尾の件、聞いた。……手を出すな、久世。');
+  await say('kuroiwa', '九重白狐は、葛城の後援会の債権を握っている。次の確認式で葛城に署名させないためには、いずれ九尾と葛城の糸を切らねばならん。……今、あの女の機嫌を損ねるな。');
+  await say('kuroiwa', '部下が一人、取引先に嫁いだ。それだけの話だ。');
+  const d = await choose([{ t: '「……承知しました。」', k: '表', cover: 2 }, { t: '「それだけの話では、ありません。」', k: '本音', warm: 1 }]);
+  if (d === 0) { await say('kuze', '……承知しました。'); await ura('嘘をついた。……上司に。自分の組織に。', 'それでも、行くんだろう。'); S.flags.c4lied = true; }
+  else { await say('kuze', 'それだけの話では、ありません。'); await say('kuroiwa', '……好きにしろ。だが、留保班は手を貸さん。九尾と揉めても、お前を拾う者はいない。'); S.flags.c4defy = true; }
+  P.st.phone = false;
+  await ura('行く前に、もう一つ。', '……明日の朝は、渉の手術だ。');
+  await goHospital(); }
+
+// ---- 蒼生メディカルセンター ----
+async function goHospital() { G.mode = 'cine'; S.flags.c4hosp = true; await goArea('hospital', [9.0, 0.2], -Math.PI / 2); bgm('ward'); cine(4, 3.4, 4.4, -3, 1.2, -1);
+  await card('蒼生メディカルセンター', '第三病棟　午後六時', 1800);
+  await narr('病棟の廊下は、静かで、明るかった。消毒薬と、どこかの部屋の夕食の匂い。');
+  playOn(); setObj('三〇七号室の渉に会う（廊下の左奥）'); saveGame(true); }
+async function evWataru1() { S.flags.c4wt1 = true; const a = AREAS.hospital; P.pos.set(-6.6, 0, -2.6); faceEach(a.wt); cine(-4.6, 2.0, -1.8, -7.4, 1.3, -3.6);
+  await say('wataru', '兄さん。来てくれたんだ。……顔、ひどいよ。');
+  await say('kuze', '……少し、寝不足でな。');
+  await say('wataru', '明日の朝、九時から。ヴォル先生が執刀してくれるって。六時間くらいかかるみたい。');
+  await say('wataru', '怖くないよ、って言いたいけど、ちょっと怖い。……でも、先生、すごく丁寧なんだ。分からないことは、分かるまで説明してくれる。');
+  await say('wataru', 'それでね、兄さん。同意書の、家族の欄に、署名してほしいんだ。先生が、最後の頁は、兄さんにも読んでもらってって。');
+  await ura('最後の頁。', '……第十四条。確認書。婚姻届。今度は、弟の同意書だ。');
+  setObj('ナースステーションのヴォルに、同意書のことを聞く'); }
+async function evVol() { S.flags.c4vol = true; const a = AREAS.hospital; faceEach(a.vol); otsCam(a.vol, 2.2, 1.5);
+  nameCard({ s: '外神竜一族 主家・次女', b: 'ヴォル', e: '蒼生バイオメディカル', col: '#7FAEE0', p: '生物・化学・医療。研究と、毎日の治療をつなぐ人。\n言葉は少なく、丁寧で、静か。\n渉の主治医。' });
+  await say('vol', '久世さん。渉さんの、お兄さんですね。明日、執刀します、ヴォルです。');
+  nameCard(null); await say('kuze', '同意書の、最後の頁について、伺いたいのですが。');
+  await say('vol', 'はい。「術中・術後に患者さんの意思が確認できない場合、治療の継続に関する判断を、蒼生医療機構に一任する」……ですね。');
+  await say('vol', 'あれは、渉さんの意識がないときに、私たちが迷わずに済むための条項です。');
+  await say('vol', '外していただいても、構いません。');
+  await say('kuze', '……外しても、いいんですか。');
+  await say('vol', 'はい。その場合は、手術中に何かあったとき、ご家族に決めていただきます。夜中でも、お電話します。');
+  await say('vol', 'どちらが正しい、ということはありません。決めるのは、私ではなく、あなたたちです。');
+  await ura('……選ばせる。', 'この人は、決める権利を、こちらへ返してくる。');
+  await narr('ヴォルは、少しだけ迷うような顔をして、声を落とした。');
+  await say('vol', 'それと、これは、本来お話しすべきことではないのですが。……今日の午後、九尾ホールディングスから、ある方の診療記録の開示請求がありました。');
+  await say('vol', '「婚姻に伴う、健康証明のため」と。……浅井陽太さん、という方の。');
+  await say('kuze', '……！');
+  await say('vol', 'ご本人の同意書がなかったので、お断りしました。ご本人の同意がないものは、誰の頼みでも、出せません。');
+  await say('vol', '……その方を、ご存じなんですね。');
+  await say('vol', 'もし、その方がどこかで怪我をしていたら、ここへ連れてきてください。誰の持ち物でもなく、一人の患者さんとして、診ます。');
+  addNote('c4vol', 'ヴォルの話', '九尾HDが「婚姻に伴う健康証明」として浅井の診療記録の開示を求めたが、本人の同意がないため断った。「誰の持ち物でもなく、患者として診ます」。');
+  setObj('渉の枕元の同意書を読み、署名する'); }
+async function evDoui() { S.flags.c4doui = true; const a = AREAS.hospital; P.pos.set(-5.9, 0, -3.0); P.facing = Math.PI; cine(-4.4, 1.9, -2.2, -5.9, 0.9, -4.4);
+  await narr('手術同意書。病名、術式、予想される危険、代わりの治療法。どの頁にも、ヴォルの字で、丁寧な書き込みがある。');
+  await narr('最後の頁。\n「術中・術後に患者の意思が確認できない場合、治療の継続に関する判断を、蒼生医療機構に一任する。」');
+  await ura('一任する。', '……救ってもらうなら、決める権利まで、渡すのか。');
+  await ura('だが、ヴォルは言った。外していい、と。', '外したら、夜中の電話で、お前が渉の命を決める。……お前に、それができるのか。');
+  cine(-4.6, 2.0, -1.8, -7.4, 1.3, -3.6);
+  const c = await choose([{ t: '一任の条項のまま、署名する', k: '表' }, { t: '条項に線を引き、「家族が決める」と書き直して署名する', k: '本音', cold: 1 }, { t: '渉に、どうしたいか聞く', k: '温情', warm: 1 }]);
+  if (c === 0) { S.flags.c4sign = 'trust'; await narr('久世は、条項に触れずに、家族の欄に名前を書いた。'); await say('wataru', 'ありがとう、兄さん。……兄さんがそれでいいなら、僕もいい。'); await ura('任せた。……任せることを、自分で決めた。それなら、まだ、渡してはいない。'); }
+  if (c === 1) { S.flags.c4sign = 'family'; await narr('久世は、条項に一本、線を引いた。余白に「判断は家族が行う。連絡は昼夜を問わず兄へ」と書き、署名した。'); await say('wataru', '……兄さんらしいね。夜中に電話が来たら、ちゃんと起きてよ？'); await say('kuze', '……起きる。必ず。'); }
+  if (c === 2) { S.flags.c4sign = 'wataru'; await say('kuze', '渉。……お前は、どうしたい。');
+    await narr('渉は、少し驚いた顔をして、それから、天井を見た。');
+    await say('wataru', '……僕は、先生に任せたい。先生が迷わずに済むなら、そのほうがいい。');
+    await say('wataru', 'でも、兄さんが読んで、聞いてくれたから、僕が自分で決めたって言える。……それ、すごく、嬉しい。');
+    await narr('渉は、一任の条項の横に、自分で小さく丸をつけた。'); }
+  addNote('c4doui', '渉の手術同意書', { trust: '一任の条項のまま、家族の欄に署名した。', family: '一任の条項に線を引き、「判断は家族が行う」と書き直して署名した。', wataru: '渉自身が、一任の条項に丸をつけて決めた。' }[S.flags.c4sign]);
+  // 父と、九尾のこと
+  await sleep(G.skip ? 0 : 300); cine(-5.0, 1.8, -2.4, -7.4, 1.4, -3.6);
+  await say('wataru', '……ねえ、兄さん。父さんのこと、まだ、許せない？');
+  await say('kuze', '……許すとか、許さないとかじゃない。');
+  await say('wataru', '僕、小さかったけど、覚えてるんだ。母さんが、古い応接室で、白い狐の人に頭を下げてたの。');
+  await say('wataru', '兄さんも、隣で、頭を下げてた。……床ばっかり見てた。');
+  await ura('……白い、狐。');
+  await say('wataru', 'あのお金がなかったら、僕たち、たぶん、ばらばらになってた。僕は、ここにいなかったかもしれない。');
+  await say('wataru', 'だから、僕は、救ってくれた人たちに、ありがとうって言いたい。……兄さんは、それが、嫌なんだよね。');
+  const d = await choose([{ t: '「嫌なんじゃない。……ありがとうと言ったら、それで全部終わりにされるのが、嫌なんだ。」', k: '本音', warm: 1 }, { t: '「……明日は、早い。もう寝ろ。」', k: '表' }]);
+  if (d === 0) { await say('kuze', '嫌なんじゃない。……ありがとうと言ったら、それで全部、終わりにされるのが、嫌なんだ。'); await say('wataru', '……うん。それは、ちょっと分かるかも。'); await say('wataru', 'じゃあ、兄さん。明日、手術が終わったら、先生に、兄さんの言いたい「ありがとう」を言ってよ。終わりにされない、ありがとうを。'); S.flags.c4wtTalk = true; }
+  else { await say('kuze', '……明日は、早い。もう寝ろ。'); await say('wataru', 'うん。……兄さんも、ちゃんと寝てね。'); }
+  await ura('白い狐。……九尾。', '三十五年前、母に頭を下げさせたのは、あの塔のてっぺんにいる女かもしれない。');
+  setObj('病棟を出て、名古屋の九尾の塔へ'); }
+async function evHospWindow() { markI('hwin'); await narr('窓の外に、春日井の夜景。天環スカイタワーの赤い航空灯が、ゆっくり点滅している。今朝、浅井が立っていた場所だ。'); }
+async function evLeaveHosp() { await goKyubi(); }
+
+// ---- 九尾の塔：査定フロア ----
+async function goKyubi() { G.mode = 'cine'; await goArea('kyubi', [10.6, 5.6], -Math.PI * 0.75); AREAS.kyubi.det = 0; bgm('stealth'); cine(6, 6, 9, 0, 1, -2);
+  await card('名古屋　九尾の塔', '人間与信査定部　午後十一時', 1800);
+  await narr('九尾ホールディングス本社。人間の与信を査定するフロアは、夜でも明かりが消えない。');
+  await ura('社長専用のエレベーターは、フロアの奥だ。', '……行く前に、浅井に何があったのか、記録を拾っておけ。狐は、記録をつける。必ず。');
+  playOn(); setObj('警護を避けて、九尾の記録を撮影する（任意）／奥の社長専用エレベーターへ'); saveGame(true); }
+const KDOCS = {
+  yoshin: { name: '与信ファイル「浅井陽太」', body: '査定開始：一年前。区分：社長直轄。記録項目：毎夜の退館時刻、睡眠時間、接待先、交友関係、帰省の予定。備考欄「静州商事 権藤部長へ、本件の担当を浅井とするよう要請（社長指示）」。……一年間、毎晩、見張られていた。' },
+  kon: { name: '婚姻届の控え', body: '夫になる人：浅井陽太。署名は、ひどく震えている。証人：九尾HD 秘書室長、九尾HD 法務部長。提出者：秘書室。添え書き「本人、意識朦朧につき代筆補助」。' },
+  makabe: { name: '紹介記録「真壁悠」', body: '与信査定：D。三か月前、「神領・未完画廊　点景派ドーセントへ、素材提供者として紹介済み」。紹介料、入金済み。……真壁は、九尾から画廊へ、渡されていた。' },
+};
+async function evKyuDoc(k) { const D = KDOCS[k]; sfx('shutter'); flashCam(); await narr(D.name + '\n' + D.body); addNote('c4' + k, D.name, D.body, true); S.flags['c4d_' + k] = true;
+  if (k === 'yoshin') await ura('一年前から。……浅井を接待の席に座らせたのも、この女の指示だった。', '拾ったんじゃない。落ちるまで、待っていたのかもしれない。');
+  if (k === 'kon') await ura('意識朦朧につき、代筆補助。', '……白紙の同意書に、受理印。何も変わっていない。');
+  if (k === 'makabe') await ura('真壁は、売られた。……神領の、画廊へ。', '浅井に、なんと言えばいい。');
+  const n = ['yoshin', 'kon', 'makabe'].filter(x => S.flags['c4d_' + x]).length; setObj('九尾の記録（' + n + '／3）／奥の社長専用エレベーターへ'); }
+async function evScoreBoard() { markI('board'); await narr('壁の表示板。「本日の人間与信査定　3,412件。住宅ローン否決 211。就職推薦 停止 37。医療ローン 条件付き 96。婚姻適性 A判定 4。素材提供の紹介 2」。');
+  await ura('婚姻適性。素材提供。', '……人間の人生が、ここでは、行の数になっている。'); }
+async function evClerk() { markI('clerkT'); const a = AREAS.kyubi; faceEach(a.cl); a.cl.st.sit = false; otsCam(a.cl, 2.0, 1.4);
+  await say('clerk', 'ひっ……！　あ、あの、警護の方じゃ……ない？　人間の方……？');
+  await say('clerk', '……僕、ここの査定補助員です。夜勤で。');
+  await say('clerk', '知ってますか。ここで人間の点数をつけてるのは、狐の方々じゃないんです。最後の入力は、僕ら人間がやるんです。');
+  await say('clerk', '「人間の査定は、人間が行う」って。……そういう決まりで。');
+  await ura('人間の代表が、人間を差し出す。', '……協働課の判子と、同じだ。');
+  await say('clerk', '……社長室のエレベーターなら、奥です。警護の方は、廊下を往復してるだけなので、机の陰を通れば。');
+  await say('clerk', '僕が言ったって、言わないでくださいね。……僕の点数も、ここで決まるので。'); a.cl.st.sit = true; }
+async function evElevator(forced) { if (!forced) { const n = ['yoshin', 'kon', 'makabe'].filter(x => S.flags['c4d_' + x]).length; if (n === 0) { const c = await choose([{ t: '記録を探してからにする', k: '表' }, { t: 'このまま上がる', k: '裏声' }]); if (c === 0) return; } }
+  sfx('door'); G.mode = 'cine'; setObj(''); await fade(true); await goMemory(); }
+
+// ---- 回想：三十五年前 ----
+async function goMemory() { await goArea('memory'); const M = AREAS.memory; document.body.classList.add('flash'); bgm('');
+  cine(3.2, 2.2, 3.4, 0, 1.0, -1.2);
+  await narr('百階までの、長いエレベーター。表示の数字が、一つずつ増えていく。');
+  await ura('九尾。……お前は、この名前を知っている。');
+  await card('三十五年前', '春日井　古い応接室', 2200);
+  await narr('父が失脚した年の冬だった。母に手を引かれて、古い応接室にいた。ストーブの匂いと、母の手の冷たさを、覚えている。');
+  await narr('父は、人間の行政官だった。異種族への長期の権限委譲に、異を唱えた。……そして、何もかも失った。');
+  cine(2.3, 1.6, 3.3, -0.1, 1.4, -2.4);
+  await say('hakko', 'ええよ、ええよ。人間のお家ひとつくらい、なんぼでも拾たるわ。');
+  await say('hakko', 'その代わり、お母はん。これからは、ウチの言うこと、よう聞きや。お子らの学校も、旦那はんの次の勤め先も、みぃんな、ウチが決めたる。');
+  cine(-2.6, 1.5, -0.8, -0.6, 1.3, 1.0); await say('mother', '……はい。ありがとうございます、九重さま。');
+  M.mom.st.bow = true; M.mom.st.bowA = 0.6; await say('mother', '躁一郎。……ちゃんと、お礼を言いなさい。');
+  cine(1.6, 1.0, 2.6, 0.5, 0.8, 1.1);
+  await narr('十歳の躁一郎は、床の木目を見ていた。顔を上げたら、何かに負ける気がした。');
+  M.boy.st.bow = true; M.boy.st.bowA = 0.7;
+  await say('boy', '……ありがとう、ございます。');
+  await say('hakko', 'ええ子やなぁ。……お顔、上げてみ。');
+  M.boy.st.bow = false; cine(0.05, 0.85, 1.7, 0, 2.2, -2.4);
+  await narr('顔を上げると、紫の瞳が、楽しそうに、こちらを見下ろしていた。');
+  await say('hakko', 'ほら。拾てもろたら、笑うんやで。……人間は、それが、いちばんかわいい。');
+  await narr('少年は、笑った。言われたとおりに。');
+  await narr('――その日から、久世躁一郎は、笑って頭を下げるのが、上手くなった。');
+  M.mom.st.bow = false; await fade(true); document.body.classList.remove('flash');
+  await goPenthouse(); }
+
+// ---- 九尾の塔　百階：対決 ----
+async function goPenthouse() { G.mode = 'cine'; await goArea('penthouse', [5.8, 4.4], -Math.PI * 0.8); const a = AREAS.penthouse, hk = a.hk, as = a.as; bgm('fox');
+  as.hidden = false; as.pos.set(-0.9, 0, -1.0); as.y = 0.6; as.st.sit = true; as.facing = 0.4; a.markOff = false; hk.pos.set(0.9, 0, -1.2); hk.y = 0.6; hk.st.sit = true; hk.facing = -0.3; hk.lookAt = null;
+  cine(6.6, 2.6, 5.6, 1, 1.4, -1);
+  await card('九尾の塔　百階', '午前零時', 1800);
+  await ura('三十五年。……同じ目だ。');
+  await narr('扉が開くと、薄桃色の煙が、足もとから流れ出てきた。');
+  await narr('白い寝台の端に、白い浴衣の浅井が座っていた。焦点の合わない目。左の手首に、金色の紋が、脈打つように光っている。');
+  P.pos.set(3.4, 0, 1.8); P.facing = Math.atan2(hk.pos.x - 3.4, hk.pos.z - 1.8); hk.lookAt = 'P'; otsCam(hk, 2.4, 1.5);
+  await say('hakko', 'まあ。静州商事の、久世課長。……こんな夜更けに、どうなさいましたの。');
+  await say('kuze', '夜分に、失礼いたします。弊社の浅井の件で、お手続きのご相談に参りました。');
+  await say('hakko', '手続き。……ふふ。人間は、ほんまに、手続きがお好きね。');
+  await say('hakko', '……ほな、もう敬語はやめよか。疲れるさかい。');
+  await say('hakko', 'この子はな、今朝、天環の塔から落ちてん。ウチが拾わんかったら、今ごろ、大通りの染みや。');
+  await say('hakko', '拾たもんは、拾たもんのもんや。……違う？');
+  cine(-2.6, 1.7, 1.4, -0.9, 1.4, -1.0); await say('asai', '……くぜ、さん……？　どうして……');
+  await ura('救われたから、決める権利まで、渡すのか。', '……三十五年前、お前は、渡した。');
+  otsCam(hk, 2.4, 1.5);
+  const c1 = await choose([{ t: '「おっしゃる通りです。……ただ、退職の手続きだけは、弊社で。」', k: '表', cover: 4 }, { t: '「命を拾ったからといって、命の持ち主にはなれません。」', k: '本音', cover: -8, warm: 1 }, { t: '「三十五年前にも、あなたは人間の家を一つ、拾いましたね。」', k: '裏声', cold: 1 }]);
+  if (c1 === 0) { await say('kuze', 'おっしゃる通りです。……ただ、退職の手続きだけは、弊社で。'); await say('hakko', 'ええよ。紙なんか、何枚でも書いたる。……紙で、この子が帰れるんならな。'); }
+  if (c1 === 1) { await say('kuze', '命を拾ったからといって、命の持ち主にはなれません。');
+    hk.st.point = true; G.shake = 0.5; sfx('zap'); await narr('次の瞬間、喉もとに、見えない指が掛かった。足が、床から浮く。');
+    await say('hakko', '……人間が、ウチに、ものの道理を説くんか。'); await narr('白い指が、ふっと離れた。久世は、膝から床に落ちた。'); hk.st.point = false; S.flags.c4defied = true;
+    await say('hakko', 'ええ度胸や。……せやけど、度胸だけで、この子は帰れへんで。'); }
+  if (c1 === 2) { await say('kuze', '三十五年前にも、あなたは人間の家を一つ、拾いましたね。春日井の、久世という家を。');
+    await say('hakko', '……久世？');
+    await narr('紫の瞳が、少しだけ、遠くを見た。');
+    await say('hakko', '覚えてへんなぁ。拾たもんは、ぎょうさんあるさかい。');
+    await say('hakko', 'ほな、お前さんも、ウチの拾いもんか。……ふふ。ほんなら、ウチの言うこと、よう聞かなあかんなぁ。');
+    await ura('覚えていない。', '……お前の人生を決めた日を、この女は、覚えてもいない。'); S.flags.c4past = true; }
+  // ---- 取り戻す ----
+  const tried = new Set(); let path = null;
+  while (!path) { const opts = [];
+    if (!tried.has('ask')) opts.push({ t: '「浅井くんに、直接、聞かせてください。」', k: '本音', id: 'ask', warm: 1 });
+    if (!tried.has('law') && S.flags.c4hold) opts.push({ t: '「正律が、婚姻届の受理を止めています。」', k: '表', id: 'law' });
+    if (!tried.has('rec') && (S.flags.c4d_yoshin || S.flags.c4d_kon)) opts.push({ t: '「この一年、あなたが彼をどう見張っていたか。記録を、撮りました。」', k: '裏声', id: 'rec', cold: 1 });
+    opts.push({ t: '「九尾ホールディングスに、私から差し上げられるものがあります。」', k: '裏声', id: 'deal', cold: 1 });
+    otsCam(hk, 2.4, 1.5); const pick = opts[await choose(opts)].id; tried.add(pick);
+    if (pick === 'ask') { const ok = c4Trust() + (S.flags.c4promise ? 1 : 0) + (S.flags.c4d_yoshin ? 1 : 0) >= 4 || tried.has('rec');
+      P.pos.set(-0.9, 0, 0.4); P.facing = Math.PI; await fade(true); await fade(false); cine(-2.4, 1.3, 0.6, -0.9, 1.2, -0.6);
+      await narr('久世は、寝台の前に膝をついた。浅井と、目の高さを合わせる。');
+      await say('kuze', '浅井くん。');
+      await say('kuze', '僕は、君の隣の島に、二年いた。君が「辞めます」と三回書いて、三回消したことも、知らなかった。……すまなかった。');
+      await say('kuze', 'だから今度は、ちゃんと聞く。君の口から、聞く。……君は、どうしたい。');
+      a.markOff = false; await narr('浅井の手首の紋が、強く光った。浅井が顔をしかめ、唇が震える。');
+      cine(1.8, 1.8, 0.6, 0.9, 2.0, -1.2); await say('hakko', '無駄や。その子は、もう、ウチの――');
+      if (ok) { cine(-2.4, 1.3, 0.6, -0.9, 1.2, -0.6);
+        await say('asai', '……か、帰り……たい。');
+        sfx('heart'); await narr('紋が、ちり、と音を立てた。');
+        await say('asai', '農園に……柿の、木の下に……帰りたい……！');
+        await say('asai', '鬼頭さんの、お味噌汁、まだ、鍋……返してない……！');
+        sfx('glass'); a.markOff = true; flashCam(); await narr('金色の紋に、ひびが入った。光が、消える。');
+        path = 'self'; }
+      else { await say('asai', '……ぼく、は……'); await narr('言葉は、そこで途切れた。紋の光に呑まれるように、浅井の目から、また焦点が消えた。');
+        await say('hakko', 'な。……その子の口は、もう、ウチのもんや。'); await ura('まだ、届かない。', '……あいつのことを、お前は、まだ知らなすぎる。'); P.pos.set(3.4, 0, 1.8); faceEach(hk); } }
+    if (pick === 'rec') { await say('kuze', 'この一年、あなたが彼をどう見張っていたか。記録を、撮りました。退館時刻、睡眠時間、接待先。……権藤に、彼を担当にするよう求めたことも。');
+      if (S.flags.c4d_kon) await say('kuze', '婚姻届の控えも。「本人、意識朦朧につき代筆補助」。……これは、同意ではありません。');
+      await narr('九本の尾が、ゆっくりと揺れを止めた。');
+      await say('hakko', '……脅し？　人間が、ウチを？');
+      await say('kuze', 'いいえ。彼の口から、言わせてあげてください。……あなたが一年見ていたなら、彼が何を言うか、本当は、もう知っているはずです。');
+      await say('hakko', '……ふん。'); await narr('紋の光が、少しだけ、弱くなった気がした。'); }
+    if (pick === 'law') { await say('kuze', '正律法務機構が、婚姻届の受理を止めています。本人の意思を、直接確認するまで。');
+      await say('hakko', '正律の四女か。……あの子に、ウチを止められる思てんの？');
+      sfx('door'); await narr('その時、背後の扉が開いた。');
+      const ru = a.ru || (a.ru = npc(a, 'rurika', makeChar(FAMLK.rurika), 6.6, 4.6, -Math.PI * 0.75)); const yu = a.yu || (a.yu = npc(a, 'yuria', makeChar(FAMLK.yuria), 7.2, 3.6, -Math.PI * 0.75)); ru.hidden = false; yu.hidden = false;
+      walkTo(ru, 4.2, 2.6, 2); await walkTo(yu, 4.6, 1.4, 2.2); yu.lookAt = hk.pos; ru.lookAt = hk.pos; cine(0.6, 2.0, 2.8, 4.2, 1.4, 1.8);
+      await say('rurika', '止められるよ。止めるのが、正律の仕事だもん。……九重さん、その婚姻届、正常じゃない。');
+      await say('yuria', '九重さーん。……その子、帰りたがってるっぽいけど？');
+      await narr('部屋の空気が、軋んだ。竜の長女と、九尾。どちらも、まだ笑っている。');
+      cine(2.6, 2.0, 0.6, 0.9, 2.0, -1.2); await say('hakko', '……外神竜の長女まで連れてきたんか。久世はん、お前さん、ほんま、人の借り方が上手いなぁ。');
+      await say('hakko', 'ええわ。今日のとこは、預けたる。……預けるだけや。');
+      await ura('また、竜の手を借りた。', '……浅井は、自分の口で、何も言っていない。');
+      path = 'law'; }
+    if (pick === 'deal') { await say('kuze', '九尾ホールディングスは、葛城議員の後援会の債権をお持ちです。次の確認式で、葛城議員がどう動くか。……私は、事務局の内側にいます。');
+      await say('kuze', 'お手伝いが、できます。');
+      await narr('九尾が、はじめて、声を上げて笑った。');
+      await say('hakko', 'あはは！　……ええなぁ、お前さん。ほんま、おもろい。');
+      await say('hakko', 'ほな、こうしよか。この子は、返したる。代わりに、お前さんが、今日からウチの「取引先」や。');
+      await say('hakko', '確認式のこと、事務局のこと、ウチが聞いたら、なんでも教えてもらう。……断ったら、どうなるか。三十五年前のお母はんと、おんなじや。');
+      await ura('売った。……留保班の手札を。', '浅井一人の代わりに、お前自身を。');
+      path = 'deal'; S.flags.c4deal = true; } }
+  S.flags.c4path = path;
+  // ---- 九尾の言葉 ----
+  P.pos.set(3.0, 0, 1.6); faceEach(hk); hk.st.sit = false;
+  if (path === 'self') { cine(2.2, 1.9, 0.4, 0.9, 2.2, -1.2); await sleep(G.skip ? 0 : 600);
+    await narr('九本の尾が、ぴたりと止まった。');
+    await say('hakko', '……二回目や。');
+    await say('hakko', 'ウチに真正面から「嫌や」言うた人間は、数千年で、お前さんだけや。……それも、二回。');
+    await say('hakko', '欲しいもんは、みぃんな手に入った。手に入れたもんは、みぃんな、ウチの顔色見て笑うた。');
+    await say('hakko', 'お前さんだけや。……笑わんと、帰りたい言うたんは。');
+    await narr('白い顔に、ほんの一瞬だけ、知らない表情が浮かんだ。数千年を生きた九尾が、それを何と呼ぶのか、たぶん、彼女自身も知らない。');
+    await say('hakko', '……ほな、行き。');
+    await say('hakko', 'ウチは、追いかけへん。……今は、な。');
+    S.flags.c4markCracked = true; }
+  if (path === 'law') { cine(2.2, 1.9, 0.4, 0.9, 2.2, -1.2); await say('hakko', 'その紋は、ウチが外したら、ウチの負けや。外したかったら、どこぞの医者にでも頼み。'); }
+  if (path === 'deal') { cine(2.2, 1.9, 0.4, 0.9, 2.2, -1.2); await say('hakko', 'その紋も、外したる。取引先には、誠実にせなあかんさかいな。'); a.markOff = true; flashCam(); }
+  otsCam(hk, 2.4, 1.5);
+  await say('hakko', '……久世はん。お前さんの顔、覚えたで。');
+  await say('hakko', '三十五年前の、床ばっかり見てた坊やと、おんなじ目ぇしてはる。');
+  if (S.flags.c4past) await ura('……覚えていないと、言ったはずだ。', '思い出したのか。それとも、最初から。');
+  // ---- 連れて帰る ----
+  await fade(true); as.st.sit = false; as.y = 0; as.pos.set(2.4, 0, 2.6); P.pos.set(3.2, 0, 3.0); camSnap = true; await fade(false); cine(5.2, 2.0, 5.0, 2.8, 1.3, 2.6);
+  await narr('久世は、浅井の腕を肩に回して、立たせた。軽かった。驚くほど。');
+  await say('asai', '……久世さん。ごめんなさい。……ごめんなさい……');
+  await say('kuze', '謝るのは、僕のほうです。');
+  await say('kuze', '帰りましょう。……鬼頭さんが、お味噌汁を温めて待っています。');
+  await narr('エレベーターの扉が閉まるまで、九尾は、こちらを見なかった。窓の外の、夜明け前の空だけを、見ていた。');
+  await goDawn(); }
+
+// ---- 夜明け：蒼生と、ふたつの「救われた」 ----
+async function goDawn() { G.mode = 'cine'; await goArea('hospital', [6.0, 0.4], -Math.PI / 2); const a = AREAS.hospital; bgm('dawn'); a.vol.lookAt = null;
+  const as = a.as || (a.as = npc(a, 'asai', makeChar(LK.asaiY), 2.4, 1.2, -Math.PI / 2)); as.hidden = false; as.pos.set(2.6, 0, 1.0); as.lookAt = a.vol.pos;
+  a.vol.pos.set(1.2, 0, 0.6); a.vol.facing = Math.PI / 2; cine(0.1, 1.9, 2.4, 2.4, 1.4, 0.9);
+  await card('蒼生メディカルセンター', '翌朝　午前五時半', 1800);
+  await narr('夜明け前の救急入口で、ヴォルは、何も聞かずに浅井を受け入れた。');
+  if (S.flags.c4path !== 'deal') { await say('vol', 'この紋は、外せます。……少し、熱いですが。');
+    await say('vol', 'ただし、外すかどうかは、浅井さんが決めてください。あなたの手首のことです。');
+    await narr('浅井は、自分の手首を見た。長いあいだ、見ていた。');
+    await say('asai', '……外して、ください。僕が、決めます。');
+    sfx('glass'); flashCam(); await narr('金色の光が、ほどけるように消えた。'); }
+  else { await say('vol', '……紋の跡は、ありません。外傷も、ほとんど。ひどく、疲れているだけです。'); await say('vol', '何日でも、眠ってください。ここでは、誰も、あなたを起こしません。'); }
+  await say('asai', '……先生。ありがとうございます。');
+  await say('vol', 'いいえ。……眠れるようになったら、ご自分の言葉で、もう一度言ってください。それで、十分です。');
+  // 渉の手術
+  await fade(true); a.as.hidden = true; P.pos.set(-3.0, 0, 3.0); P.facing = 0; a.vol.pos.set(4.6, 0, 2.6); camSnap = true; await fade(false);
+  cine(-1.0, 2.0, 1.0, -4.4, 0.6, 3.8);
+  await narr('午前九時。渉は、ストレッチャーの上から、兄に手を振った。');
+  await say('wataru', '行ってくるね、兄さん。……終わったら、言いたいこと、言ってよ。');
+  await narr('手術室の扉が閉まる。廊下の長椅子に、久世は座った。');
+  await narr('十時。十一時。廊下の時計の針の音が、やけに大きい。');
+  if (S.flags.c4sign === 'family') { await narr('十二時過ぎ。ポケットの携帯が、一度だけ震えた。心臓が、止まりそうになる。'); await say('vol', '……ヴォルです。大丈夫です。予定どおり、進んでいます。決めていただくことは、ありません。……お兄さんに、声を聞かせてほしいと言われていたので。'); await say('kuze', '……ありがとう、ございます。'); }
+  await narr('十三時。十四時。');
+  await ura('三十五年前、お前は、床を見て、ありがとうと言った。', '……今日は、何と言う。');
+  await narr('十五時十分。手術中の灯りが、消えた。');
+  a.vol.pos.set(-1.4, 0, 2.4); a.vol.facing = -Math.PI / 2; a.vol.lookAt = 'P'; P.facing = Math.PI / 2; otsCam(a.vol, 2.2, 1.4);
+  await say('vol', '……無事に、終わりました。渉さん、よく頑張りました。');
+  await narr('久世は、立ち上がって、頭を下げた。深く。');
+  await say('kuze', '……ありがとう、ございます。');
+  await ura('礼を言った。……三十五年前と、同じ言葉で。');
+  if (S.flags.c4wtTalk) { await say('kuze', '……違う。今日のは、僕が、言いたくて言った。'); await say('kuze', '先生。弟を、救ってくださって、ありがとうございました。……それと、決めさせてくださって。'); await say('vol', '……はい。確かに、受け取りました。'); }
+  else await say('kuze', '……違う。今日のは、床を見ていない。');
+  await narr('顔を上げると、ヴォルは、静かに、こちらの目を見ていた。');
+  await goFarewell(); }
+
+// ---- 三日後：春日井駅前 ----
+async function goFarewell() { G.mode = 'cine'; await goArea('station', [0.4, -6.0], Math.PI); const a = AREAS.station; bgm('city');
+  const as = a.asai; as.hidden = false; as.follow = false; as.goal = null; as.pos.set(-0.8, 0, -6.4); as.facing = Math.PI * 0.7; as.lookAt = null;
+  if (!a.bag) { a.bag = part(box(0.5, 0.36, 0.3), 0x8A5A3A, 0, -0.66, 0.06, as.model.arms[0]); }
+  cine(2.6, 2.4, -3.6, -2.0, 4.0, -10);
+  await card('春日井駅前', '三日後　午前七時五十分', 2000);
+  await narr('駅前の大きな画面に、陽盾警備保障の広告が流れていた。白い髪に黄色の差し色。こちらへ笑いかける女が、指を二本立てている。');
+  await say('ad', '今日も、全員無事に帰ろーね！');
+  faceEach(as); otsCam(as, 2.2, 1.4);
+  await say('asai', '久世さん。……あの広告、覚えてます？');
+  await say('asai', '前にここで、「やっぱり、あの人がいると安心ですよね」って、僕、言いましたよね。');
+  await say('asai', 'あれ、本当は、ちょっとだけ嘘でした。……安心してたんじゃなくて、安心してるって言わないと、立ってられなかったんです。');
+  await say('kuze', '……そうでしたか。');
+  await say('asai', '僕、地元に帰ります。美濃の、柿の農園。今年の収穫は、手伝えそうです。');
+  await say('asai', '権藤部長、最後に、頭を下げてくれました。……変な感じでした。');
+  if (S.flags.c4path === 'self') await say('asai', 'あの夜、自分で「帰りたい」って言えたこと、たぶん、一生覚えてると思います。……言えないのが、僕だったのに。');
+  if (S.flags.c4path === 'law') await say('asai', 'ルリカさんと、ユリアさんにも、お礼を言いました。……でも、いつか、自分の口で、ちゃんと「嫌です」って言えるようになりたいです。');
+  if (S.flags.c4path === 'deal') { await say('asai', '……久世さん。あの夜、九重社長と、何を約束したんですか。'); await say('kuze', '仕事の話です。君が気にすることじゃない。'); await say('asai', '……久世さんが、僕の代わりに、何か払ったんじゃないかって。それだけが、怖いです。'); }
+  await say('asai', 'それで……一つだけ、お願いがあります。');
+  await say('asai', '真壁を、探してください。あいつ、神領の画廊の仕事に行って、帰ってこなかったんです。');
+  if (S.flags.c4d_makabe) { await ura('九尾の記録。……神領・未完画廊、点景派。「素材提供者」として紹介済み。', '今は、まだ言うな。この男は、今日、やっと帰るんだ。'); }
+  const c = await choose([{ t: '「……約束します。」', k: '本音', warm: 1 }, { t: '「できる限り、やってみます。」', k: '表' }]);
+  if (c === 0) { await say('kuze', '……約束します。'); S.flags.c4makabePromise = true; } else await say('kuze', 'できる限り、やってみます。');
+  await say('asai', 'ありがとうございます。……それと、久世さんも、ちゃんと寝てくださいね。');
+  await say('asai', '課長の顔、ずっと笑ってるのに、いつも、疲れてるから。');
+  await narr('改札の向こうで、浅井が、もう一度振り返った。今度は、相手の目を見て、深く頭を下げた。');
+  as.st.bow = true; as.st.bowA = 0.6; await sleep(G.skip ? 0 : 1400); as.st.bow = false; walkTo(as, -6, -9.4, 1.4).then(() => { as.hidden = true; });
+  await ura('一人を、取り戻した。', '……国は、何も、変わっていない。');
+  await say('kuze', '……それでも。');
+  await goBunRec(); }
+
+// ---- B.U.N 中央記録庫 ----
+async function goBunRec() { G.mode = 'cine'; await goArea('bunrec'); const B = AREAS.bunrec; cine(2.4, 2.6, 4.2, 0, 2.2, -0.6);
+  await narr('同じころ。地表から遠く離れた、青い結晶の並ぶ部屋。');
+  faceEach(B.ch); cine(-1.6, 2.6, 2.6, 0, 2.4, -1.6);
+  await say('chanyu', '「九尾ホールディングス代表、人間一名を保護。翌日、解放」。');
+  await say('chanyu', '関与者。静州商事、事業管理部、久世躁一郎。');
+  await say('chanyu', '……また、あなたですか。');
+  await narr('灰色の文鳥は、結晶の一つを指先で回した。');
+  await say('chanyu', '九尾から、人間が、人間を連れ戻した。……前例の少ない記録です。保存しておきます。');
+  await say('chanyu', '記録が増えるほど、人は、輪郭を持つ。……あなたの輪郭は、少しずつ、見えてきました。');
+  await goHQ4(); }
+
+// ---- 留保班　報告 ----
+async function goHQ4() { G.mode = 'cine'; await goArea('hq', [1.2, -2.6], -Math.PI / 2); const a = AREAS.hq, kr = a.kr; SPK.kuroiwa[0] = '黒岩室長'; kr.pos.set(-0.4, 0, -2.6); kr.lookAt = 'P'; kr.st.point = false; a.safeDoor.rotation.y = 0; a.seal.material.opacity = 0; a.sealGlow.material.opacity = 0;
+  cine(1.8, 2.1, 0.4, 0.4, 1.5, -2.6); await card('留文堂　地下', '同じ日　午後九時', 1600); bgm('hq');
+  if (S.flags.c4path === 'deal') { await say('kuroiwa', '九尾と、取引をしたそうだな。');
+    await say('kuroiwa', '確認式の事務局の内情を、九尾に流す。……留保班の手札を、お前は、部下一人のために切った。');
+    await say('kuze', '……はい。');
+    await say('kuroiwa', '愚かだ。……だが、九尾の懐に、こちらの人間が一人入ったとも言える。使い方は、こちらで決める。お前は、九尾に何を聞かれても、まず私に上げろ。'); }
+  else { await say('kuroiwa', '九尾の機嫌を、損ねたな。');
+    if (S.flags.c4path === 'law') await say('kuroiwa', 'しかも、外神竜の長女と、正律の四女を連れて。……一族に、また借りを作った。');
+    await say('kuroiwa', '確認式で葛城を止める糸が、一本、細くなった。……分かっているのか。'); }
+  await say('kuze', '室長。浅井は、小さな点ではありません。');
+  await say('kuze', 'あの男は、この国で、断ることができなかった人間です。断れない人間が、断れないまま死ぬ国を、私たちは「取り戻す」と言っているんです。');
+  await say('kuroiwa', '……だから、大義が要るのだ、久世。一人ずつ拾っていては、国は取り戻せん。');
+  await say('kuze', '一人も拾えない大義なら、それは、別の誰かの持ち物です。');
+  await narr('地下室が、静かになった。三枝が、キーボードを打つ手を止めた。');
+  await say('kuroiwa', '……お前は、いつか、その一人のために、大義を捨てる。');
+  await say('kuroiwa', 'その日が来たら、私は、お前を止める。……覚えておけ。');
+  if (S.flags.c4d_makabe) { await say('saegusa', '……それと、久世さんが撮った「真壁悠」の紹介記録。神領・未完画廊の、点景派。');
+    await say('saegusa', '九尾が、人間の与信を査定して、点数の低い人を、画廊へ「素材」として紹介していました。紹介料つきで。');
+    await say('nishina', '……神領の画廊か。あそこは、天環の内側にあって、天環の言うことを聞かん場所だ。厄介なところに、名前が出たな。'); }
+  else await say('saegusa', '真壁悠さんの件、調べておきます。……神領の、画廊。嫌な場所の名前です。');
+  await ura('真壁を探す。', '……浅井と、約束した。');
+  await goNight4(); }
+async function goNight4() { G.mode = 'cine'; await goArea('apt', [0.6, 1.4], Math.PI); cine(2.4, 2.0, 2.6, -1.4, 1.2, -2.6); bgm('night');
+  await card('春日井　久世の部屋', '同じ日　午後十一時', 1600);
+  await narr('部屋の明かりを点けずに、窓の外を見た。天環スカイタワーの赤い灯が、ゆっくり点滅している。');
+  P.st.phone = true; sfx('vib'); await phoneMsg('渉', '兄さん、麻酔さめたよ。\n先生が、兄さんが「ありがとう」って言ってくれたって。\nよかったね。おやすみ。', '23:04'); P.st.phone = false;
+  await ura('救われた者は、決める権利まで、渡すのか。');
+  await say('kuze', '……渡さない。救われても、礼を言っても。');
+  await say('kuze', '決めるのは、救われた本人だ。浅井も、渉も。……僕も。');
+  await ura('なら、お前は、誰に救われる気だ。');
+  await say('kuze', '……さあな。');
+  await narr('久世は、スーツのまま、ベッドに横になった。');
+  await narr('目覚ましは、掛けなかった。');
+  await narr('その夜、久世躁一郎は、何年かぶりに、朝まで眠った。');
+  await card('第四章　救われた者たち', '完', 2800);
+  setMeta({ ch4Clear: true, ch4: packS(), ch4Done: [...DONE] }); showReport4(); }
+
+// ---- 第四章の報告書 ----
+function showReport4() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; bgm('night');
+  const lean = S.warm - S.cold, leanT = lean >= 3 ? '温情に傾く' : lean <= -3 ? '冷徹に傾く' : '均衡を保つ';
+  const path = { self: '浅井本人が「帰りたい」と言い、九重白狐が手を離した', law: '正律の受理保留と陽盾の介入で、九重白狐が浅井を「預けた」', deal: '久世が九尾の「取引先」となる代わりに、浅井が解放された' }[S.flags.c4path] || '―';
+  const sign = { trust: '一任の条項のまま署名', family: '一任の条項を消し、家族が決めると書き直して署名', wataru: '渉自身が決めた' }[S.flags.c4sign] || '―';
+  const docs = ['yoshin', 'kon', 'makabe'].filter(x => S.flags['c4d_' + x]), DN = { yoshin: '与信ファイル「浅井陽太」', kon: '婚姻届の控え', makabe: '紹介記録「真壁悠」' };
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>秘</span><span>留保</span></div><h2>報告書　第四号</h2><div class="meta">内閣 留保班　情報要員 久世躁一郎　／　件名：静州商事社員・浅井陽太の保護、および九尾ホールディングスの件</div><table>' +
+    '<tr><td>浅井陽太</td><td>天環スカイタワーより転落。九重白狐に確保されたのち、' + path + '。美濃の実家へ帰郷</td></tr>' +
+    '<tr><td>取得した記録</td><td><div class="ev">' + ['yoshin', 'kon', 'makabe'].map(k => '<span class="' + (docs.includes(k) ? '' : 'no') + '">' + (docs.includes(k) ? '■ ' : '□ ') + DN[k] + '</span>').join('') + '</div></td></tr>' +
+    '<tr><td>渉の手術</td><td>成功（執刀：ヴォル）。同意書：' + sign + '</td></tr>' +
+    '<tr><td>九重白狐</td><td>' + (S.flags.c4path === 'deal' ? '久世を「取引先」とした。確認式・事務局の情報を求められる' : '「追いかけへん。……今は」。久世の顔と、三十五年前のことを覚えている') + '</td></tr>' +
+    '<tr><td>留保班</td><td>' + (S.flags.c4defy ? '黒岩室長の制止に正面から背いた' : '黒岩室長に「承知しました」と答えたうえで、動いた') + '。「その日が来たら、私は、お前を止める」</td></tr>' +
+    '<tr><td>真壁悠</td><td>' + (S.flags.c4d_makabe ? '九尾から神領・未完画廊（点景派）へ「素材提供者」として紹介されていた' : '神領の画廊の仕事に出て、行方不明') + (S.flags.c4makabePromise ? '。浅井と、探すと約束した' : '') + '</td></tr>' +
+    '<tr><td>擬態の残り</td><td>' + Math.round(S.cover) + '％</td></tr><tr><td>判断の傾き</td><td>' + leanT + '（温情 ' + S.warm + '・冷徹 ' + S.cold + '）</td></tr></table>' +
+    '<p class="close">救われた者は、決める権利まで渡すのか。――その夜、久世躁一郎は、何年かぶりに朝まで眠った。<br>第五章（準備中）</p>' +
+    '<p class="close" style="border-left-color:#6A7690;font-size:12.5px">ひとりで抱えきれないつらさがあるときは、身近な人や、専門の相談窓口に話してください。</p>' +
+    '<div class="trow"><button type="button" class="go" id="titleBtn4">タイトルへ</button></div>';
+  $('report').hidden = false; $('titleBtn4').addEventListener('click', () => location.reload()); }
+async function startCh4() { const m = meta(); if (m.ch3) unpackS(m.ch3); else if (m.ch2) unpackS(m.ch2); DONE = new Set(m.ch3Done || m.ch2Done || []); S.flags.revealed = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter4(); }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -2864,6 +3660,7 @@ $('startBtn').addEventListener('click', () => { audioOn(); $('title').hidden = t
 $('ch1Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(prologue); });
 $('ch2Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh2); });
 $('ch3Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh3); });
+$('ch4Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh4); });
 $('contBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(loadGame); });
 $('saveBtn').addEventListener('click', () => { if (G.mode === 'play' && !G.busy) openFiles('save'); });
 $('filesBtn').addEventListener('click', () => { audioOn(); openFiles('load'); });
@@ -2871,6 +3668,6 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, openFiles, readFiles, latestFile, DONE: () => DONE };
+window.__kz = { pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, openFiles, readFiles, latestFile, DONE: () => DONE };
 })();
 </script>
