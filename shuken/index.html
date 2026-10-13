@@ -2638,7 +2638,7 @@ makeArea('asaiApt', { place: '春日井　浅井のアパート（三〇二号�
     block(1.6, 1.2, 0.35, 0x6A5040, 1.0, 0.6, -3.2, g); a.obs.push({ x: 1.0, z: -3.2, hx: 0.8, hz: 0.2 }); for (const x of [0.5, 1.0, 1.5]) block(0.26, 0.32, 0.04, 0xD8C8A8, x, 1.36, -3.2, g);
     block(0.2, 2.4, 1.0, 0x8A6A4A, 4.4, 1.2, 2.4, g);
     a.kt = npc(a, 'kito', makeChar(LK.kito), 3.0, 1.0, -Math.PI * 0.7); a.kt.lookAt = 'P';
-    a.pb = npc(a, 'paper', makeBird({ coat: 0x3A5A8A, vest: 0xF4F4F0, cap: 0x1A1A1E, s: 1.15 }), 3.6, 2.8, -Math.PI * 0.8); a.pb.st.carry = true;
+    a.pb = npc(a, 'paper', makeBird({ coat: 0x3A5A8A, vest: 0xF4F4F0, cap: 0x1A1A1E, s: 1.15 }), -0.6, 2.3, Math.PI * 0.9); a.pb.st.carry = true;
     addItem(a, { id: 'isho', x: -2.9, z: -2.1, label: '机の上の手紙を読む', col: 0xC8323C, on: evIsho });
     addItem(a, { id: 'env', x: -2.3, z: -2.1, label: '封筒を見る', on: evEnvelope });
     addItem(a, { id: 'pfarm', x: 0.6, z: -2.5, label: '写真を見る（左）', on: evPhotoFarm });
@@ -2646,7 +2646,7 @@ makeArea('asaiApt', { place: '春日井　浅井のアパート（三〇二号�
     addItem(a, { id: 'fridge', x: 3.6, z: -2.2, label: '冷蔵庫を開ける', on: evFridge });
     addItem(a, { id: 'bed', x: -3.0, z: 1.6, label: 'ベッドを見る', on: evAptBed });
     addItem(a, { id: 'kitoT', x: 3.0, z: 1.0, label: '話す', col: 0xE3B428, dyn: a.kt, on: evKito });
-    addItem(a, { id: 'paperT', x: 3.6, z: 2.8, label: '話す', col: 0xE3B428, dyn: a.pb, on: evPaper });
+    addItem(a, { id: 'paperT', x: -0.6, z: 2.3, label: '話す', col: 0xE3B428, dyn: a.pb, on: evPaper });
     addItem(a, { id: 'outApt', x: 4.0, z: 2.4, r: 1.2, label: '部屋を出る', col: 0xC8323C, once: false, avail: () => S.seen.has('i:isho') && (S.seen.has('i:paperT') || S.seen.has('i:kitoT')), on: () => evLeaveApt() }); }
 });
 // ---- 蒼生メディカルセンター　第三病棟 ----
@@ -2686,9 +2686,9 @@ makeArea('kyubi', { place: '名古屋　九尾の塔　査定フロア　午後�
     block(2.6, 3.2, 0.3, 0xC8A040, 0, 1.6, -7.0, g); plane(1.6, 0.36, signTex(320, 72, [{ t: '社長専用', size: 40, w: 900 }], { bg: '#8A2A2A', fg: '#FFFFFF' }), 0, 3.1, -6.84, g);
     plane(2.4, 1.5, scoreTex, 6.4, 2.0, -7.12, g);
     for (let i = 0; i < 6; i++) { const l = glowSprite(0xFFD890, 3.6, 0.3); l.position.set(-10 + i * 4, 3.0, 0); g.add(l); }
-    const cl = npc(a, 'clerk', makeChar(LK.clerkH), 3.0, -2.2, Math.PI); cl.st.sit = true; a.cl = cl;
+    const cl = npc(a, 'clerk', makeChar(LK.clerkH), 3.0, -1.9, Math.PI); cl.st.sit = true; a.cl = cl;
     a.watch = [];
-    const f1 = npc(a, 'fg1', makeChar(LK.foxGuard), -10, 0.0, Math.PI / 2, { path: [[-10, 0.0, 1.6], [4.4, 0.0, 1.8]], speed: 1.2 });
+    const f1 = npc(a, 'fg1', makeChar(LK.foxGuard), -10, 0.0, Math.PI / 2, { path: [[-10, 0.0, 1.6], [3.6, 0.0, 1.8]], speed: 1.2 });
     const f2 = npc(a, 'fg2', makeChar(LK.foxGuard), -4, -5.4, Math.PI / 2, { path: [[-9.2, -5.4, 1.4], [6.0, -5.4, 1.6]], speed: 1.15 });
     for (const w of [f1, f2]) { w.cone = makeCone(5.4, 0.48, 0xFFE9A0); w.model.root.add(w.cone); a.watch.push(w); }
     a.det = 0; a.R = 5.4;
@@ -2999,7 +2999,7 @@ async function goHospital() { G.mode = 'cine'; S.flags.c4hosp = true; await goAr
   await card('蒼生メディカルセンター', '第三病棟　午後六時', 1800);
   await narr('病棟の廊下は、静かで、明るかった。消毒薬と、どこかの部屋の夕食の匂い。');
   playOn(); setObj('三〇七号室の渉に会う（廊下の左奥）'); saveGame(true); }
-async function evWataru1() { S.flags.c4wt1 = true; const a = AREAS.hospital; P.pos.set(-6.6, 0, -2.6); faceEach(a.wt); cine(-4.6, 2.0, -1.8, -7.4, 1.3, -3.6);
+async function evWataru1() { S.flags.c4wt1 = true; const a = AREAS.hospital; P.pos.set(-6.4, 0, -2.0); faceEach(a.wt); cine(-4.6, 2.0, -1.8, -7.4, 1.3, -3.6);
   await say('wataru', '兄さん。来てくれたんだ。……顔、ひどいよ。');
   await say('kuze', '……少し、寝不足でな。');
   await say('wataru', '明日の朝、九時から。ヴォル先生が執刀してくれるって。六時間くらいかかるみたい。');
@@ -3032,7 +3032,7 @@ async function evDoui() { S.flags.c4doui = true; const a = AREAS.hospital; P.pos
   await narr('最後の頁。\n「術中・術後に患者の意思が確認できない場合、治療の継続に関する判断を、蒼生医療機構に一任する。」');
   await ura('一任する。', '……救ってもらうなら、決める権利まで、渡すのか。');
   await ura('だが、ヴォルは言った。外していい、と。', '外したら、夜中の電話で、お前が渉の命を決める。……お前に、それができるのか。');
-  cine(-4.6, 2.0, -1.8, -7.4, 1.3, -3.6);
+  P.pos.set(-6.4, 0, -2.0); faceEach(a.wt); cine(-4.6, 2.0, -1.8, -7.4, 1.3, -3.6);
   const c = await choose([{ t: '一任の条項のまま、署名する', k: '表' }, { t: '条項に線を引き、「家族が決める」と書き直して署名する', k: '本音', cold: 1 }, { t: '渉に、どうしたいか聞く', k: '温情', warm: 1 }]);
   if (c === 0) { S.flags.c4sign = 'trust'; await narr('久世は、条項に触れずに、家族の欄に名前を書いた。'); await say('wataru', 'ありがとう、兄さん。……兄さんがそれでいいなら、僕もいい。'); await ura('任せた。……任せることを、自分で決めた。それなら、まだ、渡してはいない。'); }
   if (c === 1) { S.flags.c4sign = 'family'; await narr('久世は、条項に一本、線を引いた。余白に「判断は家族が行う。連絡は昼夜を問わず兄へ」と書き、署名した。'); await say('wataru', '……兄さんらしいね。夜中に電話が来たら、ちゃんと起きてよ？'); await say('kuze', '……起きる。必ず。'); }
@@ -3153,14 +3153,14 @@ async function goPenthouse() { G.mode = 'cine'; await goArea('penthouse', [5.8, 
     opts.push({ t: '「九尾ホールディングスに、私から差し上げられるものがあります。」', k: '裏声', id: 'deal', cold: 1 });
     otsCam(hk, 2.4, 1.5); const pick = opts[await choose(opts)].id; tried.add(pick);
     if (pick === 'ask') { const ok = c4Trust() + (S.flags.c4promise ? 1 : 0) + (S.flags.c4d_yoshin ? 1 : 0) >= 4 || tried.has('rec');
-      P.pos.set(-0.9, 0, 0.4); P.facing = Math.PI; await fade(true); await fade(false); cine(-2.4, 1.3, 0.6, -0.9, 1.2, -0.6);
+      P.pos.set(-0.9, 0, 0.4); P.facing = Math.PI; await fade(true); await fade(false); cine(-2.6, 1.5, -0.2, -0.9, 1.2, -0.9);
       await narr('久世は、寝台の前に膝をついた。浅井と、目の高さを合わせる。');
       await say('kuze', '浅井くん。');
       await say('kuze', '僕は、君の隣の島に、二年いた。君が「辞めます」と三回書いて、三回消したことも、知らなかった。……すまなかった。');
       await say('kuze', 'だから今度は、ちゃんと聞く。君の口から、聞く。……君は、どうしたい。');
       a.markOff = false; await narr('浅井の手首の紋が、強く光った。浅井が顔をしかめ、唇が震える。');
       cine(1.8, 1.8, 0.6, 0.9, 2.0, -1.2); await say('hakko', '無駄や。その子は、もう、ウチの――');
-      if (ok) { cine(-2.4, 1.3, 0.6, -0.9, 1.2, -0.6);
+      if (ok) { cine(-2.6, 1.5, -0.2, -0.9, 1.2, -0.9);
         await say('asai', '……か、帰り……たい。');
         sfx('heart'); await narr('紋が、ちり、と音を立てた。');
         await say('asai', '農園に……柿の、木の下に……帰りたい……！');
@@ -3224,7 +3224,7 @@ async function goPenthouse() { G.mode = 'cine'; await goArea('penthouse', [5.8, 
   await goDawn(); }
 
 // ---- 夜明け：蒼生と、ふたつの「救われた」 ----
-async function goDawn() { G.mode = 'cine'; await goArea('hospital', [6.0, 0.4], -Math.PI / 2); const a = AREAS.hospital; bgm('dawn'); a.vol.lookAt = null;
+async function goDawn() { G.mode = 'cine'; await goArea('hospital', [6.0, 0.4], -Math.PI / 2); const a = AREAS.hospital; bgm('dawn'); a.vol.lookAt = null; a.nr.hidden = true; a.nr.path = null;
   const as = a.as || (a.as = npc(a, 'asai', makeChar(LK.asaiY), 2.4, 1.2, -Math.PI / 2)); as.hidden = false; as.pos.set(2.6, 0, 1.0); as.lookAt = a.vol.pos;
   a.vol.pos.set(1.2, 0, 0.6); a.vol.facing = Math.PI / 2; cine(0.1, 1.9, 2.4, 2.4, 1.4, 0.9);
   await card('蒼生メディカルセンター', '翌朝　午前五時半', 1800);
@@ -3239,7 +3239,8 @@ async function goDawn() { G.mode = 'cine'; await goArea('hospital', [6.0, 0.4], 
   await say('vol', 'いいえ。……眠れるようになったら、ご自分の言葉で、もう一度言ってください。それで、十分です。');
   // 渉の手術
   await fade(true); a.as.hidden = true; P.pos.set(-3.0, 0, 3.0); P.facing = 0; a.vol.pos.set(4.6, 0, 2.6); camSnap = true; await fade(false);
-  cine(-1.0, 2.0, 1.0, -4.4, 0.6, 3.8);
+  a.nr.hidden = true; a.nr.path = null; a.wt.pos.set(-4.6, 0, 2.3); a.wt.y = 0.5; a.wt.st = { sit: true }; a.wt.lookAt = 'P'; if (!a.gurney) { a.gurney = block(1.0, 0.5, 1.8, 0xE8ECF0, -4.6, 0.25, 2.3, a.g); } a.gurney.visible = true;
+  cine(-1.6, 2.0, 0.6, -4.6, 1.0, 2.3);
   await narr('午前九時。渉は、ストレッチャーの上から、兄に手を振った。');
   await say('wataru', '行ってくるね、兄さん。……終わったら、言いたいこと、言ってよ。');
   await narr('手術室の扉が閉まる。廊下の長椅子に、久世は座った。');
@@ -3260,7 +3261,7 @@ async function goDawn() { G.mode = 'cine'; await goArea('hospital', [6.0, 0.4], 
 
 // ---- 三日後：春日井駅前 ----
 async function goFarewell() { G.mode = 'cine'; await goArea('station', [0.4, -6.0], Math.PI); const a = AREAS.station; bgm('city');
-  const as = a.asai; as.hidden = false; as.follow = false; as.goal = null; as.pos.set(-0.8, 0, -6.4); as.facing = Math.PI * 0.7; as.lookAt = null;
+  for (const n of a.npcs) if (/^w\d$/.test(n.key)) n.hidden = true; const as = a.asai; as.hidden = false; as.follow = false; as.goal = null; as.pos.set(-0.8, 0, -6.4); as.facing = Math.PI * 0.7; as.lookAt = null;
   if (!a.bag) { a.bag = part(box(0.5, 0.36, 0.3), 0x8A5A3A, 0, -0.66, 0.06, as.model.arms[0]); }
   cine(2.6, 2.4, -3.6, -2.0, 4.0, -10);
   await card('春日井駅前', '三日後　午前七時五十分', 2000);
@@ -3922,7 +3923,7 @@ async function evDangiDoc(k) { const D = DDOCS[k]; if (k !== 'exp') { sfx('shutt
   if (k === 'plan') { await saku('今夜、一時。……あと、五十分だ。', 'そして、開通式。橋脚に、もう仕掛けてある。'); setObj('倉庫を出て、橋へ（入口へ）'); }
   if (k === 'exp') await saku('記帳札を、現場に残す。……「記帳：鬼頭」。', '椿の名前だ。あの子に、罪を着せるつもりだ。');
   if (k === 'list') await saku('人間が、人間を「家畜」と呼んで、文鳥と組む。', '……この国は、どこまでも、ねじれている。'); }
-async function evDangiOut() { const a = AREAS.dangi; G.mode = 'cine'; P.pos.set(9.2, 0, 4.4); const b = a.b1; b.path = null; b.pos.set(7.2, 0, 3.2); b.cone.visible = false;
+async function evDangiOut() { const a = AREAS.dangi; G.mode = 'cine'; P.pos.set(9.2, 0, 4.4); const b = a.b1; b.path = null; b.pos.set(8.0, 0, 3.9); b.cone.visible = false;
   sfx('alert'); faceEach(b); otsCam(b, 2.4, 1.5);
   await say('dbird', '……人間。どこへ行く。');
   await say('dbird', '門の計画を見たな。……偽りの側の犬か、それとも、ただの迷子か。');
@@ -3960,7 +3961,7 @@ async function evNightCharge() { const a = AREAS.bridge5; cine(-0.6, 1.3, 2.4, 0
   await narr('主桁が、傾いた。九メートルの鋼の塊が、軋みながら、ゆっくりと沈んでいく。');
   await narr('その真下に、椿と、文鳥が二羽。');
   // ザイナ
-  const zn = a.zn; zn.hidden = false; zn.st = {}; zn.pos.set(12, 0, -1.6); sfx('metal'); cine(6, 2.6, 4.4, 1.2, 1.6, 0);
+  const zn = a.zn; zn.hidden = false; zn.st = {}; zn.pos.set(12.6, 0, 0.6); sfx('metal'); cine(6, 2.6, 4.4, 1.2, 1.6, 0);
   await say('zaina', '……どいて。');
   await walkTo(zn, 0.0, 0.0, 16); zn.facing = Math.PI / 2; zn.st.armsUp = true; G.shake = 0.9; sfx('metal');
   for (let i = 0; i <= 10; i++) { a.gird.rotation.z = 0.16 - i / 10 * 0.1; a.gird.position.y = i / 10 * 0.5; await sleep(G.skip ? 0 : 30); }
@@ -3974,7 +3975,7 @@ async function evNightCharge() { const a = AREAS.bridge5; cine(-0.6, 1.3, 2.4, 0
   playOn(); }
 async function evRescue(k) { const a = AREAS.bridge5, n = { ts: a.ts, b0: a.bw[0], b1: a.bw[1] }[k]; sfx('swing');
   n.st.down = false; await walkTo(n, n.pos.x + 0.2, n.pos.z + (n.pos.z > 0 ? 1.6 : -1.6), 3.4); n.goal = null;
-  a.resc++; if (k === 'ts') await say('tsuyoshi', 'く、久世さん……！　足、動きます！'); else await say('akaB', 'す、すんません……！');
+  cine(6.0, 3.0, 4.6, 2.0, 1.0, 1.0); a.resc++; if (k === 'ts') await say('tsuyoshi', 'く、久世さん……！　足、動きます！'); else await say('akaB', 'す、すんません……！');
   if (a.resc >= 3) { S.flags.c5st = 'rescued'; await evRescued(); } }
 async function evRescued() { const a = AREAS.bridge5, zn = a.zn; G.mode = 'cine'; cine(-2.6, 1.6, 3.0, 0.4, 1.8, 0);
   await say('kuze', '全員、出ました！');
@@ -3993,7 +3994,7 @@ async function evRescued() { const a = AREAS.bridge5, zn = a.zn; G.mode = 'cine'
   a.ts.lookAt = P.pos; cine(1.8, 1.6, 2.8, 0, 1.4, 6); await say('tsuyoshi', '久世さん……！？');
   await fade(true);
   // 椿の逮捕
-  bridgeShow(a, ['ts', 'cop0', 'cop1', 'zn']); a.ts.pos.set(4.4, 0, 1.0); a.cops[0].pos.set(5.6, 0, 1.6); a.cops[1].pos.set(5.4, 0, 0.0); a.zn.pos.set(2.6, 0, -1.6); a.zn.lookAt = a.ts.pos; P.model.root.visible = false;
+  bridgeShow(a, ['ts', 'cop0', 'cop1', 'zn']); a.ts.pos.set(4.4, 0, 1.0); a.cops[0].pos.set(3.4, 0, 2.4); a.cops[1].pos.set(5.4, 0, 2.6); a.zn.pos.set(2.6, 0, -1.6); a.zn.lookAt = a.ts.pos; P.model.root.visible = false;
   cine(8.6, 2.4, 3.2, 4.4, 1.3, 0.6); await fade(false);
   await narr('――その十分後。');
   await say('cop', '鬼嶽建設の、鬼頭椿だな。現場から、君の名前の記帳札が見つかった。……ポケットにも、同じ札がある。');
@@ -4013,24 +4014,24 @@ async function goSiteMorning5() { G.mode = 'cine'; S.flags.c5st = 'morning'; S.f
   cine(13.0, 3.2, 0.6, 4.2, 1.4, 0); await card('高蔵寺新橋', '翌朝　午前七時', 1600);
   await narr('橋の真ん中に、線が一本、引かれているようだった。こちらに、赤嶺の文鳥たちと、肩に包帯を巻いたザイナ。あちらに、鬼嶽の鬼たちと、ゴウカ。');
   await narr('久世は、「調整役」として、その線の横に立っていた。');
-  cine(3.0, 2.3, 3.2, 5.0, 2.0, -2.0); await say('goka', '……あんたんとこの現場で、うちの火薬が使われた。で、手錠をかけられたのは、うちの椿だ。');
+  cine(2.0, 2.4, 3.0, 5.0, 2.0, -2.0); await say('goka', '……あんたんとこの現場で、うちの火薬が使われた。で、手錠をかけられたのは、うちの椿だ。');
   await say('goka', '椿はね、嘘がつけない子だ。やってないって言うなら、やってない。');
   await say('goka', 'じゃあ、誰がやった。……あんたんとこの文鳥じゃないのかい。元は B.U.N のごろつきだろう。');
   await say('goka', 'おっかさんを殺したのも、文鳥だった。……忘れたとは言わせないよ、ザイナ。');
   a.bw[0].st.point = true; await say('akaB', 'なっ……ふざけんな！　俺らは、社長に拾われて――'); a.bw[0].st.point = false;
-  cine(5.6, 2.3, -2.9, 3.2, 2.0, 2.0); await say('zaina', '……やめて。');
+  cine(6.6, 2.4, -2.8, 3.2, 2.0, 2.0); await say('zaina', '……やめて。');
   await say('zaina', '……うちの子、違う。椿も、違う。');
   await say('goka', 'なら、証拠を出しな！');
   await narr('ゴウカの拳が、橋の欄干を叩いた。鋼の手すりが、飴のように曲がった。');
   sfx('metal'); G.shake = 0.6;
   await say('goka', '三日だ。三日のうちに、本当にやった奴を出しな。出なけりゃ――');
   await say('goka', '赤嶺の現場、全部、拳で更地にする。この橋もだ。');
-  cine(5.6, 2.3, -2.9, 3.2, 2.0, 2.0); await sleep(G.skip ? 0 : 600);
+  cine(6.6, 2.4, -2.8, 3.2, 2.0, 2.0); await sleep(G.skip ? 0 : 600);
   await say('zaina', '……私、殴らない。');
   await say('goka', '……っ。いつも、それだ。');
   await say('goka', 'おっかさんも、あんたのそういうとこが好きだった。……あたしは、嫌いだよ。');
   await narr('鬼たちが去っていく。ザイナは、曲がった欄干に手を当てて、黙って、元の形に戻し始めた。');
-  P.pos.set(3.8, 0, 2.2); faceEach(a.zn); otsCam(a.zn, 2.2, 1.4);
+  P.pos.set(1.6, 0, 1.4); faceEach(a.zn); otsCam(a.zn, 2.2, 1.4);
   await say('zaina', '……静州の人。');
   await say('zaina', '……昨日の夜、あなたに、似た人、いた。');
   await say('kuze', '……さあ。昨夜は、自宅におりましたので。');
