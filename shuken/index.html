@@ -1402,7 +1402,7 @@ async function worldIntroBody() {
   await goA('space'); pan([10, 40, 200], [-30, -40, -20], [-20, 12, 140], [-30, -30, -10], 30);
   await card('序章', 'この国を決めている者たち', 2600);
   loc('地球　夜の側', '日本', 'JAPAN');
-  await narr('この星には、人間のほかに、竜、魔族、エルフ、妖狐、鬼、吸血鬼をはじめとする、多くの知的な種族が暮らしている。');
+  await narr('数十年前。この世界に、突然、門が開いた。'); await narr('門の向こうから来たのは、竜、魔族、エルフ、妖狐、鬼、吸血鬼をはじめとする、多くの知的な種族だった。生まれてくるのは、ほとんどすべてが女。男は、百人に一人もいない。'); await narr('武力で抗った国があった。交渉で線を引こうとした国もあった。……どちらも、届かなかった。統治は、少しずつ、静かに、彼女たちの手へ移っていった。'); await narr('いま、この国では、人間のほかに、多くの異種族が暮らしている。');
   await narr('彼女たちは、人間には扱えない魔法を操り、人間の遠く及ばない力を持つ。生き物として人間より優れていることを、もう誰も疑わない。');
   // 二：異種族が牛耳る街
   await goA('aliens'); pan([-30, 3.2, 3], [0, 3, -4], [6, 3.0, 3.5], [36, 3.4, -3], 34); loc('日本　中部経済圏', '異種族の街', 'THE NEIGHBORS WHO RULE');
@@ -1422,7 +1422,7 @@ async function worldIntroBody() {
   nameCard(null);
   // 三：B.U.N の街
   await goA('buntown'); pan([-24, 3.6, 6.5], [-6, 3, -6], [20, 4.2, 6.5], [6, 3.6, -6], 36); loc('春日井圏　北部', '辻society 春日井支部', 'B.U.N SOCIETY — MUSCLE QUARTER');
-  await narr('一方で、この国には、もう一つの文明がいる。B.U.N society。約十の二十一乗羽のマッスル文鳥が属する、宇宙規模の文明圏だ。');
+  await narr('そこへ、もう一つの文明が参入してきた。B.U.N society。約十の二十一乗羽のマッスル文鳥が属する、宇宙規模の文明圏だ。'); await narr('彼らは、文鳥の物量で、この星をまるごと押し切ろうとした。');
   await narr('彼らは科学も、医療も、物流も持つ。人間の暮らしを支えている文鳥も多い。……だが、その社会の真ん中には、強さとレートがある。');
   pan([0, 16, 26], [0, 0, -2], [8, 10, 18], [0, 1, -4], 18);
   await narr('辻society系の強硬派は、異種族を、とりわけ女を敵とみなす。彼らは女を「メス肉」と呼び、人格を持つ者から、資源へと数え直そうとする。');
@@ -1441,7 +1441,7 @@ async function worldIntroBody() {
   await narr('どちらが勝っても、損をするのは、その間で働いている人間だ。');
   // 五：外神竜一族と、その組織
   await goA('family'); pan([0, 3, 18], [0, 1.6, 0], [0, 2.6, 13], [0, 1.6, 0], 10); loc('春日井　高蔵寺の丘　夜明け', '外神竜一族', 'THE OUTER DRAGON FAMILY');
-  await narr('その全部を、少し離れた場所から見ている者たちがいる。');
+  await narr('その全部を、少し離れた場所から見ている者たちがいる。'); await narr('門の向こうの異世界とは、別の場所から。誰にも知られず、外なる深淵から、いつの間にか、しれっとここへ来ていた者たち。'); await narr('均衡なんてものを作るより、ずっと前から。彼女たちは春日井で、人のためになることを、家族総出でしていた。みんなが幸せになれるように。……そして、家族同士、たっぷり愛し合えるように。'); await narr('文鳥の物量が、すべてを押し切ろうとしたとき。そこに均衡を作ったのは、彼女たちだった。');
   await narr('春日井に暮らす、外神竜一族。主家の六人の姉妹と、親戚筋の五人。そして全員が「ママ」と呼ぶ母。彼女たちは、どちらか一方に世界を渡すことを許さない。');
   await narr('一族は、それぞれが組織を預かっている。事業の大元はテルエスの天環グループ。その周りに、家族全員の仕事がつながっている。');
   await goA('works'); const W = AREAS.works;
@@ -3423,21 +3423,21 @@ LK.kuzeTr = Object.assign({}, LK.kuze, { top: 0x4A5638, sleeve: 0x4A5638, bc: 0x
 LK.washio = { skin: SK2, hair: 0x9A9A9A, eye: 0x1E1E22, brow: 0x7A7A7A, browTilt: -0.24, top: 0x3A4230, sleeve: 0x3A4230, bc: 0x2E3428, leg: 0x2E3428, shoe: 0x1A1A14, s: 1.04, w: 1.1, st: ['short', 'beard'] };
 LK.gokaMask = Object.assign({}, EXEC.goka, { coat: 0x2A2A30, lining: 0x6A1A1A, trim: 0x6A1A1A, prop: undefined, st: ['short', 'messy', 'onehorn', 'eyesHidden'] });
 LK.interrog = { skin: SK, hair: 0x141418, eye: 0x1A1A1A, top: 0x24262C, sleeve: 0x24262C, bc: 0x24262C, leg: 0x24262C, shoe: 0x0E0E12, shirt: 0xE8E8E8, tie: 0x24262C, s: 1.02, w: 1.0, st: ['short', 'glasses'], glassCol: 0x0A0A0C };
-LK.tsuyoshi = { skin: 0xEAC8B0, hair: 0x2A1A14, eye: 0x7A4A1A, top: 0xE8A030, sleeve: 0xE8A030, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x2A2A20, s: 1.22, w: 1.22, st: ['short', 'messy', 'horns'], hornCol: 0xF0E0A0, muscle: true };
-LK.oniW1 = { skin: 0xD8A890, hair: 0x5A3A2A, eye: 0x8A4A1A, top: 0x9A1A1A, sleeve: 0xD8A890, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0x2A2018, s: 1.3, w: 1.35, st: ['short', 'horns'], hornCol: 0xE8D8A0, muscle: true };
-LK.oniW2 = Object.assign({}, LK.oniW1, { skin: 0xC8D0E0, hair: 0x2A2A3A, top: 0x6A6A70, st: ['short', 'messy', 'onehorn'], s: 1.36 });
+LK.tsuyoshi = { skin: 0xEAC8B0, hair: 0x2A1A14, eye: 0x7A4A1A, top: 0xE8A030, sleeve: 0xE8A030, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x2A2A20, s: 1.2, w: 1.12, st: ['pony', 'ahoge', 'horns'], hornCol: 0xF0E0A0, muscle: true };
+LK.oniW1 = { skin: 0xD8A890, hair: 0x5A3A2A, eye: 0x8A4A1A, top: 0x9A1A1A, sleeve: 0xD8A890, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0x2A2018, s: 1.3, w: 1.3, st: ['highpony', 'horns'], hornCol: 0xE8D8A0, muscle: true };
+LK.oniW2 = Object.assign({}, LK.oniW1, { skin: 0xC8D0E0, hair: 0x2A2A3A, top: 0x6A6A70, st: ['long', 'messy', 'onehorn'], s: 1.36 });
 LK.oniW3 = Object.assign({}, LK.oniW1, { skin: 0xE8B8A0, hair: 0xC8C8C8, top: 0xC85A1A, bottom: 'skirt', st: ['pony', 'horns'], s: 1.24, w: 1.2 });
 LK.ooba = { skin: SK2, hair: 0x3A3A3A, eye: 0x2A2A2A, brow: 0x3A3A3A, top: 0xEDEDED, sleeve: 0xEDEDED, bc: 0x3A4A6A, leg: 0x3A4A6A, shoe: 0x2A2A2A, s: 1.0, w: 1.08, st: ['short', 'cap'], capCol: 0xF4F4F4 };
 LK.dhum = { skin: SK, hair: 0x1A1A1A, eye: 0x2A2A2A, top: 0x1C1C22, sleeve: 0x1C1C22, bc: 0x1C1C22, leg: 0x2A2A2E, shoe: 0x0A0A0A, s: 1.02, w: 1.04, st: ['short', 'cap'], capCol: 0x1A1A1E, prop: 'club', propHand: 1 };
 LK.dhum2 = Object.assign({}, LK.dhum, { top: 0x2A2E26, sleeve: 0x2A2E26, s: 1.06, w: 1.1, st: ['short', 'beard'] });
-LK.inui = { skin: SK2, hair: 0x2A2A2E, eye: 0x1E1E22, brow: 0x2A2A2E, browTilt: -0.22, top: 0x3A3A40, sleeve: 0xA89870, bc: 0x3A3A40, leg: 0x3A3A40, shoe: 0x2A2018, coat: 0xA89870, lining: 0x5A4A30, shirt: 0xE8E8E0, tie: 0x5A2A2A, s: 1.03, w: 1.0, st: ['short', 'messy'] };
-LK.todo = { skin: 0xE0B8A0, hair: 0x1A1A1E, eye: 0xD08020, top: 0x1E2230, sleeve: 0x1E2230, bc: 0x1E2230, leg: 0x1E2230, shoe: 0x0E0E12, shirt: 0xF0F0F0, tie: 0x1E2846, s: 1.5, w: 1.35, st: ['short', 'horns'], hornCol: 0xE8D8A0, muscle: true, prop: 'tablet', propHand: 0 };
+LK.inui = { skin: SK2, hair: 0x18181C, eye: 0x141418, brow: 0x18181C, browTilt: -0.3, top: 0x1E2638, sleeve: 0x1E2638, bc: 0x1E2638, leg: 0x1E2638, shoe: 0x101014, shirt: 0xF4F4F4, tie: 0x2A2A44, pin: 0xC8A040, s: 1.18, w: 0.98, st: ['short', 'part'] };
+LK.todo = { skin: 0xE0B8A0, hair: 0x1A1A1E, eye: 0xD08020, top: 0x1E2230, sleeve: 0x1E2230, bc: 0x1E2230, leg: 0x1E2230, shoe: 0x0E0E12, shirt: 0xF0F0F0, s: 1.5, w: 1.25, st: ['long', 'horns'], hornCol: 0xE8D8A0, muscle: true, prop: 'tablet', propHand: 0 };
 LK.cop = { skin: SK, hair: 0x1A1A1A, eye: 0x2A2A2A, top: 0x24304A, sleeve: 0x24304A, bc: 0x24304A, leg: 0x24304A, shoe: 0x0E0E12, s: 1.0, w: 1.0, st: ['short', 'cap'], capCol: 0x24304A };
 function maskedGoka() { const m = makeChar(LK.gokaMask); part(box(0.5, 0.52, 0.08), 0xF0ECE2, 0, 0, 0.27, m.head); for (const sx of [-1, 1]) part(box(0.13, 0.035, 0.02), 0xA01A1A, sx * 0.11, 0.04, 0.32, m.head, { outline: false }); part(box(0.2, 0.03, 0.02), 0xA01A1A, 0, -0.14, 0.32, m.head, { outline: false }); return m; }
 const akaBird = () => makeBird({ coat: 0x6A6A70, vest: 0xF06A1A, helmet: 0xF4F4F4, s: 1.35, muscle: true });
 const dangiBird = () => makeBird({ coat: 0x1C1C22, scarf: 0xE8E8E8, shades: true, s: 1.25, armMark: 0xE8E8E8 });
 const haijinBird = () => makeBird({ coat: 0x2A2A2E, longcoat: 0x3A3A3E, inner: 0x141416, trim: 0xD8D8D8, scarf: 0xC8C8C8, s: 1.45, muscle: true, blade: 0x9A9AA8, bladeEmis: 0x202030, armMark: 0xE8E8E8 });
-Object.assign(SPK, { washio: ['鷲尾教官', '#C8C8A0'], interrog: ['尋問官', '#9A9AA0'], tsuyoshi: ['鬼頭 剛', '#F0B060'], oniW: ['鬼の作業員', '#E89A6A'], oniW2: ['鬼の作業員', '#C8D0E0'],
+Object.assign(SPK, { washio: ['鷲尾教官', '#C8C8A0'], interrog: ['尋問官', '#9A9AA0'], tsuyoshi: ['鬼頭 椿', '#F0B060'], oniW: ['鬼の作業員', '#E89A6A'], oniW2: ['鬼の作業員', '#C8D0E0'],
   ooba: ['現場監督 大庭', '#D8D8C0'], akaB: ['赤嶺の文鳥', '#F0A060'], dhum: ['断偽の協力者', '#9A9AA0'], dbird: ['断偽の文鳥', '#D8D8E8'], haijin: ['ハ・イジン', '#E8E8F0'],
   inui: ['乾', '#E0C890'], todo: ['轟（読み上げ音声）', '#E8B070'], cop: ['警官', '#9AB0D0'], news: ['ニュース', '#C8D0E0'], mesu: ['メス・ゼロ', '#F4F4F4'], kgoka: ['面の鬼', '#F0C040'] });
 
@@ -3592,7 +3592,7 @@ makeArea('underB', { place: '高蔵寺大橋　橋の下　河川敷', bounds: [
 });
 // 公安：異種族事案係
 const boardTex = canvasTex(1024, 512, (c, w, h) => { c.fillStyle = '#EDEDE8'; c.fillRect(0, 0, w, h);
-  const pins = [[120, 90, '断偽文鳥門', '#1A1A1A'], [420, 70, '鬼頭 剛（鬼族・19）', '#7A3A1A'], [740, 90, '？？？', '#A01A1A'], [140, 330, '鬼嶽建設　火薬 3箱', '#1A1A1A'], [460, 320, '高蔵寺新橋', '#1A1A1A'], [780, 330, '開通式　葛城', '#1A1A1A']];
+  const pins = [[120, 90, '断偽文鳥門', '#1A1A1A'], [420, 70, '鬼頭 椿（鬼族・19）', '#7A3A1A'], [740, 90, '？？？', '#A01A1A'], [140, 330, '鬼嶽建設　火薬 3箱', '#1A1A1A'], [460, 320, '高蔵寺新橋', '#1A1A1A'], [780, 330, '開通式　葛城', '#1A1A1A']];
   c.strokeStyle = '#C0201A'; c.lineWidth = 3; for (const [a, b] of [[0, 1], [0, 3], [1, 3], [2, 4], [4, 5], [0, 5], [2, 1]]) { c.beginPath(); c.moveTo(pins[a][0] + 80, pins[a][1] + 60); c.lineTo(pins[b][0] + 80, pins[b][1] + 60); c.stroke(); }
   for (const [x, y, t, col] of pins) { c.fillStyle = '#FFFFFF'; c.fillRect(x, y, 170, 120); c.fillStyle = '#B8B8B8'; c.fillRect(x + 10, y + 10, 150, 70); c.fillStyle = col; c.font = '700 20px sans-serif'; c.fillText(t, x + 8, y + 108); c.fillStyle = '#C0201A'; c.beginPath(); c.arc(x + 85, y, 8, 0, TAU); c.fill(); } });
 makeArea('kouan', { place: '名古屋　警察庁 中部分室　公安課 異種族事案係', noPlayer: true, bounds: [-6, 6, -4, 4], spawn: [0, 999], cam: [0, 7, 7], music: 'noir', bg: 0x14181E, fog: null, light: 0.55, sun: 0.3,
@@ -3692,12 +3692,18 @@ async function chapter5() { G.mode = 'cine'; S.chapter = 5; S.caught = 0; S.cove
   await say('kuze', '……久世、躁一郎。');
   await say('interrog', '所属は。');
   await say('kuze', '……名古屋の、大学院。経済学研究科。');
-  await say('interrog', '嘘だな。お前の父親は、久世宗一。界域協定に反対して失脚した、元・行政官だ。……父親の復讐か。');
+  await say('interrog', '嘘だな。お前の父親は、久世宗一。界域協定に反対して失脚した、元・行政官だ。');
+  await say('interrog', '失脚の翌年、父親は、異種族の女に囲われた。家には戻らず、名字と、借金の肩代わりだけを残して。');
+  await say('interrog', '……事実上、奪われたんだ。お前と、お前の母親の目の前でな。');
+  await say('interrog', '母親は、それから壊れた。今でも、夜中になると、夫の名前を呼んで笑い出すそうだな。……笑うか、叫ぶか、どちらかだ。');
+  await say('interrog', '父親を奪った女たちへの、復讐か。');
   await narr('灯りが、揺れた。いや、揺れているのは、自分の頭だった。');
   await say('kuze', '……ち、が……');
   await narr('言葉が、出てこない。喉の奥で、何かが崩れかけている。――その時。');
   document.body.classList.add('ura'); cine(0.9, 1.3, 1.9, 0, 1.25, 0.95);
   await say('ura', '父のことは、恨んでいません。', { cls: 'ura' });
+  await say('ura', 'あの人は、拾われただけです。……拾われた者は、拾った者のものになる。この国では、よくある話でしょう。', { cls: 'ura' });
+  await say('ura', '母は、療養中です。月に一度、会いに行っています。……それの、何が問題なんですか。', { cls: 'ura' });
   await say('ura', '失脚した行政官の息子が、異種族の企業に就職したがっている。……それの、何が問題なんですか。', { cls: 'ura' });
   await say('ura', '僕は、この国でうまくやりたいだけです。頭を下げるのは、得意なので。', { cls: 'ura' });
   document.body.classList.remove('ura');
@@ -3716,7 +3722,8 @@ async function chapter5() { G.mode = 'cine'; S.chapter = 5; S.caught = 0; S.cove
   await ura('なら、名前くらい、つけろ。……「もう一人の僕」じゃ、呼びにくい。');
   await narr('久世は、灯りの消えかけた天井を見上げた。');
   await say('kuze', '……朔（さく）。');
-  await say('kuze', '父が、全部を失った夜は、新月だった。……月のない夜に、お前は、生まれた。');
+  await say('kuze', '父が、全部を失った夜は、新月だった。……父がいなくなって、母が初めて叫んだ夜も。');
+  await say('kuze', '月のない夜に、お前は、生まれた。');
   S.flags.saku = true; setMeta({ saku: true }); applySaku(); sfx('ura');
   await saku('……朔、か。', '悪くない。');
   await say('washio', '朔、とやら。……聞こえているなら、覚えておけ。');
@@ -3819,7 +3826,7 @@ async function evBird5() { markI('s5bird'); await say('akaB', 'ちわっす。�
 // ---- 鬼嶽建設の資材ヤード ----
 async function goOni5() { G.mode = 'cine'; S.flags.c5st = 'oni'; await goArea('onitake', [10.4, 5.2], -Math.PI * 0.75); const a = AREAS.onitake; bgm('oni');
   a.gk.pos.set(0.4, 0, -3.0); a.gk.facing = 0; a.ts.pos.set(-5.0, 0, -1.2); cine(8, 3.2, 6.4, 0, 1.4, -2); await card('春日井　鬼嶽建設', '資材ヤード　午後二時', 1800);
-  await narr('門に、太い墨の字で「鬼嶽建設」。その下を、角のある大男たちが、鋼管を肩に担いで行き交っている。');
+  await narr('門に、太い墨の字で「鬼嶽建設」。その下を、角のある、背の高い女たちが、鋼管を肩に担いで行き交っている。');
   await narr('一人が、こちらに気づいた。笑うと、牙が見えた。');
   await say('oniW', 'お？　人間だ。……迷子か、兄ちゃん。');
   P.pos.set(2.4, 0, 0.4); faceEach(a.gk); otsCam(a.gk, 2.6, 1.5);
@@ -3832,7 +3839,7 @@ async function goOni5() { G.mode = 'cine'; S.flags.c5st = 'oni'; await goArea('o
   await saku('鬼は、嘘を嗅ぐ。……顔に出すな。');
   await say('kuze', 'よく言われます。商社の人間ですので。');
   await say('goka', 'あはは！　正直だ。……まあいいさ。ゆっくり見ていきな。');
-  playOn(); setObj('ヤードを見て回る（ゴウカ、鬼頭剛、火薬庫）'); saveGame(true); }
+  playOn(); setObj('ヤードを見て回る（ゴウカ、鬼頭椿、火薬庫）'); saveGame(true); }
 function oniItems(a) { if (a.c5items) return; a.c5items = true;
   addItem(a, { id: 'o5goka', x: 0.4, z: -2.0, label: '話す', col: 0xE3B428, dyn: a.gk, avail: () => S.flags.c5st === 'oni', on: evGoka5 });
   addItem(a, { id: 'o5ts', x: -5.0, z: -0.2, label: '話す', col: 0xE3B428, dyn: a.ts, avail: () => S.flags.c5st === 'oni', on: evTsuyoshi5 });
@@ -3842,8 +3849,11 @@ function oniItems(a) { if (a.c5items) return; a.c5items = true;
 { const b0 = AREAS.onitake.build; AREAS.onitake.build = a => { b0(a); oniItems(a); }; }
 async function evGoka5() { markI('o5goka'); const a = AREAS.onitake, gk = a.gk; faceEach(gk); otsCam(gk, 2.6, 1.5);
   await say('goka', '赤嶺の竜とは、どうだって？　……あいつは、昔っから無口でね。');
-  await say('goka', 'うちのお袋――先代が、ガキの頃のあいつに、溶接を教えた。竜の子が、鬼の現場に入り浸ってたのさ。');
-  await say('goka', 'で、あいつは、お袋の一番弟子になった。あたしより、腕がいいって言われてね。……ふん。');
+  await say('goka', 'うちのおっかさん――先代がね、この街に来たばかりのあいつに、溶接を教えたのさ。何十年も前の話だ。');
+  await say('goka', '右も左も分からない竜の娘が、「人のためになることがしたい」って、鬼の現場に入り浸ってた。家族みんなで、この街をどうにかしたいんだってさ。');
+  await say('goka', 'で、あいつは、おっかさんの一番弟子になった。あたしより、腕がいいって言われてね。……ふん。');
+  await say('goka', '……おっかさんは、もういない。鉄翼の文鳥どもの、夜の襲撃でね。');
+  await say('goka', 'だから、あたしは、あいつが文鳥を雇ってるのが、気に入らない。更生だか何だか知らないけどね。……文鳥は、文鳥だ。');
   await say('goka', '入札で勝つのは、だいたいあっちだ。……悔しいが、あいつの骨組みは、狂わない。');
   await say('goka', 'それとね、課長さん。鬼の掟を一つ教えといてやる。');
   await say('goka', '強い奴が仕事を取る。でも、約束を破る奴は、どんなに強くても、鬼じゃない。……あたしらは、嘘をつかない。');
@@ -3856,17 +3866,17 @@ async function evGoka5() { markI('o5goka'); const a = AREAS.onitake, gk = a.gk; 
     await saku('……やりすぎた。'); }
   gk.st.point = false; }
 async function evTsuyoshi5() { markI('o5ts'); const a = AREAS.onitake, ts = a.ts; faceEach(ts); otsCam(ts, 2.2, 1.4);
-  nameCard({ s: '鬼族　鬼嶽建設 作業員（十九歳）', b: '鬼頭 剛', e: 'きとう つよし', col: '#F0B060', p: 'ひなた荘の大家・鬼頭千代のひとり息子。\n火薬庫の記帳係を任されたばかり。真面目で、嘘がつけない。' });
+  nameCard({ s: '鬼族　鬼嶽建設 作業員（十九歳）', b: '鬼頭 椿', e: 'きとう つばき', col: '#F0B060', p: 'ひなた荘の大家・鬼頭千代のひとり娘。\n火薬庫の記帳係を任されたばかり。真面目で、嘘がつけない。' });
   await say('tsuyoshi', 'ちわっす！　……あれ、静州商事の？　もしかして、久世さんっすか？');
-  nameCard(null); await say('tsuyoshi', 'お袋から、聞いてます。浅井さんの件で、来てくれた人だって。お袋、すげえ喜んでました。');
-  await say('kuze', '……鬼頭さんの、息子さんでしたか。');
-  await say('tsuyoshi', 'はい！　お袋の味噌汁、浅井さんもよく……あ、すいません、関係ない話っすね。');
-  await narr('剛は、急に声を落とした。');
+  nameCard(null); await say('tsuyoshi', 'お母ちゃんから、聞いてます。浅井さんの件で、来てくれた人だって。お母ちゃん、すげえ喜んでました。');
+  await say('kuze', '……鬼頭さんの、娘さんでしたか。');
+  await say('tsuyoshi', 'はい！　お母ちゃんの味噌汁、浅井さんもよく……あ、すいません、関係ない話っすね。');
+  await narr('椿は、急に声を落とした。');
   await say('tsuyoshi', '……あの、久世さん。ちょっと、変なことがあって。');
-  await say('tsuyoshi', '俺、先月から火薬庫の記帳係なんすけど。帳簿と、棚の数が合わないんす。解体用の火薬が、三箱。');
-  await say('tsuyoshi', '社長に言ったら、「数え間違いだろ、もう一回数えな」って。……でも、俺、五回数えました。');
+  await say('tsuyoshi', 'あたし、先月から火薬庫の記帳係なんすけど。帳簿と、棚の数が合わないんす。解体用の火薬が、三箱。');
+  await say('tsuyoshi', '社長に言ったら、「数え間違いだろ、もう一回数えな」って。……でも、あたし、五回数えました。');
   await say('tsuyoshi', '鬼は、嘘をつかないっす。だから、数が合わないのは、誰かが黙って持ってったってことで……。');
-  addNote('c5ts', '鬼頭剛の話', '鬼嶽建設の火薬庫で、解体用の火薬が三箱足りない。記帳係の剛は五回数え直した。社長は「数え間違い」と取り合っていない。'); }
+  addNote('c5ts', '鬼頭椿の話', '鬼嶽建設の火薬庫で、解体用の火薬が三箱足りない。記帳係の椿は五回数え直した。社長は「数え間違い」と取り合っていない。'); }
 async function evMagazine5() { markI('o5mag'); cine(-7.0, 2.2, -1.4, -9.4, 1.2, -3.6);
   await narr('火薬庫の扉の脇に、記帳の板。几帳面な字で、日付と数が並んでいる。「記帳：鬼頭」。');
   await narr('先週の木曜。夜間の出庫の記録はない。……でも、扉の錠前に、真新しい擦り傷。');
@@ -3874,7 +3884,7 @@ async function evMagazine5() { markI('o5mag'); cine(-7.0, 2.2, -1.4, -9.4, 1.2, 
   await saku('白い羽。……橋のジャッキと、同じだ。', '断偽が、鬼の火薬を盗んで、竜の橋に仕掛けている。');
   await saku('爆発すれば、鬼の火薬が出てくる。鬼が竜の橋を壊したことになる。……赤嶺と鬼嶽を、噛み合わせるつもりだ。');
   addNote('c5mag', '火薬庫の錠前', '鬼嶽建設の火薬庫の錠前に新しい擦り傷と、白い羽。断偽文鳥門が鬼嶽の火薬を盗み、赤嶺の橋に仕掛けようとしている可能性。', true); }
-async function evOniW5() { markI('o5w'); await say('oniW', '兄ちゃん、鬼の現場は初めてか。……そう固くなるな。俺らは、殴るときは、ちゃんと前から殴る。');
+async function evOniW5() { markI('o5w'); await say('oniW', '兄ちゃん、鬼の現場は初めてかい。……そう固くなりなさんな。あたしらは、殴るときは、ちゃんと前から殴る。');
   await say('oniW', '後ろから刺すのは、文鳥と人間の得意技だろ。……あ、悪い。あんたも人間だったな。がはは！'); }
 
 // ---- 留文堂　地下 ----
@@ -3908,7 +3918,7 @@ const DDOCS = {
 };
 async function evDangiDoc(k) { const D = DDOCS[k]; if (k !== 'exp') { sfx('shutter'); flashCam(); } await narr(D.name + '\n' + D.body); addNote('c5d' + k, D.name, D.body, true); S.flags['c5d_' + k] = true;
   if (k === 'plan') { await saku('今夜、一時。……あと、五十分だ。', 'そして、開通式。橋脚に、もう仕掛けてある。'); setObj('倉庫を出て、橋へ（入口へ）'); }
-  if (k === 'exp') await saku('記帳札を、現場に残す。……「記帳：鬼頭」。', '剛の名前だ。あの子に、罪を着せるつもりだ。');
+  if (k === 'exp') await saku('記帳札を、現場に残す。……「記帳：鬼頭」。', '椿の名前だ。あの子に、罪を着せるつもりだ。');
   if (k === 'list') await saku('人間が、人間を「家畜」と呼んで、文鳥と組む。', '……この国は、どこまでも、ねじれている。'); }
 async function evDangiOut() { const a = AREAS.dangi; G.mode = 'cine'; P.pos.set(9.2, 0, 4.4); const b = a.b1; b.path = null; b.pos.set(7.2, 0, 3.2); b.cone.visible = false;
   sfx('alert'); faceEach(b); otsCam(b, 2.4, 1.5);
@@ -3926,12 +3936,12 @@ async function goBridgeNight() { G.mode = 'cine'; S.flags.c5st = 'night'; S.flag
   await narr('橋の上は、投光器の白い光だけだった。夜勤の文鳥が二羽。……そして、もう一人。');
   await say('tsuyoshi', '……久世さん！？　なんで、ここに。');
   P.pos.set(4.0, 0, 2.4); faceEach(a.ts); otsCam(a.ts, 2.2, 1.4);
-  await say('tsuyoshi', '俺、火薬のこと、どうしても気になって。倉庫の近くで、白い文鳥が人間とトラック積んでるの見て、追っかけてきたんす。');
+  await say('tsuyoshi', 'あたし、火薬のこと、どうしても気になって。倉庫の近くで、白い文鳥が人間とトラック積んでるの見て、追っかけてきたんす。');
   await say('tsuyoshi', 'そしたら、この橋に……。社長には、言ってないっす。言ったら、殴り込みになるから。');
   await saku('いい子だ。……だが、最悪の場所にいる。');
-  await say('kuze', '剛くん、文鳥の皆さんと一緒に、橋から下がってください。今すぐ。');
+  await say('kuze', '椿さん、文鳥の皆さんと一緒に、橋から下がってください。今すぐ。');
   setObj('仮受けジャッキの仕掛けを探す'); playOn();
-  if (!a.c5night) { a.c5night = true; addItem(a, { id: 'n5chg', x: 0.6, z: 0.9, label: 'ジャッキの台座を調べる', col: 0xC8323C, avail: () => S.flags.c5st === 'night' && !S.flags.c5blast, on: evNightCharge }); } }
+  nightItems(a); }
 async function evNightCharge() { const a = AREAS.bridge5; cine(-0.6, 1.3, 2.4, 0.6, 0.4, 0);
   await narr('台座の裏。白い粉の「断」の字の上に、黒い包みが貼りついていた。赤い光が、一秒ごとに点滅している。');
   await narr('包みの脇に、紙の札が一枚。「鬼嶽建設　記帳：鬼頭」。');
@@ -3946,7 +3956,7 @@ async function evNightCharge() { const a = AREAS.bridge5; cine(-0.6, 1.3, 2.4, 0
   for (let i = 0; i <= 18; i++) { a.gird.rotation.z = i / 18 * 0.16; await sleep(G.skip ? 0 : 22); }
   a.bw[0].st.sit = false; a.bw[0].st.down = true; a.ts.st.down = true; a.bw[1].st.down = true; a.ts.pos.set(1.6, 0, 1.0); a.bw[0].pos.set(2.8, 0, 1.1); a.bw[1].pos.set(3.4, 0, -1.0);
   await narr('主桁が、傾いた。九メートルの鋼の塊が、軋みながら、ゆっくりと沈んでいく。');
-  await narr('その真下に、剛と、文鳥が二羽。');
+  await narr('その真下に、椿と、文鳥が二羽。');
   // ザイナ
   const zn = a.zn; zn.hidden = false; zn.st = {}; zn.pos.set(12, 0, -1.6); sfx('metal'); cine(6, 2.6, 4.4, 1.2, 1.6, 0);
   await say('zaina', '……どいて。');
@@ -3958,11 +3968,7 @@ async function evNightCharge() { const a = AREAS.bridge5; cine(-0.6, 1.3, 2.4, 0
   await say('zaina', '……でも、持つ。下の子たち、出して。……あなた。');
   await saku('――行くぞ。');
   S.flags.c5st = 'rescue'; a.tLeft = 45; a.resc = 0; P.pos.set(-1.4, 0, 2.4);
-  if (!a.c5resc) { a.c5resc = true;
-    addItem(a, { id: 'r5ts', x: 1.6, z: 1.6, label: '剛を引きずり出す', col: 0xC8323C, avail: () => S.flags.c5st === 'rescue', on: () => evRescue('ts') });
-    addItem(a, { id: 'r5b0', x: 2.8, z: 1.7, label: '文鳥を引きずり出す', col: 0xC8323C, avail: () => S.flags.c5st === 'rescue', on: () => evRescue('b0') });
-    addItem(a, { id: 'r5b1', x: 3.4, z: -1.6, label: '文鳥を引きずり出す', col: 0xC8323C, avail: () => S.flags.c5st === 'rescue', on: () => evRescue('b1') });
-    const t0 = a.tick; a.tick = (a2, dt) => { t0(a2, dt); if (S.flags.c5st === 'rescue' && G.mode === 'play' && !G.busy) { a2.tLeft -= dt; setObj('主桁の下から三人を出す（' + a2.resc + '／3）　――ザイナの腕：' + Math.max(0, Math.ceil(a2.tLeft)) + '秒'); if (a2.tLeft <= 0) { a2.tLeft = 20; run(async () => { G.shake = 0.6; sfx('metal'); await say('zaina', '……っ。……まだ。まだ、持つ。急いで。'); }); } } }; }
+  rescueItems(a);
   playOn(); }
 async function evRescue(k) { const a = AREAS.bridge5, n = { ts: a.ts, b0: a.bw[0], b1: a.bw[1] }[k]; sfx('swing');
   n.st.down = false; await walkTo(n, n.pos.x + 0.2, n.pos.z + (n.pos.z > 0 ? 1.6 : -1.6), 3.4); n.goal = null;
@@ -3979,19 +3985,19 @@ async function evRescued() { const a = AREAS.bridge5, zn = a.zn; G.mode = 'cine'
   await saku('答えるな。');
   sfx('siren'); await narr('遠くで、サイレンが鳴り始めた。');
   await saku('警察だ。……消えろ。ここにお前がいた記録を、残すな。');
-  const c = await choose([{ t: '残って、剛くんの無実を証言する', k: '本音', warm: 1 }, { t: '（何も言わずに、橋を離れる）', k: '裏声', cold: 1 }]);
-  if (c === 0) { await narr('一歩、踏み出した。――その足が、止まった。'); await saku('馬鹿か。お前が名乗れば、商社の課長がなぜ夜中の橋にいたのか、全部掘られる。', '留保班ごと、終わる。……剛を救いたいなら、今は、消えろ。'); }
+  const c = await choose([{ t: '残って、椿さんの無実を証言する', k: '本音', warm: 1 }, { t: '（何も言わずに、橋を離れる）', k: '裏声', cold: 1 }]);
+  if (c === 0) { await narr('一歩、踏み出した。――その足が、止まった。'); await saku('馬鹿か。お前が名乗れば、商社の課長がなぜ夜中の橋にいたのか、全部掘られる。', '留保班ごと、終わる。……椿を救いたいなら、今は、消えろ。'); }
   await narr('久世は、投光器の光の外へ、走った。');
   a.ts.lookAt = P.pos; cine(1.8, 1.6, 2.8, 0, 1.4, 6); await say('tsuyoshi', '久世さん……！？');
   await fade(true);
-  // 剛の逮捕
+  // 椿の逮捕
   bridgeShow(a, ['ts', 'cop0', 'cop1', 'zn']); a.ts.pos.set(4.4, 0, 1.0); a.cops[0].pos.set(5.6, 0, 1.6); a.cops[1].pos.set(5.4, 0, 0.0); a.zn.pos.set(2.6, 0, -1.6); a.zn.lookAt = a.ts.pos; P.model.root.visible = false;
   cine(8.6, 2.4, 3.2, 4.4, 1.3, 0.6); await fade(false);
   await narr('――その十分後。');
-  await say('cop', '鬼嶽建設の、鬼頭剛だな。現場から、君の名前の記帳札が見つかった。……ポケットにも、同じ札がある。');
-  await say('tsuyoshi', 'ち、違うっす！　それは、俺が、現場で拾ったやつで……！');
+  await say('cop', '鬼嶽建設の、鬼頭椿だな。現場から、君の名前の記帳札が見つかった。……ポケットにも、同じ札がある。');
+  await say('tsuyoshi', 'ち、違うっす！　それは、あたしが、現場で拾ったやつで……！');
   await say('cop', '話は、署で聞く。');
-  await narr('剛の手首に、鬼の力でも外れない、特殊錠が掛けられた。');
+  await narr('椿の手首に、鬼の力でも外れない、特殊錠が掛けられた。');
   await say('zaina', '……その子、違う。助けた側。');
   await say('cop', '赤嶺の社長さん。お気持ちは分かりますが、証拠がこれだけ揃っていては。');
   await narr('橋の反対側の暗がりで、久世は、それを見ていた。');
@@ -4005,12 +4011,13 @@ async function goSiteMorning5() { G.mode = 'cine'; S.flags.c5st = 'morning'; S.f
   cine(4.4, 2.6, 4.8, 4.4, 1.4, 0); await card('高蔵寺新橋', '翌朝　午前七時', 1600);
   await narr('橋の真ん中に、線が一本、引かれているようだった。こちらに、赤嶺の文鳥たちと、肩に包帯を巻いたザイナ。あちらに、鬼嶽の鬼たちと、ゴウカ。');
   await narr('久世は、「調整役」として、その線の横に立っていた。');
-  cine(3.8, 2.0, -2.4, 6.4, 2.0, 0); await say('goka', '……あんたんとこの現場で、うちの火薬が使われた。で、手錠をかけられたのは、うちの剛だ。');
-  await say('goka', '剛はね、嘘がつけない子だ。やってないって言うなら、やってない。');
+  cine(3.8, 2.0, -2.4, 6.4, 2.0, 0); await say('goka', '……あんたんとこの現場で、うちの火薬が使われた。で、手錠をかけられたのは、うちの椿だ。');
+  await say('goka', '椿はね、嘘がつけない子だ。やってないって言うなら、やってない。');
   await say('goka', 'じゃあ、誰がやった。……あんたんとこの文鳥じゃないのかい。元は B.U.N のごろつきだろう。');
+  await say('goka', 'おっかさんを殺したのも、文鳥だった。……忘れたとは言わせないよ、ザイナ。');
   a.bw[0].st.point = true; await say('akaB', 'なっ……ふざけんな！　俺らは、社長に拾われて――'); a.bw[0].st.point = false;
   cine(4.0, 2.0, 2.4, 2.4, 1.9, 0); await say('zaina', '……やめて。');
-  await say('zaina', '……うちの子、違う。剛も、違う。');
+  await say('zaina', '……うちの子、違う。椿も、違う。');
   await say('goka', 'なら、証拠を出しな！');
   await narr('ゴウカの拳が、橋の欄干を叩いた。鋼の手すりが、飴のように曲がった。');
   sfx('metal'); G.shake = 0.6;
@@ -4019,7 +4026,7 @@ async function goSiteMorning5() { G.mode = 'cine'; S.flags.c5st = 'morning'; S.f
   cine(4.0, 2.0, 2.4, 2.4, 1.9, 0); await sleep(G.skip ? 0 : 600);
   await say('zaina', '……私、殴らない。');
   await say('goka', '……っ。いつも、それだ。');
-  await say('goka', 'お袋も、あんたのそういうとこが好きだった。……あたしは、嫌いだよ。');
+  await say('goka', 'おっかさんも、あんたのそういうとこが好きだった。……あたしは、嫌いだよ。');
   await narr('鬼たちが去っていく。ザイナは、曲がった欄干に手を当てて、黙って、元の形に戻し始めた。');
   P.pos.set(3.8, 0, 2.2); faceEach(a.zn); otsCam(a.zn, 2.2, 1.4);
   await say('zaina', '……静州の人。');
@@ -4042,8 +4049,8 @@ function showReport5a() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
   const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>秘</span><span>留保</span></div><h2>報告書　第五号（上）</h2><div class="meta">内閣 留保班　情報要員 久世躁一郎（朔）　／　件名：高蔵寺新橋、および断偽文鳥門の件</div><table>' +
     '<tr><td>朔</td><td>二十一年前、越後の尋問訓練の第四夜に生まれた、もう一人の久世。「こいつを、生きて帰らせろ」――鷲尾教官</td></tr>' +
     '<tr><td>取得した記録</td><td><div class="ev">' + ['plan', 'list', 'exp'].map(k => '<span class="' + (docs.includes(k) ? '' : 'no') + '">' + (docs.includes(k) ? '■ ' : '□ ') + DN[k] + '</span>').join('') + '</div></td></tr>' +
-    '<tr><td>新橋の爆破</td><td>仮受けジャッキが爆破され、主桁が傾く。ザイナが素手で支え、剛と文鳥二羽を救出</td></tr>' +
-    '<tr><td>鬼頭剛</td><td>現場の記帳札を理由に逮捕。鬼嶽ゴウカは「三日」の期限を切った</td></tr>' +
+    '<tr><td>新橋の爆破</td><td>仮受けジャッキが爆破され、主桁が傾く。ザイナが素手で支え、椿と文鳥二羽を救出</td></tr>' +
+    '<tr><td>鬼頭椿</td><td>現場の記帳札を理由に逮捕。鬼嶽ゴウカは「三日」の期限を切った</td></tr>' +
     '<tr><td>留保班の命令</td><td>「記録を取れ。……ただし、止めるな」</td></tr>' +
     '<tr><td>目撃</td><td>ザイナ（「人間、あんなに、速い？」）' + (S.flags.c5wrestle ? '、鬼嶽ゴウカ（「その粘り方、どっかで見た」）' : '') + '、そして防犯カメラ</td></tr>' +
     '<tr><td>擬態の残り</td><td>' + Math.round(S.cover) + '％</td></tr></table>' +
@@ -4052,28 +4059,42 @@ function showReport5a() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
   $('report').hidden = false; $('titleBtn5').addEventListener('click', () => location.reload()); $('ch6Go').addEventListener('click', () => { $('report').hidden = true; run(chapter6); }); }
 async function startCh5() { const m = meta(); if (m.ch4) unpackS(m.ch4); else if (m.ch3) unpackS(m.ch3); DONE = new Set(m.ch4Done || m.ch3Done || []); S.flags.revealed = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter5(); }
 
+function nightItems(a) { if (a.c5night) return; a.c5night = true; addItem(a, { id: 'n5chg', x: 0.6, z: 0.9, label: 'ジャッキの台座を調べる', col: 0xC8323C, avail: () => S.flags.c5st === 'night' && !S.flags.c5blast, on: evNightCharge }); }
+
+function rescueItems(a) { if (a.c5resc) return; a.c5resc = true;
+    addItem(a, { id: 'r5ts', x: 1.6, z: 1.6, label: '椿を引きずり出す', col: 0xC8323C, avail: () => S.flags.c5st === 'rescue', on: () => evRescue('ts') });
+    addItem(a, { id: 'r5b0', x: 2.8, z: 1.7, label: '文鳥を引きずり出す', col: 0xC8323C, avail: () => S.flags.c5st === 'rescue', on: () => evRescue('b0') });
+    addItem(a, { id: 'r5b1', x: 3.4, z: -1.6, label: '文鳥を引きずり出す', col: 0xC8323C, avail: () => S.flags.c5st === 'rescue', on: () => evRescue('b1') });
+    const t0 = a.tick; a.tick = (a2, dt) => { t0(a2, dt); if (S.flags.c5st === 'rescue' && G.mode === 'play' && !G.busy) { a2.tLeft -= dt; setObj('主桁の下から三人を出す（' + a2.resc + '／3）　――ザイナの腕：' + Math.max(0, Math.ceil(a2.tLeft)) + '秒'); if (a2.tLeft <= 0) { a2.tLeft = 20; run(async () => { G.shake = 0.6; sfx('metal'); await say('zaina', '……っ。……まだ。まだ、持つ。急いで。'); }); } } }; }
+
 // ================= 第五章　下　鬼は嘘をつかない =================
 async function chapter6() { G.mode = 'cine'; S.chapter = 6; S.caught = 0; $('report').hidden = true; nameCard(null); applySaku(); bgm('');
   await goArea('kouan'); const K = AREAS.kouan, iu = K.inui, td = K.todo; iu.hidden = false; td.hidden = false; iu.pos.set(-1.6, 0, -2.6); iu.facing = Math.PI; td.pos.set(2.8, 0, -3.2); td.facing = Math.PI;
   cine(2.0, 2.2, 2.8, -1.4, 1.7, -3.4); bgm('noir'); await card('名古屋　警察庁 中部分室', '爆破の翌々日　午前八時', 2000);
-  await narr('白い板の前で、男が一人、ミントの飴を噛み砕いていた。');
-  await say('inui', '鬼頭剛。十九歳。取り調べで、三十時間、同じことしか言わない。');
-  await say('inui', '「拾った札を、ポケットに入れた。俺は、やってない」。……それだけだ。');
-  iu.facing = -Math.PI * 0.75; cine(0.2, 2.0, 0.4, -1.6, 1.7, -2.6);
-  nameCard({ s: '警察庁 警備局 公安課　異種族事案係　警部', b: '乾 恒一', e: 'いぬい こういち', col: '#E0C890', p: '人間の警察に残された、数少ない牙。\n異種族の絡む事件に、人間の法で食い下がる。\n鼻が利く。しつこい。朝食は、ミントの飴。' });
+  await narr('白い板の前に、背の高い男が立っていた。仕立てのいい紺の背広。腕を組み、板を、じっと睨んでいる。');
+  await say('inui', '鬼頭椿。十九歳。取り調べ、三十時間。');
+  await say('inui', '……言ったことは、一つだけだ。「拾った札を、ポケットに入れた。あたしは、やってない」。');
+  iu.facing = -Math.PI * 0.75; cine(0.2, 2.0, 0.4, -1.6, 1.9, -2.6);
+  nameCard({ s: '警察庁 警備局 公安課　異種族事案係　警部', b: '乾 恒一', e: 'いぬい こういち', col: '#E0C890', p: '上背があり、声が低い。笑うと、かえって怖い。\n異種族の絡む事件に、人間の法で、どこまでも食い下がる。\n一度嗅いだ匂いは、忘れない。' });
   await say('todo', '鬼は、嘘をつきません。……少なくとも、あの子の角は、取り調べのあいだ、一度も震えませんでした。');
-  nameCard({ s: '鬼族　警察庁 警備局 公安課　巡査部長', b: '轟 シズマ', e: 'とどろき しずま', col: '#E8B070', p: '乾の相棒。鬼の地声は窓を割るので、タブレットの読み上げで話す。\n鬼は、嘘をつくと角が震える。轟の角は、一度も震えたことがない。' });
-  await say('inui', '知ってるよ、轟。……お前の角が震えたのも、見たことがない。');
+  nameCard({ s: '鬼族　警察庁 警備局 公安課　巡査部長', b: '轟 シズマ', e: 'とどろき しずま', col: '#E8B070', p: '乾の相棒。鬼の地声は窓を割るので、タブレットの読み上げで話す。\n乾より、さらに頭ひとつ背が高い。\n鬼は、嘘をつくと角が震える。轟の角は、一度も震えたことがない。' });
+  await say('inui', '知っている。……お前の角が震えたところを、俺は、一度も見たことがない。');
   nameCard(null); cine(-0.4, 1.9, -0.6, -1.6, 1.8, -4.3);
-  await say('inui', '上は、鬼の若いのを起訴して、開通式の前に片をつけたがってる。異種族の事件は、異種族の機関に回せ、ってな。');
-  await say('inui', 'だが、橋で使われたのは人間の起爆器で、倒れてたのは人間の協力者だ。……人間の事件だ。人間の法でやる。');
-  await narr('乾は、板の右上の写真を、指で弾いた。背広の男。投光器の光の外へ、走っていく背中。');
-  await say('inui', 'それと、こいつだ。爆発の三分前に、橋の上にいた。協力者の男を、素手で、一分で寝かせてる。');
+  await say('inui', '上は、鬼の娘を起訴して、開通式の前に片をつけたがっている。……異種族の事件は、異種族の機関に回せ、とな。');
+  await narr('乾は、ゆっくりと振り向いた。');
+  await say('inui', 'だが。');
+  await say('inui', '橋で使われたのは、人間の起爆器。倒れていたのは、人間の協力者。……これは、人間の事件だ。');
+  await say('inui', '人間の事件は――人間の法で、やる。');
+  await narr('長い指が、板の右上の写真を、とん、と叩いた。背広の男。投光器の光の外へ、走っていく背中。');
+  await say('inui', 'そして、こいつだ。爆発の三分前、橋の上にいた。協力者の男を、素手で、一分で寝かせている。');
+  await say('inui', '見ろ、この重心。……走っている間、踵が、一度も地面についていない。');
   await say('todo', '格闘の訓練を受けた人間です。それも、相当な。');
-  await say('inui', 'この国に、人間の諜報員なんて、もういない。……建前ではな。');
-  await say('inui', '新橋の鋼材の発注元は、静州商事。現場の入館記録に、調整役の課長の名前がある。……行くぞ、轟。');
-  await say('todo', '了解。……乾さん、朝ごはんは。');
-  await say('inui', '飴でいい。');
+  await say('inui', 'この国に、人間の諜報員など、もういない。');
+  await narr('乾の口の端が、わずかに上がった。');
+  await say('inui', '……建前では、な。');
+  await say('inui', '新橋の鋼材の発注元は、静州商事。入館記録に、調整役の課長の名前がある。……会いに行こうか、轟。');
+  await say('todo', '了解。……乾さん、また朝ごはん抜きですか。');
+  await say('inui', '腹が減っているほうが、鼻が利く。');
   await card('第五章　下', '鬼は嘘をつかない', 3400);
   await goOffice6(); }
 
@@ -4081,31 +4102,36 @@ async function chapter6() { G.mode = 'cine'; S.chapter = 6; S.caught = 0; $('rep
 async function goOffice6() { G.mode = 'cine'; S.flags.c6st = 'office'; await goArea('office', [0, 3.6], Math.PI); const a = AREAS.office; officeCh(a, 6); bgm('office');
   const iu = a.iu || (a.iu = npc(a, 'inui', makeChar(LK.inui), 0, 5.4, Math.PI)); const td = a.td || (a.td = npc(a, 'todo', makeChar(LK.todo), 1.4, 5.8, Math.PI)); iu.hidden = false; td.hidden = false;
   cine(3.0, 2.4, 1.2, 0.4, 1.5, 5.0); await card('春日井　静州商事', '同じ日　午前十時', 1600);
-  await say('onodera', '久世さん……あの、警察の方が。');
+  await say('onodera', '久世さん……あの、警察の方が。……すごく背の高い方が、お二人。');
   P.pos.set(0, 0, 3.4); faceEach(iu); otsCam(iu, 2.3, 1.5);
-  await say('inui', '警察庁の乾です。こっちは轟。……鬼の地声は窓を割るんで、こいつはタブレットで喋ります。お気になさらず。');
+  await say('inui', '警察庁の、乾です。こちらは轟。……鬼の地声は窓を割るので、彼女はタブレットで話します。お気になさらず。');
   await say('todo', 'よろしくお願いします。');
   await say('kuze', '静州商事の久世です。……高蔵寺の件でしょうか。');
-  await say('inui', '話が早い。調整役の方に、少しだけ。');
-  await say('inui', '一昨日の夜、零時四十分。どちらに？');
+  await say('inui', '話が早い。……いいですね。話の早い方は、好きですよ。');
+  await say('inui', '一昨日の夜。零時、四十分。');
+  await say('inui', '……どちらに？');
   await saku('こいつは、本物だ。……目を逸らすな。逸らしたら、それが答えになる。');
   const c = await choose([{ t: '「自宅で、寝ておりました」', k: '表' }, { t: '「会社に残って、資料をまとめておりました」', k: '裏声', cover: -6, cold: 1 }]);
-  if (c === 0) { await say('kuze', '自宅で、寝ておりました。'); await say('inui', 'お一人で？'); await say('kuze', 'ええ。……独り身ですので。'); }
-  else { await say('kuze', '会社に残って、資料をまとめておりました。'); await say('inui', 'ほう。ここの入館ゲートの記録、あとで見せてもらっても？'); await saku('……墓穴だ。ゲートの記録はない。'); S.flags.c6lieGate = true; }
-  await narr('乾の目が、一瞬だけ、久世の右手に落ちた。');
-  await say('inui', '右手の拳。擦りむいてますね。');
+  if (c === 0) { await say('kuze', '自宅で、寝ておりました。'); await say('inui', 'お一人で？'); await say('kuze', 'ええ。……独り身ですので。'); await say('inui', '……なるほど。'); }
+  else { await say('kuze', '会社に残って、資料をまとめておりました。'); await say('inui', 'ほう。……では、入館ゲートの記録を、あとで拝見しましょう。'); await saku('……墓穴だ。ゲートの記録はない。'); S.flags.c6lieGate = true; }
+  await narr('乾が、一歩、近づいた。見上げるほどの上背だった。その目が、一瞬だけ、久世の右手に落ちた。');
+  await say('inui', '……右手。拳の、指の付け根。擦りむいていますね。');
   await say('kuze', '……ドアに、挟みまして。');
-  await say('inui', '拳の、指の付け根を？　器用なドアだ。');
+  await say('inui', 'ドアに。');
+  await say('inui', '……拳の、指の付け根を。');
+  await narr('間。');
+  await say('inui', '器用なドアだ。');
   await say('todo', '……。');
-  await say('inui', '防犯カメラにね、背広の男が一人、映ってたんです。走り方が、人間離れしてた。……でもね、課長さん。あなたの走り方を、私は知らない。');
-  await say('inui', 'だから今日は、これで帰ります。');
-  await say('inui', '……ああ、一つだけ。あの晩、鬼の若いのを、主桁の下から引きずり出した男がいる。剛くんは「人間の男に助けられた」と言ってる。');
-  await say('inui', 'その男が名乗り出てくれたら、剛くんは、ずいぶん楽になるんですがね。');
+  await say('inui', '防犯カメラにね、背広の男が映っていたんです。走り方が、人間離れしていた。');
+  await say('inui', 'ですが、課長。……私は、あなたの走り方を、まだ知らない。');
+  await say('inui', 'だから今日は、これで帰ります。……今日は、ね。');
+  await say('inui', '……ああ、一つだけ。あの晩、主桁の下から、鬼の娘を引きずり出した男がいる。本人は「人間の男に助けられた」と言っている。');
+  await say('inui', 'その男が名乗り出れば、あの娘は、ずいぶん楽になる。……どう思います、課長。');
   const d = await choose([{ t: '（黙って、頭を下げる）', k: '表', cover: 2 }, { t: '「……その方には、名乗り出られない事情があるのかもしれません」', k: '本音', warm: 1, cover: -4 }]);
-  if (d === 1) { await say('kuze', '……その方には、名乗り出られない事情があるのかもしれません。'); await say('inui', 'ほう。事情、ね。'); await say('inui', '……いい答えだ、課長さん。嘘じゃない答えだ。'); S.flags.c6honest = true; }
-  else { await narr('久世は、丁寧に頭を下げた。乾は、それを、じっと見ていた。'); await say('inui', '……頭の下げ方が、きれいですね。慣れてらっしゃる。'); }
+  if (d === 1) { await say('kuze', '……その方には、名乗り出られない事情があるのかもしれません。'); await say('inui', 'ほう。……事情、ね。'); await narr('乾は、笑った。笑うと、かえって怖い顔だった。'); await say('inui', '……いい答えだ。嘘じゃない。だが、本当でもない。'); S.flags.c6honest = true; }
+  else { await narr('久世は、丁寧に頭を下げた。乾は、それを、瞬きもせずに見ていた。'); await say('inui', '……実に、きれいな頭の下げ方だ。よほど、下げ慣れていらっしゃる。'); }
   await narr('乾は、名刺を一枚、机に置いた。');
-  await say('inui', '何か思い出したら。……夜中でも、出ますよ。');
+  await say('inui', '何か思い出したら、いつでも。……私は、諦めが悪いので。');
   iu.lookAt = null; walkTo(iu, 0, 7.2, 1.6); await walkTo(td, 1.4, 7.6, 1.6); iu.hidden = true; td.hidden = true;
   addNote('c6inui', '乾恒一の名刺', '警察庁 警備局 公安課 異種族事案係 警部。「人間の事件だ。人間の法でやる」。防犯カメラに映った背広の男を追っている。');
   await saku('……公安の犬に、嗅ぎつけられたな。');
@@ -4125,31 +4151,33 @@ function policeItems(a) { if (a.c6items) return; a.c6items = true;
 async function evKito6() { markI('p6kito'); const a = AREAS.policeF, kt = a.kt; P.pos.set(-1.6, 0, 2.6); faceEach(kt); kt.st.sit = true; otsCam(kt, 1.9, 1.4);
   await say('kito', '久世さん……！　来てくれたの……。');
   if (S.flags.c6tea) { await narr('温かいお茶を手渡すと、鬼頭さんは、両手で包むように受け取った。'); await say('kito', '……ありがとうねぇ。あったかい。'); }
-  await say('kito', '剛がね、捕まってまったの。……あの子、嘘なんかつけん子だで。');
-  await say('kito', 'あの子のお父さんもね、嘘のつけん鬼だった。鬼嶽の現場でね、崩れた梁の下から、人間の監督さんを押し出して……そのまま、自分が下敷きになってまったの。');
-  await say('kito', '剛はね、お父さんみたいになりたいって、鬼嶽に入ったの。人を、助ける鬼になるんだって。');
+  await say('kito', '椿がね、捕まってまったの。……あの子、嘘なんかつけん子だで。');
+  await say('kito', 'あの子のお父さんはね、人間だったの。鬼嶽の現場監督でね。崩れた梁の下から、鬼の若い子らを押し出して……そのまま、自分が下敷きになってまったの。');
+  await say('kito', '鬼の現場で、鬼をかばって死んだ人間なんて、あの人くらいだわ。……嘘のつけん、まっすぐな人だった。');
+  await say('kito', '椿はね、お父さんみたいになりたいって、鬼嶽に入ったの。お父さんみたいに、人を助ける鬼になるんだって。');
   await say('kito', '……あの晩も、あの子、誰かを助けようとして、あそこにおったんだと思う。');
   await saku('……当たりだ。', 'あの子は、火薬を盗んだ奴を、一人で追いかけてた。');
-  const c = await choose([{ t: '「剛くんは、必ず帰ってきます」', k: '本音', warm: 1 }, { t: '「警察も、調べてくれているはずです」', k: '表' }]);
-  if (c === 0) { await say('kuze', '剛くんは、必ず帰ってきます。'); await say('kito', '……久世さんが言うと、ほんとになる気がする。浅井さんのときも、そうだったでね。'); S.flags.c6kitoPromise = true; }
+  const c = await choose([{ t: '「椿さんは、必ず帰ってきます」', k: '本音', warm: 1 }, { t: '「警察も、調べてくれているはずです」', k: '表' }]);
+  if (c === 0) { await say('kuze', '椿さんは、必ず帰ってきます。'); await say('kito', '……久世さんが言うと、ほんとになる気がする。浅井さんのときも、そうだったでね。'); S.flags.c6kitoPromise = true; }
   else { await say('kuze', '警察も、調べてくれているはずです。'); await say('kito', '……うん。そうだね。そうだといいね。'); }
   // 乾と轟
   const iu = a.iu || (a.iu = npc(a, 'inui', makeChar(LK.inui), 0.6, -3.0, 0)); const td = a.td || (a.td = npc(a, 'todo', makeChar(LK.todo), 1.8, -3.2, 0)); iu.hidden = false; td.hidden = false;
   walkTo(td, 0.2, 0.8, 1.6); await walkTo(iu, -0.6, 1.4, 1.6); iu.lookAt = 'P'; td.lookAt = kt.pos; cine(-4.8, 2.0, 4.2, -1.0, 1.4, 1.2);
-  await say('inui', 'おや。……課長さん。こんなところで。');
+  await say('inui', '……おや。課長。こんなところで。……奇遇ですね。');
   await say('inui', '鬼頭さんと、お知り合いで？');
   await say('kuze', '……部下の件で、お世話になった大家さんです。');
   await say('inui', '部下。……ああ、九尾の件の、浅井さん。');
-  await say('inui', 'あなた、ずいぶん、いろんなところにいる人だ。');
+  await say('inui', '紅鱗、九尾、そして今度は鬼嶽。……あなたは、実に、いろんなところにいる。');
+  await say('inui', '偶然にしては、多すぎる。……そう思いませんか。');
   td.st.point = true; await narr('轟が、黙って自販機の方へ歩いていき、温かい缶を二本買って戻ってきた。一本を、鬼頭さんの隣に、そっと置く。'); td.st.point = false;
-  await say('todo', '……息子さんの角は、震えていません。私も、鬼ですので。分かります。');
+  await say('todo', '……娘さんの角は、震えていません。私も、鬼ですので。分かります。');
   await say('kito', '……ありがとうねぇ。');
-  await say('inui', '課長さん。……鬼嶽の若い連中が、今夜にも赤嶺の現場に殴り込むって噂がある。ゴウカ社長が三日と言ったのに、若いのが待てないらしい。');
-  await say('inui', 'ゴウカ社長は、人間の警察の言うことは聞かない。……でも、調整役の言うことなら、聞くかもしれない。');
-  await say('inui', '止められるなら、止めてください。……あの橋で、これ以上、誰かが下敷きになるのは御免だ。');
+  await say('inui', '課長。……鬼嶽の若い連中が、今夜にも赤嶺の現場に殴り込む、という噂があります。社長が「三日」と言ったのに、待てないらしい。');
+  await say('inui', 'ゴウカ社長は、人間の警察の言うことなど、聞かない。……だが、調整役の言うことなら、聞くかもしれない。');
+  await say('inui', 'お願いできますか。……あの橋で、これ以上、誰かが下敷きになるのは、御免だ。');
   await saku('……使われたな。', '分かった上で、こっちを動かしにきた。……食えない男だ。');
   setObj('赤嶺の現場へ（右の道へ）');
-  if (!a.c6out) { a.c6out = true; addItem(a, { id: 'p6out', x: 7.4, z: 2.6, r: 1.4, label: '赤嶺の現場へ', col: 0xC8323C, once: false, avail: () => S.flags.c6st === 'police', on: () => goSite6() }); }
+  police6Out(a);
   iu.lookAt = null; walkTo(iu, 0.6, -3.4, 1.4).then(() => { iu.hidden = true; }); }
 
 // ---- 赤嶺の現場：竜の話 ----
@@ -4158,8 +4186,7 @@ async function goSite6() { G.mode = 'cine'; S.flags.c6st = 'site'; S.flags.c5st 
   await narr('主桁は、もう元の位置に戻っていた。ザイナが、一晩で直したのだと、監督の大庭が言った。');
   await narr('彼女は、包帯の巻かれた腕で、溶接の火花を散らしていた。');
   playOn(); setObj('ザイナと話す'); saveGame(true);
-  if (!a.c6items) { a.c6items = true; addItem(a, { id: 'b6zaina', x: 4.2, z: 2.6, label: '話す', col: 0xE3B428, dyn: a.zn, avail: () => S.flags.c6st === 'site', on: evZaina6 });
-    addItem(a, { id: 'b6out', x: 13.4, z: 0.4, r: 1.4, label: '鬼嶽建設のヤードへ', col: 0xC8323C, once: false, avail: () => S.flags.c6st === 'site' && S.seen.has('i:b6zaina'), on: () => goOniDusk6() }); } }
+  site6Items(a); }
 async function evZaina6() { markI('b6zaina'); const a = AREAS.bridge5, zn = a.zn; zn.st.paint = false; faceEach(zn); otsCam(zn, 2.2, 1.4);
   await say('zaina', '……静州の人。');
   await say('kuze', '腕は、大丈夫ですか。');
@@ -4171,7 +4198,11 @@ async function evZaina6() { markI('b6zaina'); const a = AREAS.bridge5, zn = a.zn
   await say('kuze', '……なぜ、ですか。あなたなら、鬼が何人来ても。');
   await narr('ザイナは、溶接の面を外して、しばらく、火花の消えた鋼を見ていた。');
   await say('zaina', '……ゴウカのお母さん。私に、溶接、教えてくれた。');
-  await say('zaina', '小さい頃。家にいるの、嫌で。鬼の現場、行ってた。……火花、きれいって言ったら、笑ってた。「竜の子が、鬼の真似かい」って。');
+  await say('zaina', '……ここに、来たばかりのころ。何も、分からなかった。');
+  await say('zaina', '春日井の人、みんな、幸せにしたかった。家族みんなで。……でも、私、作るの、下手だった。');
+  await say('zaina', '鬼の現場、行った。ゴウカのお母さん、溶接、教えてくれた。……火花、きれいって言ったら、笑ってた。「竜の娘が、鬼の真似かい」って。');
+  await say('zaina', '……お母さん、文鳥に、殺された。夜の、襲撃。');
+  await say('zaina', '私の会社、文鳥、いる。ゴウカ、それ、ずっと、許してない。……分かる。');
   await say('zaina', 'お葬式のとき。ゴウカ、泣かなかった。私、泣いた。……ゴウカ、それも、怒ってる。');
   await say('zaina', 'ゴウカの拳、お母さんと、同じ形。……だから、殴らない。');
   const c = await choose([{ t: '「……ゴウカさんにも、そう伝えましょうか」', k: '温情', warm: 1 }, { t: '「……分かりました」', k: '表' }]);
@@ -4184,7 +4215,7 @@ async function goOniDusk6() { G.mode = 'cine'; S.flags.c6st = 'oni'; await goAre
   gk.pos.set(0.4, 0, -2.6); gk.facing = 0; for (const n of a.ow) { n.st.cross = false; n.st.point = false; } a.ow[0].pos.set(-2.4, 0, 0.6); a.ow[1].pos.set(2.6, 0, 0.8); a.ow[2].pos.set(0.4, 0, 1.6); for (const n of a.ow) n.lookAt = gk.pos;
   cine(7.4, 3.0, 6.0, 0.4, 1.6, -1.6); await card('鬼嶽建設', '夕暮れ', 1600);
   await narr('ドラム缶の火が、鬼たちの角を赤く照らしていた。三十人は、いる。');
-  a.ow[1].st.point = true; await say('oniW2', '社長！　もう待てねえ！　剛が、今も檻ん中だ！'); a.ow[1].st.point = false;
+  a.ow[1].st.point = true; await say('oniW2', '社長！　もう待てねえ！　椿が、今も檻ん中だ！'); a.ow[1].st.point = false;
   await say('oniW', '竜の現場、ぶっ潰しに行こうぜ！');
   cine(3.2, 2.2, 1.8, 0.4, 2.0, -2.6); await say('goka', '……三日って言ったのは、あたしだ。');
   await say('goka', '鬼が、自分の言った約束を破るのかい。……破るなら、あたしの角を折ってから行きな。');
@@ -4217,11 +4248,11 @@ async function goOniDusk6() { G.mode = 'cine'; S.flags.c6st = 'oni'; await goAre
   await say('goka', '鬼は、契りを破らない。……あんたが何者でも、あたしの口からは、出ない。死ぬまでね。');
   await saku('……助かった、のか。', 'いや。……握られた、とも言う。');
   await say('goka', 'で。……本当のことを、言いな。');
-  await narr('久世は、話した。断偽文鳥門のこと。盗まれた三箱の火薬。剛の名前の記帳札。そして、開通式の橋脚に仕掛けられたもの。');
+  await narr('久世は、話した。断偽文鳥門のこと。盗まれた三箱の火薬。椿の名前の記帳札。そして、開通式の橋脚に仕掛けられたもの。');
   if (S.flags.c6zMsg) await say('kuze', '……それと、ザイナさんから。「本当のことを言って」と。');
   await narr('話しているあいだ、ゴウカは一度も口を挟まなかった。角が、一度も震えなかった。');
   await say('goka', '……白い文鳥。');
-  await say('goka', 'うちの火薬で、竜の橋を落として、剛に罪を着せて、あたしらと竜を噛み合わせた、ってのかい。');
+  await say('goka', 'うちの火薬で、竜の橋を落として、椿に罪を着せて、あたしらと竜を噛み合わせた、ってのかい。');
   await narr('鬼たちの輪が、ざわめいた。怒りの向きが、変わったのが分かった。');
   await say('goka', '聞いたね、お前ら！　殴る相手を、間違えるところだった！');
   await say('goka', '……鋼材屋。うちの雷管は、必ず黄色い線から外す。鬼嶽の決まりだ。');
@@ -4257,7 +4288,7 @@ async function goHQ6() { G.mode = 'cine'; S.flags.c6st = 'hq'; await goArea('hq'
   document.body.classList.remove('ura');
   await say('kuze', '……鷲尾さんは、生きて帰れと言った。');
   await say('kuze', 'お前には、「こいつを、生きて帰らせろ」とも。');
-  await say('kuze', '剛くんも、鬼頭さんも、ザイナさんも、橋の上の人たちも。……全員、生きて帰らせる。それが、お前の仕事の続きだ。');
+  await say('kuze', '椿さんも、鬼頭さんも、ザイナさんも、橋の上の人たちも。……全員、生きて帰らせる。それが、お前の仕事の続きだ。');
   document.body.classList.add('ura'); await say('ura', '……チッ。', { cls: 'ura' }); await say('ura', '勝手にしろ。……殴るのは、俺がやる。', { cls: 'ura' }); document.body.classList.remove('ura');
   await fade(true); await goCeremony6(); }
 
@@ -4269,10 +4300,7 @@ async function goCeremony6() { G.mode = 'cine'; S.flags.c6st = 'cere'; S.flags.c
   cine(0.6, 2.0, 0.2, 2.6, 1.9, 2.4); await say('katsuragi', '人間と、異種族が、手を取り合って架けた橋です。この橋は、きっと、この町の冬を――');
   await saku('橋脚の爆薬は、三本。起爆器は、橋の下の受信器に繋がっているはずだ。', '……行くぞ。下へ降りる階段は、西の端だ。');
   playOn(); setObj('橋の西の端から、河川敷へ降りる'); saveGame(true);
-  if (!a.c6cere) { a.c6cere = true;
-    addItem(a, { id: 'c6yu', x: -4.0, z: -0.8, label: '話す', col: 0xE3B428, dyn: a.yu, avail: () => S.flags.c6st === 'cere', on: evYuria6 });
-    addItem(a, { id: 'c6in', x: 10.2, z: -1.2, label: '話す', col: 0xE3B428, dyn: a.in, avail: () => S.flags.c6st === 'cere', on: evInui6 });
-    addItem(a, { id: 'c6down', x: -14.2, z: 2.4, r: 1.4, label: '河川敷へ降りる', col: 0xC8323C, once: false, avail: () => S.flags.c6st === 'cere', on: () => goUnder6() }); } }
+  cereItems(a); }
 async function evYuria6() { markI('c6yu'); const a = AREAS.bridge5, yu = a.yu; faceEach(yu); otsCam(yu, 2.2, 1.4);
   await say('yuria', 'あっ、おにーさん！　夜宴ぶり～！');
   await say('yuria', '今日は、よゆーで安全だよ♪　橋の上も下も、うちの子たちが見てるから！');
@@ -4282,10 +4310,11 @@ async function evYuria6() { markI('c6yu'); const a = AREAS.bridge5, yu = a.yu; f
     await say('yuria', '……ふーん？　おにーさん、なんでそう思ったの？'); await say('kuze', '……川風が、妙に冷たかったので。'); await say('yuria', 'あはは、なにそれ！　……でも、いいよ。見とく。あーし、そういうカン、嫌いじゃないし。'); S.flags.c6yuHint = true; }
   else { await say('kuze', '心強いです。よろしくお願いします。'); await say('yuria', 'まかせて！　全員、無事に帰すから！'); } }
 async function evInui6() { markI('c6in'); const a = AREAS.bridge5, iu = a.in; faceEach(iu); otsCam(iu, 2.2, 1.4);
-  await say('inui', '課長さん。偶然ですね。');
-  await say('inui', '調整役が式典に出るのは、自然だ。……ただ、今日は背広が汚れなきゃいいですね。');
-  await say('todo', '乾さんは、褒めているつもりです。');
-  await say('inui', '褒めてない。'); }
+  await say('inui', '課長。……また、お会いしましたね。');
+  await say('inui', '調整役が式典に出るのは、自然だ。実に、自然だ。');
+  await say('inui', '……今日は、背広が汚れないといいですね。');
+  await say('todo', '乾さんは、心配しているつもりです。');
+  await say('inui', 'していない。'); }
 
 // ---- 橋の下 ----
 async function goUnder6() { G.mode = 'cine'; S.flags.c6st = 'under'; await goArea('underB', [13, 4.4], -Math.PI * 0.7); const a = AREAS.underB; a.det = 0; a.defused = false; cine(9, 7, 9, 0, 1, 0);
@@ -4335,10 +4364,7 @@ async function evUnderBox() { const a = AREAS.underB, hj = a.hj; G.mode = 'cine'
   await say('zaina', '……静州の人。残り、二つ。……切って。');
   await saku('黄色だ。鬼嶽の決まりだ。……急げ。竜の腕にも、限りがある。');
   S.flags.c6st = 'defuse'; a.tLeft = 50; a.cut = 0; P.pos.set(1.8, 0, 3.6); for (const w of a.watch) { w.cone.visible = false; w.path = null; } a.watch = [];
-  if (!a.c6cut) { a.c6cut = true;
-    addItem(a, { id: 'cut0', x: 0, z: 1.9, label: '真ん中の爆薬の線を切る', col: 0xC8323C, avail: () => S.flags.c6st === 'defuse', on: () => evCut(1) });
-    addItem(a, { id: 'cut9', x: 9, z: 1.9, label: '東の爆薬の線を切る', col: 0xC8323C, avail: () => S.flags.c6st === 'defuse', on: () => evCut(2) });
-    const t0 = a.tick; a.tick = (a2, dt) => { t0(a2, dt); if (S.flags.c6st === 'defuse' && G.mode === 'play' && !G.busy) { a2.tLeft -= dt; setObj('爆薬の線を切る（' + a2.cut + '／2）　――ザイナの腕：' + Math.max(0, Math.ceil(a2.tLeft)) + '秒'); if (a2.tLeft <= 0) { a2.tLeft = 20; run(async () => { G.shake = 0.6; sfx('metal'); await say('zaina', '……っ。……大丈夫。まだ、持つ。'); }); } } }; }
+  cutItems(a);
   nameCard(null); playOn(); }
 async function evCut(k) { const a = AREAS.underB; cine(P.pos.x + 1.4, 1.6, P.pos.z + 1.6, k === 1 ? 0 : 9, 1.6, 1.25);
   await narr('赤、青、黄。三本の線が、雷管に潜り込んでいる。');
@@ -4364,7 +4390,7 @@ async function evDefused() { const a = AREAS.underB, hj = a.hj, gk = a.gk, zn = 
   await say('goka', '……行きな、坊や。');
   await say('goka', 'あたしは、何も見てない。……鬼は、嘘はつかないけどね。黙ってることは、できるのさ。');
   await narr('久世は、受信器の上に、封筒を一つ置いた。中には、断偽の計画書と名簿の写し、起爆の記録。そして、一枚のメモ。');
-  await narr('「鬼頭剛は、無実です」。');
+  await narr('「鬼頭椿は、無実です」。');
   await narr('それから、橋脚の影を伝って、川下へ消えた。');
   await fade(true);
   // 乾、到着
@@ -4376,14 +4402,14 @@ async function evDefused() { const a = AREAS.underB, hj = a.hj, gk = a.gk, zn = 
   await say('goka', 'さあね。あたしは、誰がいたかなんて、言わないよ。');
   await say('inui', '……轟。');
   await say('todo', '角は、震えていません。……嘘は、ついていません。言っていないだけです。');
-  await say('inui', '……鬼ってのは、ずるいな。');
+  await say('inui', '……鬼というのは、実に、ずるい。');
   await narr('乾は、受信器の上の封筒を開けた。メモを読んで、しばらく、黙っていた。');
-  await say('inui', '「鬼頭剛は、無実です」。……誰だか知らないが。');
-  await say('inui', '礼は、言わないぞ。');
+  await say('inui', '「鬼頭椿は、無実です」。……誰だか知らんが。');
+  await say('inui', '礼は、言わんぞ。');
   cine(2.4, 1.8, 6.4, -12, 1.4, -6); await narr('川下の土手を、背広の男が一人、歩いていくのが見えた。');
   await say('todo', '……追いますか。');
-  await say('inui', 'いや。……今は、あの背中には、届かない。');
-  await say('inui', 'だが、次は、届く。');
+  await say('inui', 'いや。……今は、届かない。');
+  await say('inui', 'だが。……次は、届く。必ずな。');
   P.model.root.visible = true; await fade(true); await goAfter6(); }
 
 // ---- 二日後 ----
@@ -4392,16 +4418,16 @@ async function goAfter6() { G.mode = 'cine'; S.flags.c6st = 'after'; await goAre
   const gk = a.gk || (a.gk = npc(a, 'goka', makeChar(EXEC.goka), 2.4, -1.6, -Math.PI / 2)); gk.hidden = false; gk.pos.set(2.6, 0, -1.2);
   cine(4.6, 2.2, 3.4, -0.8, 1.4, -1.0); await card('春日井警察署', '二日後　午前九時', 1600);
   await narr('自動扉が開いて、背の高い若い鬼が、出てきた。');
-  await say('kito', '……剛！');
-  walkTo(kt, -0.4, -1.6, 2.4); await walkTo(ts, -0.2, -2.0, 1.6); kt.st.armsUp = false; await narr('鬼頭さんが、息子に抱きついた。剛は、困ったように笑って、母親の角に、そっと額を当てた。');
-  await say('tsuyoshi', '……ただいま、お袋。');
-  await say('goka', '……よく、黙ってたね。剛。');
+  await say('kito', '……椿！');
+  walkTo(kt, -0.4, -1.6, 2.4); await walkTo(ts, -0.2, -2.0, 1.6); kt.st.armsUp = false; await narr('鬼頭さんが、娘に抱きついた。椿は、困ったように笑って、母親の角に、そっと額を当てた。');
+  await say('tsuyoshi', '……ただいま、お母ちゃん。');
+  await say('goka', '……よく、黙ってたね。椿。');
   await say('tsuyoshi', 'はい、社長。……やってないことは、やってないって、言い続けました。');
   P.pos.set(1.0, 0, 0.6); faceEach(ts); otsCam(ts, 2.0, 1.4);
-  await say('tsuyoshi', '久世さん。……あの夜、主桁の下から、俺を引きずり出してくれたの――');
+  await say('tsuyoshi', '久世さん。……あの夜、主桁の下から、あたしを引きずり出してくれたの――');
   await say('kuze', '……何のことでしょう。');
-  await narr('剛は、まっすぐ久世の目を見た。それから、ゆっくり頷いた。');
-  await say('tsuyoshi', 'はい。……俺も、何も言いません。');
+  await narr('椿は、まっすぐ久世の目を見た。それから、ゆっくり頷いた。');
+  await say('tsuyoshi', 'はい。……あたしも、何も言いません。');
   await say('tsuyoshi', '鬼は、嘘はつけないっすけど。恩も、忘れないっす。');
   kt.lookAt = 'P'; await say('kito', '久世さん。これ、お味噌汁。水筒に入れてきたの。……浅井さんのぶんも、と思って、多めに作ってまったで。');
   await say('kuze', '……ありがとうございます。いただきます。');
@@ -4413,14 +4439,18 @@ async function goAfter6() { G.mode = 'cine'; S.flags.c6st = 'after'; await goAre
   await narr('西の橋脚には、新しい鋼の添え板が当てられていた。溶接の継ぎ目が、ひどくきれいだった。');
   await say('goka', '……あんたの骨組み、悪くないね。');
   await say('zaina', '……ありがと。……ゴウカの基礎も。あの爆発で、一ミリも、狂ってない。');
-  await say('goka', 'ふん。当たり前さ。……お袋に、叩き込まれたからね。');
+  await say('goka', 'ふん。当たり前さ。……おっかさんに、叩き込まれたからね。');
   await say('zaina', '……うん。私も。');
   await narr('しばらく、二人とも黙っていた。川風が、鉄の匂いを運んでいく。');
   await say('goka', '……あんた、葬式で泣いたね。');
   await say('zaina', '……うん。');
-  await say('goka', 'あたしは、泣かなかった。泣いたら、お袋の現場が止まると思った。');
+  await say('goka', 'あたしは、泣かなかった。泣いたら、おっかさんの現場が止まると思った。');
   await say('goka', '……泣いてくれて、ありがとよ。代わりに。');
   await say('zaina', '……うん。');
+  await say('goka', '……それと。あんたんとこの文鳥。');
+  await say('goka', 'あの夜、椿の隣で、一緒に下敷きになってたんだってね。……椿が言ってた。「あの二羽、あたしの頭を、翼でかばってた」って。');
+  await say('goka', '文鳥は、好きになれない。たぶん、一生ね。……でも、あの二羽には、礼を言っとく。');
+  await say('zaina', '……うん。伝える。');
   await say('goka', '次の入札は、負けないからね！');
   await say('zaina', '……私も。');
   P.pos.set(6.2, 0, 2.0); faceEach(b.zn); otsCam(b.zn, 2.0, 1.4);
@@ -4465,9 +4495,11 @@ async function goKouanEnd() { G.mode = 'cine'; await goArea('kouan'); const K = 
   await narr('白い板の「？？？」の写真の横に、名刺が一枚、ピンで留められた。');
   await narr('「静州商事　事業管理部　課長　久世躁一郎」。');
   await say('todo', 'どうしますか、乾さん。');
-  await say('inui', '……決まってる。');
-  await say('inui', 'あいつが何者なのか、人間の法で、確かめる。');
-  await say('inui', '剛くんの借りを返すのは、そのあとだ。');
+  await say('inui', '……決まっている。');
+  await say('inui', 'あいつが何者なのか。……人間の法で、確かめる。');
+  await narr('乾は、ネクタイを、少しだけ緩めた。');
+  await say('inui', '鬼頭椿の借りを返すのは、そのあとだ。');
+  await say('inui', '……面白くなってきた。');
   await goNight6(); }
 async function goNight6() { G.mode = 'cine'; await goArea('apt', [0.6, 1.4], Math.PI); cine(2.4, 2.0, 2.6, -1.4, 1.2, -2.6); bgm('night');
   await card('春日井　久世の部屋', '同じ夜　午後十一時', 1400);
@@ -4475,6 +4507,8 @@ async function goNight6() { G.mode = 'cine'; await goArea('apt', [0.6, 1.4], Mat
   await saku('……鬼に、正体を握られた。竜に、見抜かれた。公安に、名刺を貼られた。文鳥の門主に、声を掛けられた。', '二十一年、うまくやってきたのが、たった十日で、これだ。');
   await say('kuze', '……でも、全員、生きて帰った。');
   await saku('……ああ。');
+  await say('kuze', '……来週、母さんの施設に行く。');
+  await saku('……また、親父の名前を呼んで、笑ってるんだろうな。', '聞き流せ。……それも、俺がやる。');
   await say('kuze', '朔。……ありがとう。');
   await narr('しばらく、返事はなかった。');
   await saku('……礼を言われたのは、初めてだ。', '気持ちが悪い。……寝ろ。');
@@ -4487,7 +4521,7 @@ function showReport5b() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
   const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>秘</span><span>留保</span></div><h2>報告書　第五号（下）</h2><div class="meta">内閣 留保班　情報要員 久世躁一郎（朔）　／　件名：高蔵寺大橋 開通式、および断偽文鳥門の件</div><table>' +
     '<tr><td>開通式</td><td>橋脚三本の爆薬のうち、西の一本が起爆。ザイナが桁を支え、残る二本は解除（黄色の線）。死者なし</td></tr>' +
     '<tr><td>断偽文鳥門</td><td>執行役ハ・イジンを鬼嶽ゴウカが捕縛。門主メス・ゼロ「いつか、あなたの偽りも、断ちに行きます」</td></tr>' +
-    '<tr><td>鬼頭剛</td><td>釈放。「鬼は、恩も、忘れないっす」</td></tr>' +
+    '<tr><td>鬼頭椿</td><td>釈放。「鬼は、恩も、忘れないっす」</td></tr>' +
     '<tr><td>正体を知る者</td><td>鬼嶽ゴウカ（越後の契りにより口外せず）、ザイナ（「私も、言わない」）</td></tr>' +
     '<tr><td>公安</td><td>乾恒一、久世の名刺を板に留める。「人間の法で、確かめる」' + (S.flags.c6honest ? '。面談で「嘘じゃない答え」と評された' : '') + (S.flags.c6lieGate ? '。入館ゲートの記録との食い違いを残した' : '') + '</td></tr>' +
     '<tr><td>留保班</td><td>' + (S.flags.c6defy ? '黒岩室長に「今日が、その日です」と告げ、命令に背いた' : '「命令に従います」と答え、橋の下へ降りた') + '。黒岩「公安の犬には、近づくな」</td></tr>' +
@@ -4498,6 +4532,27 @@ function showReport5b() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
   $('report').hidden = false; $('titleBtn6').addEventListener('click', () => location.reload()); }
 async function startCh6() { const m = meta(); if (m.ch5) unpackS(m.ch5); DONE = new Set(m.ch5Done || []); S.flags.revealed = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter6(); }
 applySaku();
+
+function police6Out(a) { if (a.c6out) return; a.c6out = true; addItem(a, { id: 'p6out', x: 7.4, z: 2.6, r: 1.4, label: '赤嶺の現場へ', col: 0xC8323C, once: false, avail: () => S.flags.c6st === 'police' && S.seen.has('i:p6kito'), on: () => goSite6() }); }
+
+function site6Items(a) { if (a.c6items) return; a.c6items = true; addItem(a, { id: 'b6zaina', x: 4.2, z: 2.6, label: '話す', col: 0xE3B428, dyn: a.zn, avail: () => S.flags.c6st === 'site', on: evZaina6 });
+    addItem(a, { id: 'b6out', x: 13.4, z: 0.4, r: 1.4, label: '鬼嶽建設のヤードへ', col: 0xC8323C, once: false, avail: () => S.flags.c6st === 'site' && S.seen.has('i:b6zaina'), on: () => goOniDusk6() }); }
+
+function cereItems(a) { if (a.c6cere) return; a.c6cere = true;
+    addItem(a, { id: 'c6yu', x: -4.0, z: -0.8, label: '話す', col: 0xE3B428, dyn: a.yu, avail: () => S.flags.c6st === 'cere', on: evYuria6 });
+    addItem(a, { id: 'c6in', x: 10.2, z: -1.2, label: '話す', col: 0xE3B428, dyn: a.in, avail: () => S.flags.c6st === 'cere', on: evInui6 });
+    addItem(a, { id: 'c6down', x: -14.2, z: 2.4, r: 1.4, label: '河川敷へ降りる', col: 0xC8323C, once: false, avail: () => S.flags.c6st === 'cere', on: () => goUnder6() }); }
+
+function cutItems(a) { if (a.c6cut) return; a.c6cut = true;
+    addItem(a, { id: 'cut0', x: 0, z: 1.9, label: '真ん中の爆薬の線を切る', col: 0xC8323C, avail: () => S.flags.c6st === 'defuse', on: () => evCut(1) });
+    addItem(a, { id: 'cut9', x: 9, z: 1.9, label: '東の爆薬の線を切る', col: 0xC8323C, avail: () => S.flags.c6st === 'defuse', on: () => evCut(2) });
+    const t0 = a.tick; a.tick = (a2, dt) => { t0(a2, dt); if (S.flags.c6st === 'defuse' && G.mode === 'play' && !G.busy) { a2.tLeft -= dt; setObj('爆薬の線を切る（' + a2.cut + '／2）　――ザイナの腕：' + Math.max(0, Math.ceil(a2.tLeft)) + '秒'); if (a2.tLeft <= 0) { a2.tLeft = 20; run(async () => { G.shake = 0.6; sfx('metal'); await say('zaina', '……っ。……大丈夫。まだ、持つ。'); }); } } }; }
+
+// 記録から読み込んだときも、その場面の「調べる・話す」が必ずそろうように
+{ const r0 = AREAS.bridge5.restore; AREAS.bridge5.restore = a => { r0(a); nightItems(a); rescueItems(a); site6Items(a); cereItems(a); markDone(a); }; }
+{ const r0 = AREAS.policeF.restore; AREAS.policeF.restore = a => { if (r0) r0(a); police6Out(a); markDone(a); }; }
+{ const r0 = AREAS.underB.restore; AREAS.underB.restore = a => { if (r0) r0(a); cutItems(a); markDone(a); }; }
+function markDone(a) { for (const it of a.items) if (DONE.has(a.id + ':' + it.id)) it.done = true; }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
