@@ -3551,7 +3551,7 @@ makeArea('dangi', { place: '高蔵寺　鬼嶽建設 旧資材倉庫　午前零
     a.watch = [];
     const h1 = npc(a, 'dhum', makeChar(LK.dhum), -4, 0.4, Math.PI / 2, { path: [[-8.6, 0.4, 1.4], [1.0, 0.4, 1.6]], speed: 1.15 });
     const h2 = npc(a, 'dhum2', makeChar(LK.dhum2), 5, -2.8, 0, { path: [[5.0, -3.0, 1.2], [5.0, 4.6, 1.4]], speed: 1.05 });
-    const b1 = npc(a, 'dbird', dangiBird(), -4, -5.6, Math.PI / 2, { path: [[-9.6, -3.4, 1.6], [-0.4, -5.6, 1.8]], speed: 0.95 });
+    const b1 = npc(a, 'dbird', dangiBird(), -4.6, -2.4, -Math.PI / 2, { path: [[-8.2, -2.4, 1.6], [-4.6, -2.4, 1.8]], speed: 0.95 });
     for (const w of [h1, h2, b1]) { w.cone = makeCone(5.0, 0.5, w === b1 ? 0xE8E8FF : 0xFFE9A0); w.model.root.add(w.cone); a.watch.push(w); }
     a.h1 = h1; a.h2 = h2; a.b1 = b1; a.det = 0; a.R = 5.0;
     addItem(a, { id: 'dplan', x: -7.6, z: -4.0, label: '撮影する（長押し）', hold: true, col: 0xC8323C, on: () => evDangiDoc('plan') });
@@ -3821,7 +3821,7 @@ async function evJack5() { markI('s5jack'); cine(-0.4, 1.4, 2.6, 0.6, 0.5, 0); a
   await narr('「断」。');
   await saku('……印だ。仕掛ける場所の、目印。', '断偽が、ここに何かを置くつもりだ。……いや、もう、置き始めている。');
   addNote('c5mark', '仮受けジャッキの印', '新橋の主桁を受ける仮受けジャッキの台座に、白い粉で「断」の一文字。', true); }
-async function evBird5() { markI('s5bird'); await say('akaB', 'ちわっす。……あ、静州さん。社長の受け止め、見ました？　あれ、毎日っすよ。');
+async function evBird5() { markI('s5bird'); const b = AREAS.bridge5.bw[2]; faceEach(b); otsCam(b, 2.2, 1.4); await say('akaB', 'ちわっす。……あ、静州さん。社長の受け止め、見ました？　あれ、毎日っすよ。');
   await say('akaB', '俺ら、昔は B.U.N の下っ端で、ろくなことしてなかったんすけど。社長に拾われて、今は橋、架けてます。');
   await say('akaB', '……断偽？　ああ、あいつら、俺らみたいな更生文鳥を「裏切り者」って呼ぶんすよ。人間の下で働く文鳥は、偽物だって。'); }
 
@@ -3886,7 +3886,7 @@ async function evMagazine5() { markI('o5mag'); cine(-7.0, 2.2, -1.4, -9.4, 1.2, 
   await saku('白い羽。……橋のジャッキと、同じだ。', '断偽が、鬼の火薬を盗んで、竜の橋に仕掛けている。');
   await saku('爆発すれば、鬼の火薬が出てくる。鬼が竜の橋を壊したことになる。……赤嶺と鬼嶽を、噛み合わせるつもりだ。');
   addNote('c5mag', '火薬庫の錠前', '鬼嶽建設の火薬庫の錠前に新しい擦り傷と、白い羽。断偽文鳥門が鬼嶽の火薬を盗み、赤嶺の橋に仕掛けようとしている可能性。', true); }
-async function evOniW5() { markI('o5w'); await say('oniW', '兄ちゃん、鬼の現場は初めてかい。……そう固くなりなさんな。あたしらは、殴るときは、ちゃんと前から殴る。');
+async function evOniW5() { markI('o5w'); const w = AREAS.onitake.ow[0]; faceEach(w); otsCam(w, 2.4, 1.5); await say('oniW', '兄ちゃん、鬼の現場は初めてかい。……そう固くなりなさんな。あたしらは、殴るときは、ちゃんと前から殴る。');
   await say('oniW', '後ろから刺すのは、文鳥と人間の得意技だろ。……あ、悪い。あんたも人間だったな。がはは！'); }
 
 // ---- 留文堂　地下 ----
@@ -4639,10 +4639,10 @@ makeArea('fes', { place: '春日井　落合公園特設会場　ネムリア・
     block(3.6, 2.6, 2.6, 0xE8E0F0, -10.6, 1.3, -1.4, g); block(3.8, 0.2, 2.8, 0xF8A8D0, -10.6, 2.7, -1.4, g); a.obs.push({ x: -10.6, z: -1.4, hx: 1.8, hz: 1.3, tall: true }); part(sph(0.6, 10, 8), 0xF8A8D0, -10.0, 0.4, 0.2, g, { s: [1.3, 0.6, 1.1] });
     plane(3.0, 0.5, signTex(600, 100, [{ t: 'BACKSTAGE　関係者以外', size: 44, w: 900 }], { bg: '#1A1A22', fg: '#F8A8D0' }), -10.6, 2.0, -0.08, g);
     a.crowd = []; const kinds = [['cat', () => makeChar(LK.catgirl)], ['dog', () => makeChar(LK.doggirl)], ['h1', () => mk('young')], ['h2', () => mk('young')], ['h3', () => mk('old')]];
-    for (let i = 0; i < 28; i++) { const [k, f] = kinds[i % kinds.length]; const x = -8 + (i % 7) * 2.4 + rand(-0.4, 0.4), z = 0.8 + Math.floor(i / 7) * 1.7 + rand(-0.3, 0.3); const n = npc(a, i < 2 ? k : 'cw5_' + i, f(), x, z, Math.PI + rand(-0.2, 0.2)); a.crowd.push(n); }
+    for (let i = 0; i < 28; i++) { const [k, f] = kinds[i % kinds.length]; const x = -6 + (i % 7) * 2.0 + rand(-0.25, 0.25), z = 0.8 + Math.floor(i / 7) * 1.7 + rand(-0.25, 0.25); const n = npc(a, i < 2 ? k : 'cw5_' + i, f(), x, z, Math.PI + rand(-0.2, 0.2)); a.crowd.push(n); }
     a.ni = npc(a, 'nirume', makeChar(FAMLK.nirume), -10.0, 0.6, 0.2); a.ni.st.sit = true; a.ni.y = 0.1;
     a.mm = npc(a, 'mermaid', mermaidChar(), 0, -3.9, 0); a.mm.y = 1.4;
-    a.sm = npc(a, 'stageMgr', makeChar(LK.stageMgr), -8.6, 1.6, 0.4);
+    a.sm = npc(a, 'stageMgr', makeChar(LK.stageMgr), -8.4, -0.4, -0.6);
     a.dream = glowSprite(0xF8A8D0, 30, 0); a.dream.position.set(0, 4, 3); g.add(a.dream);
     rainOn(a, 160, [-16, 16, -8, 12]);
     addItem(a, { id: 'f7back', x: -9.4, z: 1.6, label: '舞台袖へ', col: 0xE3B428, avail: () => S.flags.c7st === 'fes', on: evFesBack }); },
@@ -4855,7 +4855,7 @@ async function goFes7() { G.mode = 'cine'; S.flags.c7st = 'fesC'; await goArea('
   pan([0, 9, 16], [0, 3, -4], [0, 4.4, 11], [0, 2.8, -4], 10); await card('落合公園　特設会場', 'ネムリア・フェス　午後七時', 2000);
   await narr('十万人の歓声が、夜の雲に跳ね返っていた。');
   await narr('人間がいて、猫の耳の子がいて、犬の尻尾の子がいて、角の生えた大女がいる。みんな、同じペンライトを振っている。');
-  F.crowd[0].lookAt = null; cine(-5.0, 2.8, 4.8, -7.6, 1.4, 1.0); await say('cat', 'ねえねえ！　今年のトリ、人魚のマリナちゃんなんだって！　生で歌うの、初めてなんだって！');
+  F.crowd[0].lookAt = null; cine(-5.0, 1.8, -1.6, -5.0, 1.5, 1.2); await say('cat', 'ねえねえ！　今年のトリ、人魚のマリナちゃんなんだって！　生で歌うの、初めてなんだって！');
   await say('dog', 'わかる～！　……でもさ、雨、降りそうじゃない？');
   // 舞台袖
   cine(-7.4, 1.5, 2.8, -10, 0.8, 0.6); await narr('舞台袖の、ふかふかのクッションの上で。');
@@ -4865,7 +4865,7 @@ async function goFes7() { G.mode = 'cine'; S.flags.c7st = 'fesC'; await goArea('
   await say('nirume', '……レウネが、なんとかする……。');
   await say('reune', '……なんとかしてるし。ニルメ、起きて。あと二十分で、雨。');
   await say('nirume', '……もう、ちょっと……。');
-  mm.y = 0; mm.pos.set(-9.0, 0, 1.4); mm.facing = -Math.PI / 2; F.sm.pos.set(-7.2, 0, -0.4); cine(-11.6, 1.5, 3.6, -9.5, 1.1, 1.0);
+  mm.y = 0; mm.pos.set(-9.0, 0, 1.4); mm.facing = -Math.PI / 2; F.sm.pos.set(-7.0, 0, -0.8); cine(-11.6, 1.5, 3.6, -9.5, 1.1, 1.0);
   nameCard({ s: '人魚　ネムリア所属の歌い手', b: 'マリナ・セイレーン', e: 'まりな せいれーん', col: '#7FD8EA', p: '海から来た人魚の娘。\n人魚の本気の歌声は、聴いた者を、深いところへ引きずり込む。\nだから、彼女は、いつも半分の声で歌う。' });
   await say('mermaid', '……ニルメ社長。私、怖いです。');
   await say('mermaid', '人魚の声は、人間を、引きずり込むから。……十万人の前で、本気で歌ったら、誰かが、戻ってこられなくなるかもしれない。');
@@ -4903,7 +4903,7 @@ async function goNight7() { G.mode = 'cine';
   sfx('blast'); boom(2, 2.4, -3, 0xFFB060, true); flashCam(); G.shake = 1.0;
   await narr('倒れた一羽が、最後の力で放った衝撃が、変圧器の三番を撃ち抜いた。');
   rn.st.armsUp = false; cine(-2.6, 2.0, 0.4, 2, 1.6, -3); await say('rin', 'あかん、三番が……！');
-  await say('dwarf', '任せろ！　ドワーフの手で、二十分で戻す！　嬢ちゃんは、網を切らすな！');
+  cine(-0.8, 1.6, 2.2, -3.2, 1.0, 0.2); await say('dwarf', '任せろ！　ドワーフの手で、二十分で戻す！　嬢ちゃんは、網を切らすな！');
   await say('rin', '……おおきに。網は、朝まで、うちが持つ。');
   // 翠絡
   kmap({ blackout: true, storm: 2 }); await goArea('suiraku'); const R = AREAS.suiraku; bgm('storm');
@@ -4928,7 +4928,7 @@ async function goNight7() { G.mode = 'cine';
   await say('nirume', '……みんな、こわい、ゆめを、みてる。');
   ni.st.sit = false; ni.y = 0; walkTo(ni, -2, -3.6, 2.4); mm.pos.set(-9.2, 0, 1.6); walkTo(mm, -0.8, -3.6, 2.4); await sleep(G.skip ? 0 : 1600);
   ni.goal = null; mm.goal = null; ni.pos.set(-1.2, 0, -3.8); mm.pos.set(0.4, 0, -3.8); ni.y = 1.4; mm.y = 1.4; ni.facing = 0; mm.facing = 0;
-  cine(0, 2.6, 0.4, -0.4, 2.6, -3.8); await narr('非常灯だけが照らす舞台の真ん中に、二人が立った。');
+  cine(-0.4, 2.9, 1.2, -0.4, 2.5, -3.8); await narr('非常灯だけが照らす舞台の真ん中に、二人が立った。');
   await say('nirume', '……マリナ。うたって。');
   await say('nirume', 'ほんきで。');
   await say('mermaid', '……でも……！');
@@ -5050,15 +5050,15 @@ async function goDawn7() { G.mode = 'cine'; S.flags.c7st = 'dawn'; kmap({ blacko
   await say('rin', '……そういうことに、しといて？');
   // 主家
   await goArea('shuke'); const H = AREAS.shuke, f = H.fam; bgm('home'); for (const k in f) f[k].hidden = true; f.furuuru.hidden = false;
-  cine(0, 3.0, 5.6, -1.4, 0.9, 0); await card('春日井　主家', '午前五時半', 2000);
+  cine(0, 5.4, 5.4, -1.0, 0.5, -0.4); await card('春日井　主家', '午前五時半', 2000);
   await narr('台風が過ぎた朝は、空が、やけに高かった。');
   await narr('大きな家の、大きな卓袱台。湯気の立つ味噌汁が、十二人分、並んでいる。');
-  cine(-1.0, 1.7, 2.8, -3.9, 1.1, 0);
+  cine(-1.2, 2.8, 0.0, -3.9, 1.0, 0.0);
   nameCard({ s: '外神竜一族　十一人全員の母', b: 'フルル', e: '一族の根源', col: '#E79AB4', p: '会社は持たない。十一人全員が「ママ」と呼ぶ、帰る場所。\n娘たちは、どれだけ忙しくても、夜にはここへ帰ってくる。' });
   await say('furuuru', 'みんな、まだかなぁ……。');
   nameCard(null); sfx('door');
   const arrive = async (k, line) => { f[k].hidden = false; f[k].nodT = 1; await say(k, line); };
-  cine(0, 3.2, 6.0, 0, 0.9, 0);
+  cine(0, 5.4, 5.4, 0, 0.5, -0.4);
   await arrive('yuria', 'ただいま～！　全員、無事！　ケガ人ゼロ！　よゆー♪');
   await arrive('asela', 'いっちばーん……じゃなかった！？　ユリア姉、ずるい！');
   await arrive('vol', 'ただいま戻りました。……夜間の救急、四十二件。全員、命に別状はありません。');
@@ -5071,7 +5071,7 @@ async function goDawn7() { G.mode = 'cine'; S.flags.c7st = 'dawn'; kmap({ blacko
   f.terues.hidden = false; f.nirume.hidden = false; await narr('テルエスが、眠ったままのニルメを背負って、入ってきた。');
   await say('terues', '……ただいま。ニルメ、舞台の上で、寝てた。');
   await say('nirume', '……にあ……ただいま……。');
-  cine(-1.0, 1.7, 2.8, -3.9, 1.1, 0);
+  cine(-1.2, 2.8, 0.0, -3.9, 1.0, 0.0);
   await say('furuuru', 'おかえりぃ♡');
   await say('furuuru', 'ん、みんな、こっちおいで。お顔、見せてねぇ♡');
   await narr('十人の娘たちが、ひとりの母のまわりに、ぎゅうぎゅうに集まった。');
@@ -5265,7 +5265,7 @@ async function chapter8() { G.mode = 'cine'; S.chapter = 8; $('report').hidden =
   await goBrief8a(); }
 
 // ---- 留文堂：調査報告（前半） ----
-async function goBrief8a() { G.mode = 'cine'; await goArea('hq', [1.2, 2.6], Math.PI); const a = AREAS.hq; hqSlide(true); showSlide(0); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P'; a.safeDoor.rotation.y = 0; a.seal.material.opacity = 0; a.sealGlow.material.opacity = 0;
+async function goBrief8a() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; hqSlide(true); showSlide(0); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P'; a.safeDoor.rotation.y = 0; a.seal.material.opacity = 0; a.sealGlow.material.opacity = 0;
   cine(0, 2.6, 4.6, 0, 2.3, -5.7); await card('留文堂　地下', '同じ週', 1400);
   await say('saegusa', '黒岩室長に頼まれていた調査、まとまりました。……「人間は、どう娶られるのか」。');
   await say('saegusa', '先に、春日井の人間の暮らしから。');
@@ -5346,7 +5346,7 @@ async function goSeiritsu8() { G.mode = 'cine'; S.flags.c8st = 'seiritsu'; playA
   await goBrief8b(); }
 
 // ---- 留文堂：調査報告（後半） ----
-async function goBrief8b() { G.mode = 'cine'; await goArea('hq', [1.2, 2.6], Math.PI); const a = AREAS.hq; hqSlide(true); showSlide(4); bgm('hq');
+async function goBrief8b() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; hqSlide(true); showSlide(4); bgm('hq');
   cine(0, 2.6, 4.6, 0, 2.3, -5.7); sfx('note');
   await say('saegusa', '婚姻です。春日井の人間の男性の結婚相手は、六十三パーセントが異種族。人間どうしは、三十一パーセント。');
   await say('saegusa', '異種族と人間の男性の間に生まれる子は、九十九・四パーセントが、お母さんの種族の娘です。……人間の子は、人間どうしからしか、生まれません。');
@@ -5406,7 +5406,7 @@ async function goEve8() { G.mode = 'cine'; S.flags.c8st = 'eve'; setClock('23:58
   await narr('紫の光の鎖が、床から、壁から、伸びてきた。手首と足首に巻きつき、湊の体を、大の字に縫い留める。');
   await narr('魔族にとって、契約は、絶対だった。契約を反故にしようとした者への制裁は、正当な権利だった。');
   await narr('……湊は、自分で、彼女に、その大義名分を与えてしまったのだ。');
-  cine(-0.2, 1.4, -0.2, -1.6, 1.0, -1.4); await say('sera', 'だいじょうぶ。痛くないよ。');
+  cine(1.6, 1.8, 1.0, -1.0, 1.2, -0.7); await say('sera', 'だいじょうぶ。痛くないよ。');
   await say('sera', '紙の契約なんて、もういらない。……あんな生ぬるいの、もう、いらないの。');
   M.crestOn = true; sfx('heart'); await narr('セラは、自分の持つ力のすべてを込めて、湊の腹に、指先で、紋を描いた。');
   await narr('それは、十八になったら結婚する、という紙切れの約束ではなかった。魂と魂を結び合わせて、未来永劫、縛りつける、呪いだった。');
@@ -5446,7 +5446,7 @@ async function goAfter8() { G.mode = 'cine'; S.flags.c8st = 'after'; await goAre
   await saku('十歳の、お前だ。');
   await say('kuze', '……知ってる。');
   await goBrief8c(); }
-async function goBrief8c() { G.mode = 'cine'; await goArea('hq', [1.2, 2.6], Math.PI); const a = AREAS.hq; hqSlide(true); showSlide(7); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P';
+async function goBrief8c() { G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; hqSlide(true); showSlide(7); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P';
   cine(0, 2.6, 4.6, 0, 2.3, -5.7); sfx('note'); await say('saegusa', '最後に、「人間の末路」です。意思確認のないまま成立したと推計される婚姻と囲い込みは、春日井だけで、この一年に、千二百件。');
   await say('saegusa', '囲われる。拾われる。結ばれる。招かれる。延ばされる。……そして、選ばれない人は、地図から消える。');
   cine(-1.4, 2.0, 3.2, -3.2, 1.6, 1.6); await say('kuroiwa', '界域協定の改定案に、第九条の見直しは、入っていない。');
