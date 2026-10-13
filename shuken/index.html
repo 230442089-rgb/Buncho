@@ -6101,10 +6101,10 @@ async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden
   cine(-3.2, 4.0, 3.6, -3.2, 2.4, -3.6); await card('文鳥セントラルサプライ文食品', '春日井第三工場　午前五時三十分　朝礼', 2200);
   await narr('文鳥セントラルサプライ文食品。主力は「漢の文鳥飯」シリーズ。焼肉、生姜焼き、唐揚げ。肉を中心にした、巨大な食品サプライ企業だ。');
   await narr('地球だけではない。B.U.N の宇宙の拠点、艦隊、植民圏。……文鳥の食卓のほとんどすべてに、ここの肉が並ぶ。');
-  cine(0.8, 2.6, -1.6, -3.2, 1.8, -3.6);
+  cine(-3.2, 4.8, 3.0, -3.2, 2.0, -3.6);
   nameCard({ s: 'B.U.N society No.14　辻society　文食品 製造本部長', b: 'ガ・ンテツ', e: 'が んてつ', col: '#FF6A4A', p: '辻society の、二桁の上位。\n肉で作った体、肉で作った根性。\n口癖は「気合いだ」。' });
   gt.st.armsUp = true; G.shake = 0.2; await say('gantetsu', 'おはようございまァァァす！！');
-  nameCard(null); cine(-3.2, 4.4, -2.5, -3.2, 1.4, 1.2); await say('bunw', 'おはようございまァァァす！！');
+  nameCard(null); cine(-0.6, 5.6, -4.6, -3.2, 0.8, 0.8); await say('bunw', 'おはようございまァァァす！！');
   cine(-3.2, 4.0, 3.6, -3.2, 2.4, -3.6); await say('gantetsu', '本日の生産目標ォ！　漢の文鳥飯、四千二百万食ゥ！　ガチ旨。シリーズ、十八万食ゥ！');
   await say('gantetsu', '足りねえ時は、どうするゥ！');
   for (const n of F.rows) n.st.armsUp = true; await say('bunw', '気合いだァ！！');
@@ -6121,7 +6121,7 @@ async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden
   await narr('器の中身が何の肉なのか、食堂の誰も口にしない。……気にも、していなかった。');
   // ガ・ンテツ派の密談
   for (const n of F.eat) n.hidden = true; F.kj.hidden = false; F.ni.hidden = false; gt.y = 0; gt.pos.set(6.4, 0, 1.8); gt.facing = -Math.PI / 2; gt.st.sit = true;
-  cine(1.6, 3.0, 5.6, 5.4, 1.0, 1.8);
+  cine(5.4, 4.0, 7.6, 5.4, 0.9, 1.6);
   nameCard({ s: 'B.U.N 辻society　rate 二九八〇（ガ・ンテツ派 筆頭）　文食品 仕入れ班長', b: 'ド・コンジョウ', e: 'ど こんじょう', col: '#F2C230', p: '声が大きく、腕が太く、話が早い。\n「仕入れ」――狩りの現場を仕切る。\n語尾は「〜っス」。' });
   await say('konjo', '本部長。例の噂、ウラ取れたっス。');
   nameCard(null); await say('konjo', 'タカハラのヒョロガリ研究職ども、人間の「抵抗勢力」に、金と餌、撒いてやがるっス。駅前で旗振ってる人間どもに。');
@@ -6149,12 +6149,12 @@ async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden
 
 // ---- 立ち食い 漢の文鳥飯：チャ・ニュユー ----
 async function goShop10() { G.mode = 'cine'; setClock('01:10'); await goArea('shop6', [0.5, -0.1], Math.PI); const a = AREAS.shop6, ch = a.ch; ch.hidden = true; P.st = {}; P.facing = Math.PI; bgm('');
-  cine(2.6, 2.0, 1.8, -0.2, 1.2, -0.8); await card('立ち食い　漢の文鳥飯　春日井駅前店', '三日後　午前一時十分', 1600);
+  cine(2.8, 2.6, 5.0, -0.2, 1.1, -0.8); await card('立ち食い　漢の文鳥飯　春日井駅前店', '三日後　午前一時十分', 1600);
   await narr('久世は、焼肉の特盛を半分ほど食べていた。人間の客も、異種族の客も、文鳥の客も、同じカウンターで同じ肉を食べている。');
   await saku('この街の人間の腹の、三割は文食品の肉でできている。', '……安くて、旨い。それだけで、誰も、何も聞かない。');
   sfx('door'); ch.hidden = false; ch.pos.set(-0.6, 0, -0.1); ch.facing = Math.PI; await narr('隣に、誰かが立った。細い、灰色の羽。');
   await say('clerk', 'らっしゃァい！　ご注文はァ！');
-  cine(2.2, 1.9, 2.8, -0.3, 1.2, -0.6); await say('chanyu', '……ごはん、並。肉は、抜いて。');
+  cine(2.6, 2.4, 4.8, -0.2, 1.1, -0.7); await say('chanyu', '……ごはん、並。肉は、抜いて。');
   await say('clerk', '肉抜きィ！？　……気合い、足りてないっスよォ！');
   await say('chanyu', '足りている。');
   await say('chanyu', '……久世躁一郎。こちらを、見ないで。食べながら、聞いて。');
@@ -6296,7 +6296,7 @@ async function evHide10(id) { const a = AREAS.escape6, L = a.lockers.find(l => l
   for (const c of a.chasers) c.goal = null; sfx('door'); L.door.rotation.y = -1.2 * up; P.model.root.visible = false; await sleep(G.skip ? 0 : 250); L.door.rotation.y = 0;
   // 追っ手が、跡をたどって、隠れた場所の前まで来る
   const tr = a.trail; a.chasers.forEach((c, i) => { let need = 3.2 + i * 1.1, k = tr.length - 1; while (k > 0 && need > 0) { need -= Math.hypot(tr[k][0] - tr[k - 1][0], tr[k][1] - tr[k - 1][1]); k--; } c.pos.set(tr[k][0], 0, tr[k][1]); c.hidden = false; });
-  cine(L.ix + 2.2, 5.6, L.iz + 4.4, L.ix, 0.9, L.iz - 0.2); await Promise.all(a.chasers.map((c, i) => walkTo(c, L.ix + (i - 1) * 1.2, L.iz + up * (0.7 + (i % 2) * 0.6), 4.6)));
+  cine(L.ix - 1.6, 5.8, L.iz + 4.0, L.ix, 0.9, L.iz - 0.2); await Promise.all(a.chasers.map((c, i) => walkTo(c, L.ix + (i - 1) * 1.2, L.iz + up * (0.7 + (i % 2) * 0.6), 4.6)));
   if (found) { await say('konjo', '……そこっスね。'); sfx('metal'); L.door.rotation.y = -1.2 * up; P.pos.set(L.ix, 0, L.iz); await say('konjo', 'みィつけたっス！　人間の息、丸聞こえっス！'); await chaseCaught(a, true); return; }
   await say('bunw', 'どこ行きやがったァ！　人間の匂いは、この辺で……'); sfx('heart'); await saku('……息を、止めろ。');
   await say('konjo', '……正面ゲートっス！　人間の足で外に出るなら、正面しかねえっス！　固めるっス！');
@@ -6388,9 +6388,9 @@ async function finale10() { const a = AREAS.rally6, gt = a.gt, tk = a.tk, ch = a
   await say('gantetsu', '檻を開けやがった。客を散らしやがった。……人間のくせに、根性あるじゃねえか。');
   await say('gantetsu', '気に入った！　テメェも、仕入れてやる！');
   await saku('No.14 だ。……怯ませることすら、できない。', '下がれ、久世。下がっても、追いつかれるが。');
-  sfx('holo'); tk.hidden = false; tk.pos.set(4.4, 0, 4.8); tk.lookAt = gt.pos; ch.hidden = false; ch.pos.set(3.2, 0, 5.0); ch.lookAt = gt.pos;
-  for (let i = 0; i < 4; i++) fxFlash(3 + i * 1.6, 3.2, 4.0, 0x6AF0E0, 1.2, 0.5);
-  cine(1.6, 2.2, 7.2, 5.6, 1.8, 3.6); await say('tokiwa', '――そこまでです、ガ・ンテツ本部長。');
+  sfx('holo'); tk.hidden = false; tk.pos.set(3.6, 0, 3.8); tk.lookAt = gt.pos; ch.hidden = false; ch.pos.set(2.5, 0, 3.0); ch.lookAt = gt.pos;
+  for (let i = 0; i < 4; i++) fxFlash(2.6 + i * 1.6, 3.2, 3.4, 0x6AF0E0, 1.2, 0.5);
+  cine(5.4, 3.4, 9.6, 5.4, 1.2, 2.8); await say('tokiwa', '――そこまでです、ガ・ンテツ本部長。');
   await say('gantetsu', 'あァ？　ヒョロガリ研究職が、何の用だァ！');
   await say('tokiwa', '当研究室の観測対象への、無断の干渉です。……あなたがたは、四百二十日分の観測を、一晩で、屠畜場に変えた。');
   await say('gantetsu', '観測じゃ、腹は膨れねえんだよォ！');
