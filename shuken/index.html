@@ -2163,7 +2163,7 @@ makeArea('front', { noPlayer: false, place: '夜宴ホテル名古屋　正面',
     block(0.12, 1.0, 14, 0x8A8A94, -13.6, 0.5, 0, g); for (let z = -6; z <= 6; z += 1.5) block(0.1, 1.0, 0.1, 0x6A6A74, -13.6, 0.5, z, g); a.obs.push({ x: -13.9, z: 0, hx: 0.3, hz: 7 });
     for (const z of [-4, 3]) { block(0.15, 3.6, 0.15, 0x3A4050, -12.6, 1.8, z, g); const l = glowSprite(0xFFE0B0, 2.2, 0.6); l.position.set(-12.6, 3.6, z); g.add(l); }
     // 野次馬、救助隊の文鳥
-    a.crowd = []; for (let i = 0; i < 7; i++) a.crowd.push(npc(a, 'fc' + i, mk(pick(['sal1', 'sal2', 'elf2', 'young', 'exec'])), rand(5, 12), rand(3.5, 5.5), Math.PI));
+    a.crowd = []; for (let i = 0; i < 7; i++) a.crowd.push(npc(a, 'fc' + i, mk(pick(['sal1', 'sal2', 'elf2', 'young', 'exec'])), 5.2 + i * 1.05 + rand(-0.15, 0.15), 3.6 + (i % 3) * 0.9 + rand(-0.15, 0.15), Math.PI));
     for (let i = 0; i < 4; i++) a.crowd.push(npc(a, 'rb' + i, makeBird({ coat: 0xE8E8EC, vest: 0xF07A30, helmet: 0xF4F4F4, s: 1.3 }), -10 + i * 1.6, -2.6, 0));
     a.as = npc(a, 'asela', makeChar(FAMLK.asela), -6.2, 0.6, Math.PI / 2); a.yu = npc(a, 'yuria', makeChar(FAMLK.yuria), 4, -2.4, 0.4); a.ru = npc(a, 'rurika', makeChar(FAMLK.rurika), 2.4, -3.2, 0.2);
     a.asta = npc(a, 'asta', makeChar(EXEC.asta), 6.4, -0.6, -Math.PI / 2); a.kt = npc(a, 'katsuragi', makeChar(LK.katsuragi), -3.4, 4.6, 0.6); a.kt.st.sit = true;
@@ -4748,10 +4748,10 @@ async function chapter7() { G.mode = 'cine'; S.chapter = 7; $('report').hidden =
 async function goTenkan7() { await goArea('tenkan'); const T7 = AREAS.tenkan, te = T7.te; bgm('hq');
   cine(5.0, 3.6, 5.0, 0, 1.2, -1.2); await card('名古屋　天環ホールディングス', '同じ日　午前七時', 1800);
   await narr('最上階の会議室に、竜、エルフ、魔族、妖狐。天環の役員たちが、臨時に集められていた。');
-  await say('foxExec', '保険の立場から申し上げます。台風の夜に十万人の野外興行。ネムリアのフェスへの保険は、本日付で引き受けを停止すべきです。');
-  await say('demonExec', 'ですが、フェスは春日井の看板事業です。いまさら中止となれば、県議会の魔族議員連盟が、天環の管理能力を問題にするでしょう。');
-  await say('elfExec', '医療の側からは……台風の夜に、十万人が屋外にいること自体が、危険です。');
-  await say('dragonExec', 'で、誰が決める。名義上の責任者は、ネムリアの社長だが――');
+  cine(1.0, 1.6, 1.8, -1.4, 1.2, 0.8); await say('foxExec', '保険の立場から申し上げます。台風の夜に十万人の野外興行。ネムリアのフェスへの保険は、本日付で引き受けを停止すべきです。');
+  cine(-1.0, 1.6, -0.2, 1.4, 1.2, -1.0); await say('demonExec', 'ですが、フェスは春日井の看板事業です。いまさら中止となれば、県議会の魔族議員連盟が、天環の管理能力を問題にするでしょう。');
+  cine(1.0, 1.6, -0.8, -1.4, 1.2, -1.6); await say('elfExec', '医療の側からは……台風の夜に、十万人が屋外にいること自体が、危険です。');
+  cine(-1.0, 1.6, 2.6, 1.4, 1.2, 1.6); await say('dragonExec', 'で、誰が決める。名義上の責任者は、ネムリアの社長だが――');
   cine(0, 1.9, -0.6, 0, 1.75, -3.6);
   nameCard({ s: '外神竜一族 親戚・レウネの妹　天環ホールディングス 代表', b: 'テルエス', e: '天環ホールディングス株式会社', col: '#E07A1E', p: '一族の財閥の大元。陽盾と翠絡を中核に、各社がここへつながる。\n好意の示し方が分からず、つい金で解決しようとして、レウネに止められる。' });
   await say('terues', '状況は？');
