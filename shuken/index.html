@@ -3535,7 +3535,7 @@ makeArea('onitake', { place: '春日井　鬼嶽建設　資材ヤード', bound
     a.fires = []; for (const [x, z] of [[-4.6, -4.4], [3.6, 4.6], [-2.4, 5.0]]) { part(cyl(0.34, 0.34, 0.9, 10), 0x4A3A30, x, 0.45, z, g); const f = glowSprite(0xFF8A30, 1.8, 0); f.position.set(x, 1.2, z); g.add(f); a.fires.push(f); a.obs.push({ x, z, hx: 0.35, hz: 0.35 }); }
     a.gk = npc(a, 'goka', makeChar(EXEC.goka), 0.4, -3.0, 0);
     a.ts = npc(a, 'tsuyoshi', makeChar(LK.tsuyoshi), -5.0, -1.2, 0.6);
-    a.ow = [npc(a, 'oniW', makeChar(LK.oniW1), -6.6, 1.4, 1.2), npc(a, 'oniW2', makeChar(LK.oniW2), 4.0, -1.6, -0.9), npc(a, 'oniW3', makeChar(LK.oniW3), 2.6, 3.2, 2.6)];
+    a.ow = [npc(a, 'oniW', makeChar(LK.oniW1), -5.2, 0.4, 1.2), npc(a, 'oniW2', makeChar(LK.oniW2), 4.0, -1.6, -0.9), npc(a, 'oniW3', makeChar(LK.oniW3), 2.6, 3.2, 2.6)];
     },
   tick(a) { for (const f of a.fires) if (a.dusk) f.material.opacity = 0.75 + Math.sin(T.now * 11 + f.position.x) * 0.15; }
 });
@@ -3846,7 +3846,7 @@ function oniItems(a) { if (a.c5items) return; a.c5items = true;
   addItem(a, { id: 'o5goka', x: 0.4, z: -2.0, label: '話す', col: 0xE3B428, dyn: a.gk, avail: () => S.flags.c5st === 'oni', on: evGoka5 });
   addItem(a, { id: 'o5ts', x: -5.0, z: -0.2, label: '話す', col: 0xE3B428, dyn: a.ts, avail: () => S.flags.c5st === 'oni', on: evTsuyoshi5 });
   addItem(a, { id: 'o5mag', x: -9.4, z: -2.8, label: '火薬庫の記帳を見る', col: 0xC8323C, avail: () => S.flags.c5st === 'oni', on: evMagazine5 });
-  addItem(a, { id: 'o5w', x: -6.6, z: 2.4, label: '話す', col: 0xE3B428, dyn: a.ow[0], avail: () => S.flags.c5st === 'oni', on: evOniW5 });
+  addItem(a, { id: 'o5w', x: -4.4, z: 1.2, label: '話す', col: 0xE3B428, dyn: a.ow[0], avail: () => S.flags.c5st === 'oni', on: evOniW5 });
   addItem(a, { id: 'o5out', x: 10.4, z: 5.6, r: 1.4, label: '留文堂へ戻る', col: 0xC8323C, once: false, avail: () => S.flags.c5st === 'oni' && S.seen.has('i:o5mag') && S.seen.has('i:o5ts'), on: () => goHQ5() }); }
 { const b0 = AREAS.onitake.build; AREAS.onitake.build = a => { b0(a); oniItems(a); }; }
 async function evGoka5() { markI('o5goka'); const a = AREAS.onitake, gk = a.gk; faceEach(gk); otsCam(gk, 2.6, 1.5);
@@ -4865,7 +4865,7 @@ async function goFes7() { G.mode = 'cine'; S.flags.c7st = 'fesC'; await goArea('
   await say('nirume', '……レウネが、なんとかする……。');
   await say('reune', '……なんとかしてるし。ニルメ、起きて。あと二十分で、雨。');
   await say('nirume', '……もう、ちょっと……。');
-  mm.y = 0; mm.pos.set(-9.0, 0, 1.4); mm.facing = -Math.PI / 2; F.sm.pos.set(-7.0, 0, -0.8); cine(-11.6, 1.5, 3.6, -9.5, 1.1, 1.0);
+  mm.y = 0; mm.pos.set(-8.5, 0, 0.5); mm.facing = -Math.PI / 2; F.sm.pos.set(-7.0, 0, -0.8); cine(-11.6, 1.5, 3.6, -9.5, 1.1, 1.0);
   nameCard({ s: '人魚　ネムリア所属の歌い手', b: 'マリナ・セイレーン', e: 'まりな せいれーん', col: '#7FD8EA', p: '海から来た人魚の娘。\n人魚の本気の歌声は、聴いた者を、深いところへ引きずり込む。\nだから、彼女は、いつも半分の声で歌う。' });
   await say('mermaid', '……ニルメ社長。私、怖いです。');
   await say('mermaid', '人魚の声は、人間を、引きずり込むから。……十万人の前で、本気で歌ったら、誰かが、戻ってこられなくなるかもしれない。');
@@ -4928,7 +4928,7 @@ async function goNight7() { G.mode = 'cine';
   await say('nirume', '……みんな、こわい、ゆめを、みてる。');
   ni.st.sit = false; ni.y = 0; walkTo(ni, -2, -3.6, 2.4); mm.pos.set(-9.2, 0, 1.6); walkTo(mm, -0.8, -3.6, 2.4); await sleep(G.skip ? 0 : 1600);
   ni.goal = null; mm.goal = null; ni.pos.set(-1.2, 0, -3.8); mm.pos.set(0.4, 0, -3.8); ni.y = 1.4; mm.y = 1.4; ni.facing = 0; mm.facing = 0;
-  cine(-0.4, 2.9, 1.2, -0.4, 2.5, -3.8); await narr('非常灯だけが照らす舞台の真ん中に、二人が立った。');
+  cine(-0.4, 2.9, -0.6, -0.4, 2.6, -3.8); await narr('非常灯だけが照らす舞台の真ん中に、二人が立った。');
   await say('nirume', '……マリナ。うたって。');
   await say('nirume', 'ほんきで。');
   await say('mermaid', '……でも……！');
@@ -5050,7 +5050,7 @@ async function goDawn7() { G.mode = 'cine'; S.flags.c7st = 'dawn'; kmap({ blacko
   await say('rin', '……そういうことに、しといて？');
   // 主家
   await goArea('shuke'); const H = AREAS.shuke, f = H.fam; bgm('home'); for (const k in f) f[k].hidden = true; f.furuuru.hidden = false;
-  cine(0, 5.4, 5.4, -1.0, 0.5, -0.4); await card('春日井　主家', '午前五時半', 2000);
+  cine(0, 6.6, 4.4, -1.0, 0.4, -0.6); await card('春日井　主家', '午前五時半', 2000);
   await narr('台風が過ぎた朝は、空が、やけに高かった。');
   await narr('大きな家の、大きな卓袱台。湯気の立つ味噌汁が、十二人分、並んでいる。');
   cine(-1.2, 2.8, 0.0, -3.9, 1.0, 0.0);
@@ -5058,7 +5058,7 @@ async function goDawn7() { G.mode = 'cine'; S.flags.c7st = 'dawn'; kmap({ blacko
   await say('furuuru', 'みんな、まだかなぁ……。');
   nameCard(null); sfx('door');
   const arrive = async (k, line) => { f[k].hidden = false; f[k].nodT = 1; await say(k, line); };
-  cine(0, 5.4, 5.4, 0, 0.5, -0.4);
+  cine(0, 6.6, 4.4, 0, 0.4, -0.6);
   await arrive('yuria', 'ただいま～！　全員、無事！　ケガ人ゼロ！　よゆー♪');
   await arrive('asela', 'いっちばーん……じゃなかった！？　ユリア姉、ずるい！');
   await arrive('vol', 'ただいま戻りました。……夜間の救急、四十二件。全員、命に別状はありません。');
