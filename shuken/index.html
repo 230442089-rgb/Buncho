@@ -5966,7 +5966,7 @@ makeArea('bunfac', { place: '文鳥セントラルサプライ文食品　春日
       for (const dz of [-0.5, 0.5]) for (const sx of [-1, 1]) { const t = block(0.36, 0.04, 0.28, 0x0A0A0E, 5.4 + sx * 0.28, 0.84, z + dz, g); void t; } }
     a.eat = []; for (const [x, z, f] of [[4.4, -1.9, Math.PI / 2], [6.4, -1.9, -Math.PI / 2], [4.4, -0.9, Math.PI / 2], [6.4, -0.9, -Math.PI / 2]]) { const n = npc(a, 'be' + a.eat.length, bunshokuBird({ s: 1.05 }), x, z, f); n.st.sit = true; a.eat.push(n); }
     a.kj = npc(a, 'konjo', konjoBird(), 4.3, 1.2, Math.PI / 2); a.kj.st.sit = true; a.kj.hidden = true;
-    a.ni = npc(a, 'bunw', bunshokuBird({ s: 1.08, band: 0x1A1A1E }), 4.3, 2.6, Math.PI / 2); a.ni.st.sit = true; a.ni.hidden = true;
+    a.ni = npc(a, 'bunw', bunshokuBird({ s: 1.08, band: 0x1A1A1E }), 6.4, 0.5, -Math.PI / 2); a.ni.st.sit = true; a.ni.hidden = true;
     for (let i = 0; i < 3; i++) { const l = glowSprite(0xFFF4D8, 4, 0.3); l.position.set(-5 + i * 5, 4.4, 0); g.add(l); } }
 });
 // ---- 立ち食い　漢の文鳥飯　春日井駅前店 ----
