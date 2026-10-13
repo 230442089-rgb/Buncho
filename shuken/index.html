@@ -1932,7 +1932,7 @@ async function startCh2() { const m = meta(); if (m.ch1) unpackS(m.ch1); DONE = 
 // ================= 第三章　人間の代表 =================
 // ---- 人物 ----
 const shirobunBird = () => makeBird({ coat: 0x1A1A1E, pants: 0x1A1A1E, hakama: true, cap: 0xF8F8F4, beak: 0xF08088, longcoat: 0xF4F2EC, trim: 0xB01828, sleeve: 0xF4F2EC, hand: 0x1A1A1E, tassel: 0xB01828, armMark: 0x1A1A1E, katana: true, muscle: true, s: 1.6 });
-const chanyuBird = () => makeBird({ coat: 0x16161C, pants: 0x16161C, cap: 0x9A9AA6, beak: 0xE8505A, longcoat: 0xEEEEF2, inner: 0x16161C, trim: 0xB8B8C8, sleeve: 0xEEEEF2, hand: 0x101014, badge: 0xC8D0E0, tablet: 0x9AB0FF, s: 1.45 });
+const chanyuBird = () => makeBird({ coat: 0x16161C, pants: 0x16161C, cap: 0x9A9AA6, beak: 0xE8505A, longcoat: 0xEEEEF2, inner: 0x16161C, trim: 0xB8B8C8, sleeve: 0xEEEEF2, hand: 0x101014, badge: 0xC8D0E0, tablet: 0x9AB0FF, s: 1.16 });
 LK.katsuragi = { skin: SK2, hair: 0xB8B8BE, eye: 0x2A2A2A, brow: 0x8A8A90, browTilt: 0.18, top: 0x343A48, sleeve: 0x343A48, bc: 0x343A48, leg: 0x343A48, shoe: 0x1A1A1E, shirt: 0xF4F4F4, tie: 0x2A5A3A, badge: 0xC8A040, s: 0.98, w: 1.14, st: ['short', 'glasses'] };
 LK.astaSec = { skin: 0xE8D0E8, hair: 0x4A2A6A, eye: 0xFF4060, top: 0x1A1020, sleeve: 0x1A1020, bottom: 'skirt', bc: 0x1A1020, leg: 0x1A1020, shoe: 0x0A0A0E, shirt: 0xE8E0F0, s: 1.02, w: 0.95, st: ['bob', 'horns', 'glasses'], hornCol: 0x2A1A2A, prop: 'tablet', propHand: 1 };
 LK.vguard = { skin: 0xF4F0F4, hair: 0x2A2A34, eye: 0xD01030, top: 0x14080C, sleeve: 0x14080C, bc: 0x14080C, leg: 0x14080C, shoe: 0x0A0A0E, shirt: 0xE8E0E8, tie: 0x8A0A18, s: 1.08, w: 1.05, st: ['short', 'cape', 'narrow'], capeCol: 0x3A0A12 };
@@ -5482,7 +5482,7 @@ async function startCh8() { const m = meta(); if (m.ch7) unpackS(m.ch7); else if
 { const r0 = AREAS.bazaar.restore; AREAS.bazaar.restore = a => { if (r0) r0(a); if (S.chapter === 8) playAsMinato(true); }; }
 
 // ================= 第六章　上　旗：人物・場所 =================
-const takaBird = (o = {}) => { const m = makeBird(Object.assign({ coat: 0xDCE2EA, pants: 0x2A3440, cap: 0xC8D0DA, beak: 0xE8606A, longcoat: 0xF6F8FA, inner: 0x1E2A34, trim: 0x3FC8C0, sleeve: 0xF6F8FA, hand: 0x2A3440, badge: 0x3FC8C0, shades: true, core: 0x6AF0E0, tablet: 0x6AF0E0, s: 1.28 }, o)); const k = o.s || 1.28; m.g.scale.set(k * 0.8, k * 1.1, k * 0.84); return m; };
+const takaBird = (o = {}) => { const m = makeBird(Object.assign({ coat: 0xDCE2EA, pants: 0x2A3440, cap: 0xC8D0DA, beak: 0xE8606A, longcoat: 0xF6F8FA, inner: 0x1E2A34, trim: 0x3FC8C0, sleeve: 0xF6F8FA, hand: 0x2A3440, badge: 0x3FC8C0, shades: true, core: 0x6AF0E0, tablet: 0x6AF0E0, s: 1.04 }, o)); const k = o.s || 1.04; m.g.scale.set(k * 0.8, k * 1.1, k * 0.84); return m; };
 LK.riku = { skin: SK, hair: 0x2A2A2E, eye: 0x2A2A30, top: 0x3A5A3A, sleeve: 0x3A5A3A, bc: 0x2A2A34, leg: 0x2A2A34, shoe: 0xE8E8E8, s: 1.0, w: 0.95, st: ['short', 'messy'] };
 LK.natsuki = { skin: SK, hair: 0x5A3A2A, eye: 0x3A2A20, top: 0x8A8A90, sleeve: 0x8A8A90, bc: 0x2A3A5A, leg: 0x2A3A5A, shoe: 0x3A3A3A, s: 0.94, w: 0.9, st: ['short', 'cap'], capCol: 0x2A2A30 };
 LK.kento = { skin: SK, hair: 0xC8A030, eye: 0x2A2A30, top: 0x1A1A1E, sleeve: 0x1A1A1E, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0xE84A3A, s: 1.02, w: 0.96, st: ['short', 'messy'], prop: 'tablet', propHand: 1 };
@@ -5937,11 +5937,11 @@ AREAS.overpass6.restore = a => { a.ke.hidden = false; a.ke.lookAt = a.tg.pos; };
 
 // ================= 第六章　中　餌：人物・場所 =================
 // 文鳥セントラルサプライ文食品（辻society 系）の文鳥：白い作業着、ねじり鉢巻き、筋肉
-function bunshokuBird(o = {}) { const m = makeBird(Object.assign({ coat: 0xF2F0EA, pants: 0x22242A, sleeve: 0xF2F0EA, muscle: true, badge: 0xC8323C, s: 1.4 }, o));
+function bunshokuBird(o = {}) { const m = makeBird(Object.assign({ coat: 0xF2F0EA, pants: 0x22242A, sleeve: 0xF2F0EA, muscle: true, badge: 0xC8323C, s: 1.1 }, o));
   part(G_('hachi', () => new THREE.TorusGeometry(0.35, 0.055, 6, 18)), o.band || 0xF4F4F4, 0, 0.1, 0, m.head, { rx: Math.PI / 2 + 0.15, outline: false });
   part(box(0.12, 0.1, 0.1), o.band2 || 0xC8323C, 0, 0.12, 0.34, m.head, { outline: false }); return m; }
-const gantetsuBird = () => bunshokuBird({ s: 1.72, scarf: 0xC8323C, band: 0xF4F4F4, band2: 0xC8323C, armMark: 0xC8323C });
-const konjoBird = () => bunshokuBird({ s: 1.5, band: 0x1A1A1E, band2: 0xF2C230, vest: 0xC8323C });
+const gantetsuBird = () => bunshokuBird({ s: 1.36, scarf: 0xC8323C, band: 0xF4F4F4, band2: 0xC8323C, armMark: 0xC8323C });
+const konjoBird = () => bunshokuBird({ s: 1.2, band: 0x1A1A1E, band2: 0xF2C230, vest: 0xC8323C });
 LK.saeki = Object.assign({}, LK.member, { top: 0x3A4A5A, sleeve: 0x3A4A5A });
 LK.shou = { skin: 0xD8A888, hair: 0x141414, eye: 0x2A2A2A, top: 0x2A2A2E, sleeve: 0xD8A888, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0xE8E8E8, s: 1.06, w: 1.1, muscle: true, st: ['short'] };
 LK.shouOni = Object.assign({}, LK.shou, { eye: 0xD08020, st: ['short', 'horns'], hornCol: 0xE8D8B0 });
@@ -5961,12 +5961,12 @@ makeArea('bunfac', { place: '文鳥セントラルサプライ文食品　春日
     plane(2.4, 1.0, signTex(480, 200, [{ t: 'ガチ旨。', size: 96, w: 900 }, { t: '社内・B.U.N 系限定', size: 36 }], { bg: '#0A0A0E', fg: '#E8323C' }), 4.6, 1.9, -5.2, g);
     block(3.2, 0.5, 1.6, 0x6A4A30, -3.2, 0.25, -3.6, g); a.obs.push({ x: -3.2, z: -3.6, hx: 1.6, hz: 0.8 });
     a.gt = npc(a, 'gantetsu', gantetsuBird(), -3.2, -3.6, 0); a.gt.y = 0.5;
-    a.rows = []; for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { const n = npc(a, 'bw' + r + c, bunshokuBird({ s: 1.3 + (c % 2) * 0.08 }), -5.6 + c * 1.6, -0.6 + r * 1.7, Math.PI); a.rows.push(n); }
+    a.rows = []; for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { const n = npc(a, 'bw' + r + c, bunshokuBird({ s: 1.04 + (c % 2) * 0.06 }), -6.05 + c * 1.9, -0.4 + r * 2.0, Math.PI); a.rows.push(n); }
     for (const z of [-1.4, 1.8]) { block(1.0, 0.08, 2.2, 0x8A6A4A, 5.4, 0.78, z, g); block(0.9, 0.74, 2.1, 0x5A4A3A, 5.4, 0.37, z, g); a.obs.push({ x: 5.4, z, hx: 0.5, hz: 1.1 });
       for (const dz of [-0.5, 0.5]) for (const sx of [-1, 1]) { const t = block(0.36, 0.04, 0.28, 0x0A0A0E, 5.4 + sx * 0.28, 0.84, z + dz, g); void t; } }
-    a.eat = []; for (const [x, z, f] of [[4.4, -1.9, Math.PI / 2], [6.4, -1.9, -Math.PI / 2], [4.4, -0.9, Math.PI / 2], [6.4, -0.9, -Math.PI / 2]]) { const n = npc(a, 'be' + a.eat.length, bunshokuBird({ s: 1.32 }), x, z, f); n.st.sit = true; a.eat.push(n); }
-    a.kj = npc(a, 'konjo', konjoBird(), 4.3, 1.4, Math.PI / 2); a.kj.st.sit = true; a.kj.hidden = true;
-    a.ni = npc(a, 'bunw', bunshokuBird({ s: 1.38, band: 0x1A1A1E }), 6.5, 2.2, -Math.PI / 2); a.ni.st.sit = true; a.ni.hidden = true;
+    a.eat = []; for (const [x, z, f] of [[4.4, -1.9, Math.PI / 2], [6.4, -1.9, -Math.PI / 2], [4.4, -0.9, Math.PI / 2], [6.4, -0.9, -Math.PI / 2]]) { const n = npc(a, 'be' + a.eat.length, bunshokuBird({ s: 1.05 }), x, z, f); n.st.sit = true; a.eat.push(n); }
+    a.kj = npc(a, 'konjo', konjoBird(), 4.3, 1.2, Math.PI / 2); a.kj.st.sit = true; a.kj.hidden = true;
+    a.ni = npc(a, 'bunw', bunshokuBird({ s: 1.08, band: 0x1A1A1E }), 4.3, 2.6, Math.PI / 2); a.ni.st.sit = true; a.ni.hidden = true;
     for (let i = 0; i < 3; i++) { const l = glowSprite(0xFFF4D8, 4, 0.3); l.position.set(-5 + i * 5, 4.4, 0); g.add(l); } }
 });
 // ---- 立ち食い　漢の文鳥飯　春日井駅前店 ----
@@ -5977,7 +5977,7 @@ makeArea('shop6', { place: '立ち食い　漢の文鳥飯　春日井駅前店�
     for (let i = 0; i < 5; i++) plane(1.3, 0.8, signTex(260, 160, [{ t: ['焼肉　特盛', '生姜焼き', '唐揚げ', 'ごはん　並', '味噌汁'][i], size: 40, w: 900 }, { t: ['780円', '650円', '620円', '180円', '90円'][i], size: 36 }], { bg: '#F4ECD8', fg: '#2A1A10' }), -3 + i * 1.5, 2.4, -2.88, g);
     plane(3.2, 0.6, signTex(640, 120, [{ t: '漢の文鳥飯　――食って、気合いだ！', size: 54, f: MINCHO, w: 900 }], { bg: '#C8323C', fg: '#FFFFFF' }), 0, 3.0, -2.86, g);
     a.bowls = []; for (const x of [0.5, -0.5]) { const b = part(cyl(0.16, 0.11, 0.12, 12), 0xF4F0E8, x, 1.19, -0.85, g); a.bowls.push(b); }
-    a.cl = npc(a, 'clerk', bunshokuBird({ s: 1.25 }), 1.6, -2.2, 0); a.ch = npc(a, 'chanyu', chanyuBird(), -0.6, -0.1, Math.PI); a.ch.hidden = true;
+    a.cl = npc(a, 'clerk', bunshokuBird({ s: 1.0 }), 1.8, -2.2, 0); a.ch = npc(a, 'chanyu', chanyuBird(), -0.6, -0.1, Math.PI); a.ch.hidden = true;
     const l = glowSprite(0xFFF0C8, 4, 0.35); l.position.set(0, 3, -0.6); g.add(l); }
 });
 // ---- 同盟の体力強化道場（文食品 協賛） ----
@@ -6006,20 +6006,20 @@ makeArea('plant6', { place: '文食品　春日井第三工場　加工棟　午
   build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(25, 14), new THREE.MeshLambertMaterial({ color: 0x4A4E52 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
     for (const [w, d, x, z] of [[25, 0.3, 0, -6.8], [0.3, 14, -12.3, 0], [0.3, 14, 12.3, 0]]) block(w, 4, d, 0xD8DCDC, x, 2, z, g); block(25, 0.5, 0.3, 0xD8DCDC, 0, 0.25, 6.8, g);
     for (const [x, z, w, d] of [[-4.0, -2.2, 6.0, 1.0], [4.4, -2.2, 5.0, 1.0], [-3.0, 2.4, 5.4, 1.0], [5.6, 2.4, 3.6, 1.0]]) { block(w, 1.1, d, 0x8A9098, x, 0.55, z, g); block(w, 0.06, d * 0.8, 0x2A2A2E, x, 1.13, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); }
-    block(3.0, 3.4, 0.4, 0xB8C8D8, -9.6, 1.7, -6.4, g); plane(2.4, 0.6, signTex(480, 120, [{ t: '冷凍庫　原料（ガチ旨。）', size: 48, w: 900 }], { bg: '#0A0A0E', fg: '#8AD0F0' }), -9.6, 3.0, -6.18, g); a.obs.push({ x: -9.6, z: -6.2, hx: 1.5, hz: 0.3 });
+    block(3.0, 3.4, 0.4, 0xB8C8D8, -9.6, 1.7, -6.4, g); plane(2.4, 0.6, signTex(480, 120, [{ t: '原版保管庫　KN', size: 48, w: 900 }], { bg: '#0A0A0E', fg: '#8AD0F0' }), -9.6, 3.0, -6.18, g); a.obs.push({ x: -9.6, z: -6.2, hx: 1.5, hz: 0.3 });
     const fog = glowSprite(0xA8D8F0, 3, 0.35); fog.position.set(-9.6, 0.6, -5.6); g.add(fog);
     block(2.0, 1.4, 0.8, 0xE8ECF0, -1.0, 0.7, -5.9, g); plane(1.6, 0.4, signTex(320, 80, [{ t: '検体保管　KN', size: 40, w: 900 }], { bg: '#FFFFFF', fg: '#1A6A8A' }), -1.0, 1.2, -5.48, g); a.obs.push({ x: -1.0, z: -5.9, hx: 1.0, hz: 0.4 });
     block(2.4, 0.06, 1.0, 0x6A5A4A, 7.6, 0.8, -5.4, g); block(2.3, 0.76, 0.9, 0x3A3028, 7.6, 0.38, -5.4, g); a.obs.push({ x: 7.6, z: -5.4, hx: 1.2, hz: 0.5 }); const sc = glowSprite(0x6AD0F0, 1.0, 0.5); sc.position.set(7.6, 1.2, -5.5); g.add(sc);
     plane(3.4, 0.9, bunBanner([{ t: '仕入れは、気合い！', size: 90, f: MINCHO, w: 900 }]), 2.0, 3.0, -6.6, g);
     for (let i = 0; i < 4; i++) { const l = glowSprite(0xD8E8FF, 3.4, 0.22); l.position.set(-9 + i * 6, 3.4, 0); g.add(l); }
     a.watch = [];
-    const w1 = npc(a, 'bunw', bunshokuBird({ s: 1.38 }), -6, 0.2, Math.PI / 2, { path: [[-10.0, 0.2, 1.4], [1.0, 0.2, 1.6]], speed: 1.0 });
+    const w1 = npc(a, 'bunw', bunshokuBird({ s: 1.1 }), -6, 0.2, Math.PI / 2, { path: [[-10.0, 0.2, 1.4], [1.0, 0.2, 1.6]], speed: 1.0 });
     const w2 = npc(a, 'konjo', konjoBird(), 9.4, -1.0, 0, { path: [[9.4, -4.0, 1.4], [9.4, 4.2, 1.6]], speed: 0.95 });
     for (const w of [w1, w2]) { w.cone = makeCone(5.0, 0.5, 0xFFE9A0); w.model.root.add(w.cone); a.watch.push(w); } a.w1 = w1; a.w2 = w2; a.det = 0; a.R = 5.0;
     addItem(a, { id: 'p7plan', x: 7.6, z: -4.6, label: '端末の画面を撮影する（長押し）', hold: true, col: 0xC8323C, avail: () => S.flags.c10st === 'plant', on: () => evPlant10('plan') });
     addItem(a, { id: 'p7kn', x: -1.0, z: -5.0, label: '検体台帳を撮影する（長押し）', hold: true, col: 0xC8323C, avail: () => S.flags.c10st === 'plant', on: () => evPlant10('kn') });
-    addItem(a, { id: 'p7fr', x: -9.6, z: -5.4, label: '冷凍庫の札を見る', col: 0xC8323C, avail: () => S.flags.c10st === 'plant', on: () => evPlant10('fr') });
-    addItem(a, { id: 'p7out', x: 10.6, z: 5.6, r: 1.4, label: '工場を出る', col: 0xC8323C, once: false, avail: () => S.flags.c10st === 'plant' && ['p7plan', 'p7kn', 'p7fr'].every(k => S.seen.has('i:' + k)), on: () => goPlantOut10() }); },
+    addItem(a, { id: 'p7fr', x: -9.6, z: -5.4, label: '保管庫の札を見る', col: 0xC8323C, avail: () => S.flags.c10st === 'plant', on: () => evPlant10('fr') });
+    addItem(a, { id: 'p7out', x: 10.6, z: 5.6, r: 1.4, label: '工場の奥へ', col: 0xC8323C, once: false, avail: () => S.flags.c10st === 'plant' && ['p7plan', 'p7kn', 'p7fr'].every(k => S.seen.has('i:' + k)), on: () => goEscape10() }); },
   tick(a, dt) { stealthTick(a, dt); },
   restore(a) { a.det = 0; },
   async onCaught(a, w) { sfx('alert'); faceEach(w); otsCam(w, 2.4, 1.5);
@@ -6046,7 +6046,7 @@ makeArea('rally6', { place: '春日井　落合公園　「人間主権回復 �
     a.sh = npc(a, 'shou', makeChar(LK.shouOni), -4.0, 2.6, Math.PI * 0.8);
     a.vg = [[-5.6, 2.2], [-2.4, 2.4]].map(([x, z], i) => npc(a, 'rv' + i, makeChar(LK.vang), x, z, Math.PI));
     a.kj = npc(a, 'konjo', konjoBird(), 7.6, -1.4, -Math.PI / 2);
-    a.bw = [npc(a, 'bunw', bunshokuBird({ s: 1.36 }), 10.6, -0.8, -Math.PI / 2)];
+    a.bw = [npc(a, 'bunw', bunshokuBird({ s: 1.1 }), 10.6, -0.8, -Math.PI / 2)];
     a.hp = npc(a, 'hgirl', makeChar(LK.harpy), 12.6, -1.4, -Math.PI / 2); a.hp.st.sit = true;
     a.dg = npc(a, 'dgirl', makeChar(LK.dragonExec), 2.0, 4.6, Math.PI); a.dg.hidden = true;
     a.gt = npc(a, 'gantetsu', gantetsuBird(), 11.0, 4.0, -Math.PI / 2); a.gt.hidden = true;
@@ -6055,6 +6055,45 @@ makeArea('rally6', { place: '春日井　落合公園　「人間主権回復 �
     addItem(a, { id: 'r6cage', x: 11.2, z: -0.2, label: '荷台の檻を開ける', col: 0xC8323C, avail: () => S.flags.c10st === 'rally', on: () => evRally10('cage') });
     addItem(a, { id: 'r6sh', x: -3.6, z: 3.8, label: '翔を止める', col: 0xC8323C, avail: () => S.flags.c10st === 'rally', on: () => evRally10('sh') }); }
 });
+// ---- 文食品　工場の通路（逃走） ----
+// 追っ手は久世の通った跡を、全速力でたどってくる。視界を切って、清掃用具入れに隠れること。
+const ESC_START = [-10.0, -4.6], ESC_SPAWN = [[-13.4, -4.2], [-13.4, -5.2], [-13.8, -4.7]];
+function resetChase(a) { P.pos.set(ESC_START[0], 0, ESC_START[1]); P.facing = Math.PI / 2; a.t = 0; a.trail = [[-13.2, -4.6], [ESC_START[0], ESC_START[1]]]; a.beat = 0;
+  a.chasers.forEach((c, i) => { c.hidden = false; c.pos.set(ESC_SPAWN[i][0], 0, ESC_SPAWN[i][1]); c.ti = 0; c.goal = null; c.path = null; c.lookAt = null; c.facing = Math.PI / 2; c.st.run = true; c.delay = 1.0 + i * 0.6; });
+  for (const l of a.lockers) l.door.rotation.y = 0; }
+function chaseTick(a, dt) { if (G.mode !== 'play' || G.busy || a.catching || S.flags.c10hid) return; a.t += dt;
+  const last = a.trail[a.trail.length - 1]; if (Math.hypot(P.pos.x - last[0], P.pos.z - last[1]) > 0.35) a.trail.push([P.pos.x, P.pos.z]);
+  let minD = 99; const spd = (S.flags.c10escFail || 0) >= 2 ? 4.0 : 4.6;
+  for (const c of a.chasers) { if (a.t < c.delay) continue;
+    while (c.ti < a.trail.length - 1 && Math.hypot(a.trail[c.ti][0] - c.pos.x, a.trail[c.ti][1] - c.pos.z) < 0.3) c.ti++;
+    const tg = c.ti >= a.trail.length - 1 ? [P.pos.x, P.pos.z] : a.trail[c.ti]; c.goal = { x: tg[0], z: tg[1], speed: spd, res: () => {} };
+    minD = Math.min(minD, Math.hypot(P.pos.x - c.pos.x, P.pos.z - c.pos.z)); }
+  if (minD < 4.5) { a.beat -= dt; if (a.beat <= 0) { sfx('heart'); a.beat = minD < 2.5 ? 0.35 : 0.6; } }
+  if (minD < 0.85) { a.catching = true; run(() => chaseCaught(a)); } }
+makeArea('escape6', { place: '文食品　春日井第三工場　通路　午前二時十四分', bounds: [-14, 14, -6, 6], spawn: [ESC_START[0], ESC_START[1]], spawnFace: Math.PI / 2, cam: [0, 12.5, 8.5], music: 'fight', bg: 0x14080A, fog: null, light: 0.55, sun: 0.3,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(29, 13), new THREE.MeshLambertMaterial({ color: 0x4A4E52 })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (const [w, d, x, z] of [[29, 0.3, 0, -6.2], [0.3, 13, -14.2, 0], [0.3, 13, 14.2, 0]]) block(w, 3.2, d, 0xC8CCCC, x, 1.6, z, g); block(29, 0.5, 0.3, 0xC8CCCC, 0, 0.25, 6.2, g);
+    // 通路の仕切り（ジグザグ）
+    const glass = new THREE.MeshLambertMaterial({ color: 0xA8C0D0, transparent: true, opacity: 0.22, depthWrite: false });
+    for (const [x, z] of [[-2.5, -2.8], [2.5, 1.6]]) { block(23, 0.7, 0.42, 0x8A9098, x, 0.35, z, g); block(23, 2.0, 0.4, 0, x, 1.7, z, g, { mat: glass }); block(23, 0.08, 0.44, 0x6A7078, x, 2.72, z, g); a.obs.push({ x, z, hx: 11.5, hz: 0.2, tall: true }); }
+    for (const [x, z, w, d] of [[-4.0, -3.6, 1.2, 0.8], [7.0, -5.3, 1.4, 1.0], [6.0, -0.2, 1.2, 1.0], [-6.5, 0.6, 1.4, 0.8], [1.0, 2.6, 1.2, 0.9], [9.0, 5.2, 1.4, 1.0]]) { block(w, 1.4, d, 0x8A7050, x, 0.7, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); }
+    plane(3.0, 0.7, bunBanner([{ t: '走れ！　気合いだ！', size: 80, f: MINCHO, w: 900 }]), -3.0, 2.6, -6.02, g);
+    a.lamps = []; for (let i = 0; i < 6; i++) { const l = glowSprite(0xFF3020, 2.2, 0.5); l.position.set(-11 + i * 4.4, 2.9, [-5.8, -2.4, 2.0][i % 3]); g.add(l); a.lamps.push(l); }
+    // 清掃用具入れ（隠れ場所）
+    a.lockers = []; for (const [x, z, f, id] of [[3.2, -5.75, 0, 'L1'], [-2.0, -2.35, 0, 'L2'], [-4.0, 2.05, 0, 'L3'], [5.0, 5.75, Math.PI, 'L4']]) {
+      const body = block(1.0, 2.2, 0.5, 0x5A7A9A, x, 1.1, z, g); void body; a.obs.push({ x, z, hx: 0.5, hz: 0.25, tall: true });
+      const door = new THREE.Group(); door.position.set(x - 0.48, 0, z + (f ? -0.26 : 0.26)); g.add(door); block(0.96, 2.1, 0.04, 0x6A8AAA, 0.48, 1.08, 0, door);
+      plane(0.7, 0.18, signTex(200, 50, [{ t: '清掃用具', size: 34, w: 900 }], { bg: '#F4F4F4', fg: '#1A1A1A' }), x, 1.9, z + (f ? -0.29 : 0.29), g, { ry: f });
+      const ix = x, iz = z + (f ? -0.9 : 0.9); a.lockers.push({ id, x, z, door, ix, iz });
+      addItem(a, { id: 'p8' + id, x: ix, z: iz, r: 1.1, label: '清掃用具入れに隠れる', col: 0x6AD0F0, once: false, avail: () => S.flags.c10st === 'escape' && !S.flags.c10hid, on: () => evHide10(id) }); }
+    // 搬入口
+    a.dock = block(0.3, 3.0, 4.0, 0x8A6A2A, 14.0, 1.5, 4.0, g); plane(2.4, 0.5, signTex(480, 100, [{ t: '搬入口', size: 60, w: 900 }], { bg: '#F2C230', fg: '#1A1A1A' }), 13.84, 3.2, 4.0, g, { ry: -Math.PI / 2 });
+    addItem(a, { id: 'p8dock', x: 12.9, z: 4.0, r: 1.3, label: '搬入口から外へ', col: 0xC8323C, once: false, avail: () => S.flags.c10st === 'escape' && !!S.flags.c10hid, on: () => goPlantOut10() });
+    a.chasers = [npc(a, 'konjo', konjoBird(), ESC_SPAWN[0][0], ESC_SPAWN[0][1], Math.PI / 2), npc(a, 'bunw', bunshokuBird({ s: 1.1 }), ESC_SPAWN[1][0], ESC_SPAWN[1][1], Math.PI / 2), npc(a, 'bw2', bunshokuBird({ s: 1.06, band: 0x1A1A1E }), ESC_SPAWN[2][0], ESC_SPAWN[2][1], Math.PI / 2)];
+    for (const c of a.chasers) c.speed = 4.6; resetChase(a); },
+  tick(a, dt) { a.lamps.forEach((l, i) => { l.material.opacity = S.flags.c10hid ? 0.12 : 0.3 + 0.3 * Math.max(0, Math.sin(T.now * 6 + i)); }); chaseTick(a, dt); },
+  restore(a) { a.catching = false; if (S.flags.c10hid) { for (const c of a.chasers) c.hidden = true; } else { resetChase(a); } }
+});
 // ================= 第六章　中　餌 =================
 async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden = true; nameCard(null); applySaku(); bgm(''); setClock('05:30');
   // ---- 冷たい序：文食品の朝礼 ----
@@ -6062,7 +6101,7 @@ async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden
   cine(-3.2, 4.0, 3.6, -3.2, 2.4, -3.6); await card('文鳥セントラルサプライ文食品', '春日井第三工場　午前五時三十分　朝礼', 2200);
   await narr('文鳥セントラルサプライ文食品。主力は「漢の文鳥飯」シリーズ。焼肉、生姜焼き、唐揚げ。肉を中心にした、巨大な食品サプライ企業だ。');
   await narr('地球だけではない。B.U.N の宇宙の拠点、艦隊、植民圏。……文鳥の食卓のほとんどすべてに、ここの肉が並ぶ。');
-  cine(-1.4, 2.4, -0.6, -3.2, 2.6, -3.6);
+  cine(0.8, 2.6, -1.6, -3.2, 1.8, -3.6);
   nameCard({ s: 'B.U.N society No.14　辻society　文食品 製造本部長', b: 'ガ・ンテツ', e: 'が んてつ', col: '#FF6A4A', p: '辻society の、二桁の上位。\n肉で作った体、肉で作った根性。\n口癖は「気合いだ」。' });
   gt.st.armsUp = true; G.shake = 0.2; await say('gantetsu', 'おはようございまァァァす！！');
   nameCard(null); cine(-3.2, 4.4, -2.5, -3.2, 1.4, 1.2); await say('bunw', 'おはようございまァァァす！！');
@@ -6074,15 +6113,15 @@ async function chapter10() { G.mode = 'cine'; S.chapter = 10; $('report').hidden
   G.shake = 0.35; sfx('blast'); await say('gantetsu', 'よォし！　気合いだ！　気合いだ！　気合いだァァァァ！！');
   for (const n of F.rows) n.st.armsUp = false; gt.st.armsUp = false; await narr('朝礼は、毎朝、こうして終わる。');
   // 社員食堂
-  cine(2.6, 2.2, 0.4, 5.4, 1.0, -1.4); await narr('社員食堂。黒い器に、黒い蓋。蓋には、赤い字で「ガチ旨。」。');
+  cine(1.8, 3.0, 2.0, 5.4, 0.9, -1.4); await narr('社員食堂。黒い器に、黒い蓋。蓋には、赤い字で「ガチ旨。」。');
   await narr('外には出ない、もう一つのシリーズ。社内と、B.U.N 系にだけ卸される。');
   await say('bunw', 'いただきまァァす！');
   sfx('hit'); G.shake = 0.3; await say('bunw', 'ガチ旨ァァァァァァァァァァ！！！');
   await say('bunw', 'うンめェェェ！　これだよ、これェ！　力が、腹の底から、湧いてくるゥ！');
   await narr('器の中身が何の肉なのか、食堂の誰も口にしない。……気にも、していなかった。');
   // ガ・ンテツ派の密談
-  F.kj.hidden = false; F.ni.hidden = false; gt.y = 0; gt.pos.set(6.4, 0, 1.2); gt.facing = -Math.PI / 2; gt.st.sit = true;
-  cine(2.4, 2.2, 4.2, 5.4, 1.2, 1.6);
+  for (const n of F.eat) n.hidden = true; F.kj.hidden = false; F.ni.hidden = false; gt.y = 0; gt.pos.set(6.4, 0, 1.8); gt.facing = -Math.PI / 2; gt.st.sit = true;
+  cine(1.6, 3.0, 5.6, 5.4, 1.0, 1.8);
   nameCard({ s: 'B.U.N 辻society　rate 二九八〇（ガ・ンテツ派 筆頭）　文食品 仕入れ班長', b: 'ド・コンジョウ', e: 'ど こんじょう', col: '#F2C230', p: '声が大きく、腕が太く、話が早い。\n「仕入れ」――狩りの現場を仕切る。\n語尾は「〜っス」。' });
   await say('konjo', '本部長。例の噂、ウラ取れたっス。');
   nameCard(null); await say('konjo', 'タカハラのヒョロガリ研究職ども、人間の「抵抗勢力」に、金と餌、撒いてやがるっス。駅前で旗振ってる人間どもに。');
@@ -6115,7 +6154,7 @@ async function goShop10() { G.mode = 'cine'; setClock('01:10'); await goArea('sh
   await saku('この街の人間の腹の、三割は文食品の肉でできている。', '……安くて、旨い。それだけで、誰も、何も聞かない。');
   sfx('door'); ch.hidden = false; ch.pos.set(-0.6, 0, -0.1); ch.facing = Math.PI; await narr('隣に、誰かが立った。細い、灰色の羽。');
   await say('clerk', 'らっしゃァい！　ご注文はァ！');
-  cine(1.4, 1.7, 1.6, -0.6, 1.5, -0.4); await say('chanyu', '……ごはん、並。肉は、抜いて。');
+  cine(2.2, 1.9, 2.8, -0.3, 1.2, -0.6); await say('chanyu', '……ごはん、並。肉は、抜いて。');
   await say('clerk', '肉抜きィ！？　……気合い、足りてないっスよォ！');
   await say('chanyu', '足りている。');
   await say('chanyu', '……久世躁一郎。こちらを、見ないで。食べながら、聞いて。');
@@ -6139,7 +6178,7 @@ async function goShop10() { G.mode = 'cine'; setClock('01:10'); await goArea('sh
   else { await say('chanyu', 'タカハラは、観測する。止めない。……ト・キワは、これも「興味深い」と言うだろう。'); await say('chanyu', '……私は、言わない。'); }
   await narr('チャ・ニュユーは、カウンターに、小さな記録結晶を置いた。');
   await say('chanyu', '一万人の集会は、六日後。文食品が、炊き出しの協賛に入った。……同盟には、もう「体力強化道場」ができている。');
-  await say('chanyu', '……ごちそうさま。ごはんは、おいしかった。');
+  await say('chanyu', '……ごちそうさま。米の炊き方は、正確だった。');
   sfx('door'); ch.hidden = true; await say('clerk', 'あざっしたァ！　次は肉、食ってくださいよォ！');
   addNote('gachiuma', 'ガチ旨。シリーズ', '文食品の、文鳥向け・社内と B.U.N 系限定の品。原料は、捕えた／繁殖させた雌性の存在（異種族）。社内の呼び名は「メス肉」。辻society はほぼ全員が食べる。チャとカエレは食べない。', true);
   await saku('……味が、しなくなった。', '六日だ。');
@@ -6203,9 +6242,9 @@ async function evGym10(k) { const a = AREAS.gym6;
     S.flags.c10oni = true; }
   if (k === 'kn') { markI('g6kn'); cine(1.8, 1.8, -1.6, 0.6, 1.0, -3.8);
     await narr('白い保冷箱。「経験肉　KN-01　試作／人間用」。');
-    await narr('蓋の裏に、小さな札。「原料：鬼（雌・成体）　経験値等級：特」。');
-    await saku('……どこの、鬼の肉だ。');
-    addNote('kn01', '経験肉 KN-01', '食べた肉の、元の体の経験を、体ごと引き継ぐ試作品。原料は「鬼（雌・成体）」。同盟の前衛隊に、無料で配られている。', true); }
+    await narr('蓋の裏に、小さな札。「原版：鬼（雌・成体）　複写　第二一四版　経験値等級：特」。');
+    await saku('原版。複写。……肉屋の札にしては、妙な言葉だ。', 'どこの、鬼だ。');
+    addNote('kn01', '経験肉 KN-01', '食べた肉の、元の体の経験を、体ごと引き継ぐ試作品。原版は「鬼（雌・成体）」、札には「複写 第二一四版」。同盟の前衛隊に、無料で配られている。', true); }
   if (['g6sh', 'g6kj', 'g6sa', 'g6kn'].every(x => S.seen.has('i:' + x))) setObj('夜、文食品の工場へ忍び込む'); playOn(); saveGame(true); }
 
 // ---- 文食品の工場：潜入 ----
@@ -6228,14 +6267,44 @@ async function evPlant10(k) { const a = AREAS.plant6; a.det = 0;
     await saku('……連れていかれる前の、三人の、体の一部だ。', '原本は、タカハラの観測艇にある。');
     addNote('kentai', 'KN 検体台帳', '同盟の人間の血液と髪。「健康診断」で採取。タカハラの台帳の複写。陸・ナツキ・ケントのものも、いなくなる前の日付で残っている。原本はタカハラ。', true); }
   if (k === 'fr') { markI('p7fr'); cine(-7.0, 2.2, -3.2, -9.6, 1.6, -6.2);
-    await narr('冷凍庫の扉に、原料の札が下がっていた。冷気が、足もとを這う。');
-    await narr('「KN-01 原料　鬼（雌・成体）　入荷：七年前　鉄翼 夜間仕入れ（高蔵寺）」。');
-    await narr('「個体記録：鬼嶽建設　先代代表」。');
-    await saku('……ゴウカの、母親だ。', '鉄翼の夜の襲撃で、死んだんじゃない。……仕入れられたんだ。');
+    await narr('保管庫の扉に、札が下がっていた。冷気が、足もとを這う。');
+    await narr('「KN-01 原版　鬼（雌・成体）　採取：七年前　鉄翼 夜間（高蔵寺）　複写：第二一四版まで」。');
+    await narr('「原版の個体記録：鬼嶽建設　先代代表」。');
+    await saku('……ゴウカの、母親だ。', '鉄翼の、夜の襲撃。……あの夜、文食品は、あの人から、何を持ち帰った。');
     await say('kuze', '…………。');
     await saku(S.flags.c10oni ? '翔の中で笑っていたのは、あの人だ。' : '経験肉は、元の体の経験を、まるごと引き継ぐ。……あの人の、何もかもを。');
-    addNote('okami', '冷凍庫の札', 'KN-01 の原料は、七年前の「鉄翼 夜間仕入れ」で入荷した鬼。個体記録は「鬼嶽建設 先代代表」――ゴウカの母親。', true); }
-  if (['p7plan', 'p7kn', 'p7fr'].every(x => S.seen.has('i:' + x))) setObj('工場を出る'); playOn(); saveGame(true); }
+    addNote('okami', '原版保管庫の札', 'KN-01 の原版は、七年前の「鉄翼 夜間」で採取された鬼。個体記録は「鬼嶽建設 先代代表」――ゴウカの母親。「複写：第二一四版まで」。', true); }
+  if (['p7plan', 'p7kn', 'p7fr'].every(x => S.seen.has('i:' + x))) { await goEscape10(); return; } playOn(); saveGame(true); }
+// ---- 逃走：見つかった ----
+async function goEscape10() { G.mode = 'cine'; S.flags.c10st = 'escape'; S.flags.c10hid = false; cine(P.pos.x + 2.2, 5.2, P.pos.z + 4.4, P.pos.x, 0.9, P.pos.z);
+  sfx('alert'); G.shake = 0.35; document.body.classList.add('flash'); await narr('――警報が、鳴った。'); document.body.classList.remove('flash');
+  await say('konjo', '侵入者っスゥゥ！！　人間だ！　保管庫の前に、人間がいたっス！');
+  await say('konjo', '全員、通路を固めろっス！　追えェ！　気合いだァァ！');
+  await saku('見つかった。……走れ、久世。', '肉で鍛えた文鳥の足は、人間より速い。まっすぐ逃げても、追いつかれる。', '角を曲がれ。視界を切れ。……隠れる場所を探せ。');
+  await goArea('escape6', ESC_START, Math.PI / 2); const e = AREAS.escape6; e.catching = false; resetChase(e); bgm('fight');
+  cine(-6.4, 7.4, 2.4, -10.0, 0.6, -4.6); await card('逃走', '通路を抜けて、隠れろ', 1200);
+  playOn(); setObj('走れ（Shift／スティックを大きく）。追っ手の視界を切って、清掃用具入れに隠れろ'); saveGame(true); }
+function chaseNear(a) { let best = a.chasers[0], bd = 99; for (const c of a.chasers) { const d = Math.hypot(c.pos.x - P.pos.x, c.pos.z - P.pos.z); if (d < bd) { bd = d; best = c; } } return best; }
+async function chaseCaught(a, opened) { G.mode = 'cine'; sfx('alert'); S.flags.c10escFail = (S.flags.c10escFail || 0) + 1; const c = chaseNear(a); for (const x of a.chasers) x.goal = null;
+  P.model.root.visible = true; c.lookAt = 'P'; cine((P.pos.x + c.pos.x) / 2 + 1.8, 5.4, (P.pos.z + c.pos.z) / 2 + 4.2, (P.pos.x + c.pos.x) / 2, 0.9, (P.pos.z + c.pos.z) / 2);
+  if (!opened) await say(c.key, '捕まえたっスゥ！！');
+  sfx('hit'); G.shake = 0.3; await narr('太い腕が、肩をつかんだ。……朔が、肘を、相手の喉もとへ入れた。腕が、一瞬だけ、ゆるむ。');
+  await saku('振りほどいた。……だが、来た道まで、押し戻された。', S.flags.c10escFail >= 2 ? '奴らも、息が上がってきている。……次は、抜けられる。' : 'まっすぐ逃げるな。角を曲がって、視界を切ってから、隠れろ。');
+  await fade(true); c.lookAt = null; resetChase(a); camSnap = true; await fade(false); a.catching = false; playOn(); }
+async function evHide10(id) { const a = AREAS.escape6, L = a.lockers.find(l => l.id === id); G.mode = 'cine'; const up = L.iz > L.z ? 1 : -1;
+  let found = false; for (const c of a.chasers) { const d = Math.hypot(c.pos.x - P.pos.x, c.pos.z - P.pos.z); if (d < 3.2 || (d < 7.5 && a.t >= c.delay && los(c.pos.x, c.pos.z, P.pos.x, P.pos.z))) found = true; }
+  for (const c of a.chasers) c.goal = null; sfx('door'); L.door.rotation.y = -1.2 * up; P.model.root.visible = false; await sleep(G.skip ? 0 : 250); L.door.rotation.y = 0;
+  // 追っ手が、跡をたどって、隠れた場所の前まで来る
+  const tr = a.trail; a.chasers.forEach((c, i) => { let need = 3.2 + i * 1.1, k = tr.length - 1; while (k > 0 && need > 0) { need -= Math.hypot(tr[k][0] - tr[k - 1][0], tr[k][1] - tr[k - 1][1]); k--; } c.pos.set(tr[k][0], 0, tr[k][1]); c.hidden = false; });
+  cine(L.ix + 2.2, 5.6, L.iz + 4.4, L.ix, 0.9, L.iz - 0.2); await Promise.all(a.chasers.map((c, i) => walkTo(c, L.ix + (i - 1) * 1.2, L.iz + up * (0.7 + (i % 2) * 0.6), 4.6)));
+  if (found) { await say('konjo', '……そこっスね。'); sfx('metal'); L.door.rotation.y = -1.2 * up; P.pos.set(L.ix, 0, L.iz); await say('konjo', 'みィつけたっス！　人間の息、丸聞こえっス！'); await chaseCaught(a, true); return; }
+  await say('bunw', 'どこ行きやがったァ！　人間の匂いは、この辺で……'); sfx('heart'); await saku('……息を、止めろ。');
+  await say('konjo', '……正面ゲートっス！　人間の足で外に出るなら、正面しかねえっス！　固めるっス！');
+  await say('bunw', 'おうッ！　気合いだァ！');
+  a.chasers.forEach((c, i) => { walkTo(c, L.ix - 6 - i, c.pos.z, 4.6).then(() => { c.hidden = true; }); }); await sleep(G.skip ? 0 : 1400); for (const c of a.chasers) c.hidden = true;
+  S.flags.c10hid = true; sfx('door'); L.door.rotation.y = -1.2 * up; P.pos.set(L.ix, 0, L.iz); P.model.root.visible = true; camSnap = true;
+  await saku('……行った。', '搬入口は、仕入れ車両のために、開いたままのはずだ。');
+  playOn(); setObj('搬入口から外へ（通路の北東の端）'); saveGame(true); }
 async function goPlantOut10() { G.mode = 'cine'; await fade(true); await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P'; setClock('05:40');
   cine(4.6, 2.0, -0.6, 6.0, 1.2, -3.4); await card('留文堂　地下', '集会の日　午前五時四十分', 1400);
   await say('saegusa', '……写真、全部、見ました。');
@@ -6343,10 +6412,14 @@ async function finale10() { const a = AREAS.rally6, gt = a.gt, tk = a.tk, ch = a
   await say('kuze', '戻ってから、本人に、聞きます。');
   await say('tokiwa', '…………興味深い。');
   tk.hidden = true; await narr('ト・キワは、それ以上、何も言わなかった。');
-  faceEach(ch); otsCam(ch, 2.2, -1.4); await say('chanyu', '……ごはん、食べた？');
-  await say('kuze', '半分だけ。');
-  await say('chanyu', '……そう。');
-  await narr('チャ・ニュユーは、小さく、ため息をついた。それから、夜の上へ、消えた。'); ch.hidden = true;
+  faceEach(ch); otsCam(ch, 2.4, -1.4); await say('chanyu', '今夜の集計。連れ去られた人間、十一。保護された人間、一。逃がされた異種族、一。');
+  await say('chanyu', '一は、あなたが持ち帰った分だ。……記録の上では、誤差の範囲に収まる。');
+  await narr('チャ・ニュユーは、短く、息を吐いた。ため息と呼ぶには、あまりに小さかった。');
+  await say('chanyu', '……その一を、私は、記録しない。今夜のあなたの行動は、どの頁にも、書かない。');
+  await say('kuze', '……なぜです。');
+  await say('chanyu', '書けば、読む者がいる。それだけだ。');
+  await say('chanyu', '……文食品は、今夜のことを忘れない。気をつけて。これは、記録官としての、所見だ。');
+  await narr('それきり、振り返らずに、夜の上へ、消えた。'); ch.hidden = true;
   cine(-1.8, 1.8, 6.2, -4.0, 0.6, 2.6); await narr('芝の上で、翔が、眠っていた。額の角が、街の灯りを、鈍く返していた。');
   await saku('取り戻すものが、増えた。', '陸。ナツキ。ケント。前衛隊の十一人。……それと、ゴウカの、母親。');
   await saku(S.flags.c10tellGoka ? '……約束だ。ゴウカに、伝えに行く。鬼に、本当のことを。' : '……ゴウカには、まだ言わない。その嘘が、いつまで持つか。');
@@ -6357,7 +6430,7 @@ function showReport10() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>文食品</td><td>主力「漢の文鳥飯」（牛・豚・鶏）。地球の売上 三十八兆円、B.U.N の宇宙側を含め推計その四倍。文鳥の食べる肉の八割以上</td></tr>' +
     '<tr><td>ガチ旨。</td><td>社内・B.U.N 系限定。原料は、捕えた／繁殖させた雌性の存在（異種族）。社内の呼び名「メス肉」。辻society はほぼ全員が食べる。チャ・ニュユー、カエレ、タカハラの一部は食べない</td></tr>' +
     '<tr><td>ガ・ンテツ派</td><td>No.14（辻・文食品 製造本部長）と仕入れ班長ド・コンジョウ。タカハラが育てた同盟を、異種族を寄せる「ルアー」に転用。集会の捕獲目標八十</td></tr>' +
-    '<tr><td>経験肉 KN-01</td><td>食べた肉の元の体の経験を、体ごと引き継ぐ。原料は「鬼嶽建設 先代代表」（七年前、鉄翼の夜間仕入れ）。前衛隊の戸川翔は角が生え、先代の声で喋った</td></tr>' +
+    '<tr><td>経験肉 KN-01</td><td>食べた肉の元の体の経験を、体ごと引き継ぐ。原版の個体記録は「鬼嶽建設 先代代表」（七年前、鉄翼の夜間に採取）。札には「複写 第二一四版まで」。前衛隊の戸川翔は角が生え、先代の声で喋った</td></tr>' +
     '<tr><td>集会</td><td>' + (S.flags.c10paTruth ? '真実を放送。群衆は割れて散った' : '落雷の嘘で解散') + '。檻を開けハーピーの娘を逃がす。翔を眠らせて保護。No.14 はト・キワとチャ・ニュユーの介入で撤収。前衛隊十一人が「経過観察」として連れ去られた</td></tr>' +
     '<tr><td>戻す方法</td><td>経験の「逆転写」。連れていかれる前の本人の検体（原本はタカハラの観測艇）から、本人の経験を取り出して返す。装置は文食品の工場。本人が望むかは、戻ってから聞く</td></tr></table>' +
     '<p class="close">取り戻すもの：陸、ナツキ、ケント、前衛隊の十一人。……それと、ゴウカの母親。<br>第六章　下（準備中）</p>' +
@@ -6711,6 +6784,6 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goRally10, finale10, showReport10, startCh10, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE };
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE };
 })();
 </script>
