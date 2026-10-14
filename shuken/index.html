@@ -7302,6 +7302,8 @@ makeArea('enfHall', { noPlayer: true, place: '', bounds: [-8, 8, -8, 8], spawn: 
     a.shards.forEach((s, i) => { const t = T.now * 1.5 + i; s.position.set(Math.cos(t) * (1.2 + (i % 3) * 0.4), Math.sin(t * 1.3) * 1.2, Math.sin(t) * 0.4); s.rotation.x += dt * 2; s.material.opacity = a.doorRing.material.opacity * 0.8; }); }
 });
 // ================= 幕間三　生きとし生けるもの =================
+// 二人を横から収める（建物のある北側を避けて、南から）
+function twoShot(n, dist = 4.4, h = 2.6) { const dx = n.pos.x - P.pos.x, dz = n.pos.z - P.pos.z, L = Math.hypot(dx, dz) || 1; let px = dz / L, pz = -dx / L; if (pz < 0) { px = -px; pz = -pz; } const mx = (n.pos.x + P.pos.x) / 2, mz = (n.pos.z + P.pos.z) / 2; cine(mx + px * dist, h, mz + pz * dist, mx, 1.3, mz); }
 async function chapter12() { G.mode = 'cine'; S.chapter = 12; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); bgm(''); setClock('05:20'); S.flags.c12st = 'home';
   // ---- 主家：ザイナが帰る ----
   await goArea('shuke'); const H = AREAS.shuke, f = H.fam; bgm('lullaby'); for (const k in f) { f[k].hidden = true; f[k].st = { sit: true }; f[k].lookAt = null; } f.furuuru.hidden = false; f.furuuru.pos.set(-3.9, 0, 0); f.furuuru.facing = Math.PI / 2;
@@ -7361,7 +7363,7 @@ async function goRikuHome12() { G.mode = 'cine'; setClock('07:40'); await goArea
   await say('riku', '……母さん。');
   sfx('door'); mom.hidden = false; mom.pos.set(-1, 0, -2.0); mom.lookAt = ri.pos; cine(-3.0, 2.0, 1.0, -1.0, 1.4, -2.0); await sleep(G.skip ? 0 : 400);
   await say('rikuMom', 'り……陸……？');
-  walkTo(mom, 0.1, -0.5, 2.2); await sleep(G.skip ? 0 : 900); ri.lookAt = mom.pos; cine(2.2, 1.8, 2.4, 0.2, 1.3, -0.2);
+  walkTo(mom, 0.1, -0.5, 2.2); await sleep(G.skip ? 0 : 900); ri.lookAt = mom.pos; cine(-2.6, 2.0, 0.8, 0.2, 1.3, -0.1);
   await narr('母親が、裸足のまま、駆け寄った。');
   await say('rikuMom', 'どこ、行ってたの……！　警察も、正律も、「私的な婚姻慣行」って、それだけで……！');
   await say('riku', 'ごめん。……ただいま。');
@@ -7388,7 +7390,7 @@ async function goNest12() { G.mode = 'cine'; S.flags.c12st = 'nest'; setClock('2
   await say('yuria', '……うける。……うけないって。');
   playOn(); setObj('団地の人たちと話す（四人）'); saveGame(true); }
 async function evNest12(k) { const a = AREAS.nest6;
-  if (k === 'kome') { markI('n1kome'); faceEach(a.kome); otsCam(a.kome, 3.0, 1.9);
+  if (k === 'kome') { markI('n1kome'); faceEach(a.kome); twoShot(a.kome);
     nameCard({ s: '更生文鳥　文食品 春日井第三工場 包装課（元）', b: 'コ・メ', e: 'こ め', col: '#E8D8C0', p: '漢の文鳥飯の、ふたを閉める係だった。\n「ガチ旨。」は、食べたことがない。\n……rate が低くて、回ってこなかった。' });
     await say('kome', 'あ……陽盾の……外神竜さん……。');
     nameCard(null); await say('kome', 'ぼく、工場で、漢の文鳥飯のふた、閉めてました。毎日、八千個。……ガチ旨。のラインは、別の棟で。何が入ってるか、知らなかったです。');
@@ -7396,17 +7398,17 @@ async function evNest12(k) { const a = AREAS.nest6;
     await say('yuria', '……コメくんは、食べたことある？');
     await say('kome', 'ないです。rate が低いと、回ってこないんです。先輩たちは、あれを食べないと強くなれないって。強くないと、宇宙じゃ生き残れないって。');
     await say('kome', 'ぼく、ほんとは……人間とか、異種族の人とかと、同じ店で、ふつうに、ごはん、食べたかっただけなんです。'); }
-  if (k === 'tori') { markI('n2tori'); faceEach(a.tori); otsCam(a.tori, 3.0, -1.9);
+  if (k === 'tori') { markI('n2tori'); faceEach(a.tori); twoShot(a.tori);
     await say('torib', 'わしは、四十年前に、この星に落ちてきた。更生プログラムの、第一期でな。……ここで、人間の隣で、四十年。');
     await say('torib', 'ゴミ出しの日は、隣のおばあさんと、毎週、一緒に出す。……わしらは、それで、よかったんじゃ。');
     await say('torib', 'じゃが、空の上のほうでは、そうは思わん者もおる。強くあれ、rate を上げよ、とな。……あの肉は、その考えの、成れの果てじゃ。');
     await say('torib', 'お嬢さん。……わしらを、庇わんでええ。庇えば、今度は、あんたが責められる。'); }
-  if (k === 'obaa') { markI('n3obaa'); faceEach(a.obaa); otsCam(a.obaa, 3.0, 1.9);
+  if (k === 'obaa') { markI('n3obaa'); faceEach(a.obaa); twoShot(a.obaa);
     await say('obaa', 'あら、外神竜の……。見回り、ありがとうね。');
     await say('obaa', 'この子らはね、毎朝、ゴミ出しを手伝ってくれるの。わたしが腰を悪くしてから、ずっと。');
     await say('obaa', 'テレビじゃ、文鳥は人さらいだの、肉屋だの言うけど。……わたしにとっちゃ、お隣さんなのよ。');
     await say('obaa', 'でもね、ハーピーのお嬢ちゃんたちの気持ちも、分かるの。……分かるから、困るのよねぇ。'); }
-  if (k === 'oni') { markI('n4oni'); faceEach(a.oni); otsCam(a.oni, 3.0, -1.9);
+  if (k === 'oni') { markI('n4oni'); faceEach(a.oni); twoShot(a.oni);
     await say('oniR', 'なんだい、外神竜。……止めに来たのかい。');
     await say('oniR', 'あたしの従妹はね、七年前の鉄翼の夜に、いなくなった。ゴウカの姐さんのおっかさんと、同じ夜さ。');
     await say('oniR', '肉に、されたかもしれない。されてないかもしれない。……分かんないんだよ。それが一番、腹が立つ。');
@@ -7523,44 +7525,44 @@ async function goEnforcer12() { G.mode = 'cine'; await goArea('enfOut'); bgm('en
   await sleep(G.skip ? 0 : 1800); nameCard(null);
   sfx('zapline'); a.doorOn = true; cine(1.0, 2.6, -1.2, 4.4, 1.6, 2.6); await narr('広間の空気が、幾何学の形に、折れた。……紫の光の向こうから、一羽が、踏み出してきた。');
   ka.hidden = false; ka.pos.set(4.0, 0, 2.2); walkTo(ka, 2.2, -0.6, 1.2); await sleep(G.skip ? 0 : 1600); a.doorOn = false;
-  ka.lookAt = zs.pos; zs.lookAt = ka.pos; cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0);
+  ka.lookAt = zs.pos; zs.lookAt = ka.pos; cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2);
   nameCard({ s: 'B.U.N society No.2　タカハラsociety 実践No.1', b: 'カ・エレ', e: 'KA-ERE', col: '#9A8AFF', p: 'シナモン文鳥。機動研究者／総合技術士。一人称は「ぼく」。\n次元を折り畳み、繋ぎ、留める。\nチャ・ニュユーが、うっかり名前を漏らした相手。' });
   await say('kaere', 'ご無沙汰しております、絶尊。……タカハラ実践一号、カ・エレ。地表より、戻りました。');
   nameCard(null); cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……カ・エレか。よい。楽にせよ。');
   await say('ult', '地表は、どうだった。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', '騒がしいです。文食品の第三工場が、溶けました。外神竜の三女に。No.14 は、シ・ロブンが回収。命に別条はありません。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', '騒がしいです。文食品の第三工場が、溶けました。外神竜の三女に。No.14 は、シ・ロブンが回収。命に別条はありません。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '知っている。コシから聞いた。……あれは、叱られたか。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', 'コシに、三時間ほど。……ぼくは、少し、同情しました。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'コシに、三時間ほど。……ぼくは、少し、同情しました。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'ガチ旨。は。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', 'チャの提案どおり、全量、廃棄に。辻の若い者たちが、泣いていました。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'チャの提案どおり、全量、廃棄に。辻の若い者たちが、泣いていました。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '泣かせておけ、と、チャは言ったそうだな。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', 'はい。……彼女らしい。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'はい。……彼女らしい。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'そなたは、あれを、食ったことがあるか。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', 'ありません。ぼくは、あれの原料の顔を、記録で見ていますから。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'ありません。ぼくは、あれの原料の顔を、記録で見ていますから。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……余もだ。余も、食わぬ。');
   await narr('しばらく、特異点の唸りだけが、広間を満たした。');
   await say('ult', '強さを、腹で買う時代は、終わる。……終わらせる。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', '……意外です。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', '……意外です。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '余を、何だと思っている。');
   await say('ult', '余は、終わらせたいだけだ。争いを、果てまで。……その果てを、終着と呼んでいる。');
   await say('ult', '――チャ・ニュユーの、錨の話をせよ。');
-  cine(3.6, 2.4, -2.6, 2.2, 1.9, -0.6); await say('kaere', 'はい。……現実錨。ぼくの次元アンカーに、チャの記録結晶を、繋ぎます。');
+  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', 'はい。……現実錨。ぼくの次元アンカーに、チャの記録結晶を、繋ぎます。');
   await say('kaere', '結晶に記された「正しい状態」に、現実そのものを、杭で留める。錨の届く範囲では、誰も、記録を書き換えられません。');
   await say('kaere', '外神竜の「権限」も、「正常化」も。魔族の契約も。……時間を戻す類いの奇跡も。');
   await say('kaere', '先週、春日井の稲荷で、外神竜の親戚が、狐火の理を書き換えました。そのとき、ぼくが地中に打っておいた試作の錨が、〇・四秒だけ、それに抗った。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '〇・四秒で、竜の権限に、抗ったか。');
-  cine(3.6, 2.4, -2.6, 2.2, 1.9, -0.6); await say('kaere', 'はい。……正直に言うと、ぼくは、興奮しました。');
+  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', 'はい。……正直に言うと、ぼくは、興奮しました。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'チャ・ニュユーは、何を、錨に留めるつもりだ。');
-  cine(3.6, 2.4, -2.6, 2.2, 1.9, -0.6); await say('kaere', 'この星の、「決め方」を。……誰が、何を、どうやって決めたか。それを記録どおりに固定して、二度と、力で書き換えさせない。');
+  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', 'この星の、「決め方」を。……誰が、何を、どうやって決めたか。それを記録どおりに固定して、二度と、力で書き換えさせない。');
   await say('kaere', '竜にも、異種族にも。……B.U.N にも。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '余の命令も、か。');
-  cine(3.6, 2.4, -2.6, 2.2, 1.9, -0.6); await say('kaere', '……はい。そこが、彼女の計画の、いちばん危ういところで。いちばん、美しいところです。');
+  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', '……はい。そこが、彼女の計画の、いちばん危ういところで。いちばん、美しいところです。');
   await narr('長い、沈黙だった。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……面白い。');
   await say('ult', '続けさせよ。予算は、余が出す。……コシには、言うな。あれは、加速しか知らぬ。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await say('kaere', '……承知しました。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', '……承知しました。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'カ・エレ。……地表の飯は、うまかったか。');
-  cine(5.8, 3.4, -4.6, 1.0, 2.4, -2.0); await narr('シナモン色の文鳥は、ほんのわずかに、笑った。');
+  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await narr('シナモン色の文鳥は、ほんのわずかに、笑った。');
   await say('kaere', '漢の文鳥飯は、悪くありませんでした。……米が、正確に炊けていて。');
   cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……そうか。');
   sfx('zapline'); a.doorOn = true; walkTo(ka, 4.2, 2.4, 1.2).then(() => { ka.hidden = true; a.doorOn = false; }); pan([0, 9, 14], [0, 2, -3.6], [0, 14, 22], [0, -6, -14], 10); await sleep(G.skip ? 0 : 2000);
