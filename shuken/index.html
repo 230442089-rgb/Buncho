@@ -7217,7 +7217,7 @@ const kaereBird = () => makeBird({ coat: 0x1A1A22, pants: 0x1A1A22, cap: 0x8A645
 function zessonBird() { const m = makeBird({ coat: 0x121018, pants: 0x121018, cap: 0x0A0A0E, beak: 0xE8A0A8, muscle: true, core: 0xFF3A20, armMark: 0xFF5A2A, s: 2.15 });
   const cape = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.95, 1.7, 16, 1, true, Math.PI * 0.62, Math.PI * 0.76), new THREE.MeshToonMaterial({ color: 0x5A0A12, gradientMap: gradTex, side: THREE.DoubleSide })); cape.position.set(0, 0.95, -0.05); m.torso.add(cape);
   for (let k = 0; k < 7; k++) { const l = glowSprite(0xFF5A2A, 0.25, 0.7); l.position.set(rand(-0.4, 0.4), rand(0.4, 1.6), 0.44); m.torso.add(l); } return m; }
-// ホ・マレ（無派閥・rate 一〇二）：傷だらけの桜文鳥。包帯、古傷、粟の袋
+// ホ・マレ（無派閥・rate rank No.991）：傷だらけの桜文鳥。包帯、古傷、粟の袋
 function homareBird() { const m = makeBird({ coat: 0x44444A, pants: 0x4A4038, cap: 0x16161A, beak: 0xD86A70, sleeve: 0x44444A, hand: 0x3A3A40, muscle: true, scarf: 0xA88A48, badge: 0x8A8A80, s: 1.26 });
   part(G_('hmBand', () => new THREE.TorusGeometry(0.29, 0.042, 6, 18)), 0xF0ECE0, 0, 0.2, -0.01, m.head, { rx: Math.PI / 2 - 0.2, rz: 0.22, outline: false });
   part(cyl(0.205, 0.19, 0.2, 10), 0xF0ECE0, 0, -0.3, 0, m.arms[0], { outline: false }); part(cyl(0.2, 0.2, 0.08, 10), 0xE0D8C8, 0, -0.42, 0, m.arms[1], { outline: false });
@@ -7457,9 +7457,9 @@ async function goRiot12() { const a = AREAS.nest6; G.mode = 'cine'; bgm('fight')
   const hm = a.hm; hm.hidden = false; hm.st = {}; hm.lookAt = null; hm.pos.set(0.8, 0, 1.0); hm.facing = -Math.PI / 2; cine(-0.4, 3.0, -4.6, -0.4, 1.3, 1.0);
   sfx('wind'); for (let i = 0; i <= 12; i++) { hm.y = 5 * (1 - i / 12); await sleep(G.skip ? 0 : 30); } hm.y = 0; sfx('hit'); G.shake = 0.3;
   await narr('その間に、空から、一羽が、落ちてきた。……着地というより、墜落に近かった。');
-  nameCard({ s: 'B.U.N society　無派閥　rate 一〇二', b: 'ホ・マレ', e: 'ほ まれ', col: '#D8C08A', p: '辻にも、タカハラにも、属さない。\n肉は食わない。粟と稗と、青菜を食う。\n「文鳥として、強くあれ」。' });
+  nameCard({ s: 'B.U.N society　無派閥　rate rank No.991', b: 'ホ・マレ', e: 'ほ まれ', col: '#D8C08A', p: '辻にも、タカハラにも、属さない。\n肉は食わない。粟と稗と、青菜を食う。\n「文鳥として、強くあれ」。' });
   await sleep(G.skip ? 0 : 1600); nameCard(null);
-  await say('tsujiY', 'ホ、ホ・マレ……！　無派閥の骨董品が、何の用だ！　メス一枚食えねェ rate 百ちょいが！');
+  await say('tsujiY', 'ホ、ホ・マレ……！　無派閥の骨董品が、何の用だ！　メス一枚食えねェ、千番の崖っぷちが！');
   await say('homare', '帰れ。');
   await say('homare', 'ここは、お前たちの喧嘩の場所じゃない。この団地の者たちが、米を炊いて、寝る場所だ。……火を持ち込むな。どちらの側の火もだ。');
   await say('tsujiY', '……っ、異種族の肩、持つのかよ！');
@@ -7502,11 +7502,12 @@ async function goRiot12() { const a = AREAS.nest6; G.mode = 'cine'; bgm('fight')
   await say('homare', '辻は、強さを、食って買う。……私は、それを、強さとは呼ばない。');
   twoShot(hm); await say('homare', '私の役目は、文鳥の暮らす場所を、文鳥として、守ること。誇れる文鳥の社会を、作ること。……そして、文鳥として、強くあることです。');
   await say('homare', '立って、守って、それでも、立っている。……私の知っている強さは、それだけです。');
-  twoShot(hm); await say('yuria', '……rate、いくつ。');
-  await say('homare', '百二。……三桁は、かろうじて。');
+  twoShot(hm); await say('yuria', '……順位、いくつ。');
+  await say('homare', '九百九十一位。……三桁は、かろうじて、保っています。');
+  await say('homare', '肉を食わず、辻にもつかずに、それでも強くあろうとすると。……こうなる。理想と強さを、両方抱えて登る坂は、思っていたより、ずっと険しい。');
   await narr('左の翼の付け根に、古い傷があった。今夜の傷とは、色の違う、ずっと古い傷が。');
-  await say('homare', '昔は、四桁の、上のほうにいました。……強さだけを、追っていた頃です。');
-  await say('homare', 'その果てに、何が起きたかは、言いません。……言えば、言い訳になる。');
+  await say('homare', '昔は、二桁にいました。……強さだけを、追っていた頃です。');
+  await say('homare', 'そこで、ある事が、起きた。……何が起きたかは、言いません。言えば、言い訳になる。');
   await say('homare', 'ただ、あの日から、私は、強さの意味を、決め直しました。');
   twoShot(hm); await say('yuria', '……ご飯、ちゃんと食べてる？');
   await say('homare', '……粟と、稗と、青菜を少し。文鳥の、まっとうな、ご飯です。');
@@ -7643,7 +7644,7 @@ function showReport12() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>主家</td><td>ザイナが帰った。「……文鳥、溶かした」。フルル「どっちも、ほんと。どっちも、ママ、悲しいなぁ」。卓袱台では、ルリカは責めず、燐は「分かってて動いたんやろ」。レウネの席は、空いていた</td></tr>' +
     '<tr><td>尾形家</td><td>陸が帰った。母は裸足で駆け寄った。陸は異種族をまだ許せない。ユリア「許さなくて、いい。でも、旗振るとき、だれも、肉にしないでね」</td></tr>' +
     '<tr><td>とまり木団地</td><td>文食品の春日井の従業員、更生文鳥三千四百が無職に。ガチ旨。を食べたことのないコ・メ、人間の隣で四十年の老いた文鳥、ゴミ出しを手伝ってもらう人間のおばあさん、従妹を七年前に失った鬼の女。……ハーピーの娘たちの松明を、ユリアは「波」で止めた。「生きてるほうの、味方」</td></tr>' +
-    '<tr><td>ホ・マレ</td><td>無派閥、rate 一〇二。肉は食わず、辻にも同調しない傷だらけの文鳥。辻の若い衆を「文鳥なら、帰れ」で帰し、異種族の前に土下座して泣いた。「許せなくて、いい。……それでも、焼くと言うのなら。好きにしてくれ」。かつて強さだけを追った果てに、何かがあった</td></tr>' +
+    '<tr><td>ホ・マレ</td><td>無派閥、rate rank 九百九十一位（かろうじて上位千位の内）。肉は食わず、辻にも同調しない傷だらけの文鳥。辻の若い衆を「文鳥なら、帰れ」で帰し、異種族の前に土下座して泣いた。「許せなくて、いい。……それでも、焼くと言うのなら。好きにしてくれ」。理想と強さの両立は険しい。かつて強さだけを追って二桁に届いた頃、そこで何かが起きた</td></tr>' +
     '<tr><td>屋根</td><td>ユリア「みんな、しあわせにしたいだけ。……なんで、それが、こんなに難しいの」。ヴォルは、眠るユリアの髪を撫で、小さな眷属を夜の街へ放った。「ゆり姉が泣かない世界のためなら、なんだって、最適化しますから♡」。フルルは、見ていた</td></tr>' +
     '<tr><td>BUNTCHO ENFORCER</td><td>絶尊と、No.2 カ・エレ。カ・エレ「メスへのヘイトで、民を回す仕組み。……統治の上では、仕方がなかった」。絶尊「余が、許した。だが、余は、食わぬ」――他者の在ることを食わず、ただ、そこに在る。チャ・ニュユーの「現実錨」――次元アンカーと記録結晶で、現実を記録どおりに留め、この星の「決め方」を、竜にも異種族にも B.U.N にも書き換えさせない。試作は、テルエスの権限に〇・四秒抗った。絶尊「面白い。続けさせよ。コシには、言うな」。カ・エレ「複数世界の錨が成功したら、残ったフィジカルで、メスを、狩り尽くすつもりかい」。……絶尊は、答えなかった</td></tr></table>' +
     '<p class="close">生きているもの、みんなが、しあわせに。……それを願うことが、いちばん、難しい。<br>第七章（準備中）</p>' +
