@@ -7709,13 +7709,26 @@ function playAsKuzeF(on) { if (!KUZE_MODEL) KUZE_MODEL = P.model; if (!KUZEF_MOD
   P.model = on ? KUZEF_MODEL : KUZE_MODEL; CAST.kuze = P.model; KUZEF_MODEL.root.visible = on; KUZE_MODEL.root.visible = !on; }
 // 傷ついた外神竜（顔はノイズで読めない）と、煤けたユリア・テルエス
 function sooty(m, n = 5) { for (let i = 0; i < n; i++) part(box(rand(0.06, 0.14), rand(0.05, 0.12), 0.01), i % 2 ? 0x3A3434 : 0x5A1A1A, rand(-0.16, 0.16), rand(0.6, 1.3), 0.27, m.torso, { outline: false }); return m; }
-// 断偽文鳥門　門主メス・ゼロ：黒い羽、赤い眼、黒赤の装束と装甲、数珠、札、長い薙刀
-function mesuZeroBird() { const m = makeBird({ coat: 0x121014, pants: 0x1A0A0E, cap: 0x0A0A0C, beak: 0xD86070, vest: 0x5A0A14, sleeve: 0x1A1014, hand: 0x121014, armMark: 0x8A1020, muscle: true, s: 1.6 });
-  for (const sx of [-1, 1]) { const e = glowSprite(0xFF2A1A, 0.26, 0.95); e.position.set(sx * 0.2, 0.05, 0.37); m.head.add(e); }
-  for (let k = 0; k < 12; k++) { const a2 = k / 12 * TAU; part(sph(0.05, 6, 4), 0x2A1A10, Math.cos(a2) * 0.4, 1.52, Math.sin(a2) * 0.32 + 0.02, m.torso, { outline: false }); }
-  for (const [x, y] of [[-0.3, 0.9], [0.3, 0.95], [0.0, 0.7]]) { part(box(0.1, 0.24, 0.01), 0xF0ECE0, x, y, 0.46, m.torso, { outline: false }); part(box(0.03, 0.16, 0.012), 0xB01828, x, y, 0.47, m.torso, { outline: false }); }
-  const nk = new THREE.Group(); nk.position.set(0, -0.62, 0.06); nk.rotation.x = 1.25; m.arms[1].add(nk); part(cyl(0.035, 0.035, 2.6, 8), 0x1A1214, 0, 0.6, 0, nk, { outline: false }); const bl = part(box(0.05, 0.62, 0.14), 0xD8D8E0, 0.02, 2.1, 0.03, nk, { emis: 0x401010 }); bl.rotation.x = -0.18; part(cyl(0.06, 0.06, 0.06, 10), 0xB01828, 0, 1.8, 0, nk, { outline: false }); return m; }
-function dangiF() { const m = dangiBird(); for (const sx of [-1, 1]) { const e = glowSprite(0xFF2A1A, 0.22, 0.95); e.position.set(sx * 0.2, 0.05, 0.37); m.head.add(e); } return m; }
+// 断偽文鳥門（新生文鳥勢力）　創始者・教主メス・ゼロ：身長二三五センチ。逆立つ黒い冠羽、白い頬、鉤の嘴、赤い眼、茨の額環。
+// 大粒の赤い数珠、胸の紋章、無数の札、黒と赤の羽の外套、鉤爪。黒浄薙刀「虚妄斬」（黒い柄、赤い宝珠、鎖と札、赤く光る反りの刃）
+function mesuZeroBird() { const m = makeBird({ coat: 0x141216, pants: 0x16121A, hakama: true, cap: 0x0C0C0E, beak: 0x2E2A2C, longcoat: 0x18141A, inner: 0x4A0A12, trim: 0xA01828, sleeve: 0x18141A, hand: 0x1A1416, muscle: true, armMark: 0xA01828, s: 1.75 });
+  const H = m.head; part(G_('hook', () => new THREE.ConeGeometry(0.07, 0.18, 6)), 0x2E2A2C, 0, -0.17, 0.6, H, { outline: false, rx: Math.PI * 0.85 });
+  for (let k = 0; k < 15; k++) { const a2 = -1.4 + k * (2.8 / 14), c = part(G_('crest', () => new THREE.ConeGeometry(0.075, 0.66, 4)), k % 4 === 2 ? 0x3A0A10 : 0x0C0C0E, Math.sin(a2) * 0.26, 0.34 + Math.cos(a2) * 0.06, -0.1 - (k % 2) * 0.12, H, { ol: 1.1 }); c.rotation.set(-0.95 - (k % 2) * 0.3, 0, -a2 * 0.8); }
+  part(G_('thorn', () => new THREE.TorusGeometry(0.335, 0.016, 4, 24)), 0x7A6E6A, 0, 0.13, 0, H, { outline: false, rx: Math.PI / 2 - 0.12 }); for (let k = 0; k < 9; k++) { const a2 = k / 9 * TAU; part(G_('thornS', () => new THREE.ConeGeometry(0.02, 0.09, 3)), 0x7A6E6A, Math.cos(a2) * 0.335, 0.15, Math.sin(a2) * 0.33, H, { outline: false, rz: -Math.cos(a2) * 0.9, rx: Math.sin(a2) * 0.9 }); }
+  for (const sx of [-1, 1]) { const e = glowSprite(0xFF2A1A, 0.26, 0.95); e.position.set(sx * 0.2, 0.05, 0.37); H.add(e); }
+  for (let k = 0; k < 14; k++) { const a2 = k / 14 * TAU; part(sph(0.075, 8, 6), k % 3 ? 0x9A1424 : 0x5A0A10, Math.cos(a2) * 0.46, 1.5 + Math.sin(a2 * 2) * 0.02, Math.sin(a2) * 0.36 + 0.02, m.torso, { outline: false, emis: 0x2A0408 }); }
+  for (let k = 0; k < 5; k++) part(sph(0.06, 8, 6), 0x9A1424, 0.18 - k * 0.02, 1.36 - k * 0.12, 0.44, m.torso, { outline: false, emis: 0x2A0408 }); part(cyl(0.035, 0.06, 0.2, 6), 0xC01828, 0.08, 0.68, 0.45, m.torso, { outline: false });
+  part(cyl(0.13, 0.13, 0.03, 16), 0x2A1414, -0.06, 1.12, 0.46, m.torso, { outline: false, rx: Math.PI / 2 }); const em = glowSprite(0xFF2A2A, 0.5, 0.85); em.position.set(-0.06, 1.12, 0.5); m.torso.add(em);
+  for (const [x, y, z, rz] of [[-0.34, 0.95, 0.38, 0.1], [0.36, 0.9, 0.36, -0.12], [-0.5, 0.7, 0.1, 0.2], [0.52, 0.66, 0.08, -0.2], [-0.16, 0.42, 0.5, 0.05], [0.2, 0.4, 0.5, -0.05], [-0.42, 0.3, 0.3, 0.12], [0.44, 0.28, 0.3, -0.1]]) { const t = part(box(0.09, 0.44, 0.01), 0xEAE4D4, x, y, z, m.torso, { outline: false, rz }); part(box(0.03, 0.3, 0.012), (x > 0) ? 0xA01828 : 0x1A1416, 0, 0, 0.006, t, { outline: false }); }
+  for (let k = 0; k < 11; k++) { const a2 = Math.PI * 0.62 + k * (Math.PI * 0.76 / 10), L = rand(0.9, 1.4), sh = part(box(0.13, L, 0.04), 0x100E10, Math.sin(a2) * 0.6, 1.25 - L / 2, Math.cos(a2) * 0.5, m.torso, { ol: 1.04 }); sh.rotation.set(Math.cos(a2) * 0.18, a2, Math.sin(a2) * 0.12); part(box(0.13, 0.18, 0.045), 0x8A1020, 0, -L / 2 + 0.09, 0, sh, { outline: false }); }
+  for (const pv of m.legs) for (const sx of [-1, 0, 1]) part(G_('claw', () => new THREE.ConeGeometry(0.03, 0.14, 4)), 0x1A1416, sx * 0.07, -0.62, 0.22, pv, { outline: false, rx: Math.PI / 2 });
+  const nk = new THREE.Group(); nk.position.set(0, -0.62, 0.06); nk.rotation.x = 1.2; m.arms[1].add(nk); m.nk = nk; part(cyl(0.034, 0.034, 1.9, 8), 0x141012, 0, 0.45, 0, nk, { outline: false });
+  m.over = []; for (const y of [-0.3, 0.3, 0.9, 1.3]) { part(sph(0.05, 8, 6), 0xC01828, 0, y, 0, nk, { outline: false, emis: 0x801010 }); }
+  for (const y of [0.1, 0.7]) { for (let c = 0; c < 4; c++) part(box(0.02, 0.05, 0.02), 0x6A6060, 0.04, y - c * 0.06, 0, nk, { outline: false }); part(box(0.06, 0.16, 0.008), 0xEAE4D4, 0.05, y - 0.3, 0, nk, { outline: false }); part(cyl(0.012, 0.03, 0.1, 5), 0xC01828, 0.05, y - 0.42, 0, nk, { outline: false }); }
+  part(cyl(0.06, 0.06, 0.06, 10), 0x2A1414, 0, 1.4, 0, nk, { outline: false }); const b1 = part(box(0.05, 0.34, 0.15), 0x3A3436, 0, 1.6, 0.02, nk, { emis: 0x200606 }); b1.rotation.x = -0.12; const b2 = part(box(0.045, 0.3, 0.12), 0x3A3436, 0, 1.88, 0.09, nk, { emis: 0x200606 }); b2.rotation.x = -0.42;
+  part(box(0.012, 0.32, 0.03), 0xFF3A2A, 0, 1.6, 0.1, nk, { outline: false, emis: 0xC01010 }); for (let k = 0; k < 4; k++) { const g = glowSprite(0xFF3020, 0.5, 0.35); g.position.set(0, 1.5 + k * 0.14, 0.08); nk.add(g); m.over.push(g); }
+  return m; }
+function dangiF() { const m = dangiBird(); for (const sx of [-1, 1]) { const e = glowSprite(0xFF2A1A, 0.22, 0.95); e.position.set(sx * 0.2, 0.05, 0.37); m.head.add(e); } for (let k = 0; k < 10; k++) { const a2 = k / 10 * TAU; part(sph(0.05, 6, 4), 0x9A1424, Math.cos(a2) * 0.42, 1.48, Math.sin(a2) * 0.33 + 0.02, m.torso, { outline: false }); } part(box(0.08, 0.36, 0.01), 0xEAE4D4, 0.28, 0.95, 0.42, m.torso, { outline: false }); return m; }
 // 見たことのない者たち：記録にない魔王、天使、東の龍
 function maouF() { const m = makeChar({ skin: 0x9A8AA8, hair: 0x1A1020, eye: 0xFF3A6A, top: 0x1A1020, sleeve: 0x1A1020, bc: 0x14101A, leg: 0x14101A, shoe: 0x0A0A0E, boots: 0x1A1020, coat: 0x14101A, lining: 0x8A1A3A, trim: 0xC8A040, belt: 0xC8A040, glove: 0x1A1020, s: 1.9, w: 1.2, st: ['long', 'bighorns', 'cape', 'collar', 'narrow'], capeCol: 0x3A0A1A, hornCol: 0x2A1A2A, longLen: 1.1 });
   for (let k = 0; k < 7; k++) { const a2 = k / 7 * TAU, c = part(G_('crown', () => new THREE.ConeGeometry(0.035, 0.16, 4)), 0xE0B840, Math.cos(a2) * 0.26, 0.36, Math.sin(a2) * 0.26, m.head, { outline: false, emis: 0x5A4010 }); void c; }
@@ -7789,7 +7802,7 @@ makeArea('mirai1', { place: '――　記録の日付は、読み取れない', 
     a.pins = []; for (const n of a.dy) for (let k = 0; k < 3; k++) { const p = part(cyl(0.018, 0.018, 6, 6), 0x5A9AD8, n.pos.x + rand(-0.4, 0.4), 3, n.pos.z + rand(-0.4, 0.4), g, { outline: false, emis: 0x1A4A90 }); p.rotation.z = rand(-0.25, 0.25); p.visible = false; a.pins.push(p); }
     a.cas = npc(a, 'cassF', cassiaF(), -14.0, 0.4, Math.PI / 2); a.tun = npc(a, 'tunaF', tunaF(), 12.0, 3.0, -Math.PI / 2);
     for (const n of a.npcs) n.hidden = true; for (const n of a.ext) n.hidden = false; },
-  tick(a, dt) { warTick(a, dt); ryuTick(a, dt); if (a.mo && a.mo.model.aura) a.mo.model.aura.forEach((g, i) => { g.material.opacity = 0.3 + Math.sin(T.now * 3 + i) * 0.2; }); if (a.an) a.an.forEach((n, i) => { n.y = [3.0, 3.6, 2.6][i] + Math.sin(T.now * 1.5 + i) * 0.2; }); if (a.hk && !a.hk.hidden) a.hkf.forEach((f, i) => { const t = T.now * 1.6 + i * TAU / 9; f.visible = true; f.position.set(a.hk.pos.x + Math.cos(t) * 1.6, 2.2 + Math.sin(t * 2) * 0.5, a.hk.pos.z + Math.sin(t) * 1.6); }); else if (a.hkf) for (const f of a.hkf) f.visible = false;
+  tick(a, dt) { warTick(a, dt); ryuTick(a, dt); if (a.mz && a.mz.model.over) for (const g of a.mz.model.over) { g.material.opacity = a.mzOver ? rand(0.7, 1.0) : 0.3; g.scale.setScalar(a.mzOver ? rand(0.8, 1.2) : 0.5); } if (a.mo && a.mo.model.aura) a.mo.model.aura.forEach((g, i) => { g.material.opacity = 0.3 + Math.sin(T.now * 3 + i) * 0.2; }); if (a.an) a.an.forEach((n, i) => { n.y = [3.0, 3.6, 2.6][i] + Math.sin(T.now * 1.5 + i) * 0.2; }); if (a.hk && !a.hk.hidden) a.hkf.forEach((f, i) => { const t = T.now * 1.6 + i * TAU / 9; f.visible = true; f.position.set(a.hk.pos.x + Math.cos(t) * 1.6, 2.2 + Math.sin(t * 2) * 0.5, a.hk.pos.z + Math.sin(t) * 1.6); }); else if (a.hkf) for (const f of a.hkf) f.visible = false;
     if (a.ext && a.warOn && Math.random() < dt * 1.2) { const n = a.ext[(Math.random() * a.ext.length) | 0], m = a.ext[(Math.random() * a.ext.length) | 0]; if (n !== m && !n.hidden && !m.hidden) fxBeam(new THREE.Vector3(n.pos.x, 1.4, n.pos.z), new THREE.Vector3(m.pos.x, 1.2, m.pos.z), [0xCFE8FF, 0xFF8A3A, 0xB070FF, 0xE0A050][(Math.random() * 4) | 0], 0.08, 0.3); } const m = a.cas && a.cas.model; if (m && m.glit) for (const s of m.glit) s.material.opacity = Math.random() < 0.5 ? 0.8 : 0.1; },
   restore(a) { playAsKuzeF(false); }
 });
@@ -7937,18 +7950,20 @@ async function chapter13() { G.mode = 'cine'; S.chapter = 13; $('report').hidden
   // ---- 断偽文鳥門 ----
   const mz = a.mz; mz.hidden = false; mz.st = {}; mz.pos.set(3.4, 0, -5.6); mz.facing = 0; mz.lookAt = null; a.dgb.forEach((b, i) => { b.hidden = false; b.st = { windup: i % 2 === 1 }; b.pos.set([1.6, 2.6, 4.4, 5.4][i], 0, [-6.6, -7.6, -7.6, -6.6][i]); b.facing = 0; });
   a.alw.forEach((w, i) => { w.hidden = false; w.st = { guard: true }; w.pos.set([0.0, 1.2, 6.6][i], 0, [-3.0, -4.0, -3.4][i]); w.facing = Math.PI; w.lookAt = mz.pos; });
-  cine(8.0, 2.2, -5.0, 3.4, 1.8, -5.4); sfx('glitch'); await narr('黒い羽の一団が、異種族の女たちのほうへ、踏み込んでいた。数珠と、札と、長い薙刀。');
-  nameCard({ s: '断偽文鳥門　門主', b: 'メス・ゼロ', e: 'MES-ZERO', col: '#C82030', p: 'B.U.N から割れた、断偽の門の主。\n狂ったように叫び、恐ろしいほど、黙る。' }); await sleep(G.skip ? 0 : 1600); nameCard(null);
-  mz.st.windup = true; G.shake = 0.4; cine(3.4, 2.0, -1.0, 3.4, 2.2, -5.6); await say('mesu', '偽りを断てッ！！　身に纏う虚飾から、まず削ぎ落とせッ！！');
+  cine(3.4, 4.6, 2.4, 3.4, 2.4, -5.6); sfx('glitch'); await narr('黒い羽の一団が、異種族の女たちのほうへ、踏み込んでいた。数珠と、札と、長い薙刀。');
+  nameCard({ s: '断偽文鳥門（新生文鳥勢力）　創始者・教主', b: 'メス・ゼロ', e: 'MES-ZERO', col: '#C82030', p: '偽りを削ぎ落とし、真を問う。修行僧にして、厳格な思想家。\n身長二三五センチ。黒浄薙刀「虚妄斬」。\n狂ったように叫び、恐ろしいほど、黙る。' }); await sleep(G.skip ? 0 : 1600); nameCard(null);
+  mz.st.windup = true; a.mzOver = true; G.shake = 0.4; cine(3.4, 2.4, 0.6, 3.4, 2.6, -5.6); await say('mesu', '偽りを断てッ！！　身に纏う虚飾から、まず削ぎ落とせッ！！');
   await say('mesu', '雌は、偽り……！　偽りは、ここで、ことごとく、断つッ！！');
   mz.st.windup = false; a.dgb.forEach((b, i) => walkTo(b, [-0.6, 2.2, 4.2, 7.4][i], [-4.4, -5.4, -5.0, -4.6][i], 3.8)); cine(-1.6, 2.4, -0.2, 2.4, 1.2, -4.6); await sleep(G.skip ? 0 : 600);
   await say('alF', 'いや……来ないで……！');
   boom(1.4, 1.2, -4.0, 0xE04060, false); for (const w of a.alw) { w.st = { down: true }; } glitchBurst(0.7);
   await narr('断偽の文鳥たちは、修行で鍛えた体で、ためらいなく、薙ぎ払った。……ほかの文鳥のように叫ばないぶん、なお、恐ろしかった。');
-  cine(8.0, 2.2, -5.0, 3.4, 1.8, -5.4); await narr('そして、門主は、ふいに、黙った。');
+  a.mzOver = false; cine(3.4, 4.6, 2.4, 3.4, 2.4, -5.6); await narr('そして、門主は、ふいに、黙った。');
+  await say('mesu', '……偽りを斬り、真を遺す。');
+  a.mzOver = true; await narr('黒浄薙刀「虚妄斬」の刃に、赤い光が奔った。……偽りを焼き尽くす業火だと、門下は呼ぶ。');
   slash16(mz); fxRing(3.4, 0.2, -5.6, 14, 0xC82030, 0.8); boom(3.4, 1.4, -2.6, 0xC82030, true); glitchBurst(0.9);
   await narr('叫びの直後とは思えないほど静かに、薙刀を、一度だけ、振った。……それだけで、通りの向こうまで、何もかもが、倒れた。');
-  for (const w of a.alw) w.hidden = true; for (const b of a.dgb) b.hidden = true; mz.hidden = true;
+  a.mzOver = false; for (const w of a.alw) w.hidden = true; for (const b of a.dgb) b.hidden = true; mz.hidden = true;
 
   // ---- B.U.N ----
   cine(0, 3, 10, 0, 12, -30); sfx('glitch'); glitchBurst(0.8);
@@ -7964,10 +7979,10 @@ async function chapter13() { G.mode = 'cine'; S.chapter = 13; $('report').hidden
   await say('yuria', '止まって……止まってよ……！　みんな、止まって……ッ！！');
   fxRing(0.8, 0.2, 1.4, 14, 0xF4D35E, 1.0); glitchBurst(0.5); cine(1.6, 2.2, 5.6, 0.0, 1.6, -6.0);
   await narr('波が、光をほどいた。銃声も、魔法も、一瞬だけ、止まった。……そして、次が来た。');
-  mz.hidden = false; mz.st = {}; mz.pos.set(3.6, 0, -1.6); mz.lookAt = yu.pos; yu.lookAt = mz.pos; cine(6.6, 2.6, 2.6, 3.0, 1.8, -0.8);
+  mz.hidden = false; mz.st = {}; mz.pos.set(3.6, 0, -1.6); mz.lookAt = yu.pos; yu.lookAt = mz.pos; cine(8.6, 3.2, 3.8, 2.6, 1.9, -0.8);
   await say('mesu', 'その慈愛で覆えば、何もかも許されるとでも思うか。……ユリア。');
   cine(0.0, 2.0, -2.6, 0.0, 1.4, 1.6); await say('yuria', '……許されなくて、いい。……止まれって、言ってんのッ！！');
-  fxRing(1.0, 0.2, 1.0, 10, 0xF4D35E, 0.9); glitchBurst(0.6); cine(6.6, 2.6, 2.6, 3.0, 1.8, -0.8);
+  fxRing(1.0, 0.2, 1.0, 10, 0xF4D35E, 0.9); glitchBurst(0.6); cine(8.6, 3.2, 3.8, 2.6, 1.9, -0.8);
   await narr('波が、門主の薙刀を、ほどいた。……門主は、何も答えなかった。ただ、次の偽りのほうへ、背を向けた。');
   walkTo(mz, 9.0, -8.0, 1.6).then(() => { mz.hidden = true; }); yu.lookAt = null;
   cine(1.6, 2.2, 5.6, 0.0, 1.6, -6.0); await narr('止めても、止めても、次が来た。……竜がいくら強くても、この数を、たかが十二人で、捌ききれるはずがなかった。');
@@ -8006,41 +8021,50 @@ async function chapter13() { G.mode = 'cine'; S.chapter = 13; $('report').hidden
   cine(-6.6, 3.0, 6.6, -7.0, 1.2, 0.6); for (const b of V3) { cs.pos.set(b.pos.x - 1.2, 0, b.pos.z + 0.4); cs.facing = Math.PI / 2; slash16(cs); await tensatsu(b); await sleep(G.skip ? 0 : 120); }
   await narr('黒い線が走るたびに、そこにあったものが、ノイズになって、ほどけていった。人間も、異種族も、文鳥も、区別なく。');
 
-  // ---- 縫い止められた竜：ヴォル、ザイナ、ルリカ ----
+  // ---- 戦場の外れ：縫い止められた竜（ルリカ、ミリア、燐）。ユリアとテルエスは、ここにいない ----
   ru.pos.set(6.0, 0, -1.2); mi.pos.set(7.6, 0, -0.6); ri.pos.set(6.6, 0, 0.6); for (const n of a.dy) { n.hidden = false; n.st = { down: true }; n.facing = -Math.PI / 2; n.lookAt = null; } for (const p of a.pins) p.visible = true;
-  yu.hidden = false; te.hidden = false; yu.st = { kneel: true }; te.st = {}; yu.pos.set(5.0, 0, 0.0); yu.facing = Math.PI / 2; te.pos.set(4.2, 0, 1.6); te.facing = Math.PI * 0.6; yu.lookAt = null; te.lookAt = null;
-  cs.pos.set(9.4, 0, 0.4); cs.facing = -Math.PI / 2; cs.hidden = true; bgm('mirai'); GL.base = 0.35;
-  cine(6.8, 3.4, 6.4, 6.6, 0.6, -0.4); await narr('三人の竜が、倒れていた。ルリカ。ミリア。燐。……倒れたまま、青い杭に、縫い止められていた。');
+  yu.hidden = true; te.hidden = true; cs.hidden = true; cs.st = {}; cs.lookAt = null; bgm('mirai'); GL.base = 0.35;
+  cine(6.8, 3.4, 6.4, 6.6, 0.6, -0.4); await narr('戦場の、外れ。……三人の竜が、倒れていた。ルリカ。ミリア。燐。倒れたまま、青い杭に、縫い止められていた。');
   await narr('錨の光が、竜の権限ごと、その体を、いまの形に、留めていた。治ることも、終わることも、できない形に。');
   await narr('ルリカは、倒れた二人を「正常」に戻そうとした。……その「正常」ごと、錨に、書き換えられていた。');
+  await narr('ユリアも、テルエスも、そこにはいなかった。……遠く離れた、別の戦線で、まだ、波を撃っていた。');
   cine(3.6, 2.8, -4.6, 6.2, 0.4, -1.0); await say('rurika', 'ユリア姉さん……ごめんなさい……。戻せないの……。わたしの「正常」が、どこにも、ない……');
-  cine(5.0, 3.0, -4.8, 7.4, 0.4, -0.6); await say('miria', '……は～？　なに、泣いてんの、ユリア姉。……あたし、よわ～……♡');
-  cine(3.6, 2.4, 3.4, 6.4, 0.5, 0.4); await say('rin', '……ほんま、無茶しはる。……帰り道、開けとかれへんかった。……ごめんな。');
-  cine(3.6, 1.7, -1.8, 5.4, 0.8, 0.0); await say('yuria', '大丈夫、大丈夫だから……！　テルが、なんとかしてくれるから……！　ねえ、テル……！');
-  cine(2.4, 1.8, -0.6, 4.2, 1.5, 1.6); await narr('テルエスは、首を、横に振った。……権限は、杭に、届かなかった。');
-  cs.hidden = false; sfx('glitch'); glitchBurst(0.7); cine(6.9, 2.4, 5.4, 6.9, 0.9, -0.2); await narr('黒い刀の誰かが、ノイズの向こうから、近づいてきた。');
-  yu.lookAt = cs.pos; cs.lookAt = yu.pos; await say('yuria', '……来ないで。');
-  cine(10.6, 1.8, 2.4, 9.4, 1.5, 0.4); await sayF('cassF', '……その人たちは、もう、死ねない。');
+  cine(5.0, 3.0, -4.8, 7.4, 0.4, -0.6); await say('miria', '……は～？　あたし、よわ～……♡');
+  await say('miria', '……ユリア姉、ここにいなくて、よかった。……絶対、泣くもん。');
+  cine(3.6, 2.4, 3.4, 6.4, 0.5, 0.4); await say('rin', '……ほんま、無茶しはる。……帰り道、開けとかれへんかった。……ごめんな、ユリア姉。');
+  cs.hidden = false; cs.pos.set(1.6, 0, 0.6); cs.facing = Math.PI / 2; walkTo(cs, 4.6, 0.2, 1.4); sfx('glitch'); glitchBurst(0.7); cine(6.9, 2.4, 5.4, 5.6, 0.9, -0.2); await narr('黒い刀の誰かが、ノイズの向こうから、近づいてきた。'); await sleep(G.skip ? 0 : 1800); cs.pos.set(4.6, 0, 0.2); cs.facing = Math.PI / 2;
+  cine(5.0, 3.0, -4.8, 7.4, 0.4, -0.6); await say('miria', '……誰。');
+  cine(7.6, 1.8, 2.8, 4.6, 1.5, 0.2); await sayF('cassF', '……あなたたちは、もう、死ねない。');
   await sayF('cassF', '錨に縫い止められたまま、ずっと、いまの痛さのまま。……治らないし、終わらない。');
-  cine(3.6, 1.7, -1.8, 5.4, 0.8, 0.0); await say('yuria', 'だから何……！　生きてる……まだ、生きてるじゃん……！');
-  cine(10.6, 1.8, 2.4, 9.4, 1.5, 0.4); await sayF('cassF', '生きてない。……留められてるだけ。');
-  await sayF('cassF', 'この刀なら、杭ごと、斬れる。記録ごと。……痛いのも、全部。');
-  cine(3.6, 1.7, -1.8, 5.4, 0.8, 0.0); await say('yuria', 'やめて……お願い……やめてよ……！');
-  yu.st = {}; te.pos.set(4.3, 0, 0.9); te.lookAt = yu.pos; cine(3.2, 1.8, -2.4, 4.7, 1.1, 0.5); await narr('ユリアが、立ち上がろうとした。……その手首を、テルエスが、掴んだ。');
-  await say('yuria', 'テル……？　離して……離してよ、テル！！');
-  await narr('テルエスは、何も言わなかった。ただ、掴んだ手を、離さなかった。……その手が、震えていた。');
-  cine(3.6, 2.4, 3.4, 6.4, 0.5, 0.4); await say('rin', '……やめ、ユリア姉。');
-  await say('rin', 'うちらがこうしてる限り、あんた、ここから、どこにも動かれへん。……ええよ。斬ってもろて。');
+  cine(3.6, 2.8, -4.6, 6.2, 0.4, -1.0); await say('rurika', '……分かってる。……わたしが、いちばん、分かってる。戻すのが、わたしの、役目だったから。');
+  cine(7.6, 1.8, 2.8, 4.6, 1.5, 0.2); await sayF('cassF', 'この刀なら、杭ごと、斬れる。記録ごと。……痛いのも、全部。');
+  cine(3.6, 2.4, 3.4, 6.4, 0.5, 0.4); await say('rin', '……ほな、頼むわ。');
+  await say('rin', 'ユリア姉には、見せたないねん。……あの人がここに来る前に、終わらせて。');
   cine(5.0, 3.0, -4.8, 7.4, 0.4, -0.6); await say('miria', '……ルリカ、こっち見て。……うん。それで、いい。');
   cine(3.6, 2.8, -4.6, 6.2, 0.4, -1.0); await say('rurika', '……も、もう……しょうがないんだから。');
-  cine(10.6, 1.8, 2.4, 9.4, 1.5, 0.4); await sayF('cassF', '……ごめんなさい。');
+  cine(7.6, 1.8, 2.8, 4.6, 1.5, 0.2); await sayF('cassF', '……ごめんなさい。');
   glitchBurst(1); await sayF('cassF', '――天殺。');
-  cine(6.9, 2.6, 5.6, 6.9, 0.6, -0.2); for (let i = 0; i < 3; i++) { const n = a.dy[i]; cs.pos.set(n.pos.x + 1.0, 0, n.pos.z + 0.6); cs.facing = Math.atan2(-1.0, -0.6); slash16(cs); await tensatsu(n); for (const p of a.pins.slice(i * 3, i * 3 + 3)) p.visible = false; await sleep(G.skip ? 0 : 350); }
-  cs.pos.set(8.6, 0, 0.6); cs.facing = -Math.PI / 2; await narr('三度、黒い線が走った。……杭も、光も、痛みも、そこには、何も、残らなかった。');
-  glitchBurst(1); G.shake = 0.5; sfx('glitch'); yu.st = { kneel: true }; cine(3.6, 1.7, -1.8, 5.4, 0.8, 0.0); await say('yuria', 'あ……ああ……ああああああああああああッ！！');
-  cine(10.6, 1.8, 2.4, 9.4, 1.5, 0.4); await sayF('cassF', '……恨んでいい。あなたには、それが、許されてる。');
-  cine(3.6, 1.7, -1.8, 5.4, 0.8, 0.0); await say('yuria', '……なんで……。なんで、あーし、止められないの……。');
-  cine(10.6, 1.8, 2.4, 9.4, 1.5, 0.4); await sayF('cassF', '止められないものは、ある。……私も、止められなかった。');
+  cine(6.9, 2.6, 5.6, 6.9, 0.6, -0.2); for (let i = 0; i < 3; i++) { const n = a.dy[i]; cs.pos.set(n.pos.x - 1.0, 0, n.pos.z + 0.6); cs.facing = Math.atan2(1.0, -0.6); slash16(cs); await tensatsu(n); for (const p of a.pins.slice(i * 3, i * 3 + 3)) p.visible = false; await sleep(G.skip ? 0 : 350); }
+  cs.pos.set(4.6, 0, 0.2); cs.facing = Math.PI / 2; await narr('三度、黒い線が走った。……杭も、光も、痛みも、そこには、何も、残らなかった。');
+  cine(7.6, 1.8, 2.8, 4.6, 1.5, 0.2); await sayF('cassF', '……あの人たちの、家族に。……ごめんなさい。');
+
+  // ---- 遠く離れた戦線：ユリアが、感じ取る ----
+  cs.hidden = true; yu.hidden = false; te.hidden = false; yu.st = { guard: true }; te.st = { point: true }; yu.pos.set(-9.6, 0, 4.4); yu.facing = 0.4; te.pos.set(-10.8, 0, 5.0); te.facing = 0.6; yu.lookAt = null; te.lookAt = null; a.warOn = true;
+  cine(-7.4, 1.9, 6.6, -9.8, 1.4, 4.6); await narr('遠く離れた戦線で、ユリアの手が、止まった。');
+  yu.st = {}; await say('yuria', '……え。');
+  await narr('胸の奥で、何かが、三つ、ぷつりと、切れた。……ずっとそこにあった、家族の、温度が。');
+  await say('yuria', '今の……なに……？　ルリカ……？　ミリア……？　燐……？');
+  await say('yuria', 'ねえ……返事、して……。ねえってば……！');
+  sfx('glitch'); glitchBurst(0.8); await narr('返事は、なかった。どこを探しても、三人の気配は、もう、なかった。……死んだ、のではなかった。最初から、そこに何もなかったみたいに。');
+  yu.st = { kneel: true }; glitchBurst(1); G.shake = 0.6; await say('yuria', 'いや……いやいやいやいや……！　あ……ああ……ああああああああああああッ！！');
+  te.st = {}; te.pos.set(-10.4, 0, 4.4); te.lookAt = yu.pos; cine(-11.6, 2.0, 8.0, -10.0, 1.3, 4.4); await narr('テルエスは、何も言わなかった。ただ、駆け出そうとしたユリアの手首を、掴んで、離さなかった。');
+  await narr('テルエスの指も、震えていた。……テルエスにも、聞こえていたのだ。');
+  cine(-7.4, 1.9, 6.6, -9.8, 1.4, 4.6); await say('yuria', '離して……！　行かなきゃ……あーしが、行かなきゃ……！　離してよ、テル……！！');
+  glitchBurst(0.9); await narr('ユリアの瞳孔が、縦に割れかけては、戻った。……溢れ出しそうな竜の何かを、テルエスの手だけが、こちら側に、繋ぎ止めていた。');
+  await say('yuria', '……なんで……。なんで、あーし、止められないの……。');
+
+  // ---- 戦場の外れ ----
+  yu.hidden = true; te.hidden = true; cs.hidden = false; cine(7.6, 1.8, 2.8, 4.6, 1.5, 0.2); await sayF('cassF', '止められないものは、ある。……私も、止められなかった。');
   await sayF('cassF', '……行く。最後の一人のところへ。');
   walkTo(cs, 14.0, 2.0, 1.6); cine(6.9, 2.6, 5.6, 7.6, 1.0, 0.4); await narr('黒い刀の誰かは、振り返らなかった。……ノイズの向こうへ、歩いていった。');
   a.warOn = false;
@@ -8154,9 +8178,9 @@ function showReport13() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>種族の主</td><td>九重白狐「ウチの街やったんやで、ここ。……飼うたった子らに、噛まれるんやなぁ」。狐火は通りを呑み、杭の内側だけが焼け残った。鬼嶽ゴウカ「おっかさんを、肉にした連中だ。羽一枚、残すんじゃないよ」</td></tr>' +
     '<tr><td>見たことのない者たち</td><td>門の向こうの、さらに向こうから来た、記録にない魔王「我らは、そなたらを、愛していたのだぞ」。天使「裁きを。……誰が、誰を、裁くのかも、もう、分からないけれど」。東の海の、さらに東から来た龍「幾千年、この国の水を、守ってきた。……それも、今日で、終いか」</td></tr>' +
     '<tr><td>愛憎</td><td>竜の女は、愛していた人間の男に撃たれた。「撃っても。……でも、あたし、まだ、あんたのこと、好きだから」。ハーピーの女「返せ。文鳥は、一羽残らず」。文鳥は「ブンチョオオオオ」と叫ぶだけで、言葉を使っていなかった</td></tr>' +
-    '<tr><td>断偽文鳥門</td><td>門主メス・ゼロが、異種族の女たちへ。「偽りを断てッ！！」。叫ばない門下が薙ぎ払い、門主は黙って、薙刀を一度だけ振った。ユリアへ「その慈愛で覆えば、何もかも許されるとでも思うか」。B.U.N の生存信号には、含まれていない</td></tr>' +
+    '<tr><td>断偽文鳥門</td><td>門主メス・ゼロ（創始者・教主、二三五センチ、黒浄薙刀「虚妄斬」）が、異種族の女たちへ。「偽りを断てッ！！」。叫ばない門下が薙ぎ払い、門主はふいに黙って「……偽りを斬り、真を遺す」。赤く光る刃を、一度だけ振った。ユリアへ「その慈愛で覆えば、何もかも許されるとでも思うか」。B.U.N の生存信号には、含まれていない</td></tr>' +
     '<tr><td>B.U.N</td><td>No.1〜5 は生存（No.1 以外は重傷・損傷）。No.6〜9 は名前が読めず、うち一名、信号途絶。二桁は大半が途絶</td></tr>' +
-    '<tr><td>外神竜</td><td>ユリアは「止まって」と波を撃ち続け、壊れかけていた。テルエスはもう何も言わず、指を立てるたびに体が裂けた。燐が、ミリアが、崩れた。二人を「正常」に戻そうとしたルリカも、その「正常」ごと錨に書き換えられた。治ることも終わることもできないルリカ、ミリア、燐を、黒い刀の ??? が斬った。燐「……やめ、ユリア姉。……ええよ。斬ってもろて」、ミリア「ルリカ、こっち見て。……うん。それで、いい」、ルリカ「……も、もう……しょうがないんだから」</td></tr>' +
+    '<tr><td>外神竜</td><td>ユリアは「止まって」と波を撃ち続け、壊れかけていた。テルエスはもう何も言わず、指を立てるたびに体が裂けた。燐が、ミリアが、崩れた。二人を「正常」に戻そうとしたルリカも、その「正常」ごと錨に書き換えられた。ユリアとテルエスのいない戦場の外れで、治ることも終わることもできないルリカ、ミリア、燐を、黒い刀の ??? が斬った。燐「ユリア姉には、見せたないねん。……あの人がここに来る前に、終わらせて」、ミリア「ルリカ、こっち見て。……うん。それで、いい」、ルリカ「……も、もう……しょうがないんだから」。遠く離れた戦線で、ユリアは三人が斬られたことを感じ取り、壊れかけた。テルエスは、駆け出そうとするその手首を掴んで、離さなかった</td></tr>' +
     '<tr><td>???（黒い刀）</td><td>白かった髪は黒く、元の水色が混ざる。金の瞳、顔の傷、淡青の髪留め。斬ったものを、記録ごと消す刀。人間も、異種族も、文鳥も、区別なく。「――だったら、私が、止める」「全部、ここで、終わらせるッ！！」</td></tr>' +
     '<tr><td>???（金色の髪）</td><td>同じ時刻、別の場所。崩れた高架の上で、ひとりで戦い続ける。布を巻いた古いトンファー、肩に鳴かない黒い鳥。先輩は、もういない。「聞こえたから、もう、迷わない」「終わったら……」。その戦いは、終わらなかった</td></tr>' +
     '<tr><td>久世</td><td>春日井駅北口だった場所で、久世と朔。「どこで、間違えた」「一人のために大義を捨てて、その一人も守れなかった」「選んだのは、俺たちだ」。??? に「頼む」と言い、斬られた。何も残らなかった</td></tr></table>' +
