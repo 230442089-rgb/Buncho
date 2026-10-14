@@ -512,13 +512,14 @@ function makeBird(o = {}) {
 function animChar(c, st, dt) {
   const k = Math.min(1, dt * 12); if (st.walk) c.ph += dt * (st.run ? 13 : 9);
   const w = st.walk ? 1 : 0, sw = Math.sin(c.ph) * (st.run ? 0.75 : 0.55) * w;
-  const legX = st.sit || st.down ? -1.45 : null;
+  const legX = st.kneel ? 1.35 : st.sit || st.down ? -1.45 : null;
   c.legs[0].rotation.x += ((legX ?? sw) - c.legs[0].rotation.x) * k; c.legs[1].rotation.x += ((legX ?? -sw) - c.legs[1].rotation.x) * k;
-  c.g.position.y = (st.sit ? -0.38 : st.down ? -0.5 : st.duck ? -0.42 : 0) + Math.abs(Math.sin(c.ph)) * 0.04 * w;
+  c.g.position.y = (st.kneel ? -0.4 : st.sit ? -0.38 : st.down ? -0.5 : st.duck ? -0.42 : 0) + Math.abs(Math.sin(c.ph)) * 0.04 * w;
   c.torso.rotation.x += ((st.bow ? (st.bowA || 0.62) : st.down ? -1.2 : st.sit ? -0.08 : st.punch ? 0.32 : st.duck ? 0.45 : st.reel ? -0.35 : 0) - c.torso.rotation.x) * k;
   { const H = c.hip || 0.86, r = c.torso.rotation.x; c.torso.position.set(0, H * (1 - Math.cos(r)), -H * Math.sin(r)); }
   for (let i = 0; i < 2; i++) { const a = c.arms[i]; let ax = (i ? -sw : sw) * 0.8, az = (i ? -1 : 1) * 0.08; if (st.bow) { ax = 0.1; az = (i ? -1 : 1) * 0.05; } if (st.aim && i === 1) { ax = -1.55; az = 0; } if (st.cast) { ax = -1.7 + Math.sin(T.now * 9) * 0.15; az = (i ? -1 : 1) * 0.35; } if (st.armsUp) { ax = -3.0; az = (i ? -1 : 1) * 0.2; } if (st.paint && i === 1) { ax = -1.4 + Math.sin(T.now * 3) * 0.3; az = 0.1; }
     if (st.phone && i === 1) { ax = -2.2; az = 0.55; } if (st.point && i === 1) { ax = -1.5; az = 0; } if (st.cross) { ax = -0.9; az = (i ? 1 : -1) * 0.7; } if (st.carry) { ax = -0.9; az = 0; } if (st.v && i === 1) { ax = -2.6; az = 0.4; } if (st.sit && !st.phone) { ax = -0.5; az = (i ? -1 : 1) * 0.15; } if (st.guard) { ax = -1.9; az = (i ? 1 : -1) * 0.45; } if (st.windup && i === 1) { ax = -2.9; az = 0.3; } if (st.punch && i === 1) { ax = -1.6; az = 0; } if (st.reel) { ax = -0.4; az = (i ? -1 : 1) * 0.7; }
+    if (st.kneel) { ax = st.bow ? -2.2 : 0.1; az = (i ? -1 : 1) * (st.bow ? 0.25 : 0.08); }
     a.rotation.x += (ax - a.rotation.x) * k; a.rotation.z += (az - a.rotation.z) * k; }
   if (c.phone) c.phone.visible = !!st.phone;
   c.nod = Math.max(0, c.nod - dt); c.head.rotation.x = (st.look || 0) + Math.sin(c.nod * 14) * 0.08 * Math.min(1, c.nod * 3) + Math.sin(T.now * 1.3 + c.ph) * 0.02;
@@ -6952,7 +6953,7 @@ async function finale11() { const a = AREAS.raid6, gk = a.gk, gt = a.gt, za = a.
   await say('zaina', '……知ってる。');
   sfx('door'); sb.hidden = false; sb.pos.set(3.0, 0, -0.3); sb.lookAt = za.pos; cine(5.6, 2.4, 1.6, 2.0, 1.4, -1.6);
   await say('shirobun', 'あらあら。……派手にやられましたね、ガ・ンテツ。');
-  await say('shirobun', 'B.U.N society No.4、シ・ロブンです。……外神竜のお嬢さん。今夜は、引きましょう。この子は、連れて帰ります。お説教は、コシがしますので。');
+  await say('shirobun', 'B.U.N society No.4、シ・ロブンです。……外神竜のお嬢さん。今夜は、引きましょう。この子は、連れて帰ります。コシに、拾ってこいと言われたもので。……私なら、放っておきますけどね。');
   await say('shirobun', 'でも、覚えておいてくださいね。……竜が、文鳥を、焼いた。それは、記録に残ります。チャが、嫌な顔をしながら。');
   sfx('wind'); gt.hidden = true; sb.hidden = true; await narr('炎の向こうに、二羽の影が、消えた。');
   gk.st = {}; gk.pos.set(-3.8, 0, -2.6); za.pos.set(-2.6, 0, -3.6); za.lookAt = gk.pos; gk.lookAt = za.pos; cine(-6.4, 3.0, -4.6, -3.0, 1.2, -3.2);
@@ -7157,7 +7158,7 @@ async function goDictator11() { G.mode = 'cine'; await goArea('bridge'); const B
   pan([-4.8, 3.0, -0.6], [-1.6, 2.2, -2.6], [-4.4, 2.8, -1.0], [-1.6, 2.3, -2.6], 6);
   await say('chanyu', '記録しました。「外神竜、B.U.N の資産を、初めて、直接、破壊」。……均衡の、最初の亀裂として。');
   await say('chanyu', 'それと。「ガチ旨。」の在庫、全量の廃棄を、提案する。');
-  await say('shirobun', 'あら。辻の子たちが、泣きますよ。');
+  await say('shirobun', 'あら。辻の子たちが、泣きますよ。……見ものですねぇ。');
   await say('chanyu', '泣かせておけ。……あれは、文明ではない。');
   pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6); await say('koshi', '……チャ。お前は、どちらの味方だ。');
   await say('chanyu', '記録の。……それ以外に、私の席は、ない。');
@@ -7195,7 +7196,7 @@ function showReport11() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>異種族</td><td>行方不明の同胞、七年で四千二百十一（ガチ旨。の出荷量とほぼ一致）。異種族評議は恋敵どうしのまま結束：天環は取引ゼロ、九尾は与信引き上げ、千路は荷を停止、魔族議連は登録抹消、紅鱗は私兵、夜宴は夜を貸し、エルフの療院が被害者を引き受ける</td></tr>' +
     '<tr><td>村瀬</td><td>タカハラの観測艇から原本の検体を回収（チャ・ニュユーが四分間ハッチを記録から外す）。ト・キワは「結果を見せる」ことを条件に見逃した</td></tr>' +
     '<tr><td>乾</td><td>押収品の門鍵で庄内川の門を開く。鷺沼健人は門の向こうで笑っていた。門は崩壊。……奪還できず</td></tr>' +
-    '<tr><td>久世</td><td>鬼嶽の襲撃に乗じ、経過観察の十一人を救出、抽出装置 KX-2 の芯を回収。No.14 ガ・ンテツは外神竜ザイナが一撃で沈め、No.4 シ・ロブンが回収。工場は焼失</td></tr>' +
+    '<tr><td>久世</td><td>鬼嶽の襲撃に乗じ、経過観察の十一人を救出、抽出装置 KX-2 の芯を回収。No.14 ガ・ンテツは外神竜ザイナが一撃で沈め、No.4 シ・ロブンがコシの命令で（しぶしぶ）回収。工場は焼失</td></tr>' +
     '<tr><td>逆転写</td><td>十一人のうち十人が自分を取り戻す（一人は鬼の夢の中）。戸川翔が先代の言葉をゴウカに伝える――「泣いていいんだよ」。陸はセレネのもとに残ることを自分で選び、日曜は旗を振る。ナツキは働いて手術代を返すと決めた</td></tr>' +
     '<tr><td>B.U.N</td><td>「均衡の最初の亀裂」と記録。チャ・ニュユーはガチ旨。の全量廃棄を提案。No.1 絶尊「地表の速度を、上げよ」</td></tr>' +
     '<tr><td>転換点</td><td>翠絡のレウネ、「留保」にたどり着く。久世に直接の連絡――「いっぺん、会お」</td></tr></table>' +
@@ -7216,9 +7217,16 @@ const kaereBird = () => makeBird({ coat: 0x1A1A22, pants: 0x1A1A22, cap: 0x8A645
 function zessonBird() { const m = makeBird({ coat: 0x121018, pants: 0x121018, cap: 0x0A0A0E, beak: 0xE8A0A8, muscle: true, core: 0xFF3A20, armMark: 0xFF5A2A, s: 2.15 });
   const cape = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.95, 1.7, 16, 1, true, Math.PI * 0.62, Math.PI * 0.76), new THREE.MeshToonMaterial({ color: 0x5A0A12, gradientMap: gradTex, side: THREE.DoubleSide })); cape.position.set(0, 0.95, -0.05); m.torso.add(cape);
   for (let k = 0; k < 7; k++) { const l = glowSprite(0xFF5A2A, 0.25, 0.7); l.position.set(rand(-0.4, 0.4), rand(0.4, 1.6), 0.44); m.torso.add(l); } return m; }
+// ホ・マレ（無派閥・rate 一〇二）：傷だらけの桜文鳥。包帯、古傷、粟の袋
+function homareBird() { const m = makeBird({ coat: 0x44444A, pants: 0x4A4038, cap: 0x16161A, beak: 0xD86A70, sleeve: 0x44444A, hand: 0x3A3A40, muscle: true, scarf: 0xA88A48, badge: 0x8A8A80, s: 1.26 });
+  part(G_('hmBand', () => new THREE.TorusGeometry(0.29, 0.042, 6, 18)), 0xF0ECE0, 0, 0.2, -0.01, m.head, { rx: Math.PI / 2 - 0.2, rz: 0.22, outline: false });
+  part(cyl(0.205, 0.19, 0.2, 10), 0xF0ECE0, 0, -0.3, 0, m.arms[0], { outline: false }); part(cyl(0.2, 0.2, 0.08, 10), 0xE0D8C8, 0, -0.42, 0, m.arms[1], { outline: false });
+  part(box(0.14, 0.11, 0.02), 0xF0ECE0, -0.26, 1.32, 0.4, m.torso, { ry: -0.5, outline: false });
+  for (let k = 0; k < 3; k++) part(box(0.03, 0.26, 0.02), 0x6A2E2E, 0.08 + k * 0.08, 1.02 - k * 0.03, 0.43, m.torso, { rz: 0.6, outline: false });
+  part(box(0.17, 0.2, 0.1), 0xC8A870, 0.44, 0.72, 0.18, m.torso); part(box(0.18, 0.04, 0.11), 0x8A6A40, 0.44, 0.83, 0.18, m.torso, { outline: false }); return m; }
 LK.obaa = { skin: SK2, hair: 0xD8D8D8, eye: 0x2A2A2A, top: 0x7A5A6A, sleeve: 0x7A5A6A, bottom: 'skirt', bc: 0x4A4A52, leg: SK2, shoe: 0x3A3030, s: 0.86, w: 0.98, st: ['bun'] };
 LK.rikuMom = { skin: SK, hair: 0x3A2A22, eye: 0x2A2A2A, top: 0xC8B8A0, sleeve: 0xC8B8A0, bottom: 'skirt', bc: 0x5A5A68, leg: SK, shoe: 0x4A3A30, s: 0.92, w: 0.95, st: ['bob'] };
-Object.assign(SPK, { kaere: ['カ・エレ', '#9A8AFF'], kome: ['コ・メ', '#E8D8C0'], torib: ['老いた文鳥', '#C8C0B8'], obaa: ['人間のおばあさん', '#D8C8D0'], oniR: ['鬼の女', '#F0A060'], tsujiY: ['辻の若い文鳥', '#FF7A6A'], rikuMom: ['陸の母', '#D8C8B0'], tv: ['ニュース', '#C8D0E0'] });
+Object.assign(SPK, { kaere: ['カ・エレ', '#9A8AFF'], homare: ['ホ・マレ', '#D8C08A'], kome: ['コ・メ', '#E8D8C0'], torib: ['老いた文鳥', '#C8C0B8'], obaa: ['人間のおばあさん', '#D8C8D0'], oniR: ['鬼の女', '#F0A060'], tsujiY: ['辻の若い文鳥', '#FF7A6A'], rikuMom: ['陸の母', '#D8C8B0'], tv: ['ニュース', '#C8D0E0'] });
 BGM.sorrow = { bpm: 58, f(s, t, sp) { const ch = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [52, 55, 59]][(s >> 4) % 4]; if (s % 4 === 0) tone(mf(ch[(s >> 2) % 3] + 12), t, sp * 3.8, 'triangle', 0.018, { a: 0.02 });
   if (s % 16 === 0) { tone(mf(ch[0] - 12), t, sp * 15, 'sine', 0.05, { a: 0.3 }); tone(mf(ch[2]), t, sp * 15, 'sine', 0.012, { a: 0.6 }); } if (s % 32 === 22) tone(mf(ch[1] + 24), t, sp * 6, 'sine', 0.01, { a: 0.1 }); } };
 BGM.enforcer = { bpm: 48, f(s, t, sp) { if (s % 16 === 0) { tone(mf(26), t, sp * 16, 'sawtooth', 0.02, { lp: 260, a: 1.2 }); tone(mf(33), t, sp * 16, 'sine', 0.05, { a: 1.2 }); }
@@ -7243,7 +7251,7 @@ makeArea('nest6', { place: '春日井　更生文鳥の集合住宅「とまり�
     a.oni = npc(a, 'oniR', makeChar(LK.oniW2), 7.6, 0.6, -Math.PI / 2); a.oni.model.root.rotation.y = 0;
     a.att = [npc(a, 'hsis', makeChar(LK.harpy), 13.0, 1.0, -Math.PI / 2), npc(a, 'dra11', makeChar(LK.dragonExec), 13.6, 2.4, -Math.PI / 2), npc(a, 'cat11', makeChar(LK.catgirl), 13.4, -0.4, -Math.PI / 2)]; for (const n of a.att) n.hidden = true;
     a.tsj = [npc(a, 'tsujiY', tsujiBird(), -13.0, 1.6, Math.PI / 2), npc(a, 'tsujiY', tsujiBird(), -13.4, 0.2, Math.PI / 2)]; for (const n of a.tsj) n.hidden = true;
-    a.sb = npc(a, 'shirobun', shirobunBird(), -9.0, -2.2, Math.PI / 2); a.sb.hidden = true; if (a.sb.model.blade) a.sb.model.blade.visible = false;
+    a.hm = npc(a, 'homare', homareBird(), -12.0, 2.6, Math.PI / 2); a.hm.hidden = true;
     addItem(a, { id: 'n1kome', x: -2.4, z: -2.3, label: '話す', col: 0xE3B428, avail: () => S.flags.c12st === 'nest', on: () => evNest12('kome') });
     addItem(a, { id: 'n2tori', x: 3.0, z: -2.7, label: '話す', col: 0xE3B428, avail: () => S.flags.c12st === 'nest', on: () => evNest12('tori') });
     addItem(a, { id: 'n3obaa', x: 5.2, z: -2.2, label: '話す', col: 0xE3B428, avail: () => S.flags.c12st === 'nest', on: () => evNest12('obaa') });
@@ -7304,6 +7312,7 @@ makeArea('enfHall', { noPlayer: true, place: '', bounds: [-8, 8, -8, 8], spawn: 
 // ================= 幕間三　生きとし生けるもの =================
 // 二人を横から収める（建物のある北側を避けて、南から）
 function twoShot(n, dist = 4.4, h = 2.6) { const dx = n.pos.x - P.pos.x, dz = n.pos.z - P.pos.z, L = Math.hypot(dx, dz) || 1; let px = dz / L, pz = -dx / L; if (pz < 0) { px = -px; pz = -pz; } const mx = (n.pos.x + P.pos.x) / 2, mz = (n.pos.z + P.pos.z) / 2; cine(mx + px * dist, h, mz + pz * dist, mx, 1.3, mz); }
+function tears12(n) { const w = new THREE.Vector3(); n.model.head.getWorldPosition(w); for (const sx of [-1, 1]) { const t = glowSprite(0xA8D8FF, 0.16, 0.9), x = w.x + sx * 0.16, y0 = Math.max(0.3, w.y - 0.08), z = w.z; t.position.set(x, y0, z); fxAdd(t, 0.9, u => { t.position.y = y0 - (y0 - 0.04) * u * u; t.material.opacity = 0.9 * (1 - u * 0.5); }); } }
 async function chapter12() { G.mode = 'cine'; S.chapter = 12; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); bgm(''); setClock('05:20'); S.flags.c12st = 'home';
   // ---- 主家：ザイナが帰る ----
   await goArea('shuke'); const H = AREAS.shuke, f = H.fam; bgm('lullaby'); for (const k in f) { f[k].hidden = true; f[k].st = { sit: true }; f[k].lookAt = null; } f.furuuru.hidden = false; f.furuuru.pos.set(-3.9, 0, 0); f.furuuru.facing = Math.PI / 2;
@@ -7383,7 +7392,7 @@ async function goRikuHome12() { G.mode = 'cine'; setClock('07:40'); await goArea
 
 // ---- とまり木団地（ユリアで歩く） ----
 async function goNest12() { G.mode = 'cine'; S.flags.c12st = 'nest'; setClock('22:00'); playAsYuria(true); await goArea('nest6', [11, 4.8], -Math.PI * 0.7); const a = AREAS.nest6; bgm('nest');
-  for (const n of [...a.att, ...a.tsj, a.sb]) n.hidden = true; a.kome.hidden = false; a.kome.st = {}; a.kome.pos.set(-2.4, 0, -3.4);
+  for (const n of [...a.att, ...a.tsj, a.hm]) n.hidden = true; a.kome.hidden = false; a.kome.st = {}; a.kome.pos.set(-2.4, 0, -3.4);
   cine(9.0, 5.4, 9.6, 0, 1.6, -3.0); await card('春日井　とまり木団地', '同じ日　午後十時　――ユリア', 1800);
   await narr('文食品の春日井工場で働いていた更生文鳥の、ほとんどが、ここに住んでいる。');
   await narr('漢の文鳥飯の店のシャッターに、赤いスプレーの文字。「肉屋の鳥は　出ていけ」。');
@@ -7435,13 +7444,8 @@ async function goRiot12() { const a = AREAS.nest6; G.mode = 'cine'; bgm('fight')
   sfx('zapline'); a.torch[1].position.set(6.6, 1.8, 0.8); await sleep(G.skip ? 0 : 300); a.torch[1].visible = false; G.shake = 0.2;
   await narr('松明は、空中で、ぴたりと止まった。……速度が消えて、炎が消えて、ただの木の棒になって、ことりと落ちた。');
   const km = a.kome; km.pos.set(1.6, 0, -0.8); km.lookAt = hs.pos; walkTo(km, 4.4, 0.2, 2.0); cine(2.0, 2.4, 3.6, 6.4, 1.0, 0.4); await sleep(G.skip ? 0 : 700);
-  await say('kome', 'ま、待ってください……！');
-  km.st.bow = true; km.st.bowA = 0.9; await say('kome', 'ごめんなさい……ごめんなさい……！　ぼくら、知らなくて……知らなかったって、言い訳にならないの、分かってて……！');
-  await say('hsis', '……謝らないで。');
-  await say('hsis', '謝られたら……憎めなくなるじゃない……！');
-  hs.st.down = true; await narr('ハーピーの娘は、その場に、崩れた。ユリアが、抱きとめた。');
-  await say('yuria', '……うん。……うん。いいよ。泣いて、いいよ。');
-  await narr('腕の中で泣く異種族の娘と、地面に額をつける文鳥と。……ユリアは、そのどちらの重さも、同じだけ、感じていた。');
+  await say('kome', 'ま、待ってください……！　ぼくら、知らなくて……知らなかったって、言い訳にならないの、分かってて……！');
+  await say('hsis', '……どいて。あんたの顔なんか、見たくない。');
   // 辻の若い衆
   for (const n of a.tsj) { n.hidden = false; n.st = {}; } walkTo(a.tsj[0], -1.4, 1.6, 2.6); walkTo(a.tsj[1], -1.8, 0.2, 2.6); cine(1.6, 3.2, 5.8, -0.8, 1.2, 0.8); await sleep(G.skip ? 0 : 900);
   await say('tsujiY', '文鳥の町に手ェ出すなァ！　辻が相手だ、気合いだァ！');
@@ -7449,27 +7453,68 @@ async function goRiot12() { const a = AREAS.nest6; G.mode = 'cine'; bgm('fight')
   sfx('blast'); G.shake = 0.5; cine(3.8, 2.0, 3.2, 5.6, 1.6, 1.2); await say('yuria', '――動くな、って言ったよね。');
   await say('yuria', '……次は、ないよ。');
   dr.st.windup = false; ct.st.windup = false; await narr('ユリアの瞳孔が、縦に割れた。金色の竜眼。……団地の誰も、もう、動けなかった。');
-  const sb = a.sb; sb.hidden = false; sb.pos.set(-4.0, 0, 2.6); sb.lookAt = P.pos; cine(-1.6, 2.4, 5.4, -3.2, 1.4, 2.0);
-  await say('shirobun', 'はいはい、そこまでにしましょうね、辻の子たち。……外神竜の長女さんが、怒っていますよ。');
-  await say('tsujiY', 'シ、シ・ロブンさん……！');
-  await say('shirobun', '帰りなさい。今夜は、誰も、何も燃やさない。……燃えたものは、戻りませんから。');
+  // ホ・マレ
+  const hm = a.hm; hm.hidden = false; hm.st = {}; hm.lookAt = null; hm.pos.set(0.8, 0, 1.0); hm.facing = -Math.PI / 2; cine(-0.4, 3.0, -4.6, -0.4, 1.3, 1.0);
+  sfx('wind'); for (let i = 0; i <= 12; i++) { hm.y = 5 * (1 - i / 12); await sleep(G.skip ? 0 : 30); } hm.y = 0; sfx('hit'); G.shake = 0.3;
+  await narr('その間に、空から、一羽が、落ちてきた。……着地というより、墜落に近かった。');
+  nameCard({ s: 'B.U.N society　無派閥　rate 一〇二', b: 'ホ・マレ', e: 'ほ まれ', col: '#D8C08A', p: '辻にも、タカハラにも、属さない。\n肉は食わない。粟と稗と、青菜を食う。\n「文鳥として、強くあれ」。' });
+  await sleep(G.skip ? 0 : 1600); nameCard(null);
+  await say('tsujiY', 'ホ、ホ・マレ……！　無派閥の骨董品が、何の用だ！　メス一枚食えねェ rate 百ちょいが！');
+  await say('homare', '帰れ。');
+  await say('homare', 'ここは、お前たちの喧嘩の場所じゃない。この団地の者たちが、米を炊いて、寝る場所だ。……火を持ち込むな。どちらの側の火もだ。');
+  await say('tsujiY', '……っ、異種族の肩、持つのかよ！');
+  await say('homare', '持たない。お前たちの肩も、持たない。……文鳥の、肩を持つ。');
+  cine(-2.4, 2.1, 2.9, 1.0, 1.4, 1.0); await say('homare', '文鳥なら、帰れ。');
+  await narr('傷だらけの体のどこから出たのか分からない、静かで、重い声だった。辻の若い衆は、舌打ちをひとつ残して、闇へ戻っていった。');
   walkTo(a.tsj[0], -12.2, 1.6, 3).then(() => { a.tsj[0].hidden = true; }); walkTo(a.tsj[1], -12.2, 0.2, 3).then(() => { a.tsj[1].hidden = true; });
-  a.oni.lookAt = hs.pos; await say('oniR', '……帰ろ。今夜は、あたしが、送ってく。');
-  hs.st.down = false; walkTo(hs, 12.2, 1.0, 1.2).then(() => { hs.hidden = true; }); walkTo(a.oni, 12.2, 2.2, 1.2).then(() => { a.oni.hidden = true; }); walkTo(dr, 12.2, 2.8, 1.4).then(() => { dr.hidden = true; }); walkTo(ct, 12.2, -0.4, 1.4).then(() => { ct.hidden = true; }); a.torch[0].visible = false;
-  km.st.bow = false; await sleep(G.skip ? 0 : 1600); bgm('sorrow');
-  // シ・ロブン
-  P.pos.set(-1.0, 0, 2.2); sb.pos.set(-2.6, 0, 2.4); km.hidden = true; faceEach(sb); otsCam(sb, 2.4, 1.4);
-  await say('shirobun', '先日は、うちの十四番が、ご迷惑を。……あの子、まだ、溶けた鋼のことを、夢に見るそうです。');
-  await say('yuria', '……ザイナも、だよ。');
-  await say('shirobun', 'そうですか。……お互い、困った妹分を持ちましたね。');
-  await say('shirobun', '外神竜の長女さん。あなたが燃やさせなかったこと、辻の子たちは、たぶん、忘れません。');
-  await say('yuria', '……シ・ロブン。あんたたち、ほんとは、どうしたいの。');
-  await say('shirobun', '……そうですねぇ。');
-  await say('shirobun', '私たちも、本当は、一緒に、ごはんを食べたいんですよ。人間とも、異種族とも。……ただ、食べ方を、ずっと、間違えてきた。');
-  await say('shirobun', '強くなければ、宇宙では、生き残れなかった。強くなるには、食べるしかなかった。……何を食べるかを選ぶ余裕が、なかったんです。');
-  await say('shirobun', '……言い訳ですね。燃えたものは、戻りませんから。');
-  await narr('白い文鳥は、丁寧に一礼して、夜の上へ、消えた。'); sb.hidden = true;
-  cine(-1.0, 2.0, 5.2, -1.0, 1.4, 2.2); await say('yuria', '……みんな、しあわせに、なってほしいだけなのにな。');
+  // 土下座
+  walkTo(hm, 7.2, 0.4, 2.4); cine(1.4, 3.0, -3.6, 5.0, 1.2, 0.8); await sleep(G.skip ? 0 : 2700); hm.pos.set(7.2, 0, 0.4); hm.facing = Math.PI / 2; hm.lookAt = hs.pos; hs.lookAt = hm.pos; dr.lookAt = hm.pos; ct.lookAt = hm.pos;
+  P.pos.set(6.0, 0, 2.8); P.facing = Math.atan2(1.2, -2.4); cine(7.8, 3.6, -4.8, 7.8, 0.7, 0.9); await say('homare', '……異種族の、皆さん。');
+  hm.st.kneel = true; await sleep(G.skip ? 0 : 500); hm.st.bow = true; hm.st.bowA = 1.15;
+  await narr('傷だらけの文鳥は、ゆっくりと膝を折り、両手をつき、額を、アスファルトに、つけた。');
+  await say('homare', '申し訳、ありませんでした。');
+  await say('homare', '文鳥として。……B.U.N の、一羽として。あなたがたの姉妹を、肉にしたことを。それを、旨いと言って、食った者たちがいることを。……謝ります。');
+  tears12(hm); await narr('声が、震えていた。額の下のアスファルトに、ぽたり、ぽたりと、落ちるものがあった。'); tears12(hm);
+  await say('hsis', '……謝って、姉さんは、帰ってくるの。');
+  tears12(hm); await say('homare', '帰りません。……だから、許してくれとは、言いません。許せなくて、いい。');
+  await say('homare', 'ただ……ひとつだけ。この団地の者たちのことを、少しだけ、知ってほしい。');
+  await say('homare', 'ここにいるのは、rate が低くて、空の上から、下ろされた者たちです。あの肉は、回ってこなかった。回ってきても、口にしなかった者もいる。');
+  tears12(hm); await say('homare', '人間のおばあさんのゴミ出しを手伝って、ふたを閉める仕事で、米を買っていた。……それだけの、者たちです。');
+  await say('homare', 'それを、少しでも、分かってもらえたなら。……その上で、それでも、焼くと言うのなら。');
+  tears12(hm); await say('homare', '……私には、どうしようもない。好きにしてくれ。');
+  await narr('文鳥は、顔を上げなかった。逃げもしなかった。……背中の羽が、何本も、折れていた。');
+  km.lookAt = null; await walkTo(km, 6.2, 1.4, 2.4); km.facing = Math.PI / 2; km.st.kneel = true; km.st.bow = true; km.st.bowA = 1.15; await sleep(G.skip ? 0 : 400);
+  await say('kome', 'ご、ごめんなさい……ごめんなさい……！');
+  hs.st.windup = true; cine(9.6, 2.4, -2.6, 7.8, 1.0, 0.8); await narr('ハーピーの娘が、鉤爪を、振り上げた。'); await sleep(G.skip ? 0 : 600);
+  hs.st.windup = false; await say('hsis', '……ずるいよ。');
+  await say('hsis', '謝られたら……憎めなくなるじゃない……！');
+  P.pos.set(8.3, 0, 1.8); P.facing = Math.atan2(0.3, -0.8); hs.st.down = true; dr.pos.set(9.8, 0, 2.6); ct.pos.set(9.8, 0, -0.6); a.oni.pos.set(7.8, 0, 3.0); a.oni.lookAt = hs.pos; cine(7.8, 4.2, -5.0, 8.0, 0.8, 1.2); await narr('ハーピーの娘は、その場に、崩れた。ユリアが、抱きとめた。');
+  await say('yuria', '……うん。……うん。いいよ。泣いて、いいよ。');
+  await narr('腕の中で泣く異種族の娘と、地面に額をつける文鳥たちと。……ユリアは、そのどちらの重さも、同じだけ、感じていた。');
+  await say('oniR', '……帰ろ。今夜は、あたしが、送ってく。');
+  hs.st.down = false; hs.lookAt = null; dr.lookAt = null; ct.lookAt = null; walkTo(hs, 12.2, 1.0, 1.2).then(() => { hs.hidden = true; }); walkTo(a.oni, 12.2, 2.2, 1.2).then(() => { a.oni.hidden = true; }); walkTo(dr, 12.2, 2.8, 1.4).then(() => { dr.hidden = true; }); walkTo(ct, 12.2, -0.4, 1.4).then(() => { ct.hidden = true; }); a.torch[0].visible = false;
+  await sleep(G.skip ? 0 : 1600); bgm('sorrow');
+  // ホ・マレとユリア
+  P.pos.set(4.2, 0, 1.8); hm.st = {}; hm.pos.set(2.6, 0, 1.6); km.st = {}; km.hidden = true; faceEach(hm); twoShot(hm);
+  await say('yuria', '……ねえ。あんた、ぼろぼろじゃん。');
+  await say('homare', '……今週、三度目です。辻の若い者が、文食品の件で、気が立っている。異種族の方々も。……間に立つと、両方から、殴られる。');
+  await say('yuria', '辻にも、つかないで？');
+  await say('homare', '辻は、強さを、食って買う。……私は、それを、強さとは呼ばない。');
+  twoShot(hm); await say('homare', '私の役目は、文鳥の暮らす場所を、文鳥として、守ること。誇れる文鳥の社会を、作ること。……そして、文鳥として、強くあることです。');
+  await say('homare', '立って、守って、それでも、立っている。……私の知っている強さは、それだけです。');
+  twoShot(hm); await say('yuria', '……rate、いくつ。');
+  await say('homare', '百二。……三桁は、かろうじて。');
+  await narr('左の翼の付け根に、古い傷があった。今夜の傷とは、色の違う、ずっと古い傷が。');
+  await say('homare', '昔は、四桁の、上のほうにいました。……強さだけを、追っていた頃です。');
+  await say('homare', 'その果てに、何が起きたかは、言いません。……言えば、言い訳になる。');
+  await say('homare', 'ただ、あの日から、私は、強さの意味を、決め直しました。');
+  twoShot(hm); await say('yuria', '……ご飯、ちゃんと食べてる？');
+  await say('homare', '……粟と、稗と、青菜を少し。文鳥の、まっとうな、ご飯です。');
+  await say('yuria', '……そっか。えらいじゃん。');
+  twoShot(hm); await say('homare', '外神竜の長女殿。……今夜、火を止めてくださったこと。文鳥として、礼を言います。');
+  hm.st.bow = true; await sleep(G.skip ? 0 : 700); hm.st.bow = false; sfx('wind'); for (let i = 0; i <= 12; i++) { hm.y = 5 * i / 12; await sleep(G.skip ? 0 : 30); } hm.hidden = true; hm.y = 0;
+  await narr('傷だらけの文鳥は、深く一礼して、夜の上へ、飛んでいった。……その飛び方は、少しだけ、傾いていた。');
+  cine(3.4, 2.0, 5.4, 3.6, 1.4, 1.8); await say('yuria', '……みんな、しあわせに、なってほしいだけなのにな。');
   S.flags.c12st = 'roof'; playAsYuria(false);
   await goRoof12(); }
 
@@ -7527,46 +7572,69 @@ async function goEnforcer12() { G.mode = 'cine'; await goArea('enfOut'); bgm('en
   ka.hidden = false; ka.pos.set(4.0, 0, 2.2); walkTo(ka, 2.2, -0.6, 1.2); await sleep(G.skip ? 0 : 1600); a.doorOn = false;
   ka.lookAt = zs.pos; zs.lookAt = ka.pos; cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2);
   nameCard({ s: 'B.U.N society No.2　タカハラsociety 実践No.1', b: 'カ・エレ', e: 'KA-ERE', col: '#9A8AFF', p: 'シナモン文鳥。機動研究者／総合技術士。一人称は「ぼく」。\n次元を折り畳み、繋ぎ、留める。\nチャ・ニュユーが、うっかり名前を漏らした相手。' });
-  await say('kaere', 'ご無沙汰しております、絶尊。……タカハラ実践一号、カ・エレ。地表より、戻りました。');
-  nameCard(null); cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……カ・エレか。よい。楽にせよ。');
-  await say('ult', '地表は、どうだった。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', '騒がしいです。文食品の第三工場が、溶けました。外神竜の三女に。No.14 は、シ・ロブンが回収。命に別条はありません。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '知っている。コシから聞いた。……あれは、叱られたか。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'コシに、三時間ほど。……ぼくは、少し、同情しました。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'ガチ旨。は。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'チャの提案どおり、全量、廃棄に。辻の若い者たちが、泣いていました。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '泣かせておけ、と、チャは言ったそうだな。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'はい。……彼女らしい。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'そなたは、あれを、食ったことがあるか。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', 'ありません。ぼくは、あれの原料の顔を、記録で見ていますから。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……余もだ。余も、食わぬ。');
+  const c2 = () => cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2), cz = () => cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2), ck = () => cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6);
+  await say('kaere', 'どうも、絶尊。……カ・エレ、ただいま戻りました。');
+  nameCard(null); cz(); await say('ult', '……カ・エレか。よい。楽にせよ。');
+  c2(); await say('kaere', 'もう、楽にしてますよ。……ここ、ぼくらしか、いませんから。');
+  cz(); await say('ult', '地表は、どうだった。');
+  c2(); await say('kaere', '騒がしかったですねぇ。文食品の第三工場が、溶けました。外神竜の三女に。');
+  await say('kaere', 'No.14 は、コシに言われて、シ・ロブンが拾いに行きました。……帰り道に、二回ほど、落としたそうですけど。');
+  cz(); await say('ult', '……あれらしい。');
+  await say('ult', 'ガ・ンテツは、叱られたか。');
+  c2(); await say('kaere', 'コシに、三時間。……ぼくは、ちょっとだけ、同情しました。ちょっとだけ、ですけど。');
+  cz(); await say('ult', 'ガチ旨。は。');
+  c2(); await say('kaere', 'チャの提案どおり、全量、廃棄に。辻の若い子たちが、泣いてましたよ。');
+  cz(); await say('ult', '泣かせておけ、と、チャは言ったそうだな。');
+  c2(); await say('kaere', 'ええ。……彼らしい。');
+  cz(); await say('ult', 'そなたは、あれを、食ったことがあるか。');
+  c2(); await say('kaere', 'ないです。ぼくは、あれの原料の顔を、記録で見てますから。……食欲、なくなりますよ。');
+  await say('kaere', 'でも、まあ。……困ったことに、よくできてるんですよね。');
+  ck(); await say('kaere', '今の B.U.N の大多数は、メスを憎んでる。メスの肉を食って、強くなったと思ってる。……その憎しみで、群れがまとまって、命令が、よく通る。');
+  await say('kaere', 'メスへのヘイトで、民を回す仕組み。……ぼくが設計しても、あそこまで、うまくは回らない。');
+  await say('kaere', '統治の上では、仕方がなかった。……でしょう？');
+  cz(); await narr('絶尊は、すぐには答えなかった。');
+  await say('ult', '……余が、許した。');
+  await say('ult', 'だが、余は、食わぬ。');
+  c2(); await say('kaere', '知ってます。……それが、ずっと、不思議で。');
+  cz(); await say('ult', '他者の在ることを食うて、己を太らせる。……それは、文鳥のすることではない。');
+  await say('ult', '文鳥は、米を食み、水を浴び、ただ、そこに在る。……余は、それで、よい。');
   await narr('しばらく、特異点の唸りだけが、広間を満たした。');
-  await say('ult', '強さを、腹で買う時代は、終わる。……終わらせる。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', '……意外です。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '余を、何だと思っている。');
-  await say('ult', '余は、終わらせたいだけだ。争いを、果てまで。……その果てを、終着と呼んでいる。');
-  await say('ult', '――チャ・ニュユーの、錨の話をせよ。');
-  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', 'はい。……現実錨。ぼくの次元アンカーに、チャの記録結晶を、繋ぎます。');
-  await say('kaere', '結晶に記された「正しい状態」に、現実そのものを、杭で留める。錨の届く範囲では、誰も、記録を書き換えられません。');
+  c2(); await say('kaere', '……意外です。いや、意外じゃないのかな。');
+  cz(); await say('ult', '余を、何だと思っている。');
+  c2(); await say('kaere', 'こわい方だと。……今も、思ってますよ。');
+  cz(); await say('ult', '――チャ・ニュユーの、錨の話をせよ。');
+  ck(); await say('kaere', 'はい、はい。……現実錨。ぼくの次元アンカーに、チャの記録結晶を、繋ぎます。');
+  await say('kaere', '結晶に記された「正しい状態」に、現実そのものを、杭で留める。錨の届く範囲では、誰も、記録を書き換えられない。');
   await say('kaere', '外神竜の「権限」も、「正常化」も。魔族の契約も。……時間を戻す類いの奇跡も。');
-  await say('kaere', '先週、春日井の稲荷で、外神竜の親戚が、狐火の理を書き換えました。そのとき、ぼくが地中に打っておいた試作の錨が、〇・四秒だけ、それに抗った。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '〇・四秒で、竜の権限に、抗ったか。');
-  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', 'はい。……正直に言うと、ぼくは、興奮しました。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'チャ・ニュユーは、何を、錨に留めるつもりだ。');
-  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', 'この星の、「決め方」を。……誰が、何を、どうやって決めたか。それを記録どおりに固定して、二度と、力で書き換えさせない。');
+  await say('kaere', '先週、春日井の稲荷で、外神竜の親戚が、狐火の理を書き換えました。そのとき、ぼくが地中に打っておいた試作の錨が、〇・四秒だけ、それに抗ったんです。');
+  cz(); await say('ult', '〇・四秒で、竜の権限に、抗ったか。');
+  ck(); await say('kaere', 'ええ。……正直に言うと、ぼく、ちょっと、興奮しました。');
+  cz(); await say('ult', 'チャ・ニュユーは、何を、錨に留めるつもりだ。');
+  ck(); await say('kaere', 'この星の、「決め方」を。……誰が、何を、どうやって決めたか。それを記録どおりに固定して、二度と、力で書き換えさせない。');
   await say('kaere', '竜にも、異種族にも。……B.U.N にも。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '余の命令も、か。');
-  cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6); await say('kaere', '……はい。そこが、彼女の計画の、いちばん危ういところで。いちばん、美しいところです。');
+  cz(); await say('ult', '余の命令も、か。');
+  ck(); await say('kaere', '……ええ。そこが、彼の計画の、いちばん危ういところで。いちばん、きれいなところです。');
   await narr('長い、沈黙だった。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……面白い。');
+  cz(); await say('ult', '……面白い。');
   await say('ult', '続けさせよ。予算は、余が出す。……コシには、言うな。あれは、加速しか知らぬ。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await say('kaere', '……承知しました。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', 'カ・エレ。……地表の飯は、うまかったか。');
-  cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2); await narr('シナモン色の文鳥は、ほんのわずかに、笑った。');
-  await say('kaere', '漢の文鳥飯は、悪くありませんでした。……米が、正確に炊けていて。');
-  cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2); await say('ult', '……そうか。');
+  c2(); await say('kaere', '承知しました。');
+  await say('kaere', '……それと、絶尊。ひとつだけ、聞いても？');
+  ck(); await say('kaere', 'チャの錨は、たぶん、この星だけじゃ終わらない。門の向こう、そのまた向こう。……いずれ、いくつもの世界に、杭を打つことになる。');
+  await say('kaere', '錨が留めるのは、書き換えです。魔法、権限、契約、奇跡。……でも、文鳥は、もともと、そういうものを、ほとんど使わない。筋肉と、技術と、数で、生きてきたから。');
+  await say('kaere', 'つまり、複数世界規模の現実錨が成功したら。……いちばん影響が少ないのは、ぼくら、文鳥なんですよ。');
+  await say('kaere', 'その先のことは、ぼく、あんまり興味がないから、いいんですけど。');
+  c2(); await say('kaere', 'ひょっとして。……残ったフィジカルで、メスを、狩り尽くすつもりかい。');
+  pan([-3.0, 3.6, 0.8], [0.2, 3.2, -3.2], [-1.8, 3.1, -0.4], [0.1, 2.8, -3.4], 7); await sleep(G.skip ? 0 : 1600);
+  await narr('絶尊は、答えなかった。');
+  await narr('胸の赤い炉心だけが、ゆっくりと、脈を打っていた。');
+  c2(); await say('kaere', '……ま、いいや。ぼくは、扉を作るだけですから。');
+  cz(); await say('ult', 'カ・エレ。……地表の飯は、うまかったか。');
+  c2(); await narr('シナモン色の文鳥は、ほんのわずかに、笑った。');
+  await say('kaere', '漢の文鳥飯は、悪くなかったですよ。……米が、正確に炊けてて。');
+  cz(); await say('ult', '……そうか。');
   sfx('zapline'); a.doorOn = true; walkTo(ka, 4.2, 2.4, 1.2).then(() => { ka.hidden = true; a.doorOn = false; }); pan([0, 9, 14], [0, 2, -3.6], [0, 14, 22], [0, -6, -14], 10); await sleep(G.skip ? 0 : 2000);
   await narr('紫の扉が閉じると、広間には、また、一羽だけが残った。');
+  await narr('何も食わず、何も問わず。……絶尊は、ただ、そこに在った。');
   await say('ult', '均衡は、竜が割った。……ならば、錨で、留めるまでだ。');
   await card('幕間三　生きとし生けるもの', '完', 3000);
   setMeta({ ch12Clear: true, ch12: packS(), ch12Done: [...DONE] }); showReport12(); }
@@ -7575,9 +7643,9 @@ function showReport12() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>主家</td><td>ザイナが帰った。「……文鳥、溶かした」。フルル「どっちも、ほんと。どっちも、ママ、悲しいなぁ」。卓袱台では、ルリカは責めず、燐は「分かってて動いたんやろ」。レウネの席は、空いていた</td></tr>' +
     '<tr><td>尾形家</td><td>陸が帰った。母は裸足で駆け寄った。陸は異種族をまだ許せない。ユリア「許さなくて、いい。でも、旗振るとき、だれも、肉にしないでね」</td></tr>' +
     '<tr><td>とまり木団地</td><td>文食品の春日井の従業員、更生文鳥三千四百が無職に。ガチ旨。を食べたことのないコ・メ、人間の隣で四十年の老いた文鳥、ゴミ出しを手伝ってもらう人間のおばあさん、従妹を七年前に失った鬼の女。……ハーピーの娘たちの松明を、ユリアは「波」で止めた。「生きてるほうの、味方」</td></tr>' +
-    '<tr><td>シ・ロブン</td><td>「私たちも、本当は、一緒にごはんを食べたいんですよ。……食べ方を、ずっと、間違えてきた」</td></tr>' +
+    '<tr><td>ホ・マレ</td><td>無派閥、rate 一〇二。肉は食わず、辻にも同調しない傷だらけの文鳥。辻の若い衆を「文鳥なら、帰れ」で帰し、異種族の前に土下座して泣いた。「許せなくて、いい。……それでも、焼くと言うのなら。好きにしてくれ」。かつて強さだけを追った果てに、何かがあった</td></tr>' +
     '<tr><td>屋根</td><td>ユリア「みんな、しあわせにしたいだけ。……なんで、それが、こんなに難しいの」。ヴォルは、眠るユリアの髪を撫で、小さな眷属を夜の街へ放った。「ゆり姉が泣かない世界のためなら、なんだって、最適化しますから♡」。フルルは、見ていた</td></tr>' +
-    '<tr><td>BUNTCHO ENFORCER</td><td>絶尊と、No.2 カ・エレ。絶尊もガチ旨。を食わない。「強さを、腹で買う時代は、終わる」。チャ・ニュユーの「現実錨」――次元アンカーと記録結晶で、現実を記録どおりに留め、この星の「決め方」を、竜にも異種族にも B.U.N にも書き換えさせない。試作は、テルエスの権限に〇・四秒抗った。絶尊「面白い。続けさせよ。コシには、言うな」</td></tr></table>' +
+    '<tr><td>BUNTCHO ENFORCER</td><td>絶尊と、No.2 カ・エレ。カ・エレ「メスへのヘイトで、民を回す仕組み。……統治の上では、仕方がなかった」。絶尊「余が、許した。だが、余は、食わぬ」――他者の在ることを食わず、ただ、そこに在る。チャ・ニュユーの「現実錨」――次元アンカーと記録結晶で、現実を記録どおりに留め、この星の「決め方」を、竜にも異種族にも B.U.N にも書き換えさせない。試作は、テルエスの権限に〇・四秒抗った。絶尊「面白い。続けさせよ。コシには、言うな」。カ・エレ「複数世界の錨が成功したら、残ったフィジカルで、メスを、狩り尽くすつもりかい」。……絶尊は、答えなかった</td></tr></table>' +
     '<p class="close">生きているもの、みんなが、しあわせに。……それを願うことが、いちばん、難しい。<br>第七章（準備中）</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn12">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn12').addEventListener('click', () => location.reload()); }
