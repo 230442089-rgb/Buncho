@@ -330,7 +330,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
     <div class="sub" id="tSub">久世躁一郎の帰還</div>
     <div class="ch" id="tCh"><i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i></div>
     <p id="tP">人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。</p>
-    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="ch4Btn" hidden>第四章から</button><button type="button" class="ghost" id="ch5Btn" hidden>第五章 上から</button><button type="button" class="ghost" id="ch6Btn" hidden>第五章 下から</button><button type="button" class="ghost" id="ch7Btn" hidden>幕間から</button><button type="button" class="ghost" id="ch8Btn" hidden>幕間二から</button><button type="button" class="ghost" id="ch9Btn" hidden>第六章 上から</button><button type="button" class="ghost" id="ch10Btn" hidden>第六章 中から</button><button type="button" class="ghost" id="ch11Btn" hidden>第六章 下から</button><button type="button" class="ghost" id="ch12Btn" hidden>幕間三から</button><button type="button" class="ghost" id="ch13Btn" hidden>とある未来</button><button type="button" class="ghost" id="ch14Btn" hidden>第七章 序から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
+    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="ch4Btn" hidden>第四章から</button><button type="button" class="ghost" id="ch5Btn" hidden>第五章 上から</button><button type="button" class="ghost" id="ch6Btn" hidden>第五章 下から</button><button type="button" class="ghost" id="ch7Btn" hidden>幕間から</button><button type="button" class="ghost" id="ch8Btn" hidden>幕間二から</button><button type="button" class="ghost" id="ch9Btn" hidden>第六章 上から</button><button type="button" class="ghost" id="ch10Btn" hidden>第六章 中から</button><button type="button" class="ghost" id="ch11Btn" hidden>第六章 下から</button><button type="button" class="ghost" id="ch12Btn" hidden>幕間三から</button><button type="button" class="ghost" id="ch13Btn" hidden>とある未来</button><button type="button" class="ghost" id="ch14Btn" hidden>第七章 Intro から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
     <div class="cinfo" id="contInfo" hidden></div>
     <div class="keys">歩く：画面左をドラッグ／WASD・矢印　調べる・話す・台詞送り：右の丸ボタン／Space・E　手帳：N</div>
   </div>
@@ -1663,7 +1663,7 @@ const meta = () => readJSON(META_KEY) || {};
 function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); cloudPut('meta', m); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
-const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '幕間', '幕間二', '第六章　上', '第六章　中', '第六章　下', '幕間三', 'とある未来', '第七章　序'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ'];
+const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '幕間', '幕間二', '第六章　上', '第六章　中', '第六章　下', '幕間三', 'とある未来', '第七章　Intro'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ'];
 // ---- 記録ファイル：自動記録 1 冊と、手で記録する 3 冊 ----
 const SLOTS = [['auto', '自動記録'], ['f1', 'FILE 01'], ['f2', 'FILE 02'], ['f3', 'FILE 03']];
 function readFiles() { const f = readJSON(FILES_KEY) || {}; if (!f.auto) { const old = readJSON(SAVE_KEY); if (old) { f.auto = old; writeJSON(FILES_KEY, f); try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 消せなくても困らない */ } } } return f; }
@@ -8220,10 +8220,10 @@ function showReport13() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>???（金色の髪）</td><td>同じ時刻、別の場所。崩れた高架の上で、ひとりで戦い続ける。布を巻いた古いトンファー、肩に鳴かない黒い鳥。先輩は、もういない。「聞こえたから、もう、迷わない」「終わったら……」。その戦いは、終わらなかった</td></tr>' +
     '<tr><td>久世</td><td>春日井駅北口だった場所で、久世と朔。母を家に帰したかった久世と、奪った者から全部取り返したかった朔。新月の夜に異種族の女の車で去った父（女が誰か、久世は確かめなかった。朔は尾の数まで覚えていた）。尋問の第四夜、泣く代わりに覚えておくために生まれた朔。錨の図面を留保に渡したのは、二人。九本の尾が撃ち落とされても「ざまあみろ」とは言えなかった。「こんなのを、望んだんじゃない」「……俺もだ」。??? に「頼む」と言い、斬られた。何も残らなかった</td></tr></table>' +
     '<p class="close">……あと、どれだけ、斬ればいい。<br>これは、まだ、起きていない。</p>' +
-    '<div class="trow"><button type="button" class="go" id="ch14Go">第七章 序へ</button><button type="button" class="ghost" id="titleBtn13">タイトルへ</button></div>';
+    '<div class="trow"><button type="button" class="go" id="ch14Go">第七章 Intro へ</button><button type="button" class="ghost" id="titleBtn13">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn13').addEventListener('click', () => location.reload()); $('ch14Go').addEventListener('click', () => { $('report').hidden = true; run(async () => { const m = meta(); if (m.ch12) unpackS(m.ch12); DONE = new Set(m.ch12Done || []); S.flags.saku = true; await chapter14(); }); }); }
 async function startCh13() { const m = meta(); if (m.ch12) unpackS(m.ch12); else if (m.ch11) unpackS(m.ch11); DONE = new Set(m.ch12Done || m.ch11Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter13(); }
-// ================= 第七章　序：人物・場所 =================
+// ================= 第七章　Intro：人物・場所 =================
 LK.rep14 = { skin: SK, hair: 0x2A2220, eye: 0x2A2A2A, top: 0x3A4A6A, sleeve: 0x3A4A6A, bottom: 'skirt', bc: 0x2A3044, leg: SK, shoe: 0x1A1A20, shirt: 0xF4F4F4, s: 0.96, w: 0.92, st: ['bob'], prop: 'radio', propHand: 1 };
 LK.docent = { skin: 0xF4ECE0, hair: 0xD8D0E8, accent: 0x8C80B8, eye: 0x7A6AA8, top: 0xF4F2F8, sleeve: 0xF4F2F8, bc: 0x2A2830, leg: 0x2A2830, shoe: 0x14141A, coat: 0xF4F2F8, lining: 0x8C80B8, shirt: 0x2A2830, s: 1.08, w: 0.92, st: ['long', 'ears', 'narrow'], prop: 'tablet' };
 Object.assign(SPK, { rep14: ['中継の記者', '#C8D0E0'], bunM: ['移送中の文鳥', '#FF8A6A'], docent: ['点景派のドーセント', '#B8A8E0'] });
@@ -8303,7 +8303,7 @@ makeArea('atelier14', { place: '未完画廊　最奥　エデルのアトリエ
   tick(a, dt) { for (const F of a.frames) { F.f.position.y += Math.sin(T.now * 0.6 + F.ph) * dt * 0.08; F.f.rotation.y = Math.sin(T.now * 0.3 + F.ph) * 0.3; } for (const m of a.gems) m.rotation.y += dt;
     const e = a.ed.pos; a.hands.forEach((H, i) => { const t = T.now * 0.8 + H.ph; H.h.position.set(e.x + Math.cos(i * 1.6) * 0.7, 0.05, e.z + Math.sin(i * 1.6) * 0.5 - 0.3); H.h.rotation.set(Math.sin(t) * 0.5 - 0.2, i, Math.cos(t * 1.3) * 0.5); }); }
 });
-// ================= 第七章　序　未完画廊へ：台本 =================
+// ================= 第七章　Intro　未完画廊へ：台本 =================
 function morning14() { const a = AREAS.apt; if (a.morn) a.morn.visible = true; scene.background = new THREE.Color(0xBFD0E0); hemi.intensity = 0.95; sun.intensity = 0.6; }
 function aptTv14(a) { if (a.tv) return; a.tv = canvasTex(320, 180, (c, w, h) => { c.fillStyle = '#C8D8E8'; c.fillRect(0, 0, w, h); c.fillStyle = '#5A5C62'; c.fillRect(0, 90, w, 90); c.fillStyle = '#F2F2F4'; c.save(); c.translate(150, 110); c.rotate(0.1); c.fillRect(-70, -26, 140, 46); c.restore(); for (let i = 0; i < 90; i++) { c.fillStyle = i % 3 === 1 ? '#1C1C22' : '#F2F0EA'; c.beginPath(); c.arc(rand(0, w), rand(110, 175), 4, 0, TAU); c.fill(); } c.fillStyle = '#C82030'; c.fillRect(8, 8, 46, 18); c.fillStyle = '#FFF'; c.font = `900 13px ${GOTHIC}`; c.fillText('LIVE', 16, 22); c.fillStyle = 'rgba(10,20,40,.85)'; c.fillRect(0, 150, w, 30); c.fillStyle = '#FFF'; c.font = `800 14px ${GOTHIC}`; c.fillText('護送トラック横転　文鳥 約3,000羽', 10, 170); });
   a.morn = plane(4.2, 2.0, canvasTex(512, 256, (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#8EC0EC'); gr.addColorStop(1, '#F4E2C8'); c.fillStyle = gr; c.fillRect(0, 0, w, h); for (let i = 0; i < 26; i++) { const x = i * 20, bh = 40 + Math.random() * 150; c.fillStyle = ['#C8CCD4', '#B8BEC8', '#D8D4CC'][i % 3]; c.fillRect(x, h - bh, 18, bh); } c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 3; c.beginPath(); c.ellipse(330, 70, 60, 14, 0, 0, TAU); c.stroke(); }), 1.2, 1.8, -3.36, a.g); a.morn.visible = false; a.restore = A1 => { if (A1.morn) A1.morn.visible = S.chapter === 14; };
@@ -8311,7 +8311,7 @@ function aptTv14(a) { if (a.tv) return; a.tv = canvasTex(320, 180, (c, w, h) => 
 async function chapter14() { G.mode = 'cine'; S.chapter = 14; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); P.model.root.visible = true; GL.base = 0; bgm(''); S.flags.c14st = 'news';
   const A0 = AREAS.apt; if (!A0.built) { A0.build(A0); A0.built = true; } aptTv14(A0);
   await goArea('apt', [1.6, 0.6], Math.PI / 2); morning14(); const a = AREAS.apt; a.tvScreen.visible = false; bgm('dawn');
-  cine(-1.6, 2.2, 2.6, 2.6, 1.0, 0.0); await card('第七章　序', '春日井　久世の部屋　午前六時四十分', 2200);
+  cine(-1.6, 2.2, 2.6, 2.6, 1.0, 0.0); await card('第七章　Intro', '春日井　久世の部屋　午前六時四十分', 2200);
   await narr('目覚ましより先に、目が覚めた。……ここ数日、眠りが浅い。');
   await narr('携帯の画面には、まだ、返事をしていない一行が残っている。「いっぺん、会お。めんどいけど。　――翠絡　レウネ」');
   await say('kuze', '……。');
@@ -8393,7 +8393,7 @@ async function goNews14() { await goArea('news14'); const a = AREAS.news14; bgm(
   a.streamOn = false; newsBar(false); }
 
 // ---- 神領　未完画廊 ----
-async function goShinryo14() { G.mode = 'cine'; S.flags.c14st = 'go'; setObj(''); $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; await card('第七章　序', '神領　午後六時', 1600);
+async function goShinryo14() { G.mode = 'cine'; S.flags.c14st = 'go'; setObj(''); $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; await card('第七章　Intro', '神領　午後六時', 1600);
   await goArea('gallery14', [0, 6.2], Math.PI); const a = AREAS.gallery14; bgm('gallery'); a.doc.hidden = true;
   pan([0, 12, 20], [0, 4, -6], [0, 3.2, 10], [0, 3.6, -5], 9); loc('春日井市　神領', '未完画廊', 'GALLERY OF THE UNFINISHED');
   await narr('神領。……春日井の、いちばん静かな町。');
@@ -8414,7 +8414,7 @@ async function goShinryo14() { G.mode = 'cine'; S.flags.c14st = 'go'; setObj('')
   cine(-1.6, 1.8, 2.6, 0.6, 1.5, -2.2); await saku('笑ってるな。……素材が、自分から歩いてきたって顔だ。', '気をつけろ、久世。ここは、一族の、いちばん奥だ。');
   await say('kuze', '……分かってる。');
   sfx('door'); cine(0, 3.2, 6.4, 0, 3.0, -4.8); await narr('黒い硝子の扉が、音もなく、開いた。');
-  await card('第七章　序　未完画廊へ', '完', 3000);
+  await card('第七章　Intro　未完画廊へ', '完', 3000);
   setMeta({ ch14Clear: true, ch14: packS(), ch14Done: [...DONE] }); showReport14(); }
 async function goAtelier14() { await goArea('atelier14'); const a = AREAS.atelier14, ed = a.ed, as = a.as; bgm('gallery'); as.hidden = true;
   pan([0, 5, 9], [0, 2, -2], [2.6, 2.4, 3.4], [0, 1.6, -1.2], 8); await narr('同じ頃。……画廊の、いちばん奥。');
@@ -8437,7 +8437,7 @@ async function goAtelier14() { await goArea('atelier14'); const a = AREAS.atelie
   await say('edel', '……面白い。');
   cine(-2.2, 2.2, 1.6, 0.1, 1.7, -1.2); await narr('影の手が、新しい筆を、取った。'); }
 function showReport14() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; bgm('gallery'); newsBar(false);
-  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>序</span><span>七</span></div><h2>第七章　序　未完画廊へ</h2><div class="meta">留保班　久世躁一郎</div><table>' +
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>Intro</span><span>七</span></div><h2>第七章　Intro　未完画廊へ</h2><div class="meta">留保班　久世躁一郎</div><table>' +
     '<tr><td>朝のニュース</td><td>国道19号・勝川で、陽盾警備保障の護送トラック（運行：千路、荷台は天環の空間拡張コンテナ）が横転。街での暴動、文食品への「メス狩り」協力、計画立案で拘束された文鳥、約三千羽が路上へ。原因は、中の三千羽がカーブで一斉にスクワットしたこと（ミリア「よわ～い道路♡」）。ユリアの「止まって」で三千羽はその場でスクワットを開始。ザイナが二羽ずつ、千五百往復。上下線とも終日通行止め。転星（アセラ）出動、肉離れ三百羽</td></tr>' +
     '<tr><td>三枝</td><td>真壁悠の行方。神領・未完画廊の点景派が、今夜十九時に「搬入」。予定表に「搬入立会い　静州商事様（先方指名）」――三か月前に真壁が出て帰らなかった仕事と同じ書式</td></tr>' +
     '<tr><td>翠絡</td><td>レウネの「いっぺん、会お」には、まだ返事をしていない。「返事は、帰ってきてからだ」</td></tr>' +
