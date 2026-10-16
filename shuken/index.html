@@ -10408,7 +10408,7 @@ function keepGap18(n, gap = 1.5) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - 
 function talkCam18(n, sgn = 1, d = 3.0, h = 1.75, ly = 1.4) { keepGap18(n); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a0 = Math.atan2(dx, dz) + sgn * 1.15; n.facing = Math.atan2(dx, dz); P.facing = Math.atan2(-dx, -dz);
   const mx = n.pos.x + dx * 0.35, mz = n.pos.z + dz * 0.35; cine(mx + Math.sin(a0) * d, h, mz + Math.cos(a0) * d, mx, ly, mz); }
 function besideCam18(n, po, sgn = 1) { keepGap18(n, 1.7); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a = Math.atan2(dx, dz), ap = a - sgn * 1.1, B = A.bounds; po.goal = null; po.pos.set(clamp(n.pos.x + Math.sin(ap) * 1.3, B[0] + 0.5, B[1] - 0.5), 0, clamp(n.pos.z + Math.cos(ap) * 1.3, B[2] + 0.5, B[3] - 0.5)); po.facing = Math.atan2(n.pos.x - po.pos.x, n.pos.z - po.pos.z);
-  const a0 = a - sgn * 0.55, mx = (n.pos.x + po.pos.x) / 2, mz = (n.pos.z + po.pos.z) / 2; cine(mx + Math.sin(a0) * 3.2, 1.8, mz + Math.cos(a0) * 3.2, mx, 1.2, mz); }
+  const b0 = ap + Math.PI + sgn * 0.55; cine(n.pos.x + Math.sin(b0) * 1.7, 1.75, n.pos.z + Math.cos(b0) * 1.7, po.pos.x, 1.0, po.pos.z); }
 function obj18() { const b = [S.flags.c18mu ? '' : '村瀬', S.flags.c18is ? '' : '石居'].filter(Boolean); setObj(S.flags.c18mu && S.flags.c18is && S.flags.c18list ? '買い出しに出る（階段へ）　※ポ・ンプに B.U.N のことを聞ける' : '買い出しの支度：' + (b.length ? b.join('と') + 'からプロテイン' : '') + (b.length && !S.flags.c18list ? '、' : '') + (S.flags.c18list ? '' : '三枝から買い物リスト')); }
 
 // ---- 冷たい序：バルク・家族の巣 ----
