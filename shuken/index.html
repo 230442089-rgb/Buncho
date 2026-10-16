@@ -9721,7 +9721,7 @@ async function chapter17() { G.mode = 'cine'; S.chapter = 17; $('report').hidden
   await say('kuro', 'えらいィィィィ！！！　よく耐えたァァァ！！！');
   await say('kuro', '……だが、まだだァァ！！　兄弟を額縁に埋めた連中にィ、思い知らせるまでェェ！！');
   // 石居の提案
-  mu.pos.set(-2.2, 0, -0.8); is.pos.set(-1.2, 0, 0.2); P.pos.set(-1.6, 0, -1.6); P.st = { duck: true }; mu.st = { duck: true }; is.st = { duck: true }; const TH = () => cine(0.6, 1.5, 0.6, -1.6, 0.9, -0.8);
+  mu.pos.set(-2.2, 0, -0.8); is.pos.set(-1.2, 0, 0.2); P.pos.set(-1.6, 0, -1.6); P.st = { duck: true }; mu.st = { duck: true }; is.st = { duck: true }; const TH = () => { for (const n of [mu, is, P]) n.facing = Math.atan2(-1.67 - n.pos.x, -0.73 - n.pos.z); cine(1.3, 1.4, -1.3, -1.67, 0.85, -0.73); };
   TH(); await say('ishii', '久世さん。……一つ、提案が。');
   await say('ishii', 'あの No.7。力だけなら、この部屋で、ダントツです。……でも、たぶん、単純です。');
   await say('ishii', '見えてるのは、二つだけ。家族の文鳥を取り返すことと、この画廊への、仕返し。……ほかは、たぶん、目に入ってない。');
@@ -9734,7 +9734,7 @@ async function chapter17() { G.mode = 'cine'; S.chapter = 17; $('report').hidden
   await say('ishii', '空間拡張のポケットです。勝川のトラックの荷台と、同じ理屈の。……これに、入れてしまいましょう。');
   await saku('……用意がいいな。いつから、盗む気だった。');
   await say('ishii', '最初からでは、ないです。……次の一球だけじゃなく、三球先まで、組んでおく癖で。');
-  mu.facing = Math.atan2(-1.2, 1.6); cine(-3.4, 1.5, 0.8, -2.2, 1.0, -0.8); await say('murase', '……そういう奴です。昔から。');
+  TH(); await say('murase', '……そういう奴です。昔から。');
   TH(); await say('ishii', '久世さんは、走ってください。マエストロとドーセントの近くに、立つだけでいい。……No.7 を呼ぶのは、村瀬が。');
   await say('murase', '声なら、出せます。');
   await say('kuze', '……やろう。');
@@ -9885,7 +9885,7 @@ async function edel17(a) { const se = a.se, ed = a.ed, as = a.as; G.mode = 'cine
   await say('asela', 'エデル姉、おにーさんのこと、ちょっと、気に入ってるっぽいよ。……あたし、分かるんだ。エデル姉が見たいものの方に、影が、ちょっとだけ、向くの。');
   await say('asela', 'それが分かっただけでも、よかった！');
   await say('asela', 'だからね、エデル姉に話すために、おにーさんのこと、もっと、いっぱい、知るからね！　好きな食べ物とか、走る速さとか！');
-  cine(0.6, 1.7, -0.9, P.pos.x, 1.6, P.pos.z); await say('kuze', '……お手柔らかに。');
+  cine(0.3, 1.75, -1.6, P.pos.x, 1.55, P.pos.z); await say('kuze', '……お手柔らかに。');
   await saku('留保の課長が、竜の姉妹の、話の種か。……最悪だな。');
   await narr('それでも、久世は、少しだけ、笑っていた。');
   await narr('竜にも、冷めていく椀があるのだと、思った。……毎晩、来ない誰かのぶんまで、よそう人がいるのだと。');
@@ -9962,9 +9962,9 @@ async function epilogue17() { G.mode = 'cine'; setObj(''); const mk = AREAS.hq.o
   if (!h.edelSeat) { h.edelSeat = new THREE.Group(); h.g.add(h.edelSeat); block(0.5, 0.2, 0.3, 0xF4F0E8, 3.4, 0.62, 0, h.edelSeat); part(cyl(0.12, 0.1, 0.16, 10), 0xE8D8C0, 3.0, 0.7, 0, h.edelSeat); const st = glowSprite(0xFFFFFF, 0.5, 0.3); st.position.set(3.0, 1.0, 0); h.edelSeat.add(st); } h.edelSeat.visible = true;
   const asl = fam.asela; asl.hidden = true;
   pan([6, 4, 6], [0, 1, 0], [5.6, 2.6, 3.0], [2.0, 1.0, 0], 5); await narr('外神竜一族の、主家。……夕飯の食卓に、来ない誰かの椀が、今夜も、湯気を立てていた。');
-  cine(-2.0, 1.75, 0.0, -3.9, 1.25, 0); await say('furuuru', 'はぁい、エデルのぶんも、よそったよぉ♡　……今日も、来ないかなぁ。');
+  cine(-1.5, 1.85, 0.4, -3.9, 1.2, 0); await say('furuuru', 'はぁい、エデルのぶんも、よそったよぉ♡　……今日も、来ないかなぁ。');
   asl.hidden = false; asl.st = {}; asl.pos.set(6.4, 0, 2.4); walkTo(asl, 3.6, 0.8, 5); sfx('door'); cine(5.6, 2.2, 3.4, 3.0, 1.0, 0.4); await say('asela', 'ただいまー！　……ママ！　それ、あたしが、エデル姉のとこ、持ってく！');
-  cine(-2.0, 1.75, 0.0, -3.9, 1.25, 0); await say('furuuru', 'あらあら♡　冷めないうちにねぇ。……転ばないでね、アセラ。');
+  cine(-1.5, 1.85, 0.4, -3.9, 1.2, 0); await say('furuuru', 'あらあら♡　冷めないうちにねぇ。……転ばないでね、アセラ。');
   cine(0.5, 1.6, 0.2, -0.2, 1.15, -1.6); await say('zaina', '……今日は、私が、食べなくていい。');
   // アトリエ
   await goArea('atelier14'); const at = AREAS.atelier14, ed = at.ed, aa = at.as; bgm('gallery'); ed.pos.set(0.2, 0, -0.4); ed.facing = Math.PI; ed.st = { paint: true }; ed.lookAt = null; if (at.ro) at.ro.hidden = true;
