@@ -10246,12 +10246,12 @@ makeArea('shotengai18', { place: '勝川　弘法通り商店街　午前十時�
     // 米屋：米袋
     for (let k = 0; k < 6; k++) block(0.7, 0.36, 0.5, 0xF4F0E4, 11.4 + (k % 3) * 0.8, 0.18 + Math.floor(k / 3) * 0.36, -3.7, g); a.obs.push({ x: 12.2, z: -3.7, hx: 1.3, hz: 0.35 });
     // 角の向こう：抗議の列が通る（北側、x 6〜10 のすき間）
-    block(4.6, 0.02, 12, 0x9A948A, 8.0, 0.01, -10, g); for (const x of [5.4, 10.6]) block(0.6, 5.0, 8, 0xC8C0B4, x, 2.5, -9.0, g);
-    a.march = []; for (let i = 0; i < 10; i++) { const n = npc(a, 'demo', demoBird(i), 3 + i * 1.6, -9.4 + (i % 2) * 1.2, Math.PI / 2); n.st.walk = true; a.march.push(n); }
+    block(16, 0.02, 9, 0x8A8E94, 6.0, 0.01, -9.4, g); for (let x = -2; x <= 14; x += 4) block(2, 0.02, 0.18, 0xF4F4F0, x, 0.02, -9.2, g); for (const [x, w, h, c] of [[-1, 4, 7, 0xC8C0B4], [3.4, 4.4, 9, 0xD8D4CC], [8, 4.6, 6, 0xB8BEC8], [12.6, 4.4, 8, 0xD0C8BC]]) { block(w, h, 3, c, x, h / 2, -15.2, g); for (let k = 1; k < h - 1; k += 1.6) block(w - 0.8, 0.5, 0.05, 0x8AA8C8, x, k + 0.6, -13.68, g); }
+    a.march = []; for (let i = 0; i < 16; i++) { const n = npc(a, 'demo', demoBird(i), -3 + i * 1.15, -10.0 + (i % 3) * 0.9, Math.PI / 2); n.st.walk = true; a.march.push(n); }
     // 人
     a.kt = npc(a, 'kotori', makeChar(LK.kotori18), -10, -2.7, 0); a.yo = npc(a, 'yaoya', makeChar(LK.yaoya18), -1, 2.7, Math.PI); a.km = npc(a, 'komeya', makeChar(LK.komeya18), 13.6, -2.7, 0);
     a.po = npc(a, 'ponpu', ponpuModel(true), -19.4, 0.8, Math.PI / 2); a.folOn = false; a.trail = []; },
-  tick(a, dt) { for (const n of a.march) { n.pos.x += dt * 1.1; if (n.pos.x > 16) n.pos.x -= 25; n.facing = Math.PI / 2; n.extMove = true; n.st.walk = true; if (n.model.sign) n.model.sign.rotation.z = Math.sin(T.now * 3 + n.pos.x) * 0.12; }
+  tick(a, dt) { for (const n of a.march) { n.pos.x += dt * 1.1; if (n.pos.x > 15.5) n.pos.x -= 18.4; n.facing = Math.PI / 2; n.extMove = true; n.st.walk = true; if (n.model.sign) n.model.sign.rotation.z = Math.sin(T.now * 3 + n.pos.x) * 0.12; }
     // ポ・ンプは、久世の少し後ろを歩く
     const po = a.po; if (a.folOn && G.mode === 'play' && !po.goal) { const tr = a.trail, L0 = tr[tr.length - 1]; if (!L0 || Math.hypot(P.pos.x - L0.x, P.pos.z - L0.z) > 0.35) { tr.push({ x: P.pos.x, z: P.pos.z }); if (tr.length > 60) tr.shift(); }
       const d = Math.hypot(P.pos.x - po.pos.x, P.pos.z - po.pos.z); if (d > 10) po.pos.set(P.pos.x - 1, 0, P.pos.z + 0.6);
@@ -10516,8 +10516,8 @@ async function talkPonpu18() { const a = AREAS.hq, po = a.po18, tp = S.flags.c18
 
 // ---- 街へ：広がる抗議 ----
 async function goTown18() { G.mode = 'cine'; S.flags.c18st = 'town'; setObj(''); const a = AREAS.hq, is = a.o16_ishii, po = a.po18;
-  cine(4.6, 1.9, 2.6, 5.4, 1.2, 4.0); is.pos.set(5.0, 0, 3.2); is.facing = Math.PI * 0.2; po.pos.set(5.6, 0, 4.4); po.facing = -Math.PI * 0.8; await say('ishii', '僕のパーカーと、帽子です。……たぶん、入ります。');
-  await fade(true); ponDisguise(po.model, true); await fade(false); await say('ponpu', '……あったかいっす。石居さんの、匂いがするっす。'); await say('kuze', '……匂いの話は、やめてやれ。');
+  is.goal = null; po.goal = null; is.pos.set(4.6, 0, 3.4); is.facing = Math.atan2(1.0, 1.0); po.pos.set(5.6, 0, 4.4); po.facing = Math.atan2(-1.0, -1.0); P.pos.set(3.4, 0, 4.4); cine(2.4, 2.0, 1.4, 5.1, 1.2, 3.9); await say('ishii', '僕のパーカーと、帽子です。……たぶん、入ります。');
+  await fade(true); ponDisguise(po.model, true); po.facing = Math.atan2(1.2, -1.8); cine(6.9, 1.6, 2.4, 5.6, 1.0, 4.4); await fade(false); await say('ponpu', '……あったかいっす。石居さんの、匂いがするっす。'); await say('kuze', '……匂いの話は、やめてやれ。');
   await goArea('shotengai18', [-18.4, 0], Math.PI / 2); const s = AREAS.shotengai18; bgm('town18'); playAsPonpu(false); const sp = s.po; sp.hidden = false; ponDisguise(sp.model, true); sp.pos.set(-19.4, 0, 0.8); sp.goal = null; s.folOn = false; CAST.ponpu = sp.model;
   newsBar(true, 'B.U.N の抗議、春日井市内の十七か所に', '天環本社前・千路ハブ・陽盾の営業所――外神竜一族の関連施設で'); pan([8, 4.2, 6], [8, 1.6, -9], [9.6, 2.6, 2.6], [8, 1.8, -9.4], 6); await card('勝川　弘法通り商店街', '同じ日　午前十時半', 1800);
   await narr('告発から、三日。……文鳥たちの抗議は、駅前から、街中へ、広がっていた。');
