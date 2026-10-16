@@ -10193,8 +10193,9 @@ makeArea('nest18', { noPlayer: true, place: 'B.U.N society　静止軌道　居�
     const ban = (t, x, z, ry) => { const p = plane(1.5, 4.4, signTex(150, 440, [{ t: t[0], size: 46, f: MINCHO, w: 900 }, { t: t[1], size: 46, f: MINCHO, w: 900 }, { t: t[2] || '', size: 46, f: MINCHO, w: 900 }], { bg: '#B8141E', fg: '#F4F0E8' }), x, 4.4, z, g); p.rotation.y = ry; return p; };
     ban(['兄弟は', '見捨て', 'ない'], -12.75, -4.2, Math.PI / 2); ban(['飯は', 'みんなで', '食う'], -12.75, 0.2, Math.PI / 2); ban(['一日', '一万回'], 12.75, -4.2, -Math.PI / 2);
     // 止まり木の寝床（三段）
-    a.perches = []; for (let r = 0; r < 3; r++) for (let k = 0; k < 2; k++) { const z = -6.4 + k * 3.4, y = 1.1 + r * 1.35; part(cyl(0.09, 0.09, 3.0, 8), 0x8A6A40, -10.8, y, z, g, { rx: Math.PI / 2 }); a.perches.push([-10.8, y, z]); }
-    for (const z of [-7.9, -4.9, -4.5, -1.5]) part(cyl(0.12, 0.12, 4.4, 8), 0x3A3A42, -10.8, 2.2, z, g);
+    // 三段の止まり木（一本に二羽ずつ。段の間は、文鳥の背丈ぶん空ける）
+    a.perches = []; for (let r = 0; r < 3; r++) for (let k = 0; k < 2; k++) { const z = -6.2 + k * 3.6, y = 0.9 + r * 2.3; part(cyl(0.09, 0.09, 3.0, 8), 0x8A6A40, -10.8, y, z, g, { rx: Math.PI / 2 }); a.perches.push([-10.8, y, z]); }
+    for (const z of [-7.75, -4.65, -4.15, -1.05]) part(cyl(0.12, 0.12, 6.0, 8), 0x3A3A42, -10.8, 3.0, z, g);
     // 水浴び場
     block(8.4, 0.5, 1.8, 0x5A5A64, 3.0, 0.25, -6.6, g); const wt = new THREE.Mesh(new THREE.PlaneGeometry(8.0, 1.4), new THREE.MeshPhongMaterial({ color: 0x6AB8E8, emissive: 0x1A4A6A, transparent: true, opacity: 0.8, shininess: 90 })); wt.rotation.x = -Math.PI / 2; wt.position.set(3.0, 0.46, -6.6); g.add(wt); a.water = wt; a.obs.push({ x: 3.0, z: -6.6, hx: 4.2, hz: 0.9 });
     plane(2.8, 0.7, signTex(280, 70, [{ t: '水浴び場　点呼は水の中', size: 26, w: 800 }], { bg: '#1A181E', fg: '#9AD0F0' }), 3.0, 1.5, -7.6, g);
@@ -10380,6 +10381,8 @@ BGM.vol18 = { bpm: 60, f(s, t, sp) { if (s % 16 === 0) { tone(mf(38), t, sp * 15
 
 // ================= 7.5章　幕間1　止まり木 =================
 const on18 = k => () => S.chapter === 18 && S.flags.c18st === k;
+// 止まり木に止まらせる（足の裏を棒の上に。浮いた影は消す）。y が null なら床に戻す
+function perch18(n, y) { const sh = n.model.root.children.find(c => c.material === shadowMat); if (sh) sh.visible = y == null; n.y = y == null ? 0 : y + 0.09 - 0.07 * n.model.g.scale.y; }
 // 切り返し：人物を突き抜けないよう、カメラを動かさずに切る
 function cut18(px, py, pz, lx, ly, lz) { cine(px, py, pz, lx, ly, lz); camSnap = true; }
 function hqClean18(a) { for (const k of ['o16_murase', 'o16_ishii', 'o16_makabe', 'o11_murase', 'o11_inui']) if (a[k]) a[k].hidden = true; if (a.dev17) a.dev17.visible = false; if (a.pf17) a.pf17.visible = false; if (a.pk17) a.pk17.visible = false; if (a.po17) a.po17.hidden = true; }
@@ -10392,7 +10395,8 @@ function hqProps18(a) { if (a.p18) return a.p18; const g = a.g, p = {};
   p.perch.visible = false; p.tub.visible = false; a.p18 = p; return p; }
 function castHq18(a) { hqClean18(a); const p = hqProps18(a); a.kr.pos.set(-0.4, 0, -2.6); a.kr.facing = 0; a.kr.lookAt = null; a.kr.st = {}; a.sa.pos.set(6.0, 0, -3.4); a.sa.facing = Math.PI; a.sa.st = { sit: true }; a.ni.pos.set(-6.2, 0, 2.9); a.ni.facing = Math.PI * 0.75; a.ni.lookAt = null;
   const mu = cast16(a, 'murase', LK.muraseS, 3.4, 2.2, -Math.PI * 0.7), is = cast16(a, 'ishii', LK.ishii, -2.8, 2.4, Math.PI * 0.7);
-  if (!a.po18) a.po18 = npc(a, 'ponpu', ponpuModel(false), 2.2, 3.6, Math.PI); const po = a.po18; po.hidden = false; po.st = {}; po.y = 0; po.goal = null; po.lookAt = null; CAST.ponpu = po.model; return { mu, is, po, p }; }
+  if (!a.po18) a.po18 = npc(a, 'ponpu', ponpuModel(false), 2.2, 3.6, Math.PI); const po = a.po18; po.hidden = false; po.st = {}; perch18(po, null); po.goal = null; po.lookAt = null; CAST.ponpu = po.model;
+  for (const it of a.items) { if (it.id === 'h18po') it.dyn = po; if (it.id === 'h18mu') it.dyn = mu; if (it.id === 'h18is') it.dyn = is; } return { mu, is, po, p }; }
 function hq18Items() { const a = AREAS.hq; if (!a.built) { a.build(a); a.built = true; } if (a.i18) return; a.i18 = true;
   for (const it of a.items) { const old = it.avail; it.avail = () => S.chapter !== 18 && (!old || old()); }
   const on = on18('hq');
@@ -10404,13 +10408,16 @@ function hq18Items() { const a = AREAS.hq; if (!a.built) { a.build(a); a.built =
   addItem(a, { id: 'h18po', x: 2.2, z: 3.6, label: 'ポ・ンプと話す（B.U.N のこと）', col: 0xF0A0A0, once: false, avail: () => on() && (S.flags.c18tp || []).length < 3, on: () => evHq18('po'), dyn: a.po18 });
   addItem(a, { id: 'h18out', x: 6.4, z: 4.4, r: 1.6, label: '買い出しに出る', col: 0xC8323C, once: false, avail: () => on() && S.flags.c18mu && S.flags.c18is && S.flags.c18list, on: () => goTown18() });
   for (const it of a.items) if (DONE.has(a.id + ':' + it.id)) it.done = true; }
-{ const r0 = AREAS.hq.restore; AREAS.hq.restore = function (a) { if (r0) r0.call(this, a); if (S.chapter === 18) hq18Items(); }; }
+{ const r0 = AREAS.hq.restore; AREAS.hq.restore = function (a) { if (r0) r0.call(this, a); if (S.chapter === 18) { hq18Items(); if (S.flags.c18st === 'hq') castHq18(a); } }; }
 // 会話のカメラ：近すぎる久世を半歩下げ、二人を横から撮る
 function keepGap18(n, gap = 1.5) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, L = Math.hypot(dx, dz) || 1; if (L < gap) { const B = A.bounds; P.pos.x = clamp(n.pos.x + dx / L * gap, B[0] + 0.5, B[1] - 0.5); P.pos.z = clamp(n.pos.z + dz / L * gap, B[2] + 0.5, B[3] - 0.5); } }
 function talkCam18(n, sgn = 1, d = 3.0, h = 1.75, ly = 1.4) { keepGap18(n); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a0 = Math.atan2(dx, dz) + sgn * 1.15; n.facing = Math.atan2(dx, dz); P.facing = Math.atan2(-dx, -dz);
   const mx = n.pos.x + dx * 0.35, mz = n.pos.z + dz * 0.35; cut18(mx + Math.sin(a0) * d, h, mz + Math.cos(a0) * d, mx, ly, mz); }
-function besideCam18(n, po, sgn = 1) { keepGap18(n, 1.7); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a = Math.atan2(dx, dz), ap = a - sgn * 1.1, B = A.bounds; po.goal = null; po.pos.set(clamp(n.pos.x + Math.sin(ap) * 1.3, B[0] + 0.5, B[1] - 0.5), 0, clamp(n.pos.z + Math.cos(ap) * 1.3, B[2] + 0.5, B[3] - 0.5)); po.facing = Math.atan2(n.pos.x - po.pos.x, n.pos.z - po.pos.z);
-  const b0 = ap + Math.PI + sgn * 0.55; cut18(n.pos.x + Math.sin(b0) * 1.7, 1.75, n.pos.z + Math.cos(b0) * 1.7, po.pos.x, 1.0, po.pos.z); }
+function besideCam18(n, po, sgn = 1) { keepGap18(n, 1.7); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a = Math.atan2(dx, dz), B = A.bounds;
+  // 机（勢力図）や壁にめり込まない側に、ポ・ンプを立たせる
+  const at = sg => { const ap = a - sg * 1.1; return [n.pos.x + Math.sin(ap) * 1.3, n.pos.z + Math.cos(ap) * 1.3, ap]; }, bad = q => (Math.abs(q[0]) < 2.75 && q[1] > -1.75 && q[1] < 2.1) || q[0] < B[0] + 0.5 || q[0] > B[1] - 0.5 || q[1] < B[2] + 0.5 || q[1] > B[3] - 0.5;
+  let q = at(sgn); if (bad(q)) { sgn = -sgn; q = at(sgn); } po.goal = null; po.hidden = false; perch18(po, null); po.pos.set(clamp(q[0], B[0] + 0.5, B[1] - 0.5), 0, clamp(q[1], B[2] + 0.5, B[3] - 0.5)); po.facing = Math.atan2(n.pos.x - po.pos.x, n.pos.z - po.pos.z);
+  const b0 = q[2] + Math.PI + sgn * 0.55; cut18(n.pos.x + Math.sin(b0) * 1.7, 1.75, n.pos.z + Math.cos(b0) * 1.7, po.pos.x, 1.0, po.pos.z); }
 function obj18() { const b = [S.flags.c18mu ? '' : '村瀬', S.flags.c18is ? '' : '石居'].filter(Boolean); setObj(S.flags.c18mu && S.flags.c18is && S.flags.c18list ? '買い出しに出る（階段へ）　※ポ・ンプに B.U.N のことを聞ける' : '買い出しの支度：' + (b.length ? b.join('と') + 'からプロテイン' : '') + (b.length && !S.flags.c18list ? '、' : '') + (S.flags.c18list ? '' : '三枝から買い物リスト')); }
 
 // ---- 冷たい序：バルク・家族の巣 ----
@@ -10418,13 +10425,13 @@ async function chapter18() { G.mode = 'cine'; S.chapter = 18; $('report').hidden
   S.flags.c18st = 'nest'; S.flags.c18tp = []; PON.on = false; PB.on = false; MEL.on = false;
   await goArea('nest18'); const a = AREAS.nest18, ku = a.kuro; bgm('nest18'); a.holo.visible = false; a.ponRice.visible = false; if (a.ponHolo) a.ponHolo.visible = false;
   ku.pos.set(-5.8, 0, 2.2); ku.facing = Math.PI / 2; ku.st = { sit: true }; a.fk.pos.set(-9.0, 0, -2.6); a.fk.facing = Math.PI / 2; a.fk.st = {}; a.hk.pos.set(-8.6, 0, -0.6); a.hk.facing = Math.PI / 2; a.hk.st = {};
-  a.mem.forEach((n, i) => { const p = a.perches[i % a.perches.length]; n.pos.set(p[0] + (i >= 6 ? 0.6 : 0), 0, p[2] + ((i >> 1) % 3 - 1) * 0.9); n.y = p[1] - 0.66; n.st = { sit: true }; n.facing = Math.PI / 2; n.goal = null; });
-  pan([10, 6, 10], [-4, 2, -2], [-2.4, 3.6, 4.6], [-9.6, 2.0, -3.2], 7); loc('B.U.N society', '静止軌道　居住環「辻」', 'バルク・家族の巣　午前四時'); await sleep(G.skip ? 0 : 2600); loc(null);
+  a.mem.forEach((n, i) => { const p = a.perches[i % a.perches.length]; n.goal = null; n.pos.set(p[0], 0, p[2] + (i < 6 ? -0.7 : 0.7)); perch18(n, p[1]); n.st = { bow: true, bowA: 0.22 }; n.facing = Math.PI / 2; });
+  pan([10, 6, 10], [-4, 2, -2], [-3.4, 4.2, 4.0], [-10.6, 3.2, -4.4], 7); loc('B.U.N society', '静止軌道　居住環「辻」', 'バルク・家族の巣　午前四時'); await sleep(G.skip ? 0 : 2600); loc(null);
   await narr('静止軌道。……B.U.N の居住環の、いちばん端。元は貨物区画だった場所を、自分たちの拳で、ぶち抜いた部屋。');
   await narr('止まり木が、三段。四十八羽の文鳥が、片脚で、眠っていた。');
   cine(-4.0, 1.8, 4.6, -5.8, 1.6, 2.2); await narr('食卓のいちばん端で、No.7 は、起きていた。……寝床には、上がらなかったらしい。');
   sfx('bell18'); G.shake = 0.2; cine(-6.6, 2.4, 1.4, -9.0, 1.8, -2.6); a.fk.st = { armsUp: true }; await say('fukkin', '起床ォォォ！！　水浴び点呼ォォォ！！');
-  a.fk.st = {}; for (const [i, n] of a.mem.entries()) { n.y = 0; n.st = { run: true }; n.pos.set(-9.6, 0, -4 + (i % 6) * 0.9); walkTo(n, -0.2 + (i % 6) * 1.25, i >= 6 ? -6.2 : -6.95, 7).then(() => { n.st = {}; n.y = 0.22; n.facing = 0; }); }
+  a.fk.st = {}; for (const [i, n] of a.mem.entries()) { perch18(n, null); n.st = { run: true }; n.pos.set(-9.6, 0, -4 + (i % 6) * 0.9); walkTo(n, -0.2 + (i % 6) * 1.25, i >= 6 ? -6.2 : -6.95, 7).then(() => { n.st = {}; n.y = 0.22; n.facing = 0; }); }
   await sleep(G.skip ? 0 : 1700); cine(3.0, 3.2, -2.0, 3.0, 0.9, -6.6); for (let k = 0; k < 4 && !G.skip; k++) { shards(rand(0, 6), 0.6, -6.4, 0x9AD0F0, 8, 4); sfx('splash'); await sleep(260); }
   await narr('文鳥の朝は、水浴びから始まる。……B.U.N でも、それは、変わらない。');
   a.hk.pos.set(3.0, 0, -4.4); a.hk.facing = Math.PI; cine(5.4, 2.1, -5.4, 3.0, 1.7, -4.2); await say('haikin', '……点呼。一、フッ・キン。');
@@ -10685,15 +10692,15 @@ async function goStay18() { G.mode = 'cine'; S.flags.c18st = 'stay'; await goAre
   cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); await say('kuroiwa', '見たものを、報告しろ。……それが、うちの仕事だ。');
   p.perch.visible = true; p.tub.visible = true; cine(-0.4, 2.6, 7.6, -3.0, 1.2, 4.4); await narr('階段の脇に、太い止まり木が、立っていた。……ハーピー用。名札つき。');
   await say('ishii', '組んでおきました。名札は、僕が。'); await say('murase', '……ボルト、締めました。');
-  po.st = { run: true }; walkTo(po, -3.4, 4.0, 5).then(() => { po.st = {}; }); await sleep(G.skip ? 0 : 900); po.goal = null; po.pos.set(-3.4, 0, 4.5); po.y = 1.0; po.facing = Math.PI; po.st = { sit: true }; sfx('chime');
-  cine(-2.4, 2.1, 2.2, -3.4, 1.8, 4.5); await say('ponpu', '……止まり木っす。'); await say('ponpu', 'ここが、自分の、地上の、止まり木っす！！');
+  po.st = { run: true }; walkTo(po, -3.4, 4.0, 5).then(() => { po.st = {}; }); await sleep(G.skip ? 0 : 900); po.goal = null; po.pos.set(-3.4, 0, 4.5); perch18(po, 1.62); po.facing = Math.PI; po.st = {}; sfx('chime');
+  cut18(-1.6, 2.7, 1.2, -3.4, 2.3, 4.5); await say('ponpu', '……止まり木っす。'); await say('ponpu', 'ここが、自分の、地上の、止まり木っす！！');
   cine(-3.2, 2.0, 1.4, -3.0, 1.6, -0.4); await say('nishina', 'はっは。……文鳥は、手には乗らんが、止まり木には、乗るな。'); cine(4.6, 2.0, -0.4, 3.0, 1.6, -1.6); await say('saegusa', '名簿、更新しました。……留保班、はじめての、文鳥です。');
   cine(1.5, 1.75, 1.3, 0.4, 1.55, 3.0); await narr('巣の止まり木と、主家の椀と。……どこにも、帰りを待つ場所が、あった。'); await saku('……考えるな。今夜は。'); await say('kuze', '……ああ。');
   await goReveal18(); }
 
 // ---- 誰も、見ていなかった ----
 async function goReveal18() { G.mode = 'cine'; S.flags.c18st = 'night'; await fade(true); const a = AREAS.hq; if (typeof setClock === 'function') setClock('02:13'); bgm('vol18');
-  for (const k of ['o16_murase', 'o16_ishii']) if (a[k]) a[k].hidden = true; a.sa.hidden = true; a.ni.hidden = true; a.kr.hidden = true; P.model.root.visible = false; const po = a.po18; po.pos.set(-3.4, 0, 4.5); po.y = 1.0; po.st = { sit: true }; po.facing = Math.PI;
+  for (const k of ['o16_murase', 'o16_ishii']) if (a[k]) a[k].hidden = true; a.sa.hidden = true; a.ni.hidden = true; a.kr.hidden = true; P.model.root.visible = false; const po = a.po18; po.pos.set(-3.4, 0, 4.5); perch18(po, 1.62); po.st = { bow: true, bowA: 0.25 }; po.facing = Math.PI;
   if (!a.pk18) { a.pk18 = pocketModel(); a.g.add(a.pk18); } a.pk18.visible = true; a.pk18.position.set(1.3, 0.98, 0.6); a.pk18.rotation.set(0, 0.4, Math.PI / 2 - 0.2);
   const K = a.kz18 || (a.kz18 = kenzokuModel()); a.g.add(K.root); K.root.visible = false; K.root.position.set(1.3, 0.96, 0.6); K.root.scale.setScalar(0.01); hemi.intensity *= 0.5; camSnap = true; await fade(false);
   cine(3.4, 2.2, 2.8, 1.2, 0.9, 0.6); await card('留文堂　地下', '同じ夜　午前二時十三分', 1600);
@@ -10703,7 +10710,7 @@ async function goReveal18() { G.mode = 'cine'; S.flags.c18st = 'night'; await fa
   K.gl.material.opacity = 0.9; cine(0.0, 1.4, 1.6, 0.6, 1.1, 0.4); await narr('巾着の口から、黒とも青ともつかない、小さなものが、這い出した。……ひとつだけの、淡い青の目。');
   for (let k = 0; k <= 30; k++) { K.root.position.set(0.6 - k / 30 * 1.4, 0.96, 0.4 - k / 30 * 0.4); K.root.rotation.y = -Math.PI / 2 + Math.sin(k * 0.5) * 0.3; await sleep(G.skip ? 0 : 35); }
   cine(-1.0, 1.9, 1.8, -0.8, 1.0, 0.0); await narr('それは、勢力図の上を這い、「外神竜一族」の付箋の前で、止まった。……じっと、見ていた。');
-  K.root.rotation.y = Math.PI * 0.75; cine(-2.0, 1.7, 1.2, -3.4, 1.7, 4.5); await narr('止まり木の文鳥を見た。……それから、金庫の扉の、影を。');
+  K.root.rotation.y = Math.PI * 0.75; cine(-1.8, 2.4, 1.4, -3.4, 2.2, 4.5); await narr('止まり木の文鳥を見た。……それから、金庫の扉の、影を。');
   for (let k = 0; k <= 30; k++) { K.root.position.set(-0.8 - k / 30 * 2.8, k < 6 ? 0.96 - k * 0.16 : 0.05, 0.0 - k / 30 * 5.2); await sleep(G.skip ? 0 : 35); } K.gl.material.opacity = 0.0; cine(-2.4, 1.6, -2.4, -3.6, 1.2, -5.5); await sleep(G.skip ? 0 : 500); K.gl.material.opacity = 0.9; await sleep(G.skip ? 0 : 300); K.gl.material.opacity = 0; K.root.visible = false;
   await narr('金庫の扉の影で、淡い青が、一度だけ、瞬いた。');
   // 主家の屋根
