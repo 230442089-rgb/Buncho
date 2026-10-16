@@ -10380,6 +10380,8 @@ BGM.vol18 = { bpm: 60, f(s, t, sp) { if (s % 16 === 0) { tone(mf(38), t, sp * 15
 
 // ================= 7.5章　幕間1　止まり木 =================
 const on18 = k => () => S.chapter === 18 && S.flags.c18st === k;
+// 切り返し：人物を突き抜けないよう、カメラを動かさずに切る
+function cut18(px, py, pz, lx, ly, lz) { cine(px, py, pz, lx, ly, lz); camSnap = true; }
 function hqClean18(a) { for (const k of ['o16_murase', 'o16_ishii', 'o16_makabe', 'o11_murase', 'o11_inui']) if (a[k]) a[k].hidden = true; if (a.dev17) a.dev17.visible = false; if (a.pf17) a.pf17.visible = false; if (a.pk17) a.pk17.visible = false; if (a.po17) a.po17.hidden = true; }
 function hqProps18(a) { if (a.p18) return a.p18; const g = a.g, p = {};
   // 段ボールの寝床
@@ -10406,9 +10408,9 @@ function hq18Items() { const a = AREAS.hq; if (!a.built) { a.build(a); a.built =
 // 会話のカメラ：近すぎる久世を半歩下げ、二人を横から撮る
 function keepGap18(n, gap = 1.5) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, L = Math.hypot(dx, dz) || 1; if (L < gap) { const B = A.bounds; P.pos.x = clamp(n.pos.x + dx / L * gap, B[0] + 0.5, B[1] - 0.5); P.pos.z = clamp(n.pos.z + dz / L * gap, B[2] + 0.5, B[3] - 0.5); } }
 function talkCam18(n, sgn = 1, d = 3.0, h = 1.75, ly = 1.4) { keepGap18(n); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a0 = Math.atan2(dx, dz) + sgn * 1.15; n.facing = Math.atan2(dx, dz); P.facing = Math.atan2(-dx, -dz);
-  const mx = n.pos.x + dx * 0.35, mz = n.pos.z + dz * 0.35; cine(mx + Math.sin(a0) * d, h, mz + Math.cos(a0) * d, mx, ly, mz); }
+  const mx = n.pos.x + dx * 0.35, mz = n.pos.z + dz * 0.35; cut18(mx + Math.sin(a0) * d, h, mz + Math.cos(a0) * d, mx, ly, mz); }
 function besideCam18(n, po, sgn = 1) { keepGap18(n, 1.7); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a = Math.atan2(dx, dz), ap = a - sgn * 1.1, B = A.bounds; po.goal = null; po.pos.set(clamp(n.pos.x + Math.sin(ap) * 1.3, B[0] + 0.5, B[1] - 0.5), 0, clamp(n.pos.z + Math.cos(ap) * 1.3, B[2] + 0.5, B[3] - 0.5)); po.facing = Math.atan2(n.pos.x - po.pos.x, n.pos.z - po.pos.z);
-  const b0 = ap + Math.PI + sgn * 0.55; cine(n.pos.x + Math.sin(b0) * 1.7, 1.75, n.pos.z + Math.cos(b0) * 1.7, po.pos.x, 1.0, po.pos.z); }
+  const b0 = ap + Math.PI + sgn * 0.55; cut18(n.pos.x + Math.sin(b0) * 1.7, 1.75, n.pos.z + Math.cos(b0) * 1.7, po.pos.x, 1.0, po.pos.z); }
 function obj18() { const b = [S.flags.c18mu ? '' : '村瀬', S.flags.c18is ? '' : '石居'].filter(Boolean); setObj(S.flags.c18mu && S.flags.c18is && S.flags.c18list ? '買い出しに出る（階段へ）　※ポ・ンプに B.U.N のことを聞ける' : '買い出しの支度：' + (b.length ? b.join('と') + 'からプロテイン' : '') + (b.length && !S.flags.c18list ? '、' : '') + (S.flags.c18list ? '' : '三枝から買い物リスト')); }
 
 // ---- 冷たい序：バルク・家族の巣 ----
@@ -10541,27 +10543,27 @@ function shop18Items() { const a = AREAS.shotengai18; if (a.i18) return; a.i18 =
   addItem(a, { id: 's18mr', x: 8, z: -2.6, label: '角の向こうの、デモの列を見る', avail: on, on: () => evShop18('mr') });
   addItem(a, { id: 's18out', x: 19.2, z: 0, r: 1.8, label: '勝川駅へ', col: 0xC8323C, once: false, avail: () => on() && got('kt') && got('yo') && got('km'), on: () => goRotary18() }); }
 async function evShop18(k) { const a = AREAS.shotengai18, po = a.po, sh = S.flags.c18shop; G.mode = 'cine'; const near = (x, z) => { po.goal = null; po.pos.set(x, 0, z); };
-  if (k === 'kt') { near(-11.0, -0.6); po.facing = Math.PI; P.facing = Math.PI; cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'いらっしゃい。……あら。');
-    cine(-9.0, 1.5, 1.4, -11.0, 0.9, -0.6); await say('kotori', '大きい文鳥さんねえ。'); cine(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', 'じ、自分は、ただの、パーカーっす。'); await saku('……パーカーは、喋らない。');
-    cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'ふふ。いいのよ。B.U.N の子でしょ。……うちはね、どっちの文鳥さんも、お客さん。');
+  if (k === 'kt') { near(-11.0, -0.6); po.facing = Math.PI; P.facing = Math.PI; cut18(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'いらっしゃい。……あら。');
+    cut18(-9.0, 1.5, 1.4, -11.0, 0.9, -0.6); await say('kotori', '大きい文鳥さんねえ。'); cut18(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', 'じ、自分は、ただの、パーカーっす。'); await saku('……パーカーは、喋らない。');
+    cut18(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'ふふ。いいのよ。B.U.N の子でしょ。……うちはね、どっちの文鳥さんも、お客さん。');
     await say('kotori', '門の前から、五十年、小鳥屋をやってるの。門が開いてからは、ハーピーのお嬢さんたちも、止まり木を買いに来るのよ。');
     await say('kuze', '止まり木を、大きめのを、一本。それと、水浴びの……'); await say('kotori', 'ハーピー用の、水浴び桶ね。Lサイズ。……文鳥はね、水浴びが、いちばん好きなの。毎日、させてあげて。');
-    await say('kotori', '粟玉と、ボレー粉もね。ボレー粉は、牡蠣の殻よ。骨が、丈夫になるの。'); cine(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', '……兄貴が、毎朝、点呼を水の中でやるの、そういうこと、だったっすか。');
-    cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'それから……これは、おまけ。'); sfx('chime'); await narr('小さな、真鍮の鈴だった。');
-    await say('kotori', '文鳥はね、一羽だと、寂しがるの。……鳴らしたら、誰かが、来てくれるように。'); po.st = { bow: true }; cine(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', '……ありがとう、ございます。'); po.st = {}; cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7);
+    await say('kotori', '粟玉と、ボレー粉もね。ボレー粉は、牡蠣の殻よ。骨が、丈夫になるの。'); cut18(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', '……兄貴が、毎朝、点呼を水の中でやるの、そういうこと、だったっすか。');
+    cut18(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'それから……これは、おまけ。'); sfx('chime'); await narr('小さな、真鍮の鈴だった。');
+    await say('kotori', '文鳥はね、一羽だと、寂しがるの。……鳴らしたら、誰かが、来てくれるように。'); po.st = { bow: true }; cut18(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', '……ありがとう、ございます。'); po.st = {}; cut18(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7);
     await say('kotori', 'あなたも、ね。'); await say('kuze', '……俺が、ですか。'); await say('kotori', 'ええ。あなた、一羽で飛んでる顔、してるもの。……大事にしてもらいなさいね。');
     toast('止まり木（ハーピー用）・水浴び桶（L）・粟玉・ボレー粉・鈴'); sh.push('kt'); }
-  if (k === 'yo') { near(-2.2, 0.6); po.facing = 0; P.facing = 0; cine(0.6, 1.6, -0.6, -1.0, 1.4, 2.7); await say('yaoya', 'いらっしゃいませー！　小松菜、今朝の、とれたてですよ♪');
-    await say('yaoya', '……くんくん。あれ？　お客さん、なんか、鳥さんの、匂い……'); cine(-2.8, 1.5, 2.7, -2.2, 0.9, 0.6); await narr('ポ・ンプが、石になった。');
-    cine(0.6, 1.6, -0.6, -1.0, 1.4, 2.7); await say('yaoya', '……ま、いっか♪　鳥さんも、小松菜、好きですもんね！　おまけ、一束！'); toast('小松菜　三束（うち一束、おまけ）');
-    cine(-2.8, 1.5, 2.7, -2.0, 1.1, 0.6); await say('ponpu', '……地上の人、みんな、優しいっす。'); await say('kuze', '……みんな、じゃない。'); await saku('優しくされてるうちは、まだ、正体が割れてないってことだ。'); sh.push('yo'); }
-  if (k === 'km') { near(12.4, -0.6); po.facing = Math.PI; P.facing = Math.PI; cine(15.6, 1.7, 0.6, 13.6, 1.4, -2.7); await say('komeya', 'いらっしゃい。……おう。文鳥の衆か。');
-    await say('komeya', '隠さんでいい。あんたらの仲間は、よう、米を買いに来てたからな。'); cine(12.0, 1.5, -2.2, 12.4, 0.9, -0.6); await say('ponpu', 'し、新米っすか！？'); cine(15.6, 1.7, 0.6, 13.6, 1.4, -2.7);
-    await say('komeya', '去年のだ。新米は、来月だな。……文鳥の衆は、炊き方に、うるさいんだ。水は一・二倍、浸けて三十分、ってな。'); cine(12.0, 1.5, -2.2, 12.4, 0.9, -0.6); await say('ponpu', '……兄貴と、同じこと、言ってるっす。');
-    cine(15.6, 1.7, 0.6, 13.6, 1.4, -2.7); await say('komeya', '最近は、来ねえな。デモで、それどころじゃ、ねえんだろ。'); await say('komeya', 'あの連中も、ここじゃ、ただの、米好きの客だったんだがなあ。');
+  if (k === 'yo') { near(-2.2, 0.6); po.facing = 0; P.facing = 0; cut18(0.6, 1.6, -0.6, -1.0, 1.4, 2.7); await say('yaoya', 'いらっしゃいませー！　小松菜、今朝の、とれたてですよ♪');
+    await say('yaoya', '……くんくん。あれ？　お客さん、なんか、鳥さんの、匂い……'); cut18(-2.8, 1.5, 2.7, -2.2, 0.9, 0.6); await narr('ポ・ンプが、石になった。');
+    cut18(0.6, 1.6, -0.6, -1.0, 1.4, 2.7); await say('yaoya', '……ま、いっか♪　鳥さんも、小松菜、好きですもんね！　おまけ、一束！'); toast('小松菜　三束（うち一束、おまけ）');
+    cut18(-2.8, 1.5, 2.7, -2.0, 1.1, 0.6); await say('ponpu', '……地上の人、みんな、優しいっす。'); await say('kuze', '……みんな、じゃない。'); await saku('優しくされてるうちは、まだ、正体が割れてないってことだ。'); sh.push('yo'); }
+  if (k === 'km') { near(12.4, -0.6); po.facing = Math.PI; P.facing = Math.PI; cut18(15.6, 1.7, 0.6, 13.6, 1.4, -2.7); await say('komeya', 'いらっしゃい。……おう。文鳥の衆か。');
+    await say('komeya', '隠さんでいい。あんたらの仲間は、よう、米を買いに来てたからな。'); cut18(12.0, 1.5, -2.2, 12.4, 0.9, -0.6); await say('ponpu', 'し、新米っすか！？'); cut18(15.6, 1.7, 0.6, 13.6, 1.4, -2.7);
+    await say('komeya', '去年のだ。新米は、来月だな。……文鳥の衆は、炊き方に、うるさいんだ。水は一・二倍、浸けて三十分、ってな。'); cut18(12.0, 1.5, -2.2, 12.4, 0.9, -0.6); await say('ponpu', '……兄貴と、同じこと、言ってるっす。');
+    cut18(15.6, 1.7, 0.6, 13.6, 1.4, -2.7); await say('komeya', '最近は、来ねえな。デモで、それどころじゃ、ねえんだろ。'); await say('komeya', 'あの連中も、ここじゃ、ただの、米好きの客だったんだがなあ。');
     toast('米　五キロ（去年の）'); sh.push('km'); }
-  if (k === 'mr') { po.goal = null; po.pos.set(6.8, 0, -1.6); po.facing = Math.PI; P.facing = Math.PI; cine(9.6, 1.8, 1.4, 8.0, 1.8, -9.0); await narr('角の向こうを、札を掲げた文鳥の列が、通っていった。');
-    cine(5.2, 1.4, 0.2, 6.8, 1.0, -1.6); await say('ponpu', '……「ポ・ンプを、返せ」って、書いてあるっす。'); await say('ponpu', '自分、ここに、いるっすけど。');
+  if (k === 'mr') { po.goal = null; po.pos.set(6.8, 0, -1.6); po.facing = Math.PI; P.facing = Math.PI; cut18(9.6, 1.8, 1.4, 8.0, 1.8, -9.0); await narr('角の向こうを、札を掲げた文鳥の列が、通っていった。');
+    cut18(5.2, 1.4, 0.2, 6.8, 1.0, -1.6); await say('ponpu', '……「ポ・ンプを、返せ」って、書いてあるっす。'); await say('ponpu', '自分、ここに、いるっすけど。');
     await say('kuze', '今は、いないことにしておけ。'); await say('ponpu', '……はいっす。'); await saku('自分の名前が、通りを練り歩いてるのを、見るのは。……どんな気分だろうな。'); }
   const left = ['kt', 'yo', 'km'].filter(x => !sh.includes(x)); setObj(left.length ? '買い出し：' + left.map(x => ({ kt: 'ことりのいえ（止まり木・水浴び桶・粟玉とボレー粉）', yo: '青果みどり（小松菜）', km: '田中米穀店（米）' })[x]).join('／') : '勝川駅へ（東）'); a.trail = []; playOn(); }
 
