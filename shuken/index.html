@@ -10403,9 +10403,12 @@ function hq18Items() { const a = AREAS.hq; if (!a.built) { a.build(a); a.built =
   addItem(a, { id: 'h18out', x: 6.4, z: 4.4, r: 1.6, label: '買い出しに出る', col: 0xC8323C, once: false, avail: () => on() && S.flags.c18mu && S.flags.c18is && S.flags.c18list, on: () => goTown18() });
   for (const it of a.items) if (DONE.has(a.id + ':' + it.id)) it.done = true; }
 { const r0 = AREAS.hq.restore; AREAS.hq.restore = function (a) { if (r0) r0.call(this, a); if (S.chapter === 18) hq18Items(); }; }
-function talkCam18(n, sgn = 1, d = 2.5, h = 1.7, ly = 1.45) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, L = Math.hypot(dx, dz) || 1, a0 = Math.atan2(dx / L, dz / L) + sgn * 0.62; n.facing = Math.atan2(dx, dz); P.facing = Math.atan2(-dx, -dz); cine(n.pos.x + Math.sin(a0) * d, h, n.pos.z + Math.cos(a0) * d, n.pos.x, ly, n.pos.z); }
-function besideCam18(n, po, sgn = 1) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a = Math.atan2(dx, dz), ap = a - sgn * 1.0, B = A.bounds; po.goal = null; po.pos.set(clamp(n.pos.x + Math.sin(ap) * 1.3, B[0] + 0.5, B[1] - 0.5), 0, clamp(n.pos.z + Math.cos(ap) * 1.3, B[2] + 0.5, B[3] - 0.5)); po.facing = Math.atan2(n.pos.x - po.pos.x, n.pos.z - po.pos.z);
-  const a0 = a + sgn * 0.5, mx = (n.pos.x + po.pos.x) / 2, mz = (n.pos.z + po.pos.z) / 2; cine(mx + Math.sin(a0) * 3.0, 1.8, mz + Math.cos(a0) * 3.0, mx, 1.25, mz); }
+// 会話のカメラ：近すぎる久世を半歩下げ、二人を横から撮る
+function keepGap18(n, gap = 1.5) { const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, L = Math.hypot(dx, dz) || 1; if (L < gap) { const B = A.bounds; P.pos.x = clamp(n.pos.x + dx / L * gap, B[0] + 0.5, B[1] - 0.5); P.pos.z = clamp(n.pos.z + dz / L * gap, B[2] + 0.5, B[3] - 0.5); } }
+function talkCam18(n, sgn = 1, d = 3.0, h = 1.75, ly = 1.4) { keepGap18(n); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a0 = Math.atan2(dx, dz) + sgn * 1.15; n.facing = Math.atan2(dx, dz); P.facing = Math.atan2(-dx, -dz);
+  const mx = n.pos.x + dx * 0.35, mz = n.pos.z + dz * 0.35; cine(mx + Math.sin(a0) * d, h, mz + Math.cos(a0) * d, mx, ly, mz); }
+function besideCam18(n, po, sgn = 1) { keepGap18(n, 1.7); const dx = P.pos.x - n.pos.x, dz = P.pos.z - n.pos.z, a = Math.atan2(dx, dz), ap = a - sgn * 1.1, B = A.bounds; po.goal = null; po.pos.set(clamp(n.pos.x + Math.sin(ap) * 1.3, B[0] + 0.5, B[1] - 0.5), 0, clamp(n.pos.z + Math.cos(ap) * 1.3, B[2] + 0.5, B[3] - 0.5)); po.facing = Math.atan2(n.pos.x - po.pos.x, n.pos.z - po.pos.z);
+  const a0 = a - sgn * 0.55, mx = (n.pos.x + po.pos.x) / 2, mz = (n.pos.z + po.pos.z) / 2; cine(mx + Math.sin(a0) * 3.2, 1.8, mz + Math.cos(a0) * 3.2, mx, 1.2, mz); }
 function obj18() { const b = [S.flags.c18mu ? '' : '村瀬', S.flags.c18is ? '' : '石居'].filter(Boolean); setObj(S.flags.c18mu && S.flags.c18is && S.flags.c18list ? '買い出しに出る（階段へ）　※ポ・ンプに B.U.N のことを聞ける' : '買い出しの支度：' + (b.length ? b.join('と') + 'からプロテイン' : '') + (b.length && !S.flags.c18list ? '、' : '') + (S.flags.c18list ? '' : '三枝から買い物リスト')); }
 
 // ---- 冷たい序：バルク・家族の巣 ----
@@ -10431,7 +10434,7 @@ async function chapter18() { G.mode = 'cine'; S.chapter = 18; $('report').hidden
   cine(9.6, 2.3, 6.6, 7.2, 1.9, 3.8); await say('haikin', '米は、正確に炊け。……水は、一・二倍。浸けて、三十分。兄貴の、教えだ。');
   cine(9.6, 2.3, -1.8, 7.2, 1.9, 0.6); await say('fukkin', 'いただきまァァす、っス！！');
   cine(-3.0, 2.2, 5.0, -5.8, 1.9, 2.2); await say('kuro', '…………ポ・ンプの分も、よそえェ。');
-  a.fk.st = {}; await sleep(G.skip ? 0 : 400); a.fk.pos.set(-4.0, 0, 0.9); a.fk.facing = -Math.PI * 0.6; a.ponRice.visible = true; sfx('blip'); cine(-2.2, 2.6, -1.2, -4.5, 1.0, 1.9); await narr('フッ・キンが、黙って、空の椀に、米を盛った。……その椀には、誰も、手をつけなかった。');
+  a.fk.st = {}; await sleep(G.skip ? 0 : 400); a.fk.pos.set(-4.0, 0, 0.9); a.fk.facing = Math.atan2(-0.6, 1.3); a.ponRice.visible = true; sfx('blip'); cine(-2.8, 2.5, 4.4, -4.4, 1.0, 1.6); await narr('フッ・キンが、黙って、空の椀に、米を盛った。……その椀には、誰も、手をつけなかった。');
   a.fk.pos.set(7.2, 0, 0.6); a.fk.facing = Math.atan2(2.2, -2.2); a.hk.st = {}; a.hk.pos.set(-4.4, 0, 3.7); a.hk.facing = -Math.PI * 0.72; cine(-2.4, 2.4, 6.0, -5.2, 1.9, 2.9); await say('haikin', '……兄貴。寝てないだろう。');
   cine(-2.8, 2.3, 0.4, -5.8, 2.0, 2.2); await say('kuro', '寝られるかァ。'); await say('kuro', '……あいつの脚はなァ。俺より、速ぇんだ。');
   await say('kuro', '拾ったんじゃねェ。……見つけたんだ。下層の、配管の隙間で。ちっこいのが、ひとりで、一万回、数えてやがった。');
