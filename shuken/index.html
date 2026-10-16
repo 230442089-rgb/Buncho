@@ -8511,6 +8511,20 @@ function decoCorridor(g, x, y, z, len, ry, tint) { const c = new THREE.Group(); 
   for (let i = -len / 2 + 2; i < len / 2 - 2; i += 3.4) { block(1.4, 1.1, 0.06, [0xC8B070, 0x2A2438, 0x8A80A8][Math.abs(Math.round(i)) % 3], i, 2.0, -2.38, c); } for (let i = -len / 2; i < len / 2; i += 6) { const l = glowSprite(0xF0E8FF, 0.9, 0.5); l.position.set(i, 3.4, -1.8); c.add(l); }
   for (let i = 0; i < 5; i++) { const p = block(0.25, 0.9, 0.25, 0xF0F0F4, rand(-len / 2, len / 2), 0.45, rand(-1.5, 1.5), c); void p; } return c; }
 
+// ---- 鑑賞できる作品（十点） ----
+const W15 = [
+  { id: 'v1', x: -58.4, z: -5.25, w: 1.6, h: 2.2, t: '未完　第一番', a: '作：エデル　講評：満点（マエストロ全員一致）', d: (c, w, h) => { c.fillStyle = '#F6F4F0'; c.fillRect(0, 0, w, h); c.strokeStyle = '#1A1A20'; c.lineWidth = 2; c.beginPath(); c.moveTo(w * 0.32, h * 0.18); c.bezierCurveTo(w * 0.5, h * 0.4, w * 0.44, h * 0.6, w * 0.66, h * 0.84); c.stroke(); } },
+  { id: 'v2', x: -36.8, z: -5.25, w: 1.4, h: 1.8, t: '沈黙の肖像', a: '作：マエストロ・セピア', d: (c, w, h) => { c.fillStyle = '#2A2630'; c.fillRect(0, 0, w, h); c.fillStyle = '#3A4048'; c.fillRect(w * 0.2, h * 0.62, w * 0.6, h * 0.38); c.fillStyle = '#F4F4F4'; c.fillRect(w * 0.44, h * 0.62, w * 0.12, h * 0.2); c.fillStyle = '#C8B0A0'; c.beginPath(); c.ellipse(w / 2, h * 0.4, w * 0.2, h * 0.2, 0, 0, TAU); c.fill(); c.fillStyle = '#1A1A1E'; c.fillRect(w * 0.3, h * 0.2, w * 0.4, h * 0.08); c.fillStyle = '#F4F2EE'; c.fillRect(w * 0.36, h * 0.46, w * 0.28, h * 0.07); } },
+  { id: 'v3', x: -29.6, z: -5.25, w: 2.0, h: 1.4, t: '食卓', a: '作：スチューデント・ネッラ', d: (c, w, h) => { c.fillStyle = '#E8DCC8'; c.fillRect(0, 0, w, h); c.fillStyle = '#8A6A4A'; c.fillRect(w * 0.18, h * 0.5, w * 0.64, h * 0.1); c.fillRect(w * 0.22, h * 0.6, w * 0.04, h * 0.3); c.fillRect(w * 0.74, h * 0.6, w * 0.04, h * 0.3); for (const [x, on] of [[0.12, 1], [0.38, 1], [0.62, 1], [0.88, 0]]) { c.fillStyle = on ? '#6A4A30' : 'rgba(232,220,200,.9)'; c.fillRect(w * x - 8, h * 0.42, 16, h * 0.42); } c.fillStyle = '#F4F0E8'; for (const x of [0.3, 0.5, 0.7]) { c.beginPath(); c.ellipse(w * x, h * 0.48, 9, 5, 0, 0, TAU); c.fill(); } c.strokeStyle = 'rgba(255,255,255,.6)'; for (const x of [0.3, 0.5, 0.7]) { c.beginPath(); c.moveTo(w * x, h * 0.42); c.quadraticCurveTo(w * x + 6, h * 0.34, w * x, h * 0.26); c.stroke(); } } },
+  { id: 'v4', x: -22.4, z: -5.25, w: 2.0, h: 1.6, t: '色彩論　第九　「愛の、九番目の、形」', a: '作：マエストロ・オークル', d: (c, w, h) => { c.fillStyle = '#F0E8E0'; c.fillRect(0, 0, w, h); for (let i = 0; i < 40; i++) { c.globalAlpha = 0.4 + Math.random() * 0.5; c.fillStyle = ['#C82030', '#E8A040', '#5A4A8A', '#2A8A6A', '#1A1A20', '#F06AA0'][i % 6]; c.beginPath(); c.ellipse(Math.random() * w, Math.random() * h, 4 + Math.random() * 30, 3 + Math.random() * 18, Math.random() * 3, 0, TAU); c.fill(); } c.globalAlpha = 1; } },
+  { id: 'v5', x: -8.6, z: -5.25, w: 2.4, h: 1.6, t: '春日井　駅前　朝', a: '作：マエストロ・セピア', d: (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#C8D8EC'); g.addColorStop(1, '#F0ECE4'); c.fillStyle = g; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 3; c.beginPath(); c.ellipse(w * 0.7, h * 0.16, 30, 6, 0, 0, TAU); c.stroke(); c.fillStyle = '#B8BCC8'; c.fillRect(w * 0.06, h * 0.18, w * 0.5, h * 0.56); c.fillStyle = '#F8F7FF'; c.beginPath(); c.arc(w * 0.3, h * 0.42, 16, 0, TAU); c.fill(); c.fillStyle = '#F4D35E'; c.fillRect(w * 0.26, h * 0.5, 16, 18); c.fillStyle = '#E3B428'; c.font = `900 11px ${GOTHIC}`; c.fillText('陽盾', w * 0.36, h * 0.3); c.fillStyle = '#8A8C92'; c.fillRect(0, h * 0.78, w, h * 0.22); c.fillStyle = '#1A1A1A'; for (let i = 0; i < 36; i++) { const x = 6 + (i * 37) % (w - 12), y = h * 0.8 + (i * 13) % (h * 0.16); c.fillRect(x, y, 1.6, 4); } } },
+  { id: 'v6', x: 8.4, z: -5.25, w: 2.4, h: 1.6, t: '工場の点景', a: '作：マエストロ・セピア工房', d: (c, w, h) => { c.fillStyle = '#C8C4BC'; c.fillRect(0, 0, w, h); c.fillStyle = '#7A7A80'; c.fillRect(w * 0.2, h * 0.3, w * 0.6, h * 0.5); c.fillRect(w * 0.66, h * 0.08, 10, h * 0.3); c.fillStyle = 'rgba(90,90,96,.5)'; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(w * 0.68 + i * 7, h * 0.06 - i * 3, 6 + i * 2, 0, TAU); c.fill(); } c.fillStyle = '#8A9A8A'; c.fillRect(0, h * 0.8, w, h * 0.2); c.fillStyle = '#1A1A1A'; for (let i = 0; i < 12; i++) c.fillRect(w * 0.3 + i * 6, h * 0.82, 1.5, 4); for (let i = 0; i < 18; i++) { c.fillStyle = i % 2 ? '#F4F4F4' : '#1A1A1A'; c.fillRect(w * 0.1 + i * 7, h * 0.92, 1.2, 1.2); } } },
+  { id: 'v7', x: -6, z: 1.2, wall: true, w: 2.0, h: 1.3, t: '渡れない橋', a: '作：スチューデント・ルチア', d: (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#D8C8B8'); g.addColorStop(1, '#8AA0B0'); c.fillStyle = g; c.fillRect(0, 0, w, h); c.fillStyle = '#5A5E66'; c.fillRect(0, h * 0.42, w, h * 0.06); for (const x of [0.2, 0.5, 0.8]) c.fillRect(w * x - 4, h * 0.48, 8, h * 0.5); c.fillStyle = '#C82030'; c.beginPath(); c.arc(w * 0.08, h * 0.6, 10, 0, TAU); c.fill(); c.fillStyle = '#E0A040'; c.beginPath(); c.arc(w * 0.92, h * 0.6, 10, 0, TAU); c.fill(); } },
+  { id: 'v10', x: 14.0, z: 1.4, easel: true, t: '（制作中）', a: 'エデル様　制作中につき、お手を触れないでください' },
+  { id: 'v8', x: 20, z: -5.25, w: 1.6, h: 1.9, t: '空の籠', a: '作：マエストロ・オークル', d: (c, w, h) => { c.fillStyle = '#2A2430'; c.fillRect(0, 0, w, h); c.strokeStyle = '#C8B070'; c.lineWidth = 2; for (let i = 0; i <= 8; i++) { c.beginPath(); c.moveTo(w * 0.2 + i * w * 0.075, h * 0.3); c.lineTo(w * 0.2 + i * w * 0.075, h * 0.85); c.stroke(); } c.beginPath(); c.arc(w / 2, h * 0.3, w * 0.3, Math.PI, 0); c.stroke(); c.beginPath(); c.moveTo(w * 0.15, h * 0.85); c.lineTo(w * 0.85, h * 0.85); c.stroke(); c.fillStyle = '#2A2430'; c.fillRect(w * 0.44, h * 0.5, w * 0.16, h * 0.2); c.strokeRect(w * 0.6, h * 0.5, w * 0.12, h * 0.2); } },
+  { id: 'v9', x: 28.4, z: -5.25, w: 1.5, h: 1.9, t: '夜の窓', a: '作：スチューデント・ピア', d: (c, w, h) => { c.fillStyle = '#14182A'; c.fillRect(0, 0, w, h); c.fillStyle = '#2A3050'; c.fillRect(w * 0.15, h * 0.1, w * 0.7, h * 0.45); c.fillStyle = '#F0E8C8'; for (let i = 0; i < 14; i++) c.fillRect(w * 0.2 + (i * 17) % (w * 0.6), h * 0.15 + (i * 11) % (h * 0.35), 2, 2); c.fillStyle = '#C8B0A0'; c.beginPath(); c.ellipse(w * 0.5, h * 0.68, w * 0.14, h * 0.1, 0, 0, TAU); c.fill(); c.fillStyle = '#4A3A3A'; c.fillRect(w * 0.36, h * 0.56, w * 0.28, h * 0.07); c.fillStyle = '#6A5A6A'; c.fillRect(w * 0.3, h * 0.78, w * 0.4, h * 0.22); c.strokeStyle = '#1A1A1A'; c.beginPath(); c.arc(w * 0.5, h * 0.71, 6, 0.2, Math.PI - 0.2); c.stroke(); } }
+];
+const nearW15 = (x, z) => W15.some(w => !w.easel && Math.abs(w.x - x) < 1.9 && (w.z < 0) === (z < 0));
 // ---- 未完画廊　回廊（入口の広間・第一回廊「静寂」・第二回廊「点景」・第三回廊「鳥籠」） ----
 const GZ = [{ x0: -62, name: '入口の広間', rule: '当画廊では、偽りの色を、お持ち込みにならないでください。' }, { x0: -46, name: '第一回廊　静寂', rule: '走らないこと。' }, { x0: -14, name: '第二回廊　点景', rule: '作品を、五秒以上、見つめないこと。' }, { x0: 18, name: '第三回廊　鳥籠', rule: '作品の声に、応えないこと。' }];
 const zoneOf = x => x < -46 ? 0 : x < -14 ? 1 : x < 18 ? 2 : 3;
@@ -8532,21 +8546,23 @@ makeArea('gal15', { place: '神領　未完画廊　回廊', bounds: [-61.2, 51.
     plane(4.0, 2.6, signTex(400, 260, [{ t: '未完画廊　ご鑑賞の規則', size: 26, f: MINCHO, w: 800 }, { t: '一、回廊ごとの規則を、お守りください。', size: 16 }, { t: '二、規則を破られた場合、一度目は警告。', size: 16 }, { t: '　　二度目は、素材として、お預かりします。', size: 16 }, { t: '三、警告は、回廊を跨いで、数えます。', size: 16 }, { t: '四、偽りの色を、お持ち込みにならないで。', size: 16 }], { bg: '#F4F2EE', fg: '#2A2430' }), -50.5, 2.6, -5.28, g);
     // 第一回廊：静寂（来館者名簿の書見台）
     a.art = [];
-    for (let x = -44; x < -15; x += 3.6) { if (Math.abs(x + 40) < 1.5) continue; frame(g, x, 2.4, -5.25, rand(1.4, 2.2), rand(1.2, 1.8), artTex(Math.random() < 0.5 ? 'abs' : 'portrait', Math.round(x * 7)), 0x2A2430); }
+    for (let x = -44; x < -15; x += 3.6) { if (Math.abs(x + 40) < 1.5 || nearW15(x, -5)) continue; frame(g, x, 2.4, -5.25, rand(1.4, 2.2), rand(1.2, 1.8), artTex(Math.random() < 0.5 ? 'abs' : 'portrait', Math.round(x * 7)), 0x2A2430); }
     block(0.8, 1.1, 0.6, 0x2A2430, -40, 0.55, -4.2, g); a.obs.push({ x: -40, z: -4.2, hx: 0.4, hz: 0.3 }); block(0.9, 0.04, 0.7, 0xF4F0E8, -40, 1.12, -4.2, g).rotation.x = -0.3;
     for (const x of [-34, -24]) { block(0.8, 1.2, 0.8, 0xF4F2F4, x, 0.6, 1.4, g); a.obs.push({ x, z: 1.4, hx: 0.4, hz: 0.4 }); part(G_('scul', () => new THREE.TorusKnotGeometry(0.28, 0.08, 40, 8)), 0x8A80A8, x, 1.6, 1.4, g); }
     // 第二回廊：点景（風景画の隅の、小さな人影）
-    for (let x = -12; x < 17; x += 3.4) { if (Math.abs(x - 2) < 1.8) continue; const tex = artTex('land', Math.round(x * 5) + 3); frame(g, x, 2.3, -5.25, 2.2, 1.5, tex); a.art.push({ x, z: -5.0 }); }
+    for (let x = -12; x < 17; x += 3.4) { if (Math.abs(x - 2) < 1.8 || nearW15(x, -5)) continue; const tex = artTex('land', Math.round(x * 5) + 3); frame(g, x, 2.3, -5.25, 2.2, 1.5, tex); a.art.push({ x, z: -5.0 }); }
     { const big = canvasTex(320, 200, (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#C8D0DC'); gr.addColorStop(1, '#F0ECE4'); c.fillStyle = gr; c.fillRect(0, 0, w, h); c.fillStyle = '#9AA0A8'; c.fillRect(40, 70, 120, 90); c.fillStyle = '#7A808A'; for (let i = 0; i < 6; i++) c.fillRect(52 + i * 18, 84, 10, 14); c.fillStyle = '#5A4A3A'; c.fillRect(248, 120, 26, 44); c.fillStyle = '#8A9A8A'; c.fillRect(0, 160, w, 40); c.fillStyle = '#1A1A1A'; c.fillRect(240, 138, 3, 9); c.fillRect(238, 135, 6, 3); c.fillRect(243, 140, 5, 2); });
       frame(g, 2, 2.5, -5.25, 3.6, 2.25, big); a.art.push({ x: 2, z: -5.0 }); plaque(g, 2, 1.0, -5.28, ['点景　第四十七番　「扉を叩く人」', '作：マエストロ・セピア']); }
-    for (const x of [-6, 10]) { block(3.0, 3.0, 0.3, 0xF4F2F4, x, 1.5, 1.0, g); a.obs.push({ x, z: 1.0, hx: 1.5, hz: 0.2 }); frame(g, x, 1.8, 1.2, 2.0, 1.3, artTex('land', x + 40)); a.art.push({ x, z: 1.2 }); }
-    // エデルの画架
-    block(0.06, 2.2, 0.06, 0x5A4A3A, 13.4, 1.1, 2.6, g); block(0.06, 2.2, 0.06, 0x5A4A3A, 14.6, 1.1, 2.6, g); const ec = plane(1.3, 1.6, artTex('abs', 77), 14.0, 1.7, 2.62, g); ec.rotation.y = Math.PI; a.obs.push({ x: 14.0, z: 2.6, hx: 0.7, hz: 0.2 });
-    a.ed = npc(a, 'edel', makeChar(FAMLK.edel), 14.0, 3.5, Math.PI); a.ed.lookAt = null;
+    for (const x of [-6, 10]) { block(3.0, 3.0, 0.3, 0xF4F2F4, x, 1.5, 1.0, g); a.obs.push({ x, z: 1.0, hx: 1.5, hz: 0.2 }); if (x !== -6) frame(g, x, 1.8, 1.2, 2.0, 1.3, artTex('land', x + 40)); a.art.push({ x, z: 1.2 }); }
+    // エデルの画架（本人は、ここにいない。白い布がかけられている）
+    block(0.06, 2.2, 0.06, 0x5A4A3A, 13.4, 1.1, 2.6, g); block(0.06, 2.2, 0.06, 0x5A4A3A, 14.6, 1.1, 2.6, g); block(1.5, 1.8, 0.08, 0xF4F2EE, 14.0, 1.7, 2.55, g); for (let k = 0; k < 4; k++) block(0.04, 1.7, 0.1, 0xE4E0DA, 13.4 + k * 0.4, 1.65, 2.5, g); a.obs.push({ x: 14.0, z: 2.6, hx: 0.8, hz: 0.2 });
+    plane(1.2, 0.3, signTex(240, 60, [{ t: 'エデル様　制作中', size: 18, w: 800 }, { t: 'お手を触れないでください', size: 12 }], { bg: '#F4F2EE', fg: '#2A2430' }), 14.0, 0.6, 2.48, g).rotation.y = Math.PI;
+    // 鑑賞できる作品
+    for (const w of W15) { if (w.easel) continue; const tex = canvasTex(200, Math.round(200 * w.h / w.w), w.d); frame(g, w.x, w.wall ? 1.8 : 2.4, w.z, w.w, w.h, tex, w.id === 'v1' ? 0xE8E4DC : 0xC8B070); plaque(g, w.x, w.wall ? 0.84 : 1.0, w.z + (w.wall ? 0.06 : -0.03), [w.t, w.a]); if (w.x > -14 && w.x < 18) a.art.push({ x: w.x, z: w.wall ? w.z : -5.0 }); }
     // 第三回廊：鳥籠（生きた文鳥が組み込まれた作品）
     a.birds = [];
     for (const [x, id] of [[23, 'g3b1'], [31, 'g3b2'], [39, 'g3b3']]) { frame(g, x, 2.3, -5.25, 2.4, 2.0, artTex('abs', x), 0x3A2A2A); const b = npc(a, 'gbird', (x === 31 ? bunshokuBird : tsujiBird)(), x, -5.0, 0); b.y = 0.95; for (const l of b.model.legs) l.visible = false; b.model.root.traverse(o => { if (o.geometry && o.geometry.type === 'CircleGeometry') o.visible = false; }); b.st.armsUp = true; b.id = id; a.birds.push(b); part(G_('cring', () => new THREE.TorusGeometry(0.62, 0.12, 8, 24)), 0xF0ECE4, x, 1.95, -5.12, g, { outline: false }); for (let k = 0; k < 7; k++) block(0.05, rand(0.3, 0.9), 0.02, [0xB03040, 0x5A4A8A, 0xE8C878][k % 3], x + rand(-1.0, 1.0), rand(1.0, 1.6), -5.18, g); }
-    for (let x = 20; x < 50; x += 4.2) { if ([23, 31, 39].some(v => Math.abs(v - x) < 2.4) || x > 45) continue; frame(g, x, 2.4, -5.25, 1.6, 1.3, artTex('abs', x * 3), 0x3A2A2A); }
+    for (let x = 20; x < 50; x += 4.2) { if ([23, 31, 39].some(v => Math.abs(v - x) < 2.4) || x > 45 || nearW15(x, -5)) continue; frame(g, x, 2.4, -5.25, 1.6, 1.3, artTex('abs', x * 3), 0x3A2A2A); }
     { const gb = new THREE.Mesh(box(1.3, 1.6, 1.3), new THREE.MeshPhongMaterial({ color: 0xD8E8FF, transparent: true, opacity: 0.22, shininess: 90, depthWrite: false })); gb.position.set(35, 1.6, 2.0); g.add(gb); block(1.5, 0.8, 1.5, 0x2A2430, 35, 0.4, 2.0, g); a.obs.push({ x: 35, z: 2.0, hx: 0.75, hz: 0.75 }); const cb = npc(a, 'gbird', makeBird({ coat: 0xF2F0EA, pants: 0x22242A, s: 0.7 }), 35, 2.0, 0.4); cb.y = 0.82; cb.st.bow = true; cb.st.bowA = 1.0; a.cube = cb; a.birds.push(cb); }
     plane(2.6, 1.6, signTex(260, 160, [{ t: '本日の搬入', size: 22, w: 900 }, { t: '十九時　素材一点', size: 17 }, { t: '静州商事　立会い担当（男・一名）', size: 15 }, { t: '受領：主任ドーセント・ヴェーラ', size: 14 }], { bg: '#F4F2EE', fg: '#2A2430' }), 47.4, 2.4, -5.28, g);
     // 構成員
@@ -8557,6 +8573,7 @@ makeArea('gal15', { place: '神領　未完画廊　回廊', bounds: [-61.2, 51.
     addItem(a, { id: 'g1book', x: -40, z: -3.2, label: '来館者名簿', col: 0xE3B428, avail: () => S.chapter === 15 && S.flags.c15st === 'gal', on: () => evGal15('book') });
     addItem(a, { id: 'g2scene', x: 2, z: -3.6, label: '絵を見る', col: 0xE3B428, avail: () => S.chapter === 15 && S.flags.c15st === 'gal', on: () => evGal15('scene') });
     for (const b of a.birds) addItem(a, { id: b === a.cube ? 'g3cube' : b.id, x: b.pos.x, z: b === a.cube ? 3.1 : -3.5, label: '作品', col: 0xC8323C, once: false, avail: () => S.chapter === 15 && S.flags.c15st === 'gal', on: () => evBird15(b) });
+    for (const w of W15) addItem(a, { id: 'w15' + w.id, x: w.x, z: w.easel ? 1.2 : w.wall ? 2.5 : -3.7, r: 1.5, label: w.easel ? '画架を見る' : '鑑賞する', col: 0x9A8AD0, avail: () => S.chapter === 15 && S.flags.c15st === 'gal', on: () => viewArt15(w) });
     addItem(a, { id: 'g3plan', x: 47.4, z: -3.6, label: '掲示を読む', col: 0xE3B428, avail: () => S.chapter === 15 && S.flags.c15st === 'gal', on: () => evGal15('plan') });
     addItem(a, { id: 'g0exit', x: -60.4, z: 0, r: 2.0, label: '外へ出る', col: 0xC8323C, once: false, avail: () => S.chapter === 15 && S.flags.c15st === 'gal', on: () => evExit15() }); },
   tick(a, dt) { galTick15(a, dt); a.birds.forEach((b, i) => { if (b === a.cube) { b.st.bowA = 1.0 + Math.sin(T.now * 3 + i) * 0.15; return; } const k = Math.sin(T.now * 4 + i * 2) > 0; b.st.armsUp = k; b.st.windup = !k; }); },
@@ -8584,7 +8601,7 @@ function galTick15(a, dt) { if (S.chapter !== 15 || S.flags.c15st !== 'gal') ret
     if (a.runT <= 0) a.stepWarn = false;
     if (a.runT >= 1.2) { a.runT = 0; run(() => violate15(1)); return; } }
   if (z === 2) { const near = a.art.some(p => Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 2.6); a.gaze = near && !P.st.walk ? (a.gaze || 0) + dt : Math.max(0, (a.gaze || 0) - dt * 1.5); updGaze15(a.gaze / 5); if (a.gaze >= 5) { a.gaze = 0; run(() => violate15(2)); return; }
-    if (!S.flags.c15edel && Math.hypot(P.pos.x - a.ed.pos.x, P.pos.z - a.ed.pos.z) < 3.6) { run(evEdel15); return; } }
+    if (!S.flags.c15edel && a.zoneT > 1.2) { run(evEdel15); return; } }
   if (z === 3) { a.cryT = (a.cryT || 2) - dt; if (a.cryT <= 0) { a.cryT = rand(3, 6); if (a.birds.some(b => Math.hypot(P.pos.x - b.pos.x, P.pos.z - b.pos.z) < 8)) { toast(pick(CRIES)); sfx('blip'); } } } }
 // ---- 規則違反：一度目は警告、二度目は素材化 ----
 const WARN15 = { 1: ['お客さま。……この回廊では、走らないでくださいまし。', '足音は、作品の呼吸を、乱しますの。'], 2: ['……見つめすぎですわ、お客さま。', '点景は、見つめる側も、いつのまにか、点景に、なってしまいますの。'], 3: ['……作品に、応えてはいけませんわ。', '作品は、応えてもらうために、叫んでいるのではありませんの。'] };
@@ -8612,7 +8629,7 @@ async function retry15() { const a = AREAS.gal15; if (a.goFrame) { a.g.remove(a.
 
 // ---- 序：入口の広間 ----
 async function chapter15() { G.mode = 'cine'; S.chapter = 15; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); P.model.root.visible = true; GL.base = 0; newsBar(false); bgm('');
-  S.flags.c15st = 'intro'; S.flags.c15warn = 0; S.flags.c15c = {}; S.flags.c15edel = false; CP15 = null;
+  S.flags.c15st = 'intro'; S.flags.c15warn = 0; S.flags.c15c = {}; S.flags.c15edel = false; S.flags.c15view = []; CP15 = null;
   await goArea('gal15', [-58.6, 0], Math.PI / 2); const a = AREAS.gal15; a.zone = -1; a.ve.hidden = true; bgm('gallery');
   pan([-8, 22, 34], [-20, -8, 2], [-44, 9, 16], [-56, 0, -2], 14); await card('第七章　序', '神領　未完画廊　午後六時十分', 2400);
   await narr('黒い硝子の扉の向こうは、思っていたより、ずっと、長かった。');
@@ -8658,17 +8675,56 @@ async function evBird15(b) { const a = AREAS.gal15, id = b === a.cube ? 'g3cube'
   if (id === 'g3b2' && !(S.flags.c15c || {}).cry) { await say('gbird', '……した……したで……にんげんが……まいばん……ドアを……たたいてる……'); await say('gbird', '……とんとん……とんとん……って……ずっと……'); await saku('……下。地下だ。', '第三収蔵庫。……今は、聞くだけだ。助けるのは、今じゃない。'); clue15('cry'); }
   else await saku('……今は、聞くだけだ。', '覚えておけ。この声も、全部。');
   playOn(); objGal15(); }
-// ---- エデル ----
-async function evEdel15() { const a = AREAS.gal15, ed = a.ed; S.flags.c15edel = true; G.mode = 'cine'; galHud(false); ed.lookAt = null;
-  P.pos.set(11.4, 0, 3.0); P.facing = Math.PI / 2; cine(17.6, 2.0, 4.6, 14.0, 1.4, 3.4); await narr('画架の前に、白銀の髪の竜が、立っていた。……影が、足もとから、枝のように伸びている。');
-  nameCard({ s: '外神竜（親戚・アセラの姉）　未完画廊（本人は経営しない）', b: 'エデル', e: 'えでる', col: '#8C80B8', p: '現実、因果、確率、記憶、感情を、作品の素材として扱う竜。\n白銀のくせ毛、丸眼鏡、肩から落とした黒いジャケット。\n支配にも、評価にも、ほとんど興味がない。' }); await sleep(G.skip ? 0 : 1800); nameCard(null);
-  ed.lookAt = 'P'; P.facing = Math.atan2(ed.pos.x - P.pos.x, ed.pos.z - P.pos.z); cine(10.6, 1.9, 5.0, 14.0, 1.7, 3.4); await say('edel', '……君か。今朝の画布に混じっていた、二色の。');
-  await say('edel', 'ここの子たちの作品には、興味がないんだ。……点景は、醜い。人を、絵の隅に、置くだけだから。');
-  await say('edel', 'でも、君の輪郭は、まだ、面白い。……点景にされないように、気をつけて。');
-  await say('edel', '……それと。地下で、ずっと、扉を叩く音がする。あれは、うるさくて、嫌いだ。');
-  ed.lookAt = null; ed.facing = Math.PI; await say('edel', '……そこ、光が違う。どいてくれるかな。');
-  await saku('……あれが、エデルか。', '殴る竜でも、焼く竜でもない。……見ているだけで、全部、決めてしまう竜だ。');
-  playOn(); objGal15(); galHudSet(zoneOf(P.pos.x)); }
+// ---- 作品を鑑賞する：分かりにくさ、朔の疑い、自分たちの逸脱、久世の回顧と、この国のこと ----
+const ART15 = {
+  v1: [['n', '白い画布に、細い線が、一本。……それだけだった。'], ['k', '……。'], ['s', '線一本で、満点。マエストロ全員一致、だとさ。'], ['n', '題簽の下に、講評が、びっしりと貼られていた。「余白の暴力」「線の倫理」「不在の完成」。……絵より、講評のほうが、ずっと長かった。'], ['k', '……この線は、迷ってない。それだけは、分かる。'], ['s', '迷ってないのは、描いた奴だけだ。講評を書いた連中は、たぶん、全員、迷ってる。']],
+  v2: [['n', '背広の男の肖像。……口だけが、白く、塗りつぶされていた。'], ['s', '黙ってる人間の絵か。……俺たちの、得意分野だな。'], ['n', '会議室で、笑って、頷いて、何も言わない。……静州商事の久世は、毎日、この顔をしている。'], ['k', '言わないことで、守ってきたものも、ある。'], ['s', '言わないことで、失くしたものもな。……浅井のとき、お前は、最後まで、何も言えなかった。'], ['k', '……ああ。']],
+  v3: [['n', '四人掛けの食卓。湯気の立つ椀が、三つ。……四つ目の椅子だけが、背景の色で、塗り消されていた。'], ['k', '……。'], ['n', '父が、席を追われた夜を、思い出した。新月だった。食卓の父の椀は、朝まで、そこにあった。'], ['k', '母さんは、次の日も、四人分、よそった。……その次の日も。渉が、黙って、父さんの分を、食べてた。'], ['s', '……ここで、それを、思い出すな。'], ['k', '分かってる。……分かってるよ。'], ['s', '学生の絵だ。たまたまだ。……たまたまで、刺さるのが、いちばん、たちが悪い。']],
+  v4: [['n', '絵の具を、そのまま、叩きつけたような画面。……題簽によれば、これは「愛の、九番目の、形」らしい。'], ['k', '……どこが。'], ['k', '愛、か。この国の異種族は、みんな、人間を愛してる。……愛してるから、囲う。愛してるから、代わりに、決めてやる。'], ['s', '九番目どころか、百番目まであるぞ。……全部、人間の同意の欄が、空白のな。'], ['k', '……第十四条だ。出向者の同意は、乙の承諾をもって、これに代える。'], ['s', 'あの一行から、全部、始まったんだったな。お前の、この仕事は。']],
+  v5: [['n', '見覚えのある、駅前だった。……画面の半分を、竜の女の看板が、占めている。空には、天環の、光る環。'], ['n', '人間は、画面の下の隅に、小さく、何十人も描き込まれていた。……みんな、同じ方向に、歩いている。'], ['k', '……毎朝、ここを、歩いてた。'], ['s', '点景派ってのは、案外、正直なのかもな。この国の人間を、見たとおりに、描いてる。'], ['k', '主役は、看板の竜と、空の環。人間は、絵の隅。……誰も、それを、おかしいとは、言わない。'], ['k', '言っても、絵は、変わらない。……だから、絵の外に、出たんだ。'], ['s', '留保に、な。……出た先も、別の額縁だったけどな。']],
+  v6: [['n', '煙を吐く工場。門の前に、小さな人影の列。……その足もとに、もっと小さな、白と黒の点が、いくつも、描かれていた。'], ['k', '……文鳥か。'], ['s', '人間を絵の隅に置く連中が、文鳥は、もっと隅に、置くわけだ。'], ['k', '文食品で、人間は、肉にされかけた。……文鳥は、それを、ガチ旨って、食べてた。'], ['k', 'でも、この画廊の奥じゃ、その文鳥が、額縁に、埋められてる。……誰が、誰の、点景なんだろうな。'], ['s', '強い奴が、弱い奴を、隅に描く。それだけの話だ。どこの世界でも。'], ['k', '……それだけの話に、するな。']],
+  v7: [['n', '大きな橋の絵。竜と鬼が、両側から、橋桁を、支えている。……橋の上には、誰もいない。'], ['n', '題簽の下に、作者の言葉。「人間が渡るための橋に、人間は、描かれていない」'], ['k', '……高蔵寺の、新橋だ。'], ['s', 'あの夜、お前は、橋の下にいた。橋の上で笑ってた来賓は、誰も、下を見なかった。'], ['k', '竜と鬼が作って、人間が渡る。……それで、いいと、思ってた時期も、あった。'], ['k', 'この国の人間は、渡る橋を、自分で、決めたことがない。……ずっと。'], ['s', '界域協定ってのは、そういう紙だ。最終条項まで読んだ人間は、ほとんど、いない。']],
+  v8: [['n', '扉の開いた、鳥籠の絵。……中には、何も、いない。'], ['n', '回廊のどこかで、文鳥が、まだ、叫んでいた。'], ['k', '……出ていけたのか。それとも、最初から、いなかったのか。'], ['s', 'どっちでもいい。扉が開いてても、出ていかない奴は、出ていかない。'], ['k', '留保。……決めずに、とっておく、という意味だ。'], ['k', '俺は、誰に、とっておかれてるんだろうな。黒岩さんか。この国か。……それとも、まだ、誰でもないのか。'], ['s', '扉は、開いてる。……出るかどうかは、お前が、決めろ。']],
+  v9: [['n', '夜の窓辺で、女が、笑っている絵。……窓の外の誰かの名前を、呼んでいるように、見えた。'], ['k', '……。'], ['s', '似てるだけだ。'], ['k', '分かってる。'], ['n', '月に一度、施設の面会室で、母は、窓の外を見て、父の名前を呼んで、笑う。……返事は、二十一年、一度も、ない。'], ['k', '母さんの笑い声を、いつから、怖いと思うようになったんだろう。……昔は、あの声が、いちばん、好きだったのに。'], ['s', '……行くぞ。ここは、長くいる場所じゃない。']],
+  v10: [['n', '画架には、白い布が、かけられていた。札が、一枚。「エデル様　制作中につき、お手を触れないでください」'], ['s', '……画廊の主は、留守か。'], ['k', '留守、というより。……こっちのことなんか、見てもいないんだろう。'], ['s', 'この画廊ごと、自分の絵の額縁でしかない、ってわけだ。……講評も、序列も、点景も。']]
+};
+async function viewArt15(w) { const a = AREAS.gal15; markI('w15' + w.id); G.mode = 'cine'; const z = zoneOf(w.x);
+  if (w.easel) { P.pos.set(w.x + 1.2, 0, 0.8); cine(w.x - 1.4, 2.0, -0.6, w.x + 0.2, 1.6, 2.5); } else if (w.wall) { P.pos.set(w.x + 1.5, 0, 2.5); cine(w.x - 1.1, 2.0, 4.8, w.x + 0.3, 1.8, 1.2); } else { P.pos.set(w.x + 1.5, 0, -3.3); cine(w.x - 1.1, 2.1, -1.2, w.x + 0.3, 2.2, -5.2); }
+  P.facing = Math.atan2(w.x - P.pos.x, (w.easel ? 2.6 : w.z) - P.pos.z);
+  if (!w.easel) { await narr('『' + w.t + '』　' + w.a); }
+  for (const [who, t] of ART15[w.id]) { if (who === 'n') await narr(t); else if (who === 'k') await say('kuze', t); else await saku(t); }
+  const v = S.flags.c15view = [...new Set([...(S.flags.c15view || []), w.id])], n = v.length;
+  if (n === 1) { await say('kuze', '……ここの絵は、どれも、分かりにくいな。'); await saku('分かりにくく、してるんだろ。……奇をてらってるだけじゃないのか、ここのは。'); }
+  if (n === 3) { await saku('……いや。作品のせいじゃ、ないのかもしれない。'); await saku('分からないものを、分かったふりして、講評を書いて、序列を登る。……そういう奴が、ここには、紛れてるんだろうな。');
+    await say('kuze', '……人のことは、言えない。'); await say('kuze', '一つの体に、二人。人前では、別の名前、別の顔。……俺たちだって、まともな感覚の持ち主じゃない。逸脱してるのは、こっちも同じだ。'); await saku('逸脱者が、逸脱者の絵を見て、首をかしげてるわけか。……笑えるな。'); await say('kuze', '……ああ。少しだけ。'); }
+  if (n === 6) { await say('kuze', '……この画廊は、この国の、縮図なのかもしれない。'); await say('kuze', '誰かが講評して、点数をつけて、人間は、絵の隅で、それを待つ。'); await saku('で、点数をつけてる連中も、てっぺんの竜の絵の前じゃ、首をかしげてる。……いちばん上の奴だけが、何も、気にしてない。'); }
+  if (z === 2) await narr('……五秒。目を、逸らした。');
+  toast('鑑賞：' + (w.easel ? '画架' : '『' + w.t + '』') + '（' + n + '／' + W15.length + '）'); playOn(); objGal15(); }
+// ---- 同じ頃：エデル（久世には会わない。ただ、描いている） ----
+async function evEdel15() { S.flags.c15edel = true; G.mode = 'cine'; galHud(false); const back = { x: P.pos.x, z: P.pos.z, f: P.facing };
+  await goArea('atelier14'); const a = AREAS.atelier14, ed = a.ed; a.as.hidden = true; bgm('gallery'); ed.pos.set(0.2, 0, -0.4); ed.facing = Math.PI; ed.lookAt = null; ed.st = {};
+  if (!a.ro) a.ro = npc(a, 'rosina', memberChar('rosina'), 3.6, 2.2, -Math.PI * 0.75); const ro = a.ro; ro.hidden = false; ro.pos.set(3.4, 0, 1.8); ro.lookAt = ed.pos; ro.st = {};
+  pan([0, 5, 9], [0, 2, -2], [2.6, 2.4, 3.4], [0, 1.6, -1.2], 7); await narr('同じ頃。……画廊の、さらに奥。');
+  await narr('エデルは、描いていた。回廊のことも、搬入のことも、たぶん、知らない。……知る気も、ない。');
+  cine(5.4, 2.2, 3.6, 1.8, 1.4, 0.6); await say('rosina', 'エデル様。……今夜の搬入の件で、ご報告が。');
+  cine(1.9, 1.75, -1.3, 0.2, 1.6, -0.5); await say('edel', 'うん。');
+  cine(5.4, 2.2, 3.6, 1.8, 1.4, 0.6); await say('rosina', '立会いの男が、もう、回廊に入っております。受領は、主任が。');
+  cine(1.9, 1.75, -1.3, 0.2, 1.6, -0.5); await say('edel', 'うん。');
+  cine(5.4, 2.2, 3.6, 1.8, 1.4, 0.6); await say('rosina', '……それと、マエストロ・セピアが、新作「扉を叩く人」の講評を、ぜひ、エデル様に、と。');
+  await narr('筆は、止まらなかった。');
+  cine(1.9, 1.75, -1.3, 0.2, 1.6, -0.5); await say('edel', '……ふっ。');
+  await say('edel', '見なくても、分かるよ。隅に、小さな人がいる絵だろう。……満点で、いいよ。好きに書いておいて。');
+  cine(5.4, 2.2, 3.6, 1.8, 1.4, 0.6); await say('rosina', '……よろしいのですか。');
+  cine(1.9, 1.75, -1.3, 0.2, 1.6, -0.5); await say('edel', '君たちの点数で、私の筆が、一本でも、変わるかい。');
+  cine(5.4, 2.2, 3.6, 1.8, 1.4, 0.6); await say('rosina', '……例の、二色の方も、今夜、いらしています。今朝、エデル様が「面白い」と。');
+  cine(1.9, 1.75, -1.3, 0.2, 1.6, -0.5); await say('edel', 'そうだった？');
+  await say('edel', '……ああ、そう。今は、こっちの青が、乾かないんだ。');
+  cine(3.8, 1.6, 1.4, 3.0, 1.0, -0.6); await narr('机の上で、青い宝石が、ひとつ、砕かれていた。……「友を守りたい」という、青。');
+  cine(1.9, 1.75, -1.3, 0.2, 1.6, -0.5); await say('edel', '持ち主の顔は、覚えてない。……でも、この青は、悪くない。');
+  cine(5.4, 2.2, 3.6, 1.8, 1.4, 0.6); await say('rosina', '……失礼いたしました。'); ro.lookAt = null; walkTo(ro, 7.0, 3.6, 1.4).then(() => { ro.hidden = true; });
+  cine(0.6, 2.4, 3.6, 0.1, 1.7, -1.2); await say('edel', '……ふっ。');
+  await narr('影の手が、また、新しい筆を、取った。……誰が来ても、誰が帰らなくても、その筆は、止まらなかった。');
+  ro.hidden = true; await goArea('gal15', [back.x, back.z], back.f); bgm('gallery'); AREAS.gal15.zoneT = 0; playOn(); objGal15(); galHudSet(zoneOf(P.pos.x)); cp15save(); }
 // ---- 出口：主任ドーセント・ヴェーラ ----
 async function evExit15() { const n = clueN15(); if (n < 4) { const miss = CLUE15.filter(([k]) => !(S.flags.c15c || {})[k]).map(c => c[1]).join('、'); await say('kuze', '……まだだ。'); await saku('足りない。……' + miss + '。', '真壁の居場所と、搬入。両方、持って出ろ。'); playOn(); return; }
   S.flags.c15st = 'exit'; P.pos.set(-57.8, 0, 0); P.facing = -Math.PI / 2; cp15save('exit'); await exitTalk15(); }
@@ -8722,7 +8778,8 @@ function showReport15() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>搬入</td><td>来館者名簿：三か月前の「立会い」真壁悠、退館の欄は空白。同じ書式の立会いが並び、全員、帰っていない。本日の搬入：素材一点＝静州商事の立会い担当（男・一名）。……今夜の素材は、久世だった</td></tr>' +
     '<tr><td>真壁</td><td>点景　第四十七番「扉を叩く人」（作：マエストロ・セピア）。所在：第三収蔵庫（常設外）。組み込まれた文鳥「下で、人間が、毎晩、ドアを叩いてる」。エデル「地下で、ずっと、扉を叩く音がする」。真壁は、地下で、生きている</td></tr>' +
     '<tr><td>鳥籠</td><td>生きた文鳥が、画布に組み込まれ、助けを叫んでいた。応えることは、規則で禁じられていた。久世は、黙って、見た</td></tr>' +
-    '<tr><td>エデル</td><td>「点景は、醜い。人を、絵の隅に、置くだけだから」「君の輪郭は、まだ、面白い。点景にされないように、気をつけて」</td></tr>' +
+    '<tr><td>鑑賞</td><td>' + (S.flags.c15view || []).length + '／' + W15.length + '　どれも分かりにくい。朔「奇をてらってるだけじゃないのか」。「分からないものを分かったふりして序列を登る奴が、ここには紛れてるんだろう」。久世「一つの体に二人。逸脱してるのは、こっちも同じだ」。塗り消された四つ目の椅子、口を塗られた肖像、夜の窓で笑う女。人間は、駅前の絵の隅にいた</td></tr>' +
+    '<tr><td>エデル</td><td>回廊には現れない。画廊の奥で、ただ描いている。点景派の講評を頼まれ「……ふっ。見なくても分かるよ。満点でいいよ」。二色の客のことを聞かれ「そうだった？……今は、こっちの青が、乾かない」。机の上で砕かれていたのは、「友を守りたい」という青だった</td></tr>' +
     '<tr><td>ヴェーラ</td><td>「素材は、熟してから、いただくものですわ」。搬入は延期。「また、お越しになりますわ。真壁さまが、ここに、いる限り」</td></tr>' +
     '<tr><td>次</td><td>久世は、翠絡のレウネに返事をした。「会おう」</td></tr></table>' +
     '<p class="close">一人じゃ、叩けない扉がある。<br>第七章（準備中）</p>' +
