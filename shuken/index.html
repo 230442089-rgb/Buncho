@@ -10620,11 +10620,11 @@ async function afterFight18() { const a = AREAS.rotary18, dg = a.dg, dr = a.dr; 
 
 // ---- B.U.N：速報を見る家族 ----
 async function goNest18b() { G.mode = 'cine'; S.flags.c18st = 'rumor'; await goArea('nest18'); const a = AREAS.nest18, ku = a.kuro; bgm('bun'); a.holo.visible = true; a.ponRice.visible = true;
-  ku.pos.set(9.4, 0, 3.2); ku.facing = Math.PI / 2; ku.st = {}; a.fk.pos.set(10.4, 0, 1.4); a.fk.facing = Math.PI / 2; a.fk.st = {}; a.hk.pos.set(-11.6, 0, 4.8); a.hk.facing = Math.PI / 2; a.hk.st = {};
-  a.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; n.pos.set(6.6 + (i % 3) * 1.0, 0, -1.2 + Math.floor(i / 3) * 1.6 + (i % 3 === 1 ? 0.6 : 0)); if (Math.hypot(n.pos.x - 7.0, n.pos.z - 2.2) < 1.1) n.pos.z += 1.3; if (Math.hypot(n.pos.x - ku.pos.x, n.pos.z - ku.pos.z) < 1.2) n.pos.x -= 1.4; n.facing = Math.PI / 2; });
+  ku.pos.set(9.4, 0, 1.8); ku.facing = Math.PI / 2; ku.st = {}; a.fk.pos.set(10.2, 0, -0.6); a.fk.facing = Math.PI / 2; a.fk.st = {}; a.hk.pos.set(-11.6, 0, 4.8); a.hk.facing = Math.PI / 2; a.hk.st = {};
+  a.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; const k = i % 6, row = i < 6 ? 0 : 1; n.pos.set(6.4 + (k % 3) * 1.1, 0, row ? 4.2 + Math.floor(k / 3) * 1.2 : -2.6 + Math.floor(k / 3) * 1.1); n.facing = Math.PI / 2; });
   newsBar(true, '「未帰還の一羽」、春日井で目撃か　勝川駅前で乱闘', '「人間と一緒にいた」との証言も　B.U.N 地上組'); cine(5.2, 3.0, 3.0, 12.6, 3.4, 3.0); await card('B.U.N　バルク・家族の巣', '同じ日　正午', 1600);
-  cine(12.0, 2.3, -0.4, 10.4, 1.9, 1.4); await say('fukkin', '兄貴ィィ！！　この、脚の運び……ポ・ンプっス！！　間違いねェっス！！'); cut18(11.8, 2.5, 4.2, 9.4, 2.4, 3.2); await say('kuro', '…………生きてたかァ。');
-  await narr('No.7 の声が、はじめて、小さかった。'); ku.st = { armsUp: true }; G.shake = 0.6; sfx('roar'); voiceRing(9.4, 3.0, 3.2, 0xE8403A, 7, 0.7); await say('kuro', '行くぞォォォォ！！！　地上へェェェェ！！！');
+  cut18(12.2, 2.3, -1.8, 10.2, 1.9, -0.6); await say('fukkin', '兄貴ィィ！！　この、脚の運び……ポ・ンプっス！！　間違いねェっス！！'); cut18(11.9, 2.5, 2.6, 9.4, 2.4, 1.8); await say('kuro', '…………生きてたかァ。');
+  await narr('No.7 の声が、はじめて、小さかった。'); ku.st = { armsUp: true }; G.shake = 0.6; sfx('roar'); voiceRing(9.4, 3.0, 1.8, 0xE8403A, 7, 0.7); await say('kuro', '行くぞォォォォ！！！　地上へェェェェ！！！');
   for (const n of a.mem) n.st = { armsUp: true }; cut18(12.2, 3.6, 2.4, 7.6, 1.6, 2.4); await say('bulkM', 'ハアッ！！　ハアッ！！'); newsBar(false);
   for (const n of a.mem) n.st = {}; ku.st = { run: true }; walkTo(ku, -9.4, 4.8, 9).then(() => { ku.st = {}; }); cine(-4.0, 3.0, 7.6, -9.0, 1.6, 4.8); await sleep(G.skip ? 0 : 1600); ku.goal = null; ku.st = {}; ku.pos.set(-9.4, 0, 4.8); ku.facing = -Math.PI / 2;
   cine(-7.0, 2.4, 7.0, -11.0, 1.9, 4.8); await say('haikin', '……兄貴。'); await narr('ハイ・キンが、その広すぎる背中で、降下口を、塞いでいた。');
@@ -10649,14 +10649,14 @@ async function goCall18() { G.mode = 'cine'; S.flags.c18st = 'call'; newsBar(fal
   cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); await say('kuroiwa', 'やれ。'); cine(1.0, 1.65, 0.6, 1.6, 1.0, 2.4); sfx('holo'); fxFlash(1.6, 0.3, 2.4, 0x8AC8F0, 1.6, 0.4); await narr('ポ・ンプが、脚の環を、二度、叩いた。'); await say('ponpu', '……兄貴。');
   // 巣
   await goArea('nest18'); const N = AREAS.nest18, ku = N.kuro; bgm('nest18'); N.holo.visible = false; N.ponRice.visible = true; if (!N.ponHolo) { const h = ponpuModel(false), hm = new THREE.MeshLambertMaterial({ color: 0x6AC8FF, emissive: 0x1A4A7A, transparent: true, opacity: 0.55, depthWrite: false }); h.root.traverse(o => { if (o.isMesh) o.material = o.material && o.material.side === THREE.BackSide ? new THREE.MeshBasicMaterial({ color: 0x2A6AA8, side: THREE.BackSide, transparent: true, opacity: 0.4, depthWrite: false }) : hm; }); h.root.position.set(-4.2, 0.15, -0.2); h.root.rotation.y = Math.atan2(-2.4, 2.4); N.g.add(h.root); N.ponHolo = h.root; N.ponHoloG = glowSprite(0x6AC8FF, 1.6, 0.25); N.ponHoloG.position.set(-4.2, 0.2, -0.2); part(cyl(0.5, 0.6, 0.12, 20), 0x3A3A44, -4.2, 0.06, -0.2, N.g, { emis: 0x1A3A5A }); N.g.add(N.ponHoloG); }
-  N.ponHolo.visible = true; N.ponHoloG.visible = true; ku.pos.set(-6.6, 0, 2.2); ku.facing = Math.atan2(2.4, -2.4); ku.st = {}; N.fk.pos.set(-1.8, 0, 0.9); N.fk.facing = Math.atan2(-2.4, -1.1); N.fk.st = {}; N.hk.pos.set(-3.4, 0, 4.0); N.hk.facing = -Math.PI * 0.25; N.hk.st = {};
+  N.ponHolo.visible = true; N.ponHoloG.visible = true; ku.pos.set(-6.6, 0, 2.2); ku.facing = Math.atan2(2.4, -2.4); ku.st = {}; N.fk.pos.set(-1.8, 0, 0.9); N.fk.facing = Math.atan2(-2.4, -1.1); N.fk.st = {}; N.hk.pos.set(-3.4, 0, 4.0); N.hk.facing = Math.atan2(-0.8, -4.2); N.hk.st = {};
   N.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; n.pos.set(-1.6 + (i % 6) * 1.1, 0, i < 6 ? -0.2 : 4.6); n.facing = Math.atan2(-4.2 - n.pos.x, -0.2 - n.pos.z); });
   cut18(-4.4, 2.5, 0.9, -6.6, 2.3, 2.2); await say('kuro', '…………ポ・ンプ。'); await narr('No.7 の声が、また、小さかった。');
   cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '兄貴。……ただいま、っす。……じゃなくて。生きてるっす。');
   cine(0.6, 2.3, -1.2, -1.8, 2.0, 0.9); N.fk.st = { armsUp: true }; await say('fukkin', 'ポ・ンプゥゥゥ！！　生きてたっスゥゥゥ！！'); for (const n of N.mem) n.st = { armsUp: true }; await say('bulkM', 'ハアッ！！　ハアッ！！'); for (const n of N.mem) n.st = {}; N.fk.st = {};
   cut18(-4.4, 2.5, 0.9, -6.6, 2.3, 2.2); await say('kuro', 'どこだァ！！　今すぐ、迎えに――'); cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '来ないで、ほしいっす。'); sfx('tick'); await narr('巣が、静かになった。');
   await say('ponpu', '迷子になって、人間の人に、拾ってもらったっす。飯も、食わせてもらったっす。プロテインも、買ってもらったっす。……ココア味っす。');
-  cut18(-4.4, 2.5, 0.9, -6.6, 2.3, 2.2); await say('kuro', '……人間、だとォ。'); cine(-1.0, 2.0, 5.4, -3.4, 2.0, 4.0); await narr('ハイ・キンが、黒眼鏡の奥で、No.7 を見た。');
+  cut18(-4.4, 2.5, 0.9, -6.6, 2.3, 2.2); await say('kuro', '……人間、だとォ。'); cut18(-3.6, 2.2, 1.4, -3.4, 2.0, 4.0); await narr('ハイ・キンが、黒眼鏡の奥で、No.7 を見た。');
   cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '兄貴。……自分、地上で、やりたいことが、まだまだ、あるっす。');
   await say('ponpu', '雨ってやつに、当たってみたいっす。水浴びじゃなくて、空から降ってくる水っす。米屋のおっちゃんに、新米の炊き方、習いたいっす。小鳥屋のおばあちゃんにもらった鈴、鳴らしてみたいっす。');
   await say('ponpu', '……それから。兄貴たちが「敵」って言うものが、ほんとに、敵なのか。自分の目で、見てみたいっす。');
@@ -10665,7 +10665,7 @@ async function goCall18() { G.mode = 'cine'; S.flags.c18st = 'call'; newsBar(fal
   ku.st = { armsUp: true }; G.shake = 0.7; sfx('roar'); voiceRing(-6.6, 2.8, 2.2, 0xE8403A, 7, 0.7); await say('kuro', '見てこいィィィィ！！！　見て、聞いて、食って、殴られて……強くなって、帰ってこいィィィィ！！！');
   await say('kuro', '家族はなァァ！！！　どこにいても、家族だァァァァ！！！'); ku.st = {};
   cine(0.6, 2.3, -1.2, -1.8, 2.0, 0.9); N.fk.st = { armsUp: true }; await say('fukkin', '末っ子が、巣立ちっスゥゥゥ！！　ハアッ！！　ハアッ！！'); for (const n of N.mem) n.st = { armsUp: true }; await say('bulkM', 'ポ・ンプ！！　ハアッ！！　ポ・ンプ！！　ハアッ！！'); for (const n of N.mem) n.st = {}; N.fk.st = {};
-  cine(-1.0, 2.0, 5.4, -3.4, 2.0, 4.0); await say('haikin', '……止まり木は、空けておく。いつでも、帰ってこい。');
+  cut18(-3.6, 2.2, 1.4, -3.4, 2.0, 4.0); await say('haikin', '……止まり木は、空けておく。いつでも、帰ってこい。');
   cut18(-4.4, 2.5, 0.9, -6.6, 2.3, 2.2); await say('kuro', '拾ってくれた人間に、伝えとけェ！！'); await say('kuro', '……バルク・家族は、恩を、忘れねェ。一生だァ。'); cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '……はいっす！！');
   sfx('holo'); cine(-0.4, 3.6, 5.6, -4.6, 1.2, 1.0); await narr('通信に、別の声が、割り込んだ。');
   await say('chanyu', '……記録官の、チャ・ニュユーだ。この通信は、B.U.N の公式回線に、乗っている。');
