@@ -8815,7 +8815,7 @@ function kuroBulk() { const BK = 0x1C1C22, m = makeBird({ coat: BK, pants: 0x141
   part(G_('kcol', () => new THREE.CylinderGeometry(0.42, 0.52, 0.32, 12, 1, true)), 0x0E0E12, 0, 1.6, -0.05, T, { outline: false, mat: new THREE.MeshToonMaterial({ color: 0x0E0E12, gradientMap: gradTex, side: THREE.DoubleSide }) });
   plane(0.64, 0.52, signTex(128, 104, [{ t: '07', size: 84, w: 900 }], { bg: '#0E0E12', fg: '#C8141E' }), 0, 1.1, -0.54, T).rotation.y = Math.PI;
   for (const pv of m.legs) { part(cyl(0.17, 0.19, 0.32, 10), 0x16161A, 0, -0.44, 0.02, pv); part(box(0.32, 0.16, 0.44), 0x101014, 0, -0.6, 0.08, pv); }
-  for (const sx of [-1, 1]) part(box(0.17, 0.045, 0.05), 0x08080A, sx * 0.2, 0.15, 0.3, m.head, { rz: -sx * 0.42, outline: false });
+  for (const sx of [-1, 1]) { part(box(0.21, 0.075, 0.07), 0x08080A, sx * 0.19, 0.155, 0.29, m.head, { rz: sx * 0.5, outline: false }); part(box(0.07, 0.05, 0.05), 0x08080A, sx * 0.09, 0.12, 0.32, m.head, { rz: sx * 0.9, outline: false }); }
   return m; }
 // グッドブラザー（バルク・家族の、二桁台の兄弟）
 function fukkinBird() { const m = makeBird({ coat: 0xF2F0EA, pants: 0x1A1A1E, sleeve: 0xF2F0EA, muscle: true, s: 1.12 }), T = m.torso;
@@ -8853,75 +8853,90 @@ function yoTruck(parent, x, z, ry) { const T0 = new THREE.Group(); T0.position.s
   for (const sx of [-1, 1]) { const d = block(1.2, 2.3, 0.08, 0xE4E4E8, sx * 1.15, 1.45, -3.6, T0); d.rotation.y = sx * 1.1; }
   return T0; }
 
-// ---- 迷路の回廊（空間拡張）：十一×十一の区画、中央の三×三が大展示室 ----
 function rng16(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-const MZ16 = { N: 11, C: 4, lo: 4, hi: 6, mid: 5 };
-const mzCenter = (i, j) => i >= MZ16.lo && i <= MZ16.hi && j >= MZ16.lo && j <= MZ16.hi;
-const mzX = i => (i - MZ16.mid) * MZ16.C, mzZ = j => (j - MZ16.mid) * MZ16.C;
-const mzEk = (i, j, k, l) => (i < k || (i === k && j < l)) ? i + ',' + j + '|' + k + ',' + l : k + ',' + l + '|' + i + ',' + j;
-function genMaze16() { const R = rng16(1607), N = MZ16.N, E = MZ16.mid + ',' + (N - 1), open = new Set(), seen = new Set([E]), st = [[MZ16.mid, N - 1]], D4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-  while (st.length) { const [i, j] = st[st.length - 1], nb = D4.map(([di, dj]) => [i + di, j + dj]).filter(([a, b]) => a >= 0 && a < N && b >= 0 && b < N && !mzCenter(a, b) && !seen.has(a + ',' + b));
-    if (!nb.length) { st.pop(); continue; } const [a, b] = nb[Math.floor(R() * nb.length)]; open.add(mzEk(i, j, a, b)); seen.add(a + ',' + b); st.push([a, b]); }
-  for (let t = 0, x = 0; t < 400 && x < 6; t++) { const i = Math.floor(R() * N), j = Math.floor(R() * N), h = R() < 0.5, a = i + (h ? 1 : 0), b = j + (h ? 0 : 1); if (a >= N || b >= N || mzCenter(i, j) || mzCenter(a, b)) continue; const k = mzEk(i, j, a, b); if (!open.has(k)) { open.add(k); x++; } }
-  const nbs = (i, j) => D4.map(([di, dj]) => [i + di, j + dj]).filter(([a, b]) => a >= 0 && a < N && b >= 0 && b < N && open.has(mzEk(i, j, a, b)));
-  const dist = { [E]: 0 }, q = [[MZ16.mid, N - 1]]; while (q.length) { const [i, j] = q.shift(); for (const [a, b] of nbs(i, j)) if (dist[a + ',' + b] === undefined) { dist[a + ',' + b] = dist[i + ',' + j] + 1; q.push([a, b]); } }
-  const dead = []; for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (!mzCenter(i, j) && nbs(i, j).length === 1 && !(i === MZ16.mid && (j === N - 1 || j === MZ16.lo - 1))) dead.push([i, j]);
-  dead.sort((p, r) => dist[r[0] + ',' + r[1]] - dist[p[0] + ',' + p[1]]); return { open, nbs, dist, dead }; }
-function drawMaze16(M, here) { return (c, w, h) => { c.fillStyle = '#F4F2EE'; c.fillRect(0, 0, w, h); const N = MZ16.N, lo = MZ16.lo, nc = MZ16.hi - lo + 1, md = MZ16.mid, s = (w - 40) / N, ox = 20, oy = 36; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = '#2A2430'; c.font = `800 17px ${MINCHO}`; c.fillText('回廊　案内図', w / 2, 24);
-  c.fillStyle = '#D8D0E8'; c.fillRect(ox + lo * s, oy + lo * s, nc * s, nc * s); c.fillStyle = '#5A4A8A'; c.font = `700 13px ${GOTHIC}`; c.fillText('大展示室', ox + (md + 0.5) * s, oy + (md + 0.5) * s + 4);
-  c.strokeStyle = '#2A2430'; c.lineWidth = 3; c.beginPath();
-  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const x = ox + i * s, y = oy + j * s;
-    if (i + 1 < N && !M.open.has(mzEk(i, j, i + 1, j)) && !(mzCenter(i, j) && mzCenter(i + 1, j))) { c.moveTo(x + s, y); c.lineTo(x + s, y + s); }
-    if (j + 1 < N && !M.open.has(mzEk(i, j, i, j + 1)) && !(mzCenter(i, j) && mzCenter(i, j + 1))) { c.moveTo(x, y + s); c.lineTo(x + s, y + s); } }
-  c.rect(ox, oy, N * s, N * s); c.stroke(); c.strokeStyle = '#F4F2EE'; c.lineWidth = 6; c.beginPath(); c.moveTo(ox + md * s + 3, oy + N * s); c.lineTo(ox + (md + 1) * s - 3, oy + N * s); c.stroke();
-  c.fillStyle = '#2A2430'; c.font = `700 11px ${GOTHIC}`; c.fillText('入口', ox + (md + 0.5) * s, oy + N * s + 14);
-  c.fillStyle = '#C8323C'; c.fillRect(ox + (md + 0.15) * s, oy + lo * s - 3, s * 0.7, 6); c.font = `700 10px ${GOTHIC}`; c.fillText('扉', ox + (md + 0.5) * s, oy + lo * s - 6);
-  if (here) { c.fillStyle = '#E3A018'; c.beginPath(); c.arc(ox + (here[0] + 0.5) * s, oy + (here[1] + 0.5) * s, 5, 0, TAU); c.fill(); c.fillStyle = '#2A2430'; c.font = `800 10px ${GOTHIC}`; c.fillText('現在地', ox + (here[0] + 0.5) * s, oy + (here[1] + 0.5) * s - 9); } }; }
-makeArea('gal16', { place: '神領　未完画廊　迷路回廊（空間拡張）', bounds: [-21.6, 21.6, -21.6, 28.0], spawn: [0, 26.4], spawnFace: Math.PI, cam: [0, 13, 7], music: 'gallery', bg: 0x1C1824, fog: [34, 120], light: 0.8, sun: 0.5,
-  build(a) { const g = a.g, M = a.M = genMaze16(), C = MZ16.C, N = MZ16.N, HF = N * C / 2, WH = 3.6; a.walls = []; a.trail = [];
-    const fl = new THREE.Mesh(new THREE.PlaneGeometry(HF * 2 + 1, HF * 2 + 1), new THREE.MeshLambertMaterial({ color: 0xE4E2EA })); fl.rotation.x = -Math.PI / 2; g.add(fl);
-    for (let k = -HF; k <= HF; k += C) { block(HF * 2 + 1, 0.02, 0.05, 0xCAC6D4, 0, 0.01, k, g); block(0.05, 0.02, HF * 2 + 1, 0xCAC6D4, k, 0.01, 0, g); }
-    const wall = (x, z, w, d) => { const m = new THREE.Mesh(box(w, WH, d), new THREE.MeshLambertMaterial({ color: 0xF2F0F4, transparent: true })); m.position.set(x, WH / 2, z); g.add(m); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); a.walls.push({ m, x, z, hx: w / 2, hz: d / 2 }); return m; };
-    const texs = []; for (let k = 0; k < 10; k++) texs.push(artTex(['abs', 'land', 'portrait'][k % 3], k * 7 + 3)); const R = rng16(77);
-    a.decoF = []; const deco = (x, z, nx, nz) => { if (R() < 0.42) return; const f = frame(g, x + nx * 0.25, 2.0, z + nz * 0.25, 1.1 + R() * 0.9, 0.9 + R() * 0.7, texs[Math.floor(R() * texs.length)], R() < 0.5 ? 0xC8B070 : 0x2A2430); f.rotation.y = Math.atan2(nx, nz); a.decoF.push(f); };
-    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
-      if (i < N - 1 && !mzCenter(i, j) && !mzCenter(i + 1, j) && !M.open.has(mzEk(i, j, i + 1, j))) { const x = mzX(i) + C / 2, z = mzZ(j); wall(x, z, 0.4, C + 0.4); deco(x, z, 1, 0); deco(x, z, -1, 0); }
-      if (j < N - 1 && !mzCenter(i, j) && !mzCenter(i, j + 1) && !M.open.has(mzEk(i, j, i, j + 1))) { const x = mzX(i), z = mzZ(j) + C / 2; wall(x, z, C + 0.4, 0.4); deco(x, z, 0, 1); deco(x, z, 0, -1); } }
-    wall(0, -HF, HF * 2 + 0.4, 0.4); wall(-HF, 0, 0.4, HF * 2 + 0.4); wall(HF, 0, 0.4, HF * 2 + 0.4); wall(-(HF + C / 2) / 2, HF, HF - C / 2 + 0.4, 0.4); wall((HF + C / 2) / 2, HF, HF - C / 2 + 0.4, 0.4);
-    for (let k = -HF + C / 2; k < HF; k += C) { deco(k, -HF, 0, 1); deco(-HF, k, 1, 0); deco(HF, k, -1, 0); if (Math.abs(k) > C / 2) deco(k, HF, 0, -1); }
-    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (!mzCenter(i, j) && (i + j) % 3 === 0) { const l = glowSprite(0xF0E8FF, 1.4, 0.4); l.position.set(mzX(i), 3.9, mzZ(j)); g.add(l); }
-    // 中央の大展示室（外から見た姿）。扉は北側にだけある
-    { const CH = 3.6, BW = (MZ16.hi - MZ16.lo + 1) * C, BH = BW / 2; block(BW, CH, BW, 0xE8E4F0, 0, CH / 2, 0, g); a.obs.push({ x: 0, z: 0, hx: BH, hz: BH, tall: true }); block(BW + 0.4, 0.3, BW + 0.4, 0xC8C0D8, 0, CH + 0.15, 0, g);
-      const dome = new THREE.Mesh(new THREE.SphereGeometry(BH * 0.85, 24, 12, 0, TAU, 0, Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0xD8E4FF, transparent: true, opacity: 0.35, shininess: 90, depthWrite: false })); dome.position.set(0, CH, 0); dome.scale.y = 0.5; g.add(dome); const dg = glowSprite(0xF0E8FF, 12, 0.35); dg.position.set(0, CH + 2, 0); g.add(dg);
-      block(2.8, 3.0, 0.2, 0x14121A, 0, 1.5, -BH - 0.1, g); const dgl = glowSprite(0xE8D8FF, 3, 0.45); dgl.position.set(0, 2, -BH - 0.5); g.add(dgl); a.doorGl = dgl;
-      plane(3.2, 0.46, signTex(400, 60, [{ t: '大展示室　秋の大競売', size: 30, f: MINCHO, w: 800 }], { bg: '#2A2430', fg: '#F4F2EE' }), 0, 3.3, -BH - 0.22, g).rotation.y = Math.PI;
-      plane(5.0, 1.3, signTex(540, 140, [{ t: '大展示室', size: 40, f: MINCHO, w: 800 }, { t: 'お入り口は、北側でございます', size: 22 }], { bg: '#F4F2EE', fg: '#2A2430' }), 0, 2.0, BH + 0.06, g); }
-    // 入口の間（受付）
-    { const ff = new THREE.Mesh(new THREE.PlaneGeometry(12.4, 6.6), new THREE.MeshLambertMaterial({ color: 0xD8D4E0 })); ff.rotation.x = -Math.PI / 2; ff.position.set(0, 0.004, 25.3); g.add(ff); }
-    wall(-6.2, 25.2, 0.4, 6.4); wall(6.2, 25.2, 0.4, 6.4); block(12.8, 1.2, 0.4, 0xF2F0F4, 0, 0.6, 28.4, g); a.obs.push({ x: 0, z: 28.4, hx: 6.4, hz: 0.2 }); plane(3.0, 3.2, canvasTex(8, 8, c => { c.fillStyle = '#0C0A10'; c.fillRect(0, 0, 8, 8); }), 0, 1.6, 28.6, g).rotation.y = Math.PI;
-    block(2.6, 1.0, 0.9, 0xF4F2F4, 3.2, 0.5, 24.6, g); a.obs.push({ x: 3.2, z: 24.6, hx: 1.3, hz: 0.45 });
-    a.ro = npc(a, 'rosina', memberChar('rosina'), 5.3, 24.6, -Math.PI / 2); a.ro.lookAt = 'P';
-    // 重なり合う、別の回廊（外側の虚空）
-    for (const [x, y, z, len, ry] of [[-52, -6, 0, 90, 1.3], [50, 2, -10, 100, 1.7], [0, -10, -48, 110, 0.2], [10, 6, 54, 120, -0.15], [-44, 9, -42, 100, 0.8], [42, -14, 38, 120, -0.6], [-38, -18, 32, 110, 2.2]]) decoCorridor(g, x, y, z, len, ry);
-    // 案内図
-    a.here = glowSprite(0xF4C030, 5, 0.9); a.here.material.depthTest = false; a.here.renderOrder = 6; a.here.visible = false; g.add(a.here);
-    a.goal = glowSprite(0xC8323C, 5, 0.9); a.goal.material.depthTest = false; a.goal.renderOrder = 6; a.goal.position.set(0, 6, -(MZ16.hi - MZ16.lo + 1) * C / 2 - 1.6); a.goal.visible = false; g.add(a.goal);
-    a.boards = [[MZ16.mid, N - 1, 1.1, -0.6], [0, MZ16.mid, 0, -0.4], [N - 1, MZ16.mid, 0, -0.4], [2, 1, 0, -0.4]].map(([i, j, ox, oz], k) => { const x = mzX(i) + ox, z = mzZ(j) + oz, B = { i, j, x, z, k };
-      block(1.8, 1.8, 0.1, 0x2A2430, x, 1.8, z, g); block(0.12, 0.9, 0.12, 0x2A2430, x, 0.45, z, g); plane(1.6, 1.6, canvasTex(256, 256, drawMaze16(M, [i, j])), x, 1.8, z + 0.06, g); a.obs.push({ x, z, hx: 0.9, hz: 0.12 });
-      addItem(a, { id: 'm16map' + k, x, z: z + 1.1, r: 1.5, label: '案内図を見る', col: 0xE3B428, once: false, avail: () => S.chapter === 16 && S.flags.c16st === 'maze', on: () => evMap16(B) }); return B; });
-    // 行き止まりの、三つのもの（入口から遠い順）
-    const kinds = ['knock', 'mirror', 'upside'], lab = { knock: '小さな扉', mirror: '額縁', upside: '窓' }; a.deadP = [];
-    M.dead.slice(0, 3).forEach(([i, j], k) => { const [[ni, nj]] = M.nbs(i, j), ox = i - ni, oz = j - nj, x = mzX(i) + ox * (C / 2 - 0.22), z = mzZ(j) + oz * (C / 2 - 0.22), kind = kinds[k];
-      for (const f of a.decoF) if (f.parent && Math.hypot(f.position.x - x, f.position.z - z) < 1.6) g.remove(f); const grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = Math.atan2(-ox, -oz); g.add(grp);
-      if (kind === 'knock') { block(1.2, 2.2, 0.12, 0x1A1620, 0, 1.1, 0, grp); part(sph(0.05, 8, 6), 0xC8A040, 0.42, 1.1, 0.08, grp, { outline: false }); plane(1.8, 0.5, signTex(360, 100, [{ t: '第三収蔵庫　↓', size: 34, w: 900 }, { t: '関係者以外、立入禁止', size: 18 }], { bg: '#2A2430', fg: '#F4F2EE' }), 0, 2.7, 0.08, grp); }
-      if (kind === 'mirror') { frame(grp, 0, 2.0, 0.02, 1.4, 2.0, canvasTex(140, 200, (c2, w, h) => { const gr = c2.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#E8ECF2'); gr.addColorStop(0.5, '#B8C0CC'); gr.addColorStop(1, '#E0E4EA'); c2.fillStyle = gr; c2.fillRect(0, 0, w, h); c2.fillStyle = '#1A1A1E'; c2.fillRect(112, 168, 4, 12); c2.fillRect(111, 164, 6, 5); c2.fillStyle = 'rgba(255,255,255,.5)'; c2.fillRect(14, 10, 8, 120); }), 0xE8E4DC); plaque(grp, 0, 0.7, 0.06, ['点景　来館者', '作：未完画廊（あなた）']); }
-      if (kind === 'upside') { frame(grp, 0, 2.2, 0.02, 2.6, 1.7, canvasTex(260, 170, (c2, w, h) => { c2.fillStyle = '#2A2430'; c2.fillRect(0, 0, w, h); c2.fillStyle = '#E8E4EE'; c2.fillRect(0, 0, w, 60); c2.fillStyle = '#F4F2F4'; c2.beginPath(); c2.moveTo(0, 60); c2.lineTo(w, 60); c2.lineTo(w * 0.7, 120); c2.lineTo(w * 0.3, 120); c2.closePath(); c2.fill(); c2.fillStyle = '#1A1A1A'; for (let q = 0; q < 6; q++) { const px = 50 + q * 30, py = 64 + (q % 3) * 6; c2.fillRect(px, py, 3, 10); c2.fillRect(px - 1, py + 10, 5, 3); } c2.fillStyle = '#C8B070'; for (let q = 0; q < 4; q++) c2.fillRect(30 + q * 60, 10, 30, 22); }), 0x2A2430); }
-      a.deadP.push({ i, j, kind }); addItem(a, { id: 'm16' + kind, x: mzX(i) + ox * 1.0, z: mzZ(j) + oz * 1.0, r: 2.0, label: lab[kind], col: 0x9A8AD0, avail: () => S.chapter === 16 && S.flags.c16st === 'maze', on: () => evDead16(kind) }); });
-    addItem(a, { id: 'm16door', x: 0, z: -(MZ16.hi - MZ16.lo + 1) * C / 2 - 1.6, r: 1.6, label: '大展示室へ入る', col: 0xC8323C, once: false, avail: () => S.chapter === 16 && S.flags.c16st === 'maze', on: () => goHall16() });
+// ---- 回廊の束（空間拡張）：序の長い回廊を、何本も重ねた迷路。四本の回廊を、虚空に架かる橋がつなぐ ----
+// 回廊は東西に長い。北側は額縁の並ぶ高い壁、南側は低い手すり（序と同じ）。橋は南の回廊の北壁の門から、北の回廊の手すりへ渡る
+const RW16 = { A: 24, B: 8, C: -8, D: -24 }, RH16 = 3.5, RX16 = 46;
+const PART16 = { A: [], B: [-16, 20], C: [-26, 28], D: [-19, 19] };
+const BR16 = [['A', 'B', -40], ['A', 'B', 34], ['B', 'C', -30], ['B', 'C', 0], ['B', 'C', 42], ['C', 'D', -42], ['C', 'D', -22.5], ['C', 'D', 10], ['C', 'D', 25]];
+const SPUR16 = { x: 12, z: 13 };
+const ROWN16 = { A: '第一回廊　来館', B: '第二回廊　重ね', C: '第三回廊　逆さ', D: '最終回廊　扉' };
+// どの回廊の、どの区切りにいるか（行き止まりの判定用）
+function seg16(x, z) { for (const k in RW16) if (Math.abs(z - RW16[k]) <= RH16 + 0.1) { const p = PART16[k]; let i = 0; while (i < p.length && x > p[i]) i++; return k + i; } if (Math.abs(x - SPUR16.x) < 2.6 && z > SPUR16.z - 0.2 && z < RW16.A - RH16) return 'spur'; return ''; }
+const DEAD16 = ['B1', 'C2', 'D2', 'spur'];
+function drawNet16(here) { return (c, w, h) => { c.fillStyle = '#F4F2EE'; c.fillRect(0, 0, w, h); const sx = x => 14 + (x + RX16 + 1) / (2 * RX16 + 2) * (w - 28), sz = z => 34 + (z - (RW16.D - RH16 - 1)) / (RW16.A + RH16 + 8 - (RW16.D - RH16 - 1)) * (h - 44);
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = '#2A2430'; c.font = `800 17px ${MINCHO}`; c.fillText('回廊　案内図', w / 2, 22);
+  c.fillStyle = '#D8D2E4'; for (const k in RW16) c.fillRect(sx(-RX16), sz(RW16[k] - RH16), sx(RX16) - sx(-RX16), sz(RW16[k] + RH16) - sz(RW16[k] - RH16));
+  c.fillStyle = '#C8C0D8'; for (const [a, b, x] of BR16) c.fillRect(sx(x - 1.7), sz(RW16[b] + RH16), sx(x + 1.7) - sx(x - 1.7), sz(RW16[a] - RH16) - sz(RW16[b] + RH16)); c.fillRect(sx(SPUR16.x - 2.5), sz(SPUR16.z), sx(SPUR16.x + 2.5) - sx(SPUR16.x - 2.5), sz(RW16.A - RH16) - sz(SPUR16.z));
+  c.fillRect(sx(-6), sz(RW16.A + RH16), sx(6) - sx(-6), sz(RW16.A + RH16 + 6) - sz(RW16.A + RH16));
+  c.strokeStyle = '#2A2430'; c.lineWidth = 3; c.beginPath(); for (const k in PART16) for (const x of PART16[k]) { c.moveTo(sx(x), sz(RW16[k] - RH16)); c.lineTo(sx(x), sz(RW16[k] + RH16)); } c.stroke();
+  c.font = `700 10px ${GOTHIC}`; c.fillStyle = '#5A4A8A'; c.textAlign = 'left'; for (const k in RW16) c.fillText(ROWN16[k], sx(-RX16) + 4, sz(RW16[k]) + 4);
+  c.textAlign = 'center'; c.fillStyle = '#2A2430'; c.fillText('入口', sx(0), sz(RW16.A + RH16 + 6) + 10);
+  c.fillStyle = '#C8323C'; c.fillRect(sx(-2), sz(RW16.D - RH16) - 4, sx(2) - sx(-2), 7); c.fillText('大展示室', sx(0), sz(RW16.D - RH16) - 7);
+  if (here) { c.fillStyle = '#E3A018'; c.beginPath(); c.arc(sx(here[0]), sz(here[1]), 5, 0, TAU); c.fill(); c.fillStyle = '#2A2430'; c.font = `800 10px ${GOTHIC}`; c.fillText('現在地', sx(here[0]), sz(here[1]) - 8); } }; }
+makeArea('gal16', { place: '神領　未完画廊　回廊の束（空間拡張）', bounds: [-RX16 + 0.4, RX16 - 0.4, RW16.D - RH16, 34], spawn: [0, 31.6], spawnFace: Math.PI, cam: [0, 10, 9], music: 'gallery', bg: 0x1C1824, fog: [30, 140], light: 0.8, sun: 0.5,
+  build(a) { const g = a.g, WH = 3.6; a.walls = []; a.trail = []; a.props = [];
+    const wall = (x, z, w, d, col) => { const m = new THREE.Mesh(box(w, WH, d), new THREE.MeshLambertMaterial({ color: col || 0xF2F0F4, transparent: true })); m.position.set(x, WH / 2, z); g.add(m); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); const W = { m, x, z, hx: w / 2, hz: d / 2, ex: [] }; a.walls.push(W); return W; };
+    const rail = (x, z, w, d) => { block(w, 1.0, d, 0xE8E4EE, x, 0.5, z, g); block(w + 0.06, 0.08, d + 0.06, 0xB8B0C8, x, 1.02, z, g); a.obs.push({ x, z, hx: w / 2, hz: d / 2 }); };
+    const texs = []; for (let k = 0; k < 12; k++) texs.push(artTex(['abs', 'land', 'portrait'][k % 3], k * 7 + 3)); const R = rng16(77); a.decoF = [];
+    const hang = (x, z, ry, big) => { const f = frame(g, x, 2.1, z, (big ? 1.6 : 1.1) + R() * 0.8, (big ? 1.3 : 0.9) + R() * 0.6, texs[Math.floor(R() * texs.length)], R() < 0.5 ? 0xC8B070 : 0x2A2430); f.rotation.y = ry; a.decoF.push(f); };
+    // 区間 [x0,x1] を、開口部 xs（幅 w）を避けて切り分ける
+    const cut = (xs, w) => { const s = [...xs].sort((p, q) => p - q), out = []; let x0 = -RX16; for (const x of s) { if (x - w / 2 > x0) out.push([x0, x - w / 2]); x0 = x + w / 2; } if (RX16 > x0) out.push([x0, RX16]); return out; };
+    for (const k in RW16) { const z = RW16[k], zN = z - RH16, zS = z + RH16;
+      block(2 * RX16 + 0.4, 1.2, 2 * RH16, 0xE8E6EE, 0, -0.6, z, g); for (let x = -RX16; x <= RX16; x += 4) block(0.04, 0.02, 2 * RH16, 0xC8C4D0, x, 0.01, z, g);
+      const openN = BR16.filter(b => b[0] === k).map(b => b[2]).concat(k === 'A' ? [SPUR16.x] : []), openS = BR16.filter(b => b[1] === k).map(b => b[2]).concat(k === 'A' ? [0] : []);
+      for (const [x0, x1] of cut(openN, k === 'A' && openN.includes(SPUR16.x) ? 3.8 : 3.8)) { const W = wall((x0 + x1) / 2, zN, x1 - x0 + 0.2, 0.4); W.row = k; for (let x = x0 + 2.2; x < x1 - 1.6; x += 3.4) hang(x, zN + 0.25, 0, R() < 0.3); }
+      for (const [x0, x1] of cut(openS, 3.8)) rail((x0 + x1) / 2, zS, x1 - x0 + 0.2, 0.2);
+      for (const sx of [-1, 1]) wall(sx * RX16, z, 0.4, 2 * RH16 + 0.4);
+      for (const x of PART16[k]) { wall(x, z, 0.4, 2 * RH16); hang(x - 0.25, z - 0.6, -Math.PI / 2, false); hang(x + 0.25, z - 0.6, Math.PI / 2, false); }
+      for (let x = -RX16 + 4; x < RX16; x += 8) { const l = glowSprite(0xF0E8FF, 1.6, 0.45); l.position.set(x, 4.0, zN + 1.0); g.add(l); }
+      // 門の札（北壁の開口部）
+      for (const x of openN) { const to = x === SPUR16.x && k === 'A' ? '展望台' : ROWN16[BR16.find(b => b[0] === k && b[2] === x)[1]];
+        for (const sx of [-1, 1]) block(0.5, 3.8, 0.5, 0xD8D4E0, x + sx * 2.0, 1.9, zN, g);
+        for (const f of a.decoF) if (f.parent && Math.abs(f.position.z - (zN + 0.25)) < 0.3 && Math.abs(f.position.x - (x - 3.6)) < 1.9) g.remove(f);
+        plane(2.6, 0.5, signTex(300, 58, [{ t: '↑ ' + to, size: 24, f: MINCHO, w: 800 }], { bg: '#2A2430', fg: '#F4F2EE' }), x - 3.6, 3.0, zN + 0.27, g); } }
+    // 橋（虚空に架かる）
+    for (const [s, n, x] of BR16) { const z0 = RW16[n] + RH16, z1 = RW16[s] - RH16, L = z1 - z0, zc = (z0 + z1) / 2;
+      block(3.6, 0.6, L + 0.2, 0xE0DCE8, x, -0.3, zc, g); block(3.0, 0.02, L, 0xD0CADC, x, 0.01, zc, g); for (const sx of [-1, 1]) rail(x + sx * 1.8, zc, 0.2, L + 0.2); }
+    // 張り出し（第一回廊から北へ突き出た、行き止まり）
+    { const z0 = SPUR16.z, z1 = RW16.A - RH16, zc = (z0 + z1) / 2, L = z1 - z0; block(5.4, 0.6, L + 0.2, 0xE0DCE8, SPUR16.x, -0.3, zc, g); for (const sx of [-1, 1]) rail(SPUR16.x + sx * 2.7, zc, 0.2, L + 0.2); rail(SPUR16.x, z0 - 0.1, 5.6, 0.2); }
+    // 入口の間（受付）。奥の壁は、近づくと透ける
+    { const ff = new THREE.Mesh(new THREE.PlaneGeometry(12.4, 6.6), new THREE.MeshLambertMaterial({ color: 0xD8D4E0 })); ff.rotation.x = -Math.PI / 2; ff.position.set(0, 0.004, 30.8); g.add(ff); }
+    wall(-6.2, 30.8, 0.4, 6.6); wall(6.2, 30.8, 0.4, 6.6); { const W = wall(0, 34.2, 12.8, 0.4); W.th = 8; const dm = new THREE.Mesh(box(3.0, 3.2, 0.06), new THREE.MeshLambertMaterial({ color: 0x0C0A10, transparent: true })); dm.position.set(0, 1.6, 33.97); g.add(dm); W.ex.push(dm); }
+    block(2.4, 1.0, 0.9, 0xF4F2F4, 3.0, 0.5, 30.4, g); a.obs.push({ x: 3.0, z: 30.4, hx: 1.2, hz: 0.45 });
+    a.ro = npc(a, 'rosina', memberChar('rosina'), 4.8, 30.4, -Math.PI / 2); a.ro.lookAt = 'P';
+    // 重なり合う、別の回廊（下に、上に、遠くに）
+    for (const [x, y, z, len, ry] of [[0, -11, 16, 170, 0.05], [-8, -16, 0, 160, -0.07], [12, -9, -16, 160, 0.1], [0, -20, -32, 180, 0], [-28, -10, 4, 110, 1.45], [30, -14, -2, 120, 1.7], [6, -24, 20, 170, 0.9], [0, 9, -62, 170, 0.25], [-74, 3, 0, 150, 1.5], [74, -5, 6, 150, 1.62], [-40, -30, -10, 160, -0.5]]) decoCorridor(g, x, y, z, len, ry);
+    // 大展示室の扉（最終回廊の北壁の真ん中）
+    { const zN = RW16.D - RH16; block(4.0, 4.4, 0.3, 0x14121A, 0, 2.2, zN + 0.12, g); for (const sx of [-1, 1]) block(0.6, 5.0, 0.6, 0xC8B070, sx * 2.3, 2.5, zN + 0.1, g); block(5.2, 0.6, 0.6, 0xC8B070, 0, 5.1, zN + 0.1, g);
+      const dgl = glowSprite(0xE8D8FF, 3.4, 0.45); dgl.position.set(0, 2.2, zN + 0.6); g.add(dgl); a.doorGl = dgl;
+      plane(4.2, 0.6, signTex(420, 60, [{ t: '大展示室　秋の大競売', size: 30, f: MINCHO, w: 800 }], { bg: '#2A2430', fg: '#F4F2EE' }), 0, 5.9, zN + 0.42, g);
+      for (const f of a.decoF) if (f.parent && Math.abs(f.position.z - (zN + 0.25)) < 0.3 && Math.abs(f.position.x) < 3.6) g.remove(f); }
+    a.here = glowSprite(0xF4C030, 7, 0.9); a.here.material.depthTest = false; a.here.renderOrder = 6; a.here.visible = false; g.add(a.here);
+    a.goal = glowSprite(0xC8323C, 7, 0.9); a.goal.material.depthTest = false; a.goal.renderOrder = 6; a.goal.position.set(0, 6, RW16.D - RH16 + 1); a.goal.visible = false; g.add(a.goal);
+    const on = () => S.chapter === 16 && S.flags.c16st === 'maze';
+    // 案内図（北壁に掛かっている）
+    a.boards = [[-4.5, 'A'], [-36, 'C'], [-12, 'C']].map(([x, k], i) => { const zN = RW16[k] - RH16, B = { x, z: zN + 0.25, k: i };
+      for (const f of a.decoF) if (f.parent && Math.abs(f.position.z - B.z) < 0.3 && Math.abs(f.position.x - x) < 2.4) g.remove(f);
+      block(2.4, 1.7, 0.08, 0x2A2430, x, 1.9, zN + 0.24, g); plane(2.2, 1.5, canvasTex(320, 220, drawNet16([x, RW16[k]])), x, 1.9, zN + 0.3, g);
+      addItem(a, { id: 'm16map' + i, x, z: zN + 1.4, r: 1.5, label: '案内図を見る', col: 0xE3B428, once: false, avail: on, on: () => evMap16(B) }); return B; });
+    // 行き止まりの品（いずれも北壁に、南を向いて）
+    const lab = { knock: '小さな扉', mirror: '額縁', upside: '窓', exit: '絵' };
+    for (const [kind, x, z] of [['knock', -8, RW16.B - RH16], ['upside', 38, RW16.C - RH16], ['exit', 36, RW16.D - RH16], ['mirror', SPUR16.x, SPUR16.z]]) {
+      for (const f of a.decoF) if (f.parent && Math.abs(f.position.z - (z + 0.25)) < 0.3 && Math.abs(f.position.x - x) < 2.2) g.remove(f);
+      const grp = new THREE.Group(); grp.position.set(x, 0, z + 0.22); g.add(grp);
+      if (kind === 'knock') { block(1.2, 2.2, 0.12, 0x1A1620, 0, 1.1, 0, grp); part(sph(0.05, 8, 6), 0xC8A040, 0.42, 1.1, 0.08, grp, { outline: false }); plane(1.8, 0.5, signTex(360, 100, [{ t: '第三収蔵庫　↓', size: 34, w: 900 }, { t: '関係者以外、立入禁止', size: 18 }], { bg: '#2A2430', fg: '#F4F2EE' }), 0, 2.75, 0.08, grp); }
+      if (kind === 'mirror') { block(0.08, 2.2, 0.08, 0x5A4A3A, -0.6, 1.1, -0.1, grp); block(0.08, 2.2, 0.08, 0x5A4A3A, 0.6, 1.1, -0.1, grp); frame(grp, 0, 1.9, 0.02, 1.4, 2.0, canvasTex(140, 200, (c2, w, h) => { const gr = c2.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#E8ECF2'); gr.addColorStop(0.5, '#B8C0CC'); gr.addColorStop(1, '#E0E4EA'); c2.fillStyle = gr; c2.fillRect(0, 0, w, h); c2.fillStyle = '#1A1A1E'; c2.fillRect(112, 168, 4, 12); c2.fillRect(111, 164, 6, 5); c2.fillStyle = 'rgba(255,255,255,.5)'; c2.fillRect(14, 10, 8, 120); }), 0xE8E4DC); plaque(grp, 0, 0.62, 0.08, ['点景　来館者', '作：未完画廊（あなた）']); }
+      if (kind === 'upside') frame(grp, 0, 2.1, 0.02, 2.8, 1.8, canvasTex(260, 170, (c2, w, h) => { c2.fillStyle = '#2A2430'; c2.fillRect(0, 0, w, h); c2.fillStyle = '#E8E4EE'; c2.fillRect(0, 0, w, 60); c2.fillStyle = '#F4F2F4'; c2.beginPath(); c2.moveTo(0, 60); c2.lineTo(w, 60); c2.lineTo(w * 0.7, 120); c2.lineTo(w * 0.3, 120); c2.closePath(); c2.fill(); c2.fillStyle = '#1A1A1A'; for (let q = 0; q < 6; q++) { const px = 50 + q * 30, py = 64 + (q % 3) * 6; c2.fillRect(px, py, 3, 10); c2.fillRect(px - 1, py + 10, 5, 3); } c2.fillStyle = '#C8B070'; for (let q = 0; q < 4; q++) c2.fillRect(30 + q * 60, 10, 30, 22); }), 0x2A2430);
+      if (kind === 'exit') { frame(grp, 0, 2.1, 0.02, 2.4, 1.8, canvasTex(240, 180, (c2, w, h) => { c2.fillStyle = '#E8E4EE'; c2.fillRect(0, 0, w, h); c2.fillStyle = '#2A2430'; c2.fillRect(w * 0.38, h * 0.2, w * 0.24, h * 0.62); c2.fillStyle = '#F4D35E'; c2.fillRect(w * 0.42, h * 0.26, w * 0.16, h * 0.08); c2.fillStyle = '#2A8A4A'; c2.font = `900 22px ${GOTHIC}`; c2.textAlign = 'center'; c2.fillText('EXIT', w / 2, h * 0.92); }), 0xC8B070); plaque(grp, 0, 0.82, 0.08, ['出口', '作：スチューデント・ピア']); }
+      a.props.push({ kind, x, z: z + 0.25 }); addItem(a, { id: 'm16' + kind, x, z: z + 1.5, r: 1.6, label: lab[kind], col: 0x9A8AD0, avail: on, on: () => evDead16(kind) }); }
+    addItem(a, { id: 'm16door', x: 0, z: RW16.D - RH16 + 1.4, r: 1.7, label: '大展示室へ入る', col: 0xC8323C, once: false, avail: on, on: () => goHall16() });
+    // 壁の向こうからは、調べられない
+    for (const it of a.items) { const o = it.avail; it.avail = () => (!o || o()) && los(P.pos.x, P.pos.z, it.x, it.z); }
     // 付き添い（村瀬と石居）
-    a.fol = [npc(a, 'murase', makeChar(LK.muraseS), -1.2, 27.2, Math.PI), npc(a, 'ishii', makeChar(LK.ishii), 1.2, 27.4, Math.PI)]; for (const n of a.fol) n.hidden = true; },
+    a.fol = [npc(a, 'murase', makeChar(LK.muraseS), -1.2, 32.4, Math.PI), npc(a, 'ishii', makeChar(LK.ishii), 1.2, 32.6, Math.PI)]; for (const n of a.fol) n.hidden = true; },
   tick(a, dt) { follow16(a, dt);
-    for (const W of a.walls) { const occ = W.hz < W.hx && W.z > P.pos.z && W.z - P.pos.z < 2.0 && Math.abs(W.x - P.pos.x) < W.hx + 0.6, mt = W.m.material, t = occ ? 0.18 : 1; mt.opacity += (t - mt.opacity) * Math.min(1, dt * 8); mt.depthWrite = mt.opacity > 0.95; }
+    for (const W of a.walls) { const occ = W.hz < W.hx && W.z > P.pos.z && W.z - P.pos.z < (W.th || 2.6) && Math.abs(W.x - P.pos.x) < W.hx + 0.6, mt = W.m.material, t = occ ? 0.18 : 1; mt.opacity += (t - mt.opacity) * Math.min(1, dt * 8); mt.depthWrite = mt.opacity > 0.95; for (const e of W.ex) e.material.opacity = mt.opacity; }
     if (a.doorGl) a.doorGl.material.opacity = 0.35 + Math.sin(T.now * 2) * 0.12;
     if (S.chapter === 16 && S.flags.c16st === 'maze' && G.mode === 'play' && !G.busy) bark16(a, dt); },
   restore(a) { playAsKuzeF(false); fol16(a, S.chapter === 16); }
@@ -8935,9 +8950,9 @@ function follow16(a, dt) { if (!a.folOn || G.mode !== 'play') return; const tr =
   { const [m, q] = a.fol, dx = q.pos.x - m.pos.x, dz = q.pos.z - m.pos.z, L = Math.hypot(dx, dz); if (L < 0.8) { const k = (0.8 - L) / 2, ux = L > 0.01 ? dx / L : 1, uz = L > 0.01 ? dz / L : 0; m.pos.x -= ux * k; m.pos.z -= uz * k; q.pos.x += ux * k; q.pos.z += uz * k; } } }
 // 演出中の付き添いの立ち位置
 function folAt16(a, p0, p1) { if (!a.fol) return; [p0, p1].forEach((p, i) => { const n = a.fol[i]; if (!p) return; n.goal = null; n.pos.set(p[0], 0, p[1]); n.facing = p[2] ?? n.facing; n.st = {}; }); a.trail = []; }
-function bark16(a, dt) { a.bkT = (a.bkT || 0) + dt; const i = Math.round(P.pos.x / MZ16.C) + MZ16.mid, j = Math.round(P.pos.z / MZ16.C) + MZ16.mid; a.vis = a.vis || new Set(); a.bkS = a.bkS || new Set();
-  if (!a.vis.has(i + ',' + j)) { a.vis.add(i + ',' + j); if (!a.bkS.has('dead') && a.M.dead.some(([x, y]) => x === i && y === j)) { a.bkS.add('dead'); toast('村瀬「……行き止まりです」'); } if (!a.bkS.has('north') && j <= MZ16.lo - 1 && Math.abs(i - MZ16.mid) <= 2) { a.bkS.add('north'); toast('石居「……北側です。扉は、この並びの、どこかです」'); } }
-  for (const [t, s2] of [[22, '石居「……右手を、壁に。迷路の、基本です」'], [55, '村瀬「さっきの額縁、二回、見ました」'], [95, '石居「天井の明かりが、真ん中に、寄っていきます」'], [140, '村瀬「……昨日の回廊より、ずっと、長い」']]) if (a.bkT > t && !a.bkS.has(t)) { a.bkS.add(t); toast(s2); } }
+function bark16(a, dt) { a.bkT = (a.bkT || 0) + dt; a.bkS = a.bkS || new Set(); const s = seg16(P.pos.x, P.pos.z);
+  if (s && s !== a.lastSeg) { a.lastSeg = s; if (DEAD16.includes(s) && !a.bkS.has('dead')) { a.bkS.add('dead'); toast('村瀬「……この先、行き止まりです」'); } else if (s === 'D1' && !a.bkS.has('goal')) { a.bkS.add('goal'); toast('石居「……扉です。大きい」'); } else if (s === 'C1' && !a.bkS.has('back')) { a.bkS.add('back'); toast('村瀬「……戻って、きてませんか。さっきの回廊に」'); } }
+  for (const [t, s2] of [[20, '石居「……回廊が、下にも、上にも。ずっと、重なってます」'], [55, '村瀬「さっきの額縁、二回、見ました」'], [95, '石居「橋を、一本ずつ。……落ちたら、どこに着くか、分かりません」'], [140, '村瀬「……昨日の回廊より、ずっと、長い」']]) if (a.bkT > t && !a.bkS.has(t)) { a.bkS.add(t); toast(s2); } }
 
 // ---- 中央大展示室（秋の大競売） ----
 const LOT16 = { 12: { n: 12, t: '鳥籠　第三番', a: '作：マエストロ・オークル　（生体素材・文鳥一羽）' }, 31: { n: 31, t: '未完　第七番', a: '作：エデル' }, 47: { n: 47, t: '点景　第四十七番　「扉を叩く人」', a: '作：マエストロ・セピア　素材付き（第三収蔵庫より引渡し）', p: '開始価格　一億' } };
@@ -9258,40 +9273,39 @@ async function goPlan16() { S.flags.c16st = 'plan'; G.mode = 'cine'; await goAre
   mu.hidden = true; is.hidden = true; CAST.murase = null; await goMaze16(); }
 
 // ---- 迷路の回廊 ----
-async function goMaze16() { S.flags.c16st = 'maze'; G.mode = 'cine'; setObj(''); await goArea('gal16', [0, 26.4], Math.PI); const a = AREAS.gal16; bgm('gallery'); fol16(a, true); folAt16(a, [-1.4, 27.4, Math.PI], [1.2, 27.6, Math.PI]); const ro = a.ro;
-  pan([0, 9, 35], [0, 1.4, 25], [0, 4.2, 31.4], [2, 1.4, 25.4], 5); await card('神領　未完画廊', '同じ夜　午後七時四十分　秋の大競売', 2200);
-  P.facing = Math.atan2(ro.pos.x - P.pos.x, ro.pos.z - P.pos.z); const RO = () => cine(1.2, 2.0, 27.6, 5.3, 1.65, 24.6), KU = () => cine(4.0, 1.9, 24.0, 0, 1.6, 26.4);
+async function goMaze16() { S.flags.c16st = 'maze'; G.mode = 'cine'; setObj(''); await goArea('gal16', [0, 31.6], Math.PI); const a = AREAS.gal16; bgm('gallery'); fol16(a, true); folAt16(a, [-1.4, 32.6, Math.PI], [1.2, 32.8, Math.PI]); const ro = a.ro;
+  pan([0, 9, 41], [0, 1.4, 31], [0, 4.2, 37.4], [2, 1.4, 31.4], 5); await card('神領　未完画廊', '同じ夜　午後七時四十分　秋の大競売', 2200);
+  P.facing = Math.atan2(ro.pos.x - P.pos.x, ro.pos.z - P.pos.z); const RO = () => cine(1.0, 2.0, 32.6, 4.8, 1.65, 30.4), KU = () => cine(3.8, 1.9, 29.4, 0, 1.6, 31.6);
   RO(); await say('rosina', '招待状を、拝見いたしますわ。……翠絡さまの、ご名義。まあ。');
   await say('rosina', '……二色の方。熟すのが、お早いこと。');
   KU(); await saku('……顔に出すな。');
   await say('kuze', '……今夜は、客として、来ました。');
   RO(); await say('rosina', 'ええ、存じておりますわ。客は、客。素材は、素材。……今夜のあなたは、どちらかしら。');
-  await say('rosina', '回廊は、今夜のために、広げておりますの。勝川で転んだトラックと、同じ、天環の技術ですわ。');
+  await say('rosina', '回廊は、今夜のために、重ねておりますの。勝川で転んだトラックと、同じ、天環の技術ですわ。');
   KU(); await saku('……三千羽が入る、荷台と、同じ仕掛けか。');
-  RO(); await say('rosina', '中央の大展示室まで、どうぞ、ご自由に。迷われましたら、案内図を。');
+  RO(); await say('rosina', '大展示室まで、どうぞ、ご自由に。迷われましたら、案内図を。');
   await say('rosina', '今夜の規則は、ひとつだけ。……競売の前に、作品に、お手を触れないでくださいまし。');
-  pan([0, 12, 35], [0, 1, 19], [0, 42, 26], [0, 0, -2], 5); await narr('黒い硝子の扉の向こうは、迷路だった。……昨日の回廊を、何本も折り畳んで、積み上げたような。');
-  await narr('外から見た建物の、何倍もの広さ。白い壁が、どこまでも、曲がっていた。');
-  cine(2.2, 2.3, 23.2, -0.2, 1.5, 27.0); await say('murase', '……迷路、ですね。');
-  await say('ishii', '真ん中が、明るいです。天井の明かりが、そっちに、集まってる。');
-  setObj('中央の大展示室へ（案内図を頼りに）'); playOn(); saveGame(true); }
+  pan([0, 8, 40], [0, 1, 22], [-10, 34, 40], [0, -4, -6], 6); await narr('黒い硝子の扉の向こうに、昨日の回廊が、あった。……一本では、なかった。');
+  await narr('長い回廊が、何本も、何本も、重なっていた。下にも、上にも、遠くにも。……回廊と回廊のあいだには、床がなく、細い橋が、虚空を渡っていた。');
+  cine(2.2, 2.3, 28.6, -0.2, 1.5, 32.2); await say('murase', '……橋の下、底が、見えません。');
+  await say('ishii', '奥ほど、明るい。……扉は、いちばん北の回廊でしょう。');
+  setObj('大展示室へ（案内図を頼りに、回廊と橋をたどる）'); playOn(); saveGame(true); }
 async function evMap16(B) { const a = AREAS.gal16; G.mode = 'cine'; const first = !S.flags.c16map; S.flags.c16map = true; markI('m16map');
-  cine(B.x + 0.5, 2.3, B.z + 2.6, B.x, 1.8, B.z); await narr(first ? '回廊の案内図。……真ん中が、大展示室。扉は、北側にしかない。入口の、ちょうど、真裏だ。' : '回廊の案内図。');
-  a.here.position.set(P.pos.x, 6, P.pos.z); a.here.visible = a.goal.visible = true; const ff = scene.fog ? scene.fog.far : 0; if (scene.fog) scene.fog.far = 240;
-  cine(0, 60, 34, 0, 0, -1); await narr('上から見れば、迷路は、ただの模様だった。……黄色が、今いる場所。赤が、大展示室の扉。');
-  if (first) await saku('入口の裏に、扉。……わざわざ、一周させる気だ。');
+  cine(B.x + 0.6, 2.3, B.z + 3.0, B.x, 1.8, B.z); await narr(first ? '回廊の案内図。……四本の回廊を、橋がつないでいる。大展示室の扉は、いちばん北の回廊の、真ん中。' : '回廊の案内図。');
+  a.here.position.set(P.pos.x, 6, P.pos.z); a.here.visible = a.goal.visible = true; const ff = scene.fog ? scene.fog.far : 0; if (scene.fog) scene.fog.far = 420;
+  cine(0, 118, 64, 0, 0, -1); await narr('上から見れば、回廊の束は、ただの模様だった。……黄色が、今いる場所。赤が、大展示室の扉。');
+  if (first) await saku('まっすぐは、行かせてくれないらしい。……橋を、一本ずつだ。');
   a.here.visible = a.goal.visible = false; if (scene.fog) scene.fog.far = ff; playOn(); }
-async function evDead16(kind) { const a = AREAS.gal16, d = a.deadP.find(p => p.kind === kind), cx = mzX(d.i), cz = mzZ(d.j), [[ni, nj]] = a.M.nbs(d.i, d.j), ox = d.i - ni, oz = d.j - nj; G.mode = 'cine'; markI('m16' + kind);
-  P.pos.set(cx + ox * 0.5 + oz * 0.5, 0, cz + oz * 0.5 - ox * 0.5); P.facing = Math.atan2(ox, oz); folAt16(a, [cx - ox * 2.7 + oz * 0.7, cz - oz * 2.7 - ox * 0.7, Math.atan2(ox, oz)], [cx - ox * 2.9 - oz * 0.7, cz - oz * 2.9 + ox * 0.7, Math.atan2(ox, oz)]);
-  cine(cx - ox * 1.9 - oz * 1.5, 2.9, cz - oz * 1.9 + ox * 1.5, cx + ox * 1.8, 1.5, cz + oz * 1.8);
-  if (kind === 'knock') { await narr('行き止まりに、黒い、小さな扉。札には「第三収蔵庫　↓」。……ノブは、回らなかった。'); sfx('knock'); await narr('――とん、とん。');
+async function evDead16(kind) { const a = AREAS.gal16, d = a.props.find(p => p.kind === kind), px = d.x, pz = d.z; G.mode = 'cine'; markI('m16' + kind);
+  P.pos.set(px - 0.8, 0, pz + 1.5); P.facing = Math.PI; folAt16(a, [px - 2.6, pz + 4.6, Math.PI], [px - 1.4, pz + 5.4, Math.PI]); cine(px + 1.8, 2.8, pz + 4.0, px, 1.6, pz + 0.2);
+  if (kind === 'knock') { await narr('回廊の壁に、黒い、小さな扉。札には「第三収蔵庫　↓」。……ノブは、回らなかった。'); sfx('knock'); await narr('――とん、とん。');
     await narr('扉の、ずっと下のほうから、音がした。……とん、とん。拳で、何かを、叩く音。');
     await say('kuze', '……真壁。');
     await say('ishii', '……下に、三層。音の返り方で、分かります。');
     await saku('……人間の耳で、三層まで、分かるもんか。');
     await say('murase', '久世さん。……今夜は、表から、取り返しましょう。');
     await say('kuze', '……ああ。もう少しだ、真壁。'); }
-  if (kind === 'mirror') { await narr('鏡のような、額縁。……覗き込むと、隅に、背広の男が、小さく、映っていた。'); await narr('題簽。「点景　来館者　作：未完画廊（あなた）」。');
+  if (kind === 'mirror') { await narr('張り出しの先に、鏡のような、額縁が、立っていた。……覗き込むと、隅に、背広の男が、小さく、映っていた。'); await narr('題簽。「点景　来館者　作：未完画廊（あなた）」。');
     await saku('……悪趣味だ。');
     await say('kuze', '絵の隅の、俺か。……昨日、素材になっていたら、本当に、ここにいたんだろうな。');
     await say('murase', '……映ってるの、久世さんだけです。自分たちは、映ってません。');
@@ -9300,6 +9314,10 @@ async function evDead16(kind) { const a = AREAS.gal16, d = a.deadP.find(p => p.k
     await say('ishii', '……あっちの人、こっちを、見上げてます。……いや。見下ろしてるのか。');
     await saku('空間拡張ってのは、箱を広げるだけじゃないらしい。……上と下まで、畳んである。');
     await say('kuze', 'トラックの荷台に、三千羽。……この画廊には、何が、何人、畳まれてるんだ。'); }
+  if (kind === 'exit') { await narr('回廊の突き当たりに、扉の絵が、掛かっていた。緑の文字で「EXIT」。……題簽は『出口』。作：スチューデント・ピア。');
+    await saku('……笑えない。');
+    await say('murase', '……描いてある、だけですね。');
+    await say('ishii', 'この回廊は、ここで、終わりです。……戻りましょう。'); }
   playOn(); }
 
 // ---- 中央大展示室 ----
@@ -9852,6 +9870,6 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, MZ16, mzX, mzZ };
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16 };
 })();
 </script>
