@@ -337,7 +337,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
     <div class="sub" id="tSub">久世躁一郎の帰還</div>
     <div class="ch" id="tCh"><i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i></div>
     <p id="tP">人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。</p>
-    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="ch4Btn" hidden>第四章から</button><button type="button" class="ghost" id="ch5Btn" hidden>第五章 上から</button><button type="button" class="ghost" id="ch6Btn" hidden>第五章 下から</button><button type="button" class="ghost" id="ch7Btn" hidden>幕間から</button><button type="button" class="ghost" id="ch8Btn" hidden>幕間二から</button><button type="button" class="ghost" id="ch9Btn" hidden>第六章 上から</button><button type="button" class="ghost" id="ch10Btn" hidden>第六章 中から</button><button type="button" class="ghost" id="ch11Btn" hidden>第六章 下から</button><button type="button" class="ghost" id="ch12Btn" hidden>幕間三から</button><button type="button" class="ghost" id="ch13Btn" hidden>とある未来</button><button type="button" class="ghost" id="ch14Btn" hidden>第七章 Intro から</button><button type="button" class="ghost" id="ch15Btn" hidden>第七章 序から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
+    <div class="trow"><button type="button" class="go" id="contBtn" hidden>つづきから</button><button type="button" class="go" id="startBtn">序章からはじめる</button><button type="button" class="ghost" id="filesBtn" hidden>記録ファイル</button><button type="button" class="ghost" id="ch1Btn">第一章から</button><button type="button" class="ghost" id="ch2Btn" hidden>第二章から</button><button type="button" class="ghost" id="ch3Btn" hidden>第三章から</button><button type="button" class="ghost" id="ch4Btn" hidden>第四章から</button><button type="button" class="ghost" id="ch5Btn" hidden>第五章 上から</button><button type="button" class="ghost" id="ch6Btn" hidden>第五章 下から</button><button type="button" class="ghost" id="ch7Btn" hidden>幕間から</button><button type="button" class="ghost" id="ch8Btn" hidden>幕間二から</button><button type="button" class="ghost" id="ch9Btn" hidden>第六章 上から</button><button type="button" class="ghost" id="ch10Btn" hidden>第六章 中から</button><button type="button" class="ghost" id="ch11Btn" hidden>第六章 下から</button><button type="button" class="ghost" id="ch12Btn" hidden>幕間三から</button><button type="button" class="ghost" id="ch13Btn" hidden>とある未来</button><button type="button" class="ghost" id="ch14Btn" hidden>第七章 Intro から</button><button type="button" class="ghost" id="ch15Btn" hidden>第七章 序から</button><button type="button" class="ghost" id="ch16Btn" hidden>第七章 中編から</button><button type="button" class="ghost" id="sndBtn" aria-pressed="true">音あり</button></div>
     <div class="cinfo" id="contInfo" hidden></div>
     <div class="keys">歩く：画面左をドラッグ／WASD・矢印　調べる・話す・台詞送り：右の丸ボタン／Space・E　手帳：N</div>
   </div>
@@ -1670,7 +1670,7 @@ const meta = () => readJSON(META_KEY) || {};
 function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); cloudPut('meta', m); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
-const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '幕間', '幕間二', '第六章　上', '第六章　中', '第六章　下', '幕間三', 'とある未来', '第七章　Intro', '第七章　序'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景'];
+const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '幕間', '幕間二', '第六章　上', '第六章　中', '第六章　下', '幕間三', 'とある未来', '第七章　Intro', '第七章　序', '第七章　中編'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景', '競売'];
 // ---- 記録ファイル：自動記録 1 冊と、手で記録する 3 冊 ----
 const SLOTS = [['auto', '自動記録'], ['f1', 'FILE 01'], ['f2', 'FILE 02'], ['f3', 'FILE 03']];
 function readFiles() { const f = readJSON(FILES_KEY) || {}; if (!f.auto) { const old = readJSON(SAVE_KEY); if (old) { f.auto = old; writeJSON(FILES_KEY, f); try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 消せなくても困らない */ } } } return f; }
@@ -1696,7 +1696,7 @@ async function cloudInit() { if (!(window.claude && window.claude.use)) return; 
     else if (l && (!r || l.t > r.t)) cloudPut(id, l); }
   if (changed) writeJSON(FILES_KEY, f);
   // 章の記録（タイトルの変化、章のクリア）は足し合わせる
-  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm); for (const k of ['revealed', 'saku', 'ch1Clear', 'ch2Clear', 'ch3Clear', 'ch4Clear', 'ch5Clear', 'ch6Clear', 'ch7Clear', 'ch8Clear', 'ch9Clear', 'ch10Clear', 'ch11Clear', 'ch12Clear', 'ch13Clear', 'ch14Clear', 'ch15Clear']) m[k] = !!(lm[k] || (rm && rm[k])); for (const k of ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'ch9', 'ch10', 'ch11', 'ch12', 'ch13', 'ch14', 'ch15', 'ch1Done', 'ch2Done', 'ch3Done', 'ch4Done', 'ch5Done', 'ch6Done', 'ch7Done', 'ch8Done', 'ch9Done', 'ch10Done', 'ch11Done', 'ch12Done', 'ch13Done', 'ch14Done', 'ch15Done']) if (!lm[k] && rm && rm[k]) m[k] = rm[k];
+  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm); for (const k of ['revealed', 'saku', 'ch1Clear', 'ch2Clear', 'ch3Clear', 'ch4Clear', 'ch5Clear', 'ch6Clear', 'ch7Clear', 'ch8Clear', 'ch9Clear', 'ch10Clear', 'ch11Clear', 'ch12Clear', 'ch13Clear', 'ch14Clear', 'ch15Clear', 'ch16Clear']) m[k] = !!(lm[k] || (rm && rm[k])); for (const k of ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'ch9', 'ch10', 'ch11', 'ch12', 'ch13', 'ch14', 'ch15', 'ch16', 'ch1Done', 'ch2Done', 'ch3Done', 'ch4Done', 'ch5Done', 'ch6Done', 'ch7Done', 'ch8Done', 'ch9Done', 'ch10Done', 'ch11Done', 'ch12Done', 'ch13Done', 'ch14Done', 'ch15Done', 'ch16Done']) if (!lm[k] && rm && rm[k]) m[k] = rm[k];
     writeJSON(META_KEY, m); if (JSON.stringify(m) !== JSON.stringify(rm || {})) cloudPut('meta', m); }
   refreshTitle(); if (!$('files').hidden) renderFiles(); }
 function playOn() { G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; }
@@ -1752,7 +1752,7 @@ function refreshTitle() { const m = meta(), l = latestFile(), d = l && l.d, rev 
   $('tH').textContent = rev ? 'RÉSERVE' : '主権留保'; $('tSub').textContent = rev ? '留保班　久世躁一郎の帰還' : '久世躁一郎の帰還';
   $('tP').textContent = rev ? '表の名は、主権保全室。封印された閣議の記録に残る名は、留保班。――この国の主権を、まだ誰にも渡していない者たち。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。' : '人類より優れ、美しく、人間を強く好む隣人たちが、この国の多くを決めている。静州商事の課長・久世躁一郎は、今日も穏やかに頭を下げる。その鞄の中で、携帯電話が一度だけ震えた。';
   $('tCh').innerHTML = '<i><span>序章</span>この国を決めている者たち</i><i><span>第一章</span>微笑む課長</i>' + (m.ch1Clear ? '<i><span>第二章</span>二つの顔</i>' : '') + (m.ch2Clear ? '<i><span>第三章</span>人間の代表</i>' : '') + (m.ch3Clear ? '<i><span>第四章</span>救われた者たち</i>' : '') + (m.ch4Clear ? '<i><span>第五章 上</span>朔</i>' : '') + (m.ch5Clear ? '<i><span>第五章 下</span>鬼は嘘をつかない</i>' : '') + (m.ch6Clear ? '<i><span>幕間</span>春日井の、いちばん長い夜</i>' : '') + (m.ch7Clear ? '<i><span>幕間二</span>娶るということ</i>' : '') + (m.ch8Clear ? '<i><span>第六章 上</span>旗</i>' : '') + (m.ch9Clear ? '<i><span>第六章 中</span>餌</i>' : '') + (m.ch10Clear ? '<i><span>第六章 下</span>奪還</i>' : '') + (m.ch11Clear ? '<i><span>幕間三</span>生きとし生けるもの</i>' : '');
-  $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('ch4Btn').hidden = !m.ch3Clear; $('ch5Btn').hidden = !m.ch4Clear; $('ch6Btn').hidden = !m.ch5Clear; $('ch7Btn').hidden = !m.ch6Clear; $('ch8Btn').hidden = !m.ch7Clear; $('ch9Btn').hidden = !m.ch8Clear; $('ch10Btn').hidden = !m.ch9Clear; $('ch11Btn').hidden = !m.ch10Clear; $('ch12Btn').hidden = !m.ch11Clear; $('ch13Btn').hidden = !m.ch12Clear; $('ch14Btn').hidden = !m.ch13Clear; $('ch15Btn').hidden = !m.ch14Clear; $('contBtn').hidden = !d; $('filesBtn').hidden = !d;
+  $('ch2Btn').hidden = !m.ch1Clear; $('ch3Btn').hidden = !m.ch2Clear; $('ch4Btn').hidden = !m.ch3Clear; $('ch5Btn').hidden = !m.ch4Clear; $('ch6Btn').hidden = !m.ch5Clear; $('ch7Btn').hidden = !m.ch6Clear; $('ch8Btn').hidden = !m.ch7Clear; $('ch9Btn').hidden = !m.ch8Clear; $('ch10Btn').hidden = !m.ch9Clear; $('ch11Btn').hidden = !m.ch10Clear; $('ch12Btn').hidden = !m.ch11Clear; $('ch13Btn').hidden = !m.ch12Clear; $('ch14Btn').hidden = !m.ch13Clear; $('ch15Btn').hidden = !m.ch14Clear; $('ch16Btn').hidden = !m.ch15Clear; $('contBtn').hidden = !d; $('filesBtn').hidden = !d;
   $('contInfo').hidden = !d; if (d) $('contInfo').textContent = '最新の記録：' + CHN[d.s.chapter || 1] + '　' + (d.place || '') + '　' + fmtT(d.t) + (cloud ? '　（アカウントに保存）' : '');
   $('startBtn').className = d ? 'ghost' : 'go'; }
 
@@ -8782,10 +8782,727 @@ function showReport15() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>エデル</td><td>回廊には現れない。画廊の奥で、ただ描いている。点景派の講評を頼まれ「……ふっ。見なくても分かるよ。満点でいいよ」。二色の客のことを聞かれ「そうだった？……今は、こっちの青が、乾かない」。机の上で砕かれていたのは、「友を守りたい」という青だった</td></tr>' +
     '<tr><td>ヴェーラ</td><td>「素材は、熟してから、いただくものですわ」。搬入は延期。「また、お越しになりますわ。真壁さまが、ここに、いる限り」</td></tr>' +
     '<tr><td>次</td><td>久世は、翠絡のレウネに返事をした。「会おう」</td></tr></table>' +
-    '<p class="close">一人じゃ、叩けない扉がある。<br>第七章（準備中）</p>' +
-    '<div class="trow"><button type="button" class="go" id="titleBtn15">タイトルへ</button></div>';
-  $('report').hidden = false; $('titleBtn15').addEventListener('click', () => location.reload()); }
+    '<p class="close">一人じゃ、叩けない扉がある。</p>' +
+    '<div class="trow"><button type="button" class="go" id="ch16Go">第七章 中編へ</button><button type="button" class="ghost" id="titleBtn15">タイトルへ</button></div>';
+  $('report').hidden = false; $('titleBtn15').addEventListener('click', () => location.reload()); $('ch16Go').addEventListener('click', () => { $('report').hidden = true; run(chapter16); }); }
 async function startCh15() { const m = meta(); if (m.ch14) unpackS(m.ch14); else if (m.ch12) unpackS(m.ch12); DONE = new Set(m.ch14Done || m.ch12Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter15(); }
+// ================= 第七章　中編：人物・場所 =================
+// ---- 留保班「要」――石居雄汰。※非公開：村瀬と同じ「蒼龍計画」の一人。中編では表に出さない（匂わせのみ） ----
+LK.ishii = { skin: SK, hair: 0x141418, eye: 0x24242A, brow: 0x141418, browTilt: 0.05, top: 0x24262E, sleeve: 0x24262E, bc: 0x24262E, leg: 0x24262E, shoe: 0x101014, shirt: 0xF2F2F2, tie: 0x2A3A5A, s: 1.0, w: 1.16, st: ['short'] };
+LK.muraseS = Object.assign({}, LK.murase, { top: 0x20222A, sleeve: 0x20222A, bc: 0x20222A, leg: 0x20222A, shoe: 0x101014, tie: 0x3A2A2E });
+MEMB.sepia = { name: 'マエストロ・セピア', role: '未完画廊　点景派　マエストロ', col: '#C8A078', L: { skin: 0xF2E4D6, hair: 0x8A6440, eye: 0x6A4A2A, st: ['long', 'narrow'], longLen: 1.0, s: 1.14 }, tattoo: true };
+Object.assign(SPK, { ishii: ['石居 雄汰', '#8CC8A8'], sepia: ['マエストロ・セピア', '#C8A078'], kuro: ['クロ・バルク', '#E8403A'], fukkin: ['フッ・キン', '#F0A040'], haikin: ['ハイ・キン', '#A8B4C8'], bulkM: ['バルク・家族', '#E07060'], hiElf: ['ハイエルフの蒐集家', '#D8E8B0'] });
+// マエストロ・セピア：片眼鏡、長い燕尾、大きな絵筆
+function sepiaChar() { const m = memberChar('sepia'), T = m.torso, H = m.head;
+  part(G_('mono', () => new THREE.TorusGeometry(0.07, 0.012, 6, 16)), 0xC8A040, 0.11, 0.06, 0.3, H, { outline: false }); part(cyl(0.004, 0.004, 0.3, 4), 0xC8A040, 0.17, -0.08, 0.28, H, { rz: 0.4, outline: false });
+  const tail = part(box(0.5, 0.95, 0.04), 0xEDEDF0, 0, 0.5, -0.27, T, { ol: 1.04 }); tail.rotation.x = 0.12;
+  const br = new THREE.Group(); br.position.set(0, -0.56, 0.06); m.arms[1].add(br); part(cyl(0.025, 0.03, 1.9, 6), 0x5A3A22, 0, 0.3, 0, br, { outline: false }); part(cyl(0.05, 0.035, 0.12, 8), 0xC8A040, 0, -0.68, 0, br, { outline: false }); part(G_('brh', () => new THREE.ConeGeometry(0.07, 0.3, 8)), 0x7A4A2A, 0, -0.88, 0, br, { rx: Math.PI, outline: false });
+  return m; }
+
+// ---- B.U.N society　rate No.7「絶叫筋王」クロ・バルク（参考画像に寄せて）：黒頭、紅い嘴、白い頬、胸の鎧帯、篭手、ベルトとポーチ、「07」の裂けた黒い外套、重いブーツ ----
+function kuroBulk() { const BK = 0x1C1C22, m = makeBird({ coat: BK, pants: 0x141418, sleeve: BK, cap: 0x0C0C10, beak: 0xB8141E, hand: 0x24242A, muscle: true, s: 1.25 }), T = m.torso;
+  m.g.scale.set(1.25 * 1.22, 1.25, 1.25 * 1.14);
+  for (const sx of [-1, 1]) part(sph(0.26, 12, 10), 0x26262E, sx * 0.21, 1.27, 0.3, T, { s: [1.1, 0.78, 0.62] });
+  for (const sx of [-1, 1]) part(box(0.1, 1.05, 0.06), 0x4A3A2A, sx * 0.17, 1.15, 0.45, T, { rz: sx * 0.52, outline: false });
+  part(box(0.48, 0.3, 0.08), 0x3A3A44, 0, 1.31, 0.48, T, { ol: 1.06 }); part(box(0.3, 0.06, 0.02), 0xC8141E, 0, 1.31, 0.53, T, { outline: false });
+  for (const sx of [-1, 1]) { part(sph(0.25, 10, 8), 0x3A3A44, sx * 0.6, 1.44, 0, T, { s: [1, 0.6, 1.05] }); part(box(0.08, 0.06, 0.4), 0x4A3A2A, sx * 0.6, 1.33, 0, T, { outline: false }); }
+  part(G_('kbelt', () => new THREE.TorusGeometry(0.5, 0.06, 6, 22)), 0x3A2A1E, 0, 0.72, 0, T, { rx: Math.PI / 2, outline: false }); part(box(0.14, 0.1, 0.06), 0xC8A040, 0, 0.72, 0.52, T, { outline: false });
+  for (const an of [0.95, 1.6, -0.95, -1.6, 2.5]) part(box(0.15, 0.17, 0.1), 0x4A3A2A, Math.sin(an) * 0.5, 0.63, Math.cos(an) * 0.5, T, { ry: an, outline: false });
+  for (const pv of m.arms) { part(sph(0.23, 10, 8), BK, 0, -0.15, 0.03, pv, { s: [1.05, 1.25, 1] }); part(cyl(0.21, 0.21, 0.3, 10), 0x3A3A44, 0, -0.43, 0, pv, { ol: 1.05 }); part(box(0.06, 0.26, 0.24), 0xC8141E, 0, -0.43, 0.2, pv, { outline: false }); part(sph(0.18, 8, 6), 0x24242A, 0, -0.67, 0, pv); }
+  const cb = part(box(1.3, 1.36, 0.06), 0x0E0E12, 0, 0.9, -0.5, T, { ol: 1.03 }); void cb;
+  for (const sx of [-1, 1]) part(box(0.06, 1.28, 0.62), 0x0E0E12, sx * 0.66, 0.94, -0.2, T, { ol: 1.03, rz: sx * 0.06 });
+  for (let i = 0; i < 8; i++) part(G_('tat', () => new THREE.ConeGeometry(0.09, 0.32, 3)), 0x0E0E12, -0.6 + i * 0.17, 0.12 - (i % 3) * 0.06, -0.5, T, { rx: Math.PI, outline: false });
+  part(G_('kcol', () => new THREE.CylinderGeometry(0.42, 0.52, 0.32, 12, 1, true)), 0x0E0E12, 0, 1.6, -0.05, T, { outline: false, mat: new THREE.MeshToonMaterial({ color: 0x0E0E12, gradientMap: gradTex, side: THREE.DoubleSide }) });
+  plane(0.64, 0.52, signTex(128, 104, [{ t: '07', size: 84, w: 900 }], { bg: '#0E0E12', fg: '#C8141E' }), 0, 1.1, -0.54, T).rotation.y = Math.PI;
+  for (const pv of m.legs) { part(cyl(0.17, 0.19, 0.32, 10), 0x16161A, 0, -0.44, 0.02, pv); part(box(0.32, 0.16, 0.44), 0x101014, 0, -0.6, 0.08, pv); }
+  for (const sx of [-1, 1]) part(box(0.17, 0.045, 0.05), 0x08080A, sx * 0.2, 0.15, 0.3, m.head, { rz: -sx * 0.42, outline: false });
+  return m; }
+// グッドブラザー（バルク・家族の、二桁台の兄弟）
+function fukkinBird() { const m = makeBird({ coat: 0xF2F0EA, pants: 0x1A1A1E, sleeve: 0xF2F0EA, muscle: true, s: 1.12 }), T = m.torso;
+  for (let r = 0; r < 3; r++) for (const sx of [-1, 1]) part(box(0.16, 0.13, 0.06), 0xE2DED4, sx * 0.09, 0.8 + r * 0.15, 0.46, T, { outline: false });
+  part(G_('cbelt', () => new THREE.TorusGeometry(0.5, 0.08, 6, 22)), 0xC8323C, 0, 0.62, 0, T, { rx: Math.PI / 2 }); part(cyl(0.17, 0.17, 0.05, 14), 0xE8C040, 0, 0.62, 0.53, T, { rx: Math.PI / 2, emis: 0x5A4010, outline: false });
+  part(G_('hachi3', () => new THREE.TorusGeometry(0.285, 0.05, 6, 18)), 0xC8323C, 0, 0.24, -0.01, m.head, { rx: Math.PI / 2 - 0.18, outline: false }); return m; }
+function haikinBird() { const m = makeBird({ coat: 0x8A8C94, pants: 0x1A1A1E, sleeve: 0x8A8C94, muscle: true, shades: true, s: 1.16 }), T = m.torso; m.g.scale.x *= 1.2;
+  for (const sx of [-1, 1]) { part(sph(0.27, 10, 8), 0x2A2A30, sx * 0.6, 1.44, -0.05, T, { s: [1, 0.55, 1] }); for (let k = 0; k < 3; k++) part(G_('spk16', () => new THREE.ConeGeometry(0.05, 0.2, 6)), 0xC8C8D0, sx * (0.48 + k * 0.11), 1.6, -0.05, T, { outline: false }); }
+  part(G_('chain', () => new THREE.TorusGeometry(0.36, 0.03, 6, 20)), 0xC8C8D0, 0, 1.5, 0.05, T, { rx: Math.PI / 2 + 0.4, outline: false }); return m; }
+// バルク・家族の構成員：黒い鉢巻きに、紅い結び目
+function bulkBird(i = 0) { const c = [0xF2F0EA, 0x1C1C22, 0xB8B8BE, 0xE8E4DA][i % 4]; return bunshokuBird({ coat: c, sleeve: c, band: 0x1A1A1E, band2: 0xE8403A, badge: 0, s: 0.96 + (i % 3) * 0.04 }); }
+
+// ---- 声圧支配（声の衝撃波）と、音 ----
+function voiceRing(x, y, z, col, s, life = 0.75) { const m = new THREE.Mesh(G_('vring', () => new THREE.RingGeometry(0.8, 1, 48)), fxMat(col, 0.8)); m.position.set(x, y, z); m.lookAt(camera.position); fxAdd(m, life, u => { m.scale.setScalar(0.3 + s * u); m.material.opacity = 0.85 * (1 - u); }); }
+function voicePress(x, y, z, big) { for (let k = 0; k < (big ? 5 : 3); k++) setTimeout(() => { voiceRing(x, y, z, k % 2 ? 0xFFFFFF : 0xE8403A, big ? 24 : 11); fxRing(x, 0.1, z, big ? 20 : 9, 0xE8403A, 0.7); }, k * 110); fxFlash(x, y, z, 0xFFFFFF, big ? 6 : 3, 0.3); G.shake = Math.max(G.shake, big ? 0.9 : 0.45); sfx('roar'); }
+SFX.roar = () => { noise(0, 1.8, 0.3, 160, 'lowpass'); tone(70, 0, 1.6, 'sawtooth', 0.12, { f1: 40, lp: 500 }); tone(140, 0, 1.4, 'square', 0.04, { f1: 90, lp: 900 }); noise(0, 1.2, 0.08, 1200, 'bandpass'); };
+SFX.haa = () => { noise(0, 0.16, 0.06, 320, 'lowpass'); tone(110, 0, 0.14, 'sawtooth', 0.02, { f1: 80, lp: 600 }); };
+SFX.knock = () => { for (let i = 0; i < 2; i++) { noise(i * 0.32, 0.08, 0.12, 260, 'lowpass'); tone(110, i * 0.32, 0.1, 'sine', 0.08, { f1: 70 }); } };
+SFX.gavel = () => { noise(0, 0.05, 0.2, 1800, 'bandpass'); tone(420, 0, 0.12, 'triangle', 0.06, { f1: 300 }); };
+BGM.reune16 = { bpm: 72, f(s, t, sp) { const ch = [[57, 60, 64, 67], [53, 57, 60, 64], [55, 59, 62, 65], [52, 55, 59, 62]][(s >> 5) % 4]; if (s % 32 === 0) ch.forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.012, { a: 0.4 })); if (s % 4 === 2) tone(mf(ch[(s >> 2) % 4] + 12), t, sp * 1.5, 'triangle', 0.008, { a: 0.01 }); if (s % 8 === 0) noise(t, 0.02, 0.012, 6000, 'highpass'); } };
+BGM.auction16 = { bpm: 92, f(s, t, sp) { const ch = [[62, 65, 69], [58, 62, 65], [60, 64, 67], [57, 61, 64]][((s / 12) | 0) % 4];
+  if (s % 12 === 0) tone(mf(ch[0] - 24), t, sp * 10, 'triangle', 0.05, { a: 0.01 }); if (s % 12 === 4 || s % 12 === 8) for (const m of ch) tone(mf(m), t, sp * 2.5, 'triangle', 0.012, { lp: 2400 });
+  if (s % 2 === 0) tone(mf(ch[((s / 2) | 0) % 3] + 12), t, sp * 1.2, 'sine', 0.012, { a: 0.003 }); } };
+BGM.bulk16 = { bpm: 152, f(s, t, sp) { if (s % 4 === 0) { tone(60, t, 0.22, 'sine', 0.16, { f1: 38, a: 0.003 }); noise(t, 0.06, 0.06, 220, 'lowpass'); }
+  if (s % 8 === 4) { noise(t, 0.16, 0.09, 420, 'lowpass'); tone(130, t, 0.14, 'sawtooth', 0.04, { f1: 90, lp: 700 }); }
+  const riff = [40, 40, 41, 40, 43, 40, 41, 38]; if (s % 2 === 0) tone(mf(riff[(s >> 1) % 8]), t, sp * 1.6, 'sawtooth', 0.035, { lp: 900 });
+  if (s % 32 === 28) for (let k = 0; k < 3; k++) tone(mf(64 + k), t + k * sp, sp, 'square', 0.015, { lp: 2000 }); } };
+
+// ---- 陽盾の護送車（乾が見たもの） ----
+function yoTruck(parent, x, z, ry) { const T0 = new THREE.Group(); T0.position.set(x, 0, z); T0.rotation.y = ry; parent.add(T0);
+  block(2.5, 2.5, 6.6, 0xF2F2F4, 0, 1.55, 0, T0); block(2.4, 2.1, 1.8, 0x2A4A8A, 0, 1.3, 4.1, T0); block(2.0, 0.8, 0.06, 0x9AC8F0, 0, 1.8, 5.02, T0);
+  for (const sx of [-1, 1]) { const sg = plane(5.6, 1.6, signTex(560, 160, [{ t: '陽盾警備保障　護送', size: 52, w: 900 }, { t: '運行：千路ロジスティクス　／　空間拡張コンテナ（天環）', size: 22 }], { bg: '#F4F4F6', fg: '#1A1A20' }), sx * 1.27, 1.7, -0.2, T0); sg.rotation.y = sx * Math.PI / 2;
+    const sh = glowSprite(0xF4D35E, 0.8, 0.6); sh.position.set(sx * 1.3, 2.5, 2.6); T0.add(sh);
+    for (const zz of [-2.2, 0.6, 4.0]) part(cyl(0.48, 0.48, 0.36, 14), 0x1A1A1E, sx * 1.2, 0.48, zz, T0, { rz: Math.PI / 2 }); }
+  for (const sx of [-1, 1]) { const d = block(1.2, 2.3, 0.08, 0xE4E4E8, sx * 1.15, 1.45, -3.6, T0); d.rotation.y = sx * 1.1; }
+  return T0; }
+
+// ---- 迷路の回廊（空間拡張）：十一×十一の区画、中央の三×三が大展示室 ----
+function rng16(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const MZ16 = { N: 11, C: 4, lo: 4, hi: 6, mid: 5 };
+const mzCenter = (i, j) => i >= MZ16.lo && i <= MZ16.hi && j >= MZ16.lo && j <= MZ16.hi;
+const mzX = i => (i - MZ16.mid) * MZ16.C, mzZ = j => (j - MZ16.mid) * MZ16.C;
+const mzEk = (i, j, k, l) => (i < k || (i === k && j < l)) ? i + ',' + j + '|' + k + ',' + l : k + ',' + l + '|' + i + ',' + j;
+function genMaze16() { const R = rng16(1607), N = MZ16.N, E = MZ16.mid + ',' + (N - 1), open = new Set(), seen = new Set([E]), st = [[MZ16.mid, N - 1]], D4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  while (st.length) { const [i, j] = st[st.length - 1], nb = D4.map(([di, dj]) => [i + di, j + dj]).filter(([a, b]) => a >= 0 && a < N && b >= 0 && b < N && !mzCenter(a, b) && !seen.has(a + ',' + b));
+    if (!nb.length) { st.pop(); continue; } const [a, b] = nb[Math.floor(R() * nb.length)]; open.add(mzEk(i, j, a, b)); seen.add(a + ',' + b); st.push([a, b]); }
+  for (let t = 0, x = 0; t < 400 && x < 6; t++) { const i = Math.floor(R() * N), j = Math.floor(R() * N), h = R() < 0.5, a = i + (h ? 1 : 0), b = j + (h ? 0 : 1); if (a >= N || b >= N || mzCenter(i, j) || mzCenter(a, b)) continue; const k = mzEk(i, j, a, b); if (!open.has(k)) { open.add(k); x++; } }
+  const nbs = (i, j) => D4.map(([di, dj]) => [i + di, j + dj]).filter(([a, b]) => a >= 0 && a < N && b >= 0 && b < N && open.has(mzEk(i, j, a, b)));
+  const dist = { [E]: 0 }, q = [[MZ16.mid, N - 1]]; while (q.length) { const [i, j] = q.shift(); for (const [a, b] of nbs(i, j)) if (dist[a + ',' + b] === undefined) { dist[a + ',' + b] = dist[i + ',' + j] + 1; q.push([a, b]); } }
+  const dead = []; for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (!mzCenter(i, j) && nbs(i, j).length === 1 && !(i === MZ16.mid && (j === N - 1 || j === MZ16.lo - 1))) dead.push([i, j]);
+  dead.sort((p, r) => dist[r[0] + ',' + r[1]] - dist[p[0] + ',' + p[1]]); return { open, nbs, dist, dead }; }
+function drawMaze16(M, here) { return (c, w, h) => { c.fillStyle = '#F4F2EE'; c.fillRect(0, 0, w, h); const N = MZ16.N, lo = MZ16.lo, nc = MZ16.hi - lo + 1, md = MZ16.mid, s = (w - 40) / N, ox = 20, oy = 36; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = '#2A2430'; c.font = `800 17px ${MINCHO}`; c.fillText('回廊　案内図', w / 2, 24);
+  c.fillStyle = '#D8D0E8'; c.fillRect(ox + lo * s, oy + lo * s, nc * s, nc * s); c.fillStyle = '#5A4A8A'; c.font = `700 13px ${GOTHIC}`; c.fillText('大展示室', ox + (md + 0.5) * s, oy + (md + 0.5) * s + 4);
+  c.strokeStyle = '#2A2430'; c.lineWidth = 3; c.beginPath();
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const x = ox + i * s, y = oy + j * s;
+    if (i + 1 < N && !M.open.has(mzEk(i, j, i + 1, j)) && !(mzCenter(i, j) && mzCenter(i + 1, j))) { c.moveTo(x + s, y); c.lineTo(x + s, y + s); }
+    if (j + 1 < N && !M.open.has(mzEk(i, j, i, j + 1)) && !(mzCenter(i, j) && mzCenter(i, j + 1))) { c.moveTo(x, y + s); c.lineTo(x + s, y + s); } }
+  c.rect(ox, oy, N * s, N * s); c.stroke(); c.strokeStyle = '#F4F2EE'; c.lineWidth = 6; c.beginPath(); c.moveTo(ox + md * s + 3, oy + N * s); c.lineTo(ox + (md + 1) * s - 3, oy + N * s); c.stroke();
+  c.fillStyle = '#2A2430'; c.font = `700 11px ${GOTHIC}`; c.fillText('入口', ox + (md + 0.5) * s, oy + N * s + 14);
+  c.fillStyle = '#C8323C'; c.fillRect(ox + (md + 0.15) * s, oy + lo * s - 3, s * 0.7, 6); c.font = `700 10px ${GOTHIC}`; c.fillText('扉', ox + (md + 0.5) * s, oy + lo * s - 6);
+  if (here) { c.fillStyle = '#E3A018'; c.beginPath(); c.arc(ox + (here[0] + 0.5) * s, oy + (here[1] + 0.5) * s, 5, 0, TAU); c.fill(); c.fillStyle = '#2A2430'; c.font = `800 10px ${GOTHIC}`; c.fillText('現在地', ox + (here[0] + 0.5) * s, oy + (here[1] + 0.5) * s - 9); } }; }
+makeArea('gal16', { place: '神領　未完画廊　迷路回廊（空間拡張）', bounds: [-21.6, 21.6, -21.6, 28.0], spawn: [0, 26.4], spawnFace: Math.PI, cam: [0, 13, 7], music: 'gallery', bg: 0x1C1824, fog: [34, 120], light: 0.8, sun: 0.5,
+  build(a) { const g = a.g, M = a.M = genMaze16(), C = MZ16.C, N = MZ16.N, HF = N * C / 2, WH = 3.6; a.walls = []; a.trail = [];
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(HF * 2 + 1, HF * 2 + 1), new THREE.MeshLambertMaterial({ color: 0xE4E2EA })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    for (let k = -HF; k <= HF; k += C) { block(HF * 2 + 1, 0.02, 0.05, 0xCAC6D4, 0, 0.01, k, g); block(0.05, 0.02, HF * 2 + 1, 0xCAC6D4, k, 0.01, 0, g); }
+    const wall = (x, z, w, d) => { const m = new THREE.Mesh(box(w, WH, d), new THREE.MeshLambertMaterial({ color: 0xF2F0F4, transparent: true })); m.position.set(x, WH / 2, z); g.add(m); a.obs.push({ x, z, hx: w / 2, hz: d / 2, tall: true }); a.walls.push({ m, x, z, hx: w / 2, hz: d / 2 }); return m; };
+    const texs = []; for (let k = 0; k < 10; k++) texs.push(artTex(['abs', 'land', 'portrait'][k % 3], k * 7 + 3)); const R = rng16(77);
+    a.decoF = []; const deco = (x, z, nx, nz) => { if (R() < 0.42) return; const f = frame(g, x + nx * 0.25, 2.0, z + nz * 0.25, 1.1 + R() * 0.9, 0.9 + R() * 0.7, texs[Math.floor(R() * texs.length)], R() < 0.5 ? 0xC8B070 : 0x2A2430); f.rotation.y = Math.atan2(nx, nz); a.decoF.push(f); };
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      if (i < N - 1 && !mzCenter(i, j) && !mzCenter(i + 1, j) && !M.open.has(mzEk(i, j, i + 1, j))) { const x = mzX(i) + C / 2, z = mzZ(j); wall(x, z, 0.4, C + 0.4); deco(x, z, 1, 0); deco(x, z, -1, 0); }
+      if (j < N - 1 && !mzCenter(i, j) && !mzCenter(i, j + 1) && !M.open.has(mzEk(i, j, i, j + 1))) { const x = mzX(i), z = mzZ(j) + C / 2; wall(x, z, C + 0.4, 0.4); deco(x, z, 0, 1); deco(x, z, 0, -1); } }
+    wall(0, -HF, HF * 2 + 0.4, 0.4); wall(-HF, 0, 0.4, HF * 2 + 0.4); wall(HF, 0, 0.4, HF * 2 + 0.4); wall(-(HF + C / 2) / 2, HF, HF - C / 2 + 0.4, 0.4); wall((HF + C / 2) / 2, HF, HF - C / 2 + 0.4, 0.4);
+    for (let k = -HF + C / 2; k < HF; k += C) { deco(k, -HF, 0, 1); deco(-HF, k, 1, 0); deco(HF, k, -1, 0); if (Math.abs(k) > C / 2) deco(k, HF, 0, -1); }
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) if (!mzCenter(i, j) && (i + j) % 3 === 0) { const l = glowSprite(0xF0E8FF, 1.4, 0.4); l.position.set(mzX(i), 3.9, mzZ(j)); g.add(l); }
+    // 中央の大展示室（外から見た姿）。扉は北側にだけある
+    { const CH = 3.6, BW = (MZ16.hi - MZ16.lo + 1) * C, BH = BW / 2; block(BW, CH, BW, 0xE8E4F0, 0, CH / 2, 0, g); a.obs.push({ x: 0, z: 0, hx: BH, hz: BH, tall: true }); block(BW + 0.4, 0.3, BW + 0.4, 0xC8C0D8, 0, CH + 0.15, 0, g);
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(BH * 0.85, 24, 12, 0, TAU, 0, Math.PI / 2), new THREE.MeshPhongMaterial({ color: 0xD8E4FF, transparent: true, opacity: 0.35, shininess: 90, depthWrite: false })); dome.position.set(0, CH, 0); dome.scale.y = 0.5; g.add(dome); const dg = glowSprite(0xF0E8FF, 12, 0.35); dg.position.set(0, CH + 2, 0); g.add(dg);
+      block(2.8, 3.0, 0.2, 0x14121A, 0, 1.5, -BH - 0.1, g); const dgl = glowSprite(0xE8D8FF, 3, 0.45); dgl.position.set(0, 2, -BH - 0.5); g.add(dgl); a.doorGl = dgl;
+      plane(3.2, 0.46, signTex(400, 60, [{ t: '大展示室　秋の大競売', size: 30, f: MINCHO, w: 800 }], { bg: '#2A2430', fg: '#F4F2EE' }), 0, 3.3, -BH - 0.22, g).rotation.y = Math.PI;
+      plane(5.0, 1.3, signTex(540, 140, [{ t: '大展示室', size: 40, f: MINCHO, w: 800 }, { t: 'お入り口は、北側でございます', size: 22 }], { bg: '#F4F2EE', fg: '#2A2430' }), 0, 2.0, BH + 0.06, g); }
+    // 入口の間（受付）
+    { const ff = new THREE.Mesh(new THREE.PlaneGeometry(12.4, 6.6), new THREE.MeshLambertMaterial({ color: 0xD8D4E0 })); ff.rotation.x = -Math.PI / 2; ff.position.set(0, 0.004, 25.3); g.add(ff); }
+    wall(-6.2, 25.2, 0.4, 6.4); wall(6.2, 25.2, 0.4, 6.4); block(12.8, 1.2, 0.4, 0xF2F0F4, 0, 0.6, 28.4, g); a.obs.push({ x: 0, z: 28.4, hx: 6.4, hz: 0.2 }); plane(3.0, 3.2, canvasTex(8, 8, c => { c.fillStyle = '#0C0A10'; c.fillRect(0, 0, 8, 8); }), 0, 1.6, 28.6, g).rotation.y = Math.PI;
+    block(2.6, 1.0, 0.9, 0xF4F2F4, 3.2, 0.5, 24.6, g); a.obs.push({ x: 3.2, z: 24.6, hx: 1.3, hz: 0.45 });
+    a.ro = npc(a, 'rosina', memberChar('rosina'), 5.3, 24.6, -Math.PI / 2); a.ro.lookAt = 'P';
+    // 重なり合う、別の回廊（外側の虚空）
+    for (const [x, y, z, len, ry] of [[-52, -6, 0, 90, 1.3], [50, 2, -10, 100, 1.7], [0, -10, -48, 110, 0.2], [10, 6, 54, 120, -0.15], [-44, 9, -42, 100, 0.8], [42, -14, 38, 120, -0.6], [-38, -18, 32, 110, 2.2]]) decoCorridor(g, x, y, z, len, ry);
+    // 案内図
+    a.here = glowSprite(0xF4C030, 5, 0.9); a.here.material.depthTest = false; a.here.renderOrder = 6; a.here.visible = false; g.add(a.here);
+    a.goal = glowSprite(0xC8323C, 5, 0.9); a.goal.material.depthTest = false; a.goal.renderOrder = 6; a.goal.position.set(0, 6, -(MZ16.hi - MZ16.lo + 1) * C / 2 - 1.6); a.goal.visible = false; g.add(a.goal);
+    a.boards = [[MZ16.mid, N - 1, 1.1, -0.6], [0, MZ16.mid, 0, -0.4], [N - 1, MZ16.mid, 0, -0.4], [2, 1, 0, -0.4]].map(([i, j, ox, oz], k) => { const x = mzX(i) + ox, z = mzZ(j) + oz, B = { i, j, x, z, k };
+      block(1.8, 1.8, 0.1, 0x2A2430, x, 1.8, z, g); block(0.12, 0.9, 0.12, 0x2A2430, x, 0.45, z, g); plane(1.6, 1.6, canvasTex(256, 256, drawMaze16(M, [i, j])), x, 1.8, z + 0.06, g); a.obs.push({ x, z, hx: 0.9, hz: 0.12 });
+      addItem(a, { id: 'm16map' + k, x, z: z + 1.1, r: 1.5, label: '案内図を見る', col: 0xE3B428, once: false, avail: () => S.chapter === 16 && S.flags.c16st === 'maze', on: () => evMap16(B) }); return B; });
+    // 行き止まりの、三つのもの（入口から遠い順）
+    const kinds = ['knock', 'mirror', 'upside'], lab = { knock: '小さな扉', mirror: '額縁', upside: '窓' }; a.deadP = [];
+    M.dead.slice(0, 3).forEach(([i, j], k) => { const [[ni, nj]] = M.nbs(i, j), ox = i - ni, oz = j - nj, x = mzX(i) + ox * (C / 2 - 0.22), z = mzZ(j) + oz * (C / 2 - 0.22), kind = kinds[k];
+      for (const f of a.decoF) if (f.parent && Math.hypot(f.position.x - x, f.position.z - z) < 1.6) g.remove(f); const grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = Math.atan2(-ox, -oz); g.add(grp);
+      if (kind === 'knock') { block(1.2, 2.2, 0.12, 0x1A1620, 0, 1.1, 0, grp); part(sph(0.05, 8, 6), 0xC8A040, 0.42, 1.1, 0.08, grp, { outline: false }); plane(1.8, 0.5, signTex(360, 100, [{ t: '第三収蔵庫　↓', size: 34, w: 900 }, { t: '関係者以外、立入禁止', size: 18 }], { bg: '#2A2430', fg: '#F4F2EE' }), 0, 2.7, 0.08, grp); }
+      if (kind === 'mirror') { frame(grp, 0, 2.0, 0.02, 1.4, 2.0, canvasTex(140, 200, (c2, w, h) => { const gr = c2.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#E8ECF2'); gr.addColorStop(0.5, '#B8C0CC'); gr.addColorStop(1, '#E0E4EA'); c2.fillStyle = gr; c2.fillRect(0, 0, w, h); c2.fillStyle = '#1A1A1E'; c2.fillRect(112, 168, 4, 12); c2.fillRect(111, 164, 6, 5); c2.fillStyle = 'rgba(255,255,255,.5)'; c2.fillRect(14, 10, 8, 120); }), 0xE8E4DC); plaque(grp, 0, 0.7, 0.06, ['点景　来館者', '作：未完画廊（あなた）']); }
+      if (kind === 'upside') { frame(grp, 0, 2.2, 0.02, 2.6, 1.7, canvasTex(260, 170, (c2, w, h) => { c2.fillStyle = '#2A2430'; c2.fillRect(0, 0, w, h); c2.fillStyle = '#E8E4EE'; c2.fillRect(0, 0, w, 60); c2.fillStyle = '#F4F2F4'; c2.beginPath(); c2.moveTo(0, 60); c2.lineTo(w, 60); c2.lineTo(w * 0.7, 120); c2.lineTo(w * 0.3, 120); c2.closePath(); c2.fill(); c2.fillStyle = '#1A1A1A'; for (let q = 0; q < 6; q++) { const px = 50 + q * 30, py = 64 + (q % 3) * 6; c2.fillRect(px, py, 3, 10); c2.fillRect(px - 1, py + 10, 5, 3); } c2.fillStyle = '#C8B070'; for (let q = 0; q < 4; q++) c2.fillRect(30 + q * 60, 10, 30, 22); }), 0x2A2430); }
+      a.deadP.push({ i, j, kind }); addItem(a, { id: 'm16' + kind, x: mzX(i) + ox * 1.0, z: mzZ(j) + oz * 1.0, r: 2.0, label: lab[kind], col: 0x9A8AD0, avail: () => S.chapter === 16 && S.flags.c16st === 'maze', on: () => evDead16(kind) }); });
+    addItem(a, { id: 'm16door', x: 0, z: -(MZ16.hi - MZ16.lo + 1) * C / 2 - 1.6, r: 1.6, label: '大展示室へ入る', col: 0xC8323C, once: false, avail: () => S.chapter === 16 && S.flags.c16st === 'maze', on: () => goHall16() });
+    // 付き添い（村瀬と石居）
+    a.fol = [npc(a, 'murase', makeChar(LK.muraseS), -1.2, 27.2, Math.PI), npc(a, 'ishii', makeChar(LK.ishii), 1.2, 27.4, Math.PI)]; for (const n of a.fol) n.hidden = true; },
+  tick(a, dt) { follow16(a, dt);
+    for (const W of a.walls) { const occ = W.hz < W.hx && W.z > P.pos.z && W.z - P.pos.z < 2.0 && Math.abs(W.x - P.pos.x) < W.hx + 0.6, mt = W.m.material, t = occ ? 0.18 : 1; mt.opacity += (t - mt.opacity) * Math.min(1, dt * 8); mt.depthWrite = mt.opacity > 0.95; }
+    if (a.doorGl) a.doorGl.material.opacity = 0.35 + Math.sin(T.now * 2) * 0.12;
+    if (S.chapter === 16 && S.flags.c16st === 'maze' && G.mode === 'play' && !G.busy) bark16(a, dt); },
+  restore(a) { playAsKuzeF(false); fol16(a, S.chapter === 16); }
+});
+// ---- 付き添い：プレイヤーの足跡をたどる ----
+function fol16(a, on) { if (!a.fol) return; a.folOn = on; a.trail = []; for (const n of a.fol) { n.hidden = !on; n.st = {}; n.goal = null; n.lookAt = null; } if (on) { CAST.murase = a.fol[0].model; CAST.ishii = a.fol[1].model; } }
+function follow16(a, dt) { if (!a.folOn || G.mode !== 'play') return; const tr = a.trail, L0 = tr[tr.length - 1]; if (!L0 || Math.hypot(P.pos.x - L0.x, P.pos.z - L0.z) > 0.35) { tr.push({ x: P.pos.x, z: P.pos.z }); if (tr.length > 80) tr.shift(); }
+  a.fol.forEach((n, i) => { if (n.goal || n.hidden) return; const d = Math.hypot(P.pos.x - n.pos.x, P.pos.z - n.pos.z); if (d > 12) { n.pos.set(P.pos.x + (i ? 0.9 : -0.9), 0, P.pos.z + 1.0); return; }
+    const t = tr[Math.max(0, tr.length - 1 - (i + 1) * 5)], dx = t.x - n.pos.x, dz = t.z - n.pos.z, L = Math.hypot(dx, dz);
+    if (L > 0.3 && d > 1.3) { const v = Math.min(L, (L > 3 ? 6.5 : 4.4) * dt); n.pos.x += dx / L * v; n.pos.z += dz / L * v; n.facing = turn(n.facing, Math.atan2(dx, dz), dt * 10); n.extMove = true; n.st.run = L > 3; } else n.st.run = false; });
+  { const [m, q] = a.fol, dx = q.pos.x - m.pos.x, dz = q.pos.z - m.pos.z, L = Math.hypot(dx, dz); if (L < 0.8) { const k = (0.8 - L) / 2, ux = L > 0.01 ? dx / L : 1, uz = L > 0.01 ? dz / L : 0; m.pos.x -= ux * k; m.pos.z -= uz * k; q.pos.x += ux * k; q.pos.z += uz * k; } } }
+// 演出中の付き添いの立ち位置
+function folAt16(a, p0, p1) { if (!a.fol) return; [p0, p1].forEach((p, i) => { const n = a.fol[i]; if (!p) return; n.goal = null; n.pos.set(p[0], 0, p[1]); n.facing = p[2] ?? n.facing; n.st = {}; }); a.trail = []; }
+function bark16(a, dt) { a.bkT = (a.bkT || 0) + dt; const i = Math.round(P.pos.x / MZ16.C) + MZ16.mid, j = Math.round(P.pos.z / MZ16.C) + MZ16.mid; a.vis = a.vis || new Set(); a.bkS = a.bkS || new Set();
+  if (!a.vis.has(i + ',' + j)) { a.vis.add(i + ',' + j); if (!a.bkS.has('dead') && a.M.dead.some(([x, y]) => x === i && y === j)) { a.bkS.add('dead'); toast('村瀬「……行き止まりです」'); } if (!a.bkS.has('north') && j <= MZ16.lo - 1 && Math.abs(i - MZ16.mid) <= 2) { a.bkS.add('north'); toast('石居「……北側です。扉は、この並びの、どこかです」'); } }
+  for (const [t, s2] of [[22, '石居「……右手を、壁に。迷路の、基本です」'], [55, '村瀬「さっきの額縁、二回、見ました」'], [95, '石居「天井の明かりが、真ん中に、寄っていきます」'], [140, '村瀬「……昨日の回廊より、ずっと、長い」']]) if (a.bkT > t && !a.bkS.has(t)) { a.bkS.add(t); toast(s2); } }
+
+// ---- 中央大展示室（秋の大競売） ----
+const LOT16 = { 12: { n: 12, t: '鳥籠　第三番', a: '作：マエストロ・オークル　（生体素材・文鳥一羽）' }, 31: { n: 31, t: '未完　第七番', a: '作：エデル' }, 47: { n: 47, t: '点景　第四十七番　「扉を叩く人」', a: '作：マエストロ・セピア　素材付き（第三収蔵庫より引渡し）', p: '開始価格　一億' } };
+function drawScr16(lot) { return (c, w, h) => { c.fillStyle = '#14101C'; c.fillRect(0, 0, w, h); c.strokeStyle = '#C8B070'; c.lineWidth = 4; c.strokeRect(8, 8, w - 16, h - 16); c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = '#C8B070'; c.font = `800 26px ${MINCHO}`; c.fillText('未完画廊　秋の大競売', w / 2, 48);
+  if (!lot) { c.fillStyle = '#F4F2EE'; c.font = `700 40px ${MINCHO}`; c.fillText('まもなく、開始いたします', w / 2, 150); return; }
+  c.fillStyle = '#F4F2EE'; c.font = `900 54px ${GOTHIC}`; c.fillText('LOT ' + lot.n, w / 2, 112); c.font = `700 30px ${MINCHO}`; c.fillText(lot.t, w / 2, 158); c.font = `500 20px ${GOTHIC}`; c.fillStyle = '#C8C0D8'; c.fillText(lot.a, w / 2, 194); if (lot.p) { c.fillStyle = '#E8C060'; c.font = `800 26px ${GOTHIC}`; c.fillText(lot.p, w / 2, 232); } }; }
+const drawDoor16 = (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#C8D0DC'); gr.addColorStop(1, '#F0ECE4'); c.fillStyle = gr; c.fillRect(0, 0, w, h); c.fillStyle = '#9AA0A8'; c.fillRect(40, 70, 120, 90); c.fillStyle = '#7A808A'; for (let i = 0; i < 6; i++) c.fillRect(52 + i * 18, 84, 10, 14); c.fillStyle = '#5A4A3A'; c.fillRect(248, 120, 26, 44); c.fillStyle = '#8A9A8A'; c.fillRect(0, 160, w, 40); c.fillStyle = '#1A1A1A'; c.fillRect(240, 138, 3, 9); c.fillRect(238, 135, 6, 3); c.fillRect(243, 140, 5, 2); };
+// バルク・家族の群れ（天窓から降ってくる）
+function bulkCrowd(a, N) { const g = a.g, tm = c => new THREE.MeshToonMaterial({ color: c, gradientMap: gradTex }), body = new THREE.InstancedMesh(sph(0.5, 10, 8), tm(0xFFFFFF), N), head = new THREE.InstancedMesh(sph(0.34, 10, 8), tm(0x121216), N), cheek = new THREE.InstancedMesh(sph(0.16, 6, 4), tm(0xF8F8F8), N * 2), beak = new THREE.InstancedMesh(new THREE.ConeGeometry(0.15, 0.36, 8), tm(0xE2505B), N), band = new THREE.InstancedMesh(G_('bandT', () => new THREE.TorusGeometry(0.3, 0.06, 6, 14)), tm(0x1A1A1E), N);
+  const P0 = [], col = new THREE.Color(); for (let i = 0; i < N; i++) { const sd = i % 2 ? 1 : -1; P0.push({ sd, x: sd * rand(2.6, 6), z: rand(-3, 4.5), y: 13 + rand(0, 3), vy: 0, t: i * 0.03 + rand(0, 0.3), f: rand(0, TAU), ph: rand(0, 6), s: rand(0.85, 1.05), tx: sd * rand(3.2, 13), tz: rand(-3.4, 10) }); body.setColorAt(i, col.set([0xF2F0EA, 0x1C1C22, 0xB8B8BE, 0xE8E4DA][i % 4])); }
+  body.instanceColor.needsUpdate = true; for (const m of [body, head, cheek, beak, band]) { m.frustumCulled = false; g.add(m); } a.crowd = { P0, body, head, cheek, beak, band, N, on: false, t: 0 }; bulkTick(a, 0, true); }
+const _bz = new THREE.Matrix4().makeScale(0, 0, 0);
+function bulkTick(a, dt, force) { const C = a.crowd; if (!C || (!C.on && !force)) return; C.t += dt;
+  for (let i = 0; i < C.N; i++) { const p = C.P0[i];
+    if (!C.on || C.t < p.t) { C.body.setMatrixAt(i, _bz); C.head.setMatrixAt(i, _bz); C.cheek.setMatrixAt(i * 2, _bz); C.cheek.setMatrixAt(i * 2 + 1, _bz); C.beak.setMatrixAt(i, _bz); C.band.setMatrixAt(i, _bz); continue; }
+    if (!p.land) { p.vy -= 30 * dt; p.y += p.vy * dt; if (p.y <= 0) { p.y = 0; p.land = true; } }
+    else { const dx = p.tx - p.x, dz = p.tz - p.z, L = Math.hypot(dx, dz); if (L > 0.3) { p.x += dx / L * dt * 2.0; p.z += dz / L * dt * 2.0; p.f = Math.atan2(dx, dz); } else { p.tx = p.sd * rand(3.2, 13); p.tz = rand(-3.4, 10); } }
+    const k = p.s, bob = p.land ? Math.abs(Math.sin(T.now * 5 + p.ph)) * 0.32 * k : 0, y = p.y + (0.62 - bob) * k;
+    _ce.set(0, p.f, 0); _cq.setFromEuler(_ce); const fx = Math.sin(p.f), fz = Math.cos(p.f);
+    _cm.compose(_cv.set(p.x, y + 0.5 * k, p.z), _cq, _cs.set(1.12 * k, 1.05 * k, 0.9 * k)); C.body.setMatrixAt(i, _cm);
+    _cm.compose(_cv.set(p.x + fx * 0.05, y + 1.2 * k, p.z + fz * 0.05), _cq, _cs.set(k, k, k)); C.head.setMatrixAt(i, _cm);
+    _ce.set(Math.PI / 2 - 0.18, p.f, 0, 'YXZ'); _cq.setFromEuler(_ce); _cm.compose(_cv.set(p.x, y + 1.42 * k, p.z), _cq, _cs.set(k, k, k)); C.band.setMatrixAt(i, _cm); _ce.order = 'XYZ'; _ce.set(0, p.f, 0); _cq.setFromEuler(_ce);
+    for (const sx of [-1, 1]) { _cm.compose(_cv.set(p.x + fx * 0.2 * k + Math.cos(p.f) * sx * 0.2 * k, y + 1.14 * k, p.z + fz * 0.2 * k - Math.sin(p.f) * sx * 0.2 * k), _cq, _cs.set(k * 0.6, k * 0.9, k * 0.8)); C.cheek.setMatrixAt(i * 2 + (sx > 0 ? 1 : 0), _cm); }
+    _ce.set(Math.PI / 2, p.f, 0, 'YXZ'); _cq.setFromEuler(_ce); _cm.compose(_cv.set(p.x + fx * 0.4 * k, y + 1.14 * k, p.z + fz * 0.4 * k), _cq, _cs.set(k, k, k)); C.beak.setMatrixAt(i, _cm); _ce.order = 'XYZ'; }
+  for (const m of [C.body, C.head, C.cheek, C.beak, C.band]) m.instanceMatrix.needsUpdate = true; }
+makeArea('hall16', { place: '未完画廊　中央大展示室', bounds: [-14.4, 14.4, -12.6, 11.8], spawn: [0, 10.4], spawnFace: Math.PI, cam: [0, 8.6, 9.6], music: 'auction16', bg: 0x16121E, fog: [36, 100], light: 0.85, sun: 0.45,
+  build(a) { const g = a.g; a.trail = [];
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(32, 28), new THREE.MeshPhongMaterial({ color: 0xF0EEF4, shininess: 70, specular: 0x8A84A0 })); fl.rotation.x = -Math.PI / 2; fl.position.z = -0.6; g.add(fl);
+    { const r = new THREE.Mesh(new THREE.RingGeometry(4.2, 4.6, 48), new THREE.MeshBasicMaterial({ color: 0xC8B070 })); r.rotation.x = -Math.PI / 2; r.position.set(0, 0.012, -1); g.add(r); }
+    // 壁（南は低い手すりだけ。視点を遮らない）
+    block(32, 13.4, 0.4, 0xF2F0F4, 0, 6.7, -13.6, g); block(0.4, 13.4, 28, 0xF2F0F4, -15.6, 6.7, -0.6, g); block(0.4, 13.4, 28, 0xF2F0F4, 15.6, 6.7, -0.6, g);
+    for (const sx of [-1, 1]) { block(12.6, 1.0, 0.3, 0xE8E4EE, sx * 8.9, 0.5, 12.6, g); block(0.7, 1.6, 0.7, 0xD8D4E0, sx * 2.2, 0.8, 12.6, g); }
+    // 二階の回廊（バルコニー）と柱
+    block(1.8, 0.3, 26, 0xE8E4EE, -14.6, 5.4, -0.6, g); block(1.8, 0.3, 26, 0xE8E4EE, 14.6, 5.4, -0.6, g); block(28, 0.3, 1.8, 0xE8E4EE, 0, 5.4, -12.6, g);
+    for (const sx of [-1, 1]) block(0.08, 0.9, 26, 0xC8B070, sx * 13.75, 6.0, -0.6, g); block(26, 0.9, 0.08, 0xC8B070, 0, 6.0, -11.75, g);
+    for (const sx of [-1, 1]) for (const z of [-9, -4, 1, 6]) { part(cyl(0.45, 0.52, 13.2, 14), 0xEDEBF2, sx * 13.4, 6.6, z, g, { outline: false }); a.obs.push({ x: sx * 13.4, z, hx: 0.5, hz: 0.5 }); }
+    // 天井と天窓
+    const ceil = 0xE0DCE8; block(32, 0.4, 6.4, ceil, 0, 13.4, -10.2, g); block(32, 0.4, 7.4, ceil, 0, 13.4, 8.7, g); block(9.4, 0.4, 12, ceil, -10.7, 13.4, -1, g); block(9.4, 0.4, 12, ceil, 10.7, 13.4, -1, g);
+    a.glassM = new THREE.MeshPhongMaterial({ color: 0xC8D8F0, transparent: true, opacity: 0.35, shininess: 100, side: THREE.DoubleSide, depthWrite: false }); a.sky = []; a.skyBars = [];
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { const p = new THREE.Mesh(G_('skyP', () => new THREE.PlaneGeometry(2.9, 2.9)), a.glassM); p.rotation.x = Math.PI / 2; p.position.set(-4.5 + i * 3, 13.3, -5.5 + j * 3); g.add(p); a.sky.push(p); }
+    for (let k = 0; k <= 4; k++) { a.skyBars.push(block(12, 0.12, 0.12, 0x5A5468, 0, 13.25, -7 + k * 3, g), block(0.12, 0.12, 12, 0x5A5468, -6 + k * 3, 13.25, -1, g)); }
+    { const mo = glowSprite(0xE8F0FF, 9, 0.5); mo.position.set(0, 19, -2); g.add(mo); const sh = glowSprite(0xF0E8FF, 18, 0.12); sh.position.set(0, 6, -1); g.add(sh); }
+    // 舞台、演台、大きな画面
+    block(14, 0.6, 4.4, 0x2A2430, 0, 0.3, -11.2, g); block(14, 0.06, 0.1, 0xC8B070, 0, 0.6, -9.0, g); a.obs.push({ x: 0, z: -11.2, hx: 7, hz: 2.2 });
+    block(1.2, 1.1, 0.7, 0xF4F2F4, -4.5, 1.15, -10.2, g); part(cyl(0.02, 0.02, 0.4, 5), 0x2A2A30, -4.5, 1.9, -10.0, g, { rx: 0.4, outline: false });
+    a.scrT = canvasTex(640, 256, drawScr16(null)); plane(9, 3.6, a.scrT, 0, 8.4, -13.35, g, { fog: false }); a.scr = lot => a.scrT.redraw(drawScr16(lot));
+    { const sp = glowSprite(0xFFF0D8, 7, 0.3); sp.position.set(0, 4, -10.6); g.add(sp); }
+    // ロット四十七「扉を叩く人」（舞台の手前の画架）
+    for (const sx of [-1, 1]) block(0.08, 3.0, 0.08, 0x5A4A3A, sx * 1.15, 1.5, -7.85, g); block(0.08, 3.0, 0.08, 0x5A4A3A, 0, 1.4, -8.4, g).rotation.x = -0.3; block(2.6, 0.1, 0.2, 0x5A4A3A, 0, 1.12, -7.8, g);
+    a.lot47 = frame(g, 0, 2.0, -7.78, 2.6, 1.62, canvasTex(320, 200, drawDoor16)); plaque(g, 0, 0.72, -7.72, ['LOT 47　点景　第四十七番「扉を叩く人」', '作：マエストロ・セピア　素材付き']); a.obs.push({ x: 0, z: -7.85, hx: 1.4, hz: 0.35 });
+    // ロット十二「鳥籠　第三番」（西）――生きた文鳥が、組み込まれている
+    { const dg = new THREE.Group(); dg.position.set(-11.6, 0, -3.0); dg.rotation.y = Math.PI / 2; g.add(dg); block(2.6, 0.9, 0.9, 0x2A2430, 0, 0.45, 0, dg); frame(dg, 0, 2.4, 0, 2.2, 2.4, artTex('abs', 12), 0x3A2A2A); part(G_('cring', () => new THREE.TorusGeometry(0.62, 0.12, 8, 24)), 0xF0ECE4, 0, 2.0, 0.14, dg, { outline: false });
+      plaque(dg, 0, 0.62, 0.47, ['LOT 12　鳥籠　第三番', '作：マエストロ・オークル（生体素材）']); a.obs.push({ x: -11.6, z: -3.0, hx: 0.5, hz: 1.3 });
+      const b = npc(a, 'gbird', bulkBird(1), -11.45, -3.0, Math.PI / 2); b.y = 1.25; for (const l of b.model.legs) l.visible = false; b.model.root.traverse(o => { if (o.geometry && o.geometry.type === 'CircleGeometry') o.visible = false; }); b.st.bow = true; a.l12b = b; }
+    // ロット三十一「未完　第七番」（東）――線が、額縁の外まで、続いている
+    { const eg = new THREE.Group(); eg.position.set(11.6, 0, -3.0); eg.rotation.y = -Math.PI / 2; g.add(eg); block(0.1, 0.9, 1.4, 0x2A2430, 0, 0.45, 0, eg).rotation.y = Math.PI / 2;
+      frame(eg, 0, 2.5, 0, 2.2, 2.8, canvasTex(256, 320, (c, w, h) => { c.fillStyle = '#F6F4F0'; c.fillRect(0, 0, w, h); c.strokeStyle = '#1A1A20'; c.lineWidth = 3; c.beginPath(); c.moveTo(-10, h * 0.7); c.bezierCurveTo(w * 0.3, h * 0.2, w * 0.6, h * 0.9, w + 10, h * 0.3); c.stroke(); c.fillStyle = 'rgba(140,128,184,.35)'; c.beginPath(); c.ellipse(w * 0.62, h * 0.46, 30, 50, 0.4, 0, TAU); c.fill(); }), 0xE8E4DC);
+      plane(6.4, 5.2, canvasTex(512, 416, (c, w, h) => { c.clearRect(0, 0, w, h); c.strokeStyle = 'rgba(40,36,56,.6)'; c.lineWidth = 3; c.beginPath(); c.moveTo(0, h * 0.74); c.bezierCurveTo(w * 0.15, h * 0.7, w * 0.25, h * 0.66, w * 0.33, h * 0.62); c.stroke(); c.beginPath(); c.moveTo(w * 0.66, h * 0.4); c.bezierCurveTo(w * 0.78, h * 0.3, w * 0.88, h * 0.16, w, h * 0.06); c.stroke(); for (let i = 0; i < 40; i++) { c.fillStyle = 'rgba(140,128,184,' + (0.1 + Math.random() * 0.4) + ')'; c.beginPath(); c.arc(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 0, TAU); c.fill(); } }), 0, 2.5, -0.06, eg, { transparent: true, depthWrite: false });
+      plaque(eg, 0, 0.72, 0.1, ['LOT 31　未完　第七番', '作：エデル']); a.obs.push({ x: 11.6, z: -3.0, hx: 0.5, hz: 1.3 });
+      a.glowE = []; for (let i = 0; i < 4; i++) { const s = glowSprite(0xB8A8F0, 0.5, 0.6); s.position.set(rand(-1.6, 1.6), 2.2, 0.2); eg.add(s); a.glowE.push(s); } }
+    // 壁の作品と、彫刻
+    for (const sx of [-1, 1]) { for (const [z, y, w, h] of [[-10, 3.2, 3.0, 2.2], [3.0, 3.2, 3.4, 2.4], [8.0, 3.0, 2.2, 2.6], [-8, 8.6, 2.8, 2.0], [-1, 8.6, 3.2, 2.2], [6, 8.6, 2.6, 2.0]]) { const f = frame(g, sx * 15.3, y, z, w, h, artTex(['land', 'abs', 'portrait'][Math.abs(z + y | 0) % 3], z * 3 + sx * 11 + y), y > 5 ? 0x2A2430 : 0xC8B070); f.rotation.y = -sx * Math.PI / 2; } }
+    for (const sx of [-1, 1]) { const f = frame(g, sx * 10, 8.2, -13.3, 3.6, 2.4, artTex('land', sx * 21 + 4)); void f; }
+    for (const sx of [-1, 1]) { block(1.0, 1.1, 1.0, 0xF4F2F4, sx * 12.4, 0.55, 9.6, g); a.obs.push({ x: sx * 12.4, z: 9.6, hx: 0.5, hz: 0.5 }); part(G_('scul', () => new THREE.TorusKnotGeometry(0.28, 0.08, 40, 8)), 0x8A80A8, sx * 12.4, 1.6, 9.6, g); }
+    // 客席（六列）
+    const cm = new THREE.MeshLambertMaterial({ color: 0x3A2A4A }), cb = new THREE.MeshLambertMaterial({ color: 0x2A2034 }); a.seatZ = [-4.4, -2.8, -1.2, 0.4, 2.0, 3.6]; a.seatX = [1.6, 3.0, 4.4, 5.8, 7.2, 8.6];
+    for (const z of a.seatZ) for (const sx of [-1, 1]) { for (const x of a.seatX) { block(0.9, 0.14, 0.8, 0, sx * x, 0.46, z, g, { mat: cm }); block(0.9, 0.85, 0.12, 0, sx * x, 0.9, z + 0.42, g, { mat: cb }); } a.obs.push({ x: sx * 5.1, z: z + 0.1, hx: 4.0, hz: 0.5 }); }
+    a.bid = [[LK.elfExec, -4.4, -4.4, 'hiElf'], [LK.dragonExec, 3.0, -4.4], [LK.foxExec, 5.8, -2.8], [LK.demonExec, -5.8, -2.8], [LK.yukionna, 1.6, -1.2], [LK.cyclops, -7.2, -1.2], [LK.harpy, 4.4, 0.4], [LK.stFox, -8.6, 0.4], [LK.catgirl, 3.0, 2.0], [LK.stDragon, -7.2, 3.6], [LK.doggirl, 5.8, 3.6], [LK.stOni, -4.4, 2.0], [LK.elfTeacher, 8.6, -2.8]].map(([L, x, z, key]) => { const n = npc(a, key || 'bidder', makeChar(L), x, z, Math.PI); n.st.sit = true; n.seat = [x, z]; return n; });
+    a.iu = npc(a, 'inui', makeChar(LK.inui), 7.2, 3.6, Math.PI); a.iu.st.sit = true; a.td = npc(a, 'todo', makeChar(LK.todo), 8.6, 3.6, Math.PI); a.td.st.sit = true;
+    // 構成員
+    a.ro = npc(a, 'rosina', memberChar('rosina'), 3.2, 11.0, Math.PI); a.ve = npc(a, 'vera', memberChar('vera'), -4.5, -10.9, 0); a.ve.y = 0.6; a.ve.hidden = true; a.se = npc(a, 'sepia', sepiaChar(), 2.2, -8.1, 0.2);
+    a.st = [npc(a, 'pia', memberChar('pia'), -12.4, 8.0, Math.PI / 2), npc(a, 'nella', memberChar('nella'), 12.4, 8.0, -Math.PI / 2), npc(a, 'lucia', memberChar('lucia'), 6.6, -8.6, 0)];
+    // 天井の上から来るもの
+    a.kuro = npc(a, 'kuro', kuroBulk(), 0, -5.4, 0); a.kuro.hidden = true; a.fk = npc(a, 'fukkin', fukkinBird(), -3.6, -6.2, 0.3); a.fk.hidden = true; a.hk = npc(a, 'haikin', haikinBird(), 3.6, -6.4, -0.3); a.hk.hidden = true;
+    a.bm = [[0, -3.3], [-5.6, -6.2], [6.2, -5.6], [-9.8, -1.6], [9.8, 0.4], [-4.0, 5.6]].map(([x, z], i) => { const n = npc(a, 'bulkM', bulkBird(i), x, z, rand(-1, 1)); n.hidden = true; return n; });
+    bulkCrowd(a, 110);
+    a.fol = [npc(a, 'murase', makeChar(LK.muraseS), -1.2, 11.2, Math.PI), npc(a, 'ishii', makeChar(LK.ishii), 1.2, 11.4, Math.PI)]; for (const n of a.fol) n.hidden = true;
+    // 調べるもの
+    const on16 = () => S.chapter === 16 && S.flags.c16st === 'hall';
+    addItem(a, { id: 'h16l12', x: -10.1, z: -3.0, r: 1.8, label: '鑑賞する', col: 0x9A8AD0, avail: on16, on: () => viewLot16('12') });
+    addItem(a, { id: 'h16l31', x: 10.1, z: -3.0, r: 1.8, label: '鑑賞する', col: 0x9A8AD0, avail: on16, on: () => viewLot16('31') });
+    addItem(a, { id: 'h16l47', x: 0, z: -6.4, r: 1.8, label: '「扉を叩く人」を見る', col: 0xE3B428, avail: on16, on: () => viewLot16('47') });
+    addItem(a, { id: 'h16seat', x: -0.5, z: 0.4, r: 1.5, label: '席につく', col: 0xC8323C, once: false, avail: () => on16() && (S.flags.c16v || []).includes('47'), on: () => auction16() }); },
+  tick(a, dt) { follow16(a, dt); bulkTick(a, dt); if (a.l12b) a.l12b.st.bowA = 0.25 + Math.abs(Math.sin(T.now * 2.2)) * 0.35; if (a.glowE) a.glowE.forEach((s, i) => { s.position.y = 2.2 + Math.sin(T.now * 0.8 + i * 1.7) * 0.9; });
+    if (a.bulkOn) { a.bm.forEach((n, i) => { if (n.hidden || n.st.down || n.fight) return; const k = Math.sin(T.now * 7 + i * 1.7) > 0; n.st.windup = k; n.st.punch = !k; }); a.haaT = (a.haaT || 0) - dt; if (a.haaT <= 0) { a.haaT = 0.55; sfx('haa'); } } },
+  restore(a) { playAsKuzeF(false); fol16(a, S.chapter === 16 && S.flags.c16st === 'hall'); }
+});
+// ================= 第七章　中編　競売：台本 =================
+function cast16(a, key, L, x, z, face) { const k = 'o16_' + key; if (!a[k]) a[k] = npc(a, key, makeChar(L), x, z, face); const n = a[k]; n.hidden = false; n.pos.set(x, 0, z); n.facing = face; n.st = {}; n.lookAt = null; n.goal = null; CAST[key] = n.model; return n; }
+function hq16Items() { const a = AREAS.hq; if (!a.built) { a.build(a); a.built = true; } if (a.i16) return; a.i16 = true;
+  for (const it of a.items) { const old = it.avail; it.avail = () => S.chapter !== 16 && (!old || old()); }
+  const on = () => S.chapter === 16 && S.flags.c16st === 'hq';
+  addItem(a, { id: 'h16kr', x: 1.0, z: -2.6, r: 2.0, label: '黒岩室長に、報告する', col: 0xC8323C, avail: on, on: () => evHq16('kr') });
+  addItem(a, { id: 'h16sa', x: 6.0, z: -2.2, label: '三枝と話す', col: 0xE3B428, avail: on, on: () => evHq16('sa') });
+  addItem(a, { id: 'h16ni', x: -6.0, z: 2.0, label: '仁科と話す', col: 0xE3B428, avail: on, on: () => evHq16('ni') });
+  addItem(a, { id: 'h16out', x: 6.4, z: 4.4, r: 1.6, label: '翠絡へ向かう', col: 0xC8323C, once: false, avail: () => on() && S.flags.c16rep, on: () => goReune16() });
+  for (const it of a.items) if (DONE.has(a.id + ':' + it.id)) it.done = true; }
+{ const r0 = AREAS.hq.restore; AREAS.hq.restore = function (a) { if (r0) r0.call(this, a); if (S.chapter === 16) hq16Items(); }; }
+
+// ---- 留文堂：レウネのところへ行くと、伝える ----
+async function chapter16() { G.mode = 'cine'; S.chapter = 16; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; newsBar(false); galHud(false); bgm(''); P.st = {};
+  S.flags.c16st = 'hq'; S.flags.c16v = []; S.flags.c16rep = false; hq16Items(); const a = AREAS.hq; for (const k of ['o16_murase', 'o16_ishii', 'o11_murase', 'o11_inui']) if (a[k]) a[k].hidden = true;
+  await goArea('hq', [6.4, 4.2], -Math.PI * 0.75); if (typeof hqSlide === 'function') hqSlide(false); a.kr.pos.set(-0.4, 0, -2.6); a.kr.lookAt = 'P'; a.sa.st.sit = true; a.ni.pos.set(-6.2, 0, 2.9); bgm('hq'); if (typeof setClock === 'function') setClock('09:12');
+  pan([6, 4.4, 9], [2, 1.2, 0], [4.6, 3.0, 6.4], [0, 1.4, -1.6], 6); await card('第七章　中編', '留文堂　地下　翌日　午前九時', 2400);
+  await narr('翌朝。……留文堂の地下は、いつもと同じ、紙と、埃の匂いがした。');
+  await saku('昨日の回廊の匂いが、まだ、鼻に残ってる。……額縁の、ニスの匂いだ。');
+  setObj('黒岩室長に、報告する'); playOn(); saveGame(true); }
+async function evHq16(k) { const a = AREAS.hq;
+  if (k === 'kr') { const kr = a.kr; P.pos.set(1.1, 0, -2.6); faceEach(kr); kr.lookAt = 'P'; otsCam(kr, 2.4, 1.2);
+    await say('kuze', '……室長。昨日の、画廊の件です。');
+    await say('kuroiwa', '聞こう。');
+    await say('kuze', '真壁は、生きています。神領の未完画廊、地下の第三収蔵庫。……絵の隅の、点景として、扱われている。');
+    await say('kuze', '昨夜の搬入の「素材」は、私でした。先方指名の、立会い。……延期だそうです。');
+    await say('kuroiwa', '……延期、か。熟すのを、待つと。');
+    await say('kuze', '画廊の主は、エデル。外神竜の、一人です。……留保班だけでは、叩けない扉です。');
+    await say('kuze', '翠絡の、レウネに、会ってきます。');
+    otsCam(kr, 2.4, -1.2); await say('kuroiwa', '……一族に、手の内を見せるのか。');
+    await say('kuze', '見せるのは、真壁の居場所だけです。……向こうは、たぶん、もう、それ以上を見ています。');
+    await saku('台風の夜から、ずっとな。……「偶然は、三回まで」だとさ。');
+    await say('kuroiwa', '…………。');
+    await say('kuroiwa', '行け。ただし、借りは、作りすぎるな。……作るなら、返せる大きさにしておけ。');
+    await say('kuroiwa', '竜に借りを作った人間が、どうなったか。……この国の歴史は、それで、できている。');
+    await say('kuze', '……肝に、銘じます。');
+    S.flags.c16rep = true; setObj('階段から、翠絡へ向かう（三枝・仁科とも話せる）'); }
+  if (k === 'sa') { const sa = a.sa; P.pos.set(5.6, 0, -1.8); faceEach(sa); otsCam(sa, 2.2, -1.2);
+    await say('saegusa', '翠絡ですか。……レウネは、テルエスの姉。春日井の信号も、電車も、配送も、あの観測室から「調整」しています。');
+    await say('saegusa', '会えば、こちらの手の内は、全部、見られます。……見られている前提で、話してください。');
+    await say('saegusa', 'それと。あの人の地図には、穴が、二つ、あるはずです。記録されない場所と、……神領の、画廊の中。');
+    await say('kuze', '……画廊の中も、見えない？');
+    await say('saegusa', '天環の網の内側なのに、画廊だけ、データが、真っ白なんです。……エデルの、領域だから、でしょうね。'); }
+  if (k === 'ni') { const ni = a.ni; P.pos.set(-5.6, 0, 1.6); faceEach(ni); otsCam(ni, 2.2, 1.2);
+    await say('nishina', '翠絡の娘に会いに行くのかい。……昔、あの子に、跡を見られたことがある。');
+    await say('nishina', '眠そうな顔をしとるが、あれは、全部、見とる顔だ。……嘘は、つかんほうがいい。つかんでも、見抜かれる。');
+    await say('nishina', 'それと、手ぶらで行くな。……向こうが、欲しいものを、一つ、持っていけ。');
+    await say('kuze', '……欲しいもの、ですか。');
+    await say('nishina', '竜は、たいてい、何でも持っとる。……持っとらんのは、家族のことくらいさ。'); }
+  playOn(); }
+
+// ---- 翠絡：レウネ（遅れて、アセラ） ----
+async function goReune16() { S.flags.c16st = 'reune'; G.mode = 'cine'; setObj(''); await goArea('suiraku'); const a = AREAS.suiraku, re = a.re; bgm('reune16'); a.lm.hidden = false; a.lm.pos.set(4.6, 0, -2.6); a.lm.facing = -Math.PI * 0.7;
+  if (!a.k16) { a.k16 = npc(a, 'kuze', makeChar(LK.kuze), 0, 4.2, Math.PI); const ch = new THREE.Group(); block(1.0, 0.24, 0.9, 0x1A2A26, 0, 0.42, 0, ch); block(1.0, 1.4, 0.16, 0x1A2A26, 0, 1.05, -0.5, ch); for (const sx of [-1, 1]) block(0.12, 0.3, 0.8, 0x14201C, sx * 0.52, 0.66, 0, ch); a.g.add(ch); a.ch16 = ch;
+    a.cat16 = plane(4.6, 2.6, canvasTex(460, 260, (c, w, h) => { c.fillStyle = '#04100C'; c.fillRect(0, 0, w, h); c.strokeStyle = '#3FC0A0'; c.lineWidth = 2; c.strokeRect(6, 6, w - 12, h - 12); c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.fillStyle = '#3FC0A0'; c.font = `700 15px ${GOTHIC}`; c.fillText('神領　未完画廊　秋の大競売　出品目録（外部送信の写し）', 20, 34);
+      c.fillStyle = '#9AE0C8'; c.font = `500 15px ${GOTHIC}`; c.fillText('LOT 12　鳥籠　第三番　マエストロ・オークル（生体素材）', 20, 76); c.fillText('LOT 31　未完　第七番　エデル', 20, 106); c.fillStyle = 'rgba(242,194,48,.25)'; c.fillRect(14, 118, w - 28, 58); c.fillStyle = '#F2C230'; c.font = `800 16px ${GOTHIC}`; c.fillText('LOT 47　点景　第四十七番「扉を叩く人」　マエストロ・セピア', 20, 142); c.fillText('　　　　素材付き（第三収蔵庫より、落札後に引渡し）', 20, 166); c.fillStyle = '#9AE0C8'; c.font = `500 15px ${GOTHIC}`; c.fillText('開催　本日　二十時　中央大展示室（招待制）', 20, 214); }), 2.4, 2.9, -4.8, a.g, { fog: false }); }
+  a.cat16.visible = false; if (a.as16) a.as16.hidden = true;
+  const ku = a.k16; ku.hidden = false; ku.pos.set(0, 0, 4.2); ku.facing = Math.PI; ku.st = {}; ku.lookAt = null; re.pos.set(0, 0, -0.8); re.facing = Math.PI; re.st = { sit: true }; re.lookAt = null; a.ch16.position.set(0, 0, -0.8); a.ch16.rotation.y = Math.PI;
+  const R = () => cine(2.0, 1.55, 1.4, 0, 1.1, -0.4), K = () => cine(-1.4, 1.75, -0.6, 0, 1.55, 1.7), W = () => cine(4.0, 2.2, 1.0, 0, 1.2, 0.6);
+  pan([0, 4.2, 7.4], [0, 2.4, -3], [0, 2.6, 5.2], [0, 1.6, -0.8], 6); await card('高蔵寺', '翠絡情報技研　データセンター　観測室　正午', 2000);
+  walkTo(ku, 0, 1.7, 1.4); await narr('暗い部屋だった。壁一面の画面に、春日井の街が、光る点と、線で、映っていた。');
+  await narr('信号が、変わる。電車が、一本、増える。……画面の前の大きな椅子で、誰かが、それを、指一本で、動かしていた。');
+  await say('reune', '……来た。');
+  re.facing = 0; re.pos.set(0, 0, -0.4); a.ch16.position.set(0, 0, -0.4); a.ch16.rotation.y = 0; ku.pos.set(0, 0, 1.7); R();
+  if (!S.flags.c16metRe) { S.flags.c16metRe = true; nameCard({ s: '外神竜（親戚・テルエスの姉）　翠絡情報技研', b: 'レウネ', e: 'REUNE', col: '#2E9E83', p: '春日井の信号、電車、配送、避難路を、\nこの観測室から「調整」している。\n眠たげな半眼。記録されない場所だけは、見えない。' }); await sleep(G.skip ? 0 : 1800); nameCard(null); }
+  await say('reune', '座って。……って言いたいけど、椅子、私のしかないし。立ってて。');
+  await say('reune', '先に、言っとく。……私、あんたのこと、ずっと、見てた。');
+  await say('reune', '紅鱗の出向。九尾の査定。高蔵寺の橋。台風の夜の、地図にない寮。文食品の、三か所、同時。');
+  await say('reune', '偶然って、三回まで。……五回目から、それ、仕事っしょ。');
+  await say('reune', '留保。……レゼルヴ、だっけ。');
+  K(); await say('kuze', '……。');
+  await saku('骨は、見られてる。……全部じゃないにしても。');
+  R(); await say('reune', '安心して。ユリアには、まだ、言ってない。');
+  await say('reune', '言ったら、めんど。あんたも、私も。……ユリア、泣くし。泣いたユリアは、春日井ごと、止まるし。');
+  K(); await say('kuze', '……なぜ、黙っている。');
+  R(); await say('reune', '黙ってない。保留中。……あんたらの言葉で言うと、留保？');
+  await say('reune', '今日は、その話じゃないっしょ。……画廊の話。');
+  W(); await say('kuze', '昨日、神領の未完画廊に、入った。回廊ごとに規則があって、二度破れば、素材にされる。');
+  await say('kuze', '生きた文鳥が、額縁に、埋め込まれていた。……静州商事の真壁悠は、三か月前に搬入されて、地下の第三収蔵庫で、まだ、生きている。');
+  R(); await say('reune', '……知ってる、って、言いたいけど。知らなかった。');
+  await say('reune', 'あそこ、私の地図に、映らないの。天環の網の内側なのに、画廊の中だけ、真っ白。……エデルの、領域だから。');
+  await say('reune', '私の観測の、二つ目の穴。……一個目も、あんたが見つけたんだよね。ムカつく。');
+  await say('reune', 'でも、外に出てくる紙は、拾える。');
+  a.cat16.visible = true; sfx('holo'); cine(0.4, 2.4, -0.2, 2.2, 2.9, -4.8); await say('lamia', 'レウネさま。画廊の、今夜の競売目録です。……招待客への、送信の写し。');
+  await narr('LOT 47。点景　第四十七番「扉を叩く人」。……素材付き。第三収蔵庫より、落札後に、引渡し。');
+  R(); await say('reune', '素材付き。……落札した人に、絵と一緒に、素材も、お引き渡し。');
+  K(); await say('kuze', '……真壁ごと、売るのか。');
+  await saku('なら、買えばいい。……正面から、取り返す。');
+  R(); await say('reune', 'そういうこと。殴り込むより、ずっと、めんどくない。');
+  await say('reune', '入札の名義と、招待状。翠絡で、作っとく。お金は、私の財布から出す。');
+  await say('reune', 'テルに頼むと、ゼロ九個並べて、画廊ごと、買っちゃうし。……それやると、さすがに、エデルの機嫌、損ねるから。');
+  K(); await say('kuze', '……あんたらの、身内だろう。エデルは。');
+  R(); await narr('レウネは、少しだけ、黙った。');
+  await say('reune', '……うん。');
+  await say('reune', 'エデルね。ごはん、来ないの。');
+  await say('reune', 'ママが、毎晩、エデルのぶんも、よそってる。……来ないの、分かってて。冷めたら、ザイナが、黙って、食べる。');
+  K(); await narr('久世は、母の食卓を、思い出した。四人分の椀。……父の椀は、朝まで、そこにあった。');
+  await saku('……どこの家も、同じか。');
+  R(); await say('reune', 'エデルは、一族の中でも、変わってる。家族の誰とも、温度が、違う。');
+  await say('reune', '家族は、もっと、エデルと、話したい。ユリアも、ママも。……アセラは、とくに。');
+  await say('reune', 'でも、エデルは、興味ないことは、耳に入らない。私たちのことも、たぶん、半分くらいは、興味ない。');
+  await say('reune', '点景派も、エデルが作らせたんじゃない。エデルの絵が好きな子たちが、勝手に集まって、勝手に序列を作って、勝手に、人間を、素材にしてる。');
+  await say('reune', 'エデルの意思じゃない。……でも、エデルの名前で、やってる。');
+  await say('reune', 'だから、家族として、止める。……止めなきゃ、いけない。');
+  K(); await say('kuze', 'エデル本人に、言えばいい。');
+  R(); await say('reune', '言って、聞くなら、苦労しないし。');
+  await say('reune', 'エデル、怒ることは、ほとんどない。……でも、怒らせたら、終わり。');
+  await say('reune', '強さで言ったら、ユリアより、上。画廊ごと、エデルだから。ユリアの波で消しても、消したところから、また、描く。');
+  await say('reune', 'ユリアとエデルがぶつかったら、春日井、額縁ごと、なくなるし。……ヴォルも、ザイナも、ルリカも、巻き込まれる。');
+  await say('reune', 'だから、ぶつけない。……そのために、あんたを、使う。');
+  K(); await say('kuze', '……俺を？');
+  R(); await say('reune', 'エデル、あんたのこと、「面白い」って言ったっしょ。一つの輪郭に、色が、二つ。');
+  await say('reune', 'エデルが、今年、自分から、目を向けたもの。……アセラの、走りの影と、あんた。それだけ。');
+  await say('reune', 'あんたは、エデルに、近づける。家族が、近づけないところまで。');
+  await say('reune', '競売の夜、エデルは、来ない。……でも、画廊で何か起きたら、たぶん、見る。自分の額縁が、雑に壊れるのは、嫌いだから。');
+  await saku('……餌にする気か。こっちを。');
+  R(); await say('reune', 'うん。');
+  await say('reune', '代わりに、真壁を取り返すの、手伝う。……取引っしょ。');
+  const c = await choose([{ t: '「……分かった。手を組む」', k: '表' }, { t: '「あんたの家族のために、動くんじゃない。……真壁のためだ」', k: '本音' }, { t: '（朔に、代わる）「……見てるなら、勝手に見てろ」', k: '裏声' }]); S.flags.c16reune = ['deal', 'makabe', 'saku'][c];
+  K(); if (c === 0) await say('kuze', '……分かった。手を組む。'); else if (c === 1) await say('kuze', 'あんたの家族のために、動くんじゃない。……真壁のためだ。'); else await saku('……見てるなら、勝手に見てろ。こっちも、見てる。');
+  R(); if (c === 0) await say('reune', 'ん。話、早くて、助かる。'); else if (c === 1) await say('reune', 'それでいいし。……理由が違っても、行き先が同じなら、めんどくない。'); else await say('reune', '……あ、今、色、変わった。そっちが、もう一人？　……ふーん。目つき、悪っ。');
+  await say('reune', '言っとくけど。……あんたのこと、信用したわけじゃない。');
+  await say('reune', '見てるからね。これからも、ずっと。……私の地図の、上にいる限り。');
+  K(); await say('kuze', '……ああ。');
+  // 遅れて、アセラ
+  if (!a.as16) a.as16 = npc(a, 'asela', makeChar(FAMLK.asela), 6.4, 3.8, -Math.PI * 0.7); const as = a.as16; as.hidden = false; as.pos.set(6.4, 0, 3.8); as.st = { run: true }; as.lookAt = null;
+  sfx('door'); cine(3.4, 2.2, 5.2, 2.0, 1.2, 0.8); walkTo(as, 1.8, 0.4, 6.0); await say('asela', 'いっちばーん！　……じゃない！　遅刻だ！　ごめん、レウネ姉！　国道で、まだ、肉離れの文鳥が――');
+  as.st = {}; as.goal = null; as.pos.set(1.8, 0, 0.4); as.facing = 0.2; as.lookAt = null; const AS = () => cine(3.2, 1.45, 2.8, 1.8, 1.15, 0.4);
+  AS(); await say('asela', 'あ！　おにーさんだ！　煤だらけだった人！');
+  K(); await say('kuze', '……あの時は、どうも。');
+  R(); await say('reune', 'アセラにも、話したの。……エデルの、画廊のこと。');
+  AS(); await say('asela', '…………うん。');
+  await say('asela', 'エデル姉ね、ごはん、来ないんだよ。あたしが、迎えに行っても。');
+  await say('asela', 'この前も、ニュースの話、しに行ったの。文鳥、三千羽！　すごいでしょ！　って。');
+  await say('asela', '……「揺らさないでくれるかな」って。');
+  await say('asela', 'でもね！　帰りぎわに、「今の、走りの影は、悪くなかった」って！　言ってくれたんだよ！');
+  await say('asela', '……あたしに、じゃなくて。影に、だけど。');
+  W(); await narr('レウネは、何も言わずに、机の端に、飲み物を、一本、置いた。');
+  AS(); await say('asela', '……ありがと。');
+  await say('asela', '画廊の子たちが、ひどいことしてるの、エデル姉は、知らないんだと思う。……ううん。知ってても、興味ないんだと思う。');
+  await say('asela', 'それが、いちばん、やだ。');
+  await say('asela', '止めたい。エデル姉の名前で、誰かが泣くの、やだ。……姉ちゃんに、嫌われても。');
+  await say('asela', '……あ、嫌われないか。あたしのこと、そんなに、興味ないもんね。');
+  K(); await say('kuze', '……。'); await saku('……。');
+  AS(); await say('asela', 'おにーさん！');
+  await say('asela', '何かあったら、駆けつけるから！　転星救急、いちばん速いの、あたしだから！');
+  await say('asela', 'これ、あげる。あたしのチャーム。握って呼んだら、どこにいても、届くから。……一秒で、行くから！');
+  sfx('chime'); S.flags.c16charm = true; toast('アセラのチャームを、受け取った');
+  R(); await say('reune', '……アセラ。走る前に、ちゃんと、聞くの。');
+  AS(); await say('asela', '聞いてる聞いてる！');
+  R(); await say('reune', '……めんど。');
+  W(); await narr('でも、レウネは、少しだけ、笑っていた。');
+  ku.hidden = true; as.hidden = true; CAST.kuze = P.model; await goInui16(); }
+
+// ---- 同じ頃：乾（独自に、画廊へ） ----
+async function goInui16() { S.flags.c16st = 'inui'; G.mode = 'cine'; await goArea('gallery14', [0, 6.5], Math.PI); const g = AREAS.gallery14; P.model.root.visible = false; if (g.doc) g.doc.hidden = true; bgm('noir');
+  scene.background = new THREE.Color(0xB8B0C4); scene.fog = new THREE.Fog(0xB8B0C4, 24, 80); hemi.intensity = 0.85; $('place').textContent = '神領　未完画廊　午後二時';
+  if (!g.t16) { g.t16 = yoTruck(g.g, -5.6, -0.6, 0); block(3.0, 3.4, 0.2, 0x1A1620, -5.6, 1.7, -4.85, g.g); plane(2.4, 0.5, signTex(240, 50, [{ t: '搬入口', size: 30, w: 900 }], { bg: '#2A2430', fg: '#F4F2EE' }), -5.6, 3.8, -4.74, g.g);
+    g.iu16 = npc(g, 'inui', makeChar(LK.inui), 3.4, 3.8, -2.03); g.td16 = npc(g, 'todo', makeChar(LK.todo), 5.4, 0.6, -2.03); }
+  const iu = g.iu16, td = g.td16; iu.hidden = td.hidden = false; iu.st = {}; td.st = {};
+  const I = () => cine(0.45, 1.85, 3.45, 3.4, 1.9, 3.8), D = () => cine(2.9, 2.3, -1.55, 5.4, 2.4, 0.6);
+  pan([8, 5, 10], [-2, 2, -4], [6.2, 2.6, 7.4], [-3.6, 1.6, -2.4], 6); await narr('同じ頃。……神領。');
+  await narr('白い画廊の前庭に、紺の背広の男が、立っていた。隣に、角のある、大きな女。');
+  I(); await say('inui', '……久世が、翠絡に入った。');
+  D(); await say('todo', '（読み上げ音声）一族の、情報屋です。……留保の課長が、竜に、頭を下げに行った。');
+  I(); await say('inui', '下げたのは、頭じゃない。手札だ。……あの男が、手札を見せるなら、相手は、よほどの扉だ。');
+  await say('inui', 'だから、こっちも、扉を、見に来た。');
+  cine(-1.4, 2.2, 3.6, -5.6, 1.6, -2.6); await narr('画廊の脇の搬入口に、白いトラックが、後ろ向きに、横付けされていた。荷台に、黄色い盾の紋。');
+  D(); await say('todo', '陽盾警備保障。……護送車です。勝川で横転したのと、同じ型。');
+  I(); await say('inui', '行き先は、拘置所の、はずだった。');
+  await say('inui', '運行記録を、見た。……勝川の便も、行き先欄は、ここだ。神領、未完画廊、搬入口。');
+  D(); await say('todo', '……拘束した文鳥を、素材として、ですか。');
+  I(); await say('inui', '名目は、「更生のための、芸術活動への協力」。……書いた奴は、詩人だな。');
+  await say('inui', '陽盾の看板は、「安心」だ。……その安心が、画廊の搬入口に、横付けされている。');
+  await say('inui', '竜の一族の、いちばん白い看板の、裏側だ。');
+  D(); await say('todo', '公安に、上げますか。');
+  I(); await say('inui', '上げれば、協定の棚に、しまわれる。');
+  iu.st.phone = true; cine(5.6, 2.4, 6.0, -5.6, 1.5, -2.0); sfx('shutter'); fxFlash(3.0, 1.7, 3.5, 0xFFFFFF, 1.2, 0.2); await narr('乾は、携帯で、トラックを、一枚、撮った。……送り先の欄に、名前は、なかった。番号だけ。');
+  I(); await say('inui', '……独り言だ。'); iu.st.phone = false;
+  await say('inui', '轟。今夜の、競売。……招待状は、取れるか。');
+  D(); await say('todo', '……乾さん、また、規則違反ですか。');
+  I(); await say('inui', '管轄外のことをするのが、得意でね。');
+  iu.hidden = td.hidden = true; S.flags.c16leak = true; await goPlan16(); }
+
+// ---- 留文堂：作戦。蒼龍の、もう一人（表には出さない） ----
+async function goPlan16() { S.flags.c16st = 'plan'; G.mode = 'cine'; await goArea('hq', [-2.2, 3.4], Math.PI * 0.9); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); a.kr.pos.set(-3.2, 0, 1.6); a.kr.lookAt = 'P'; a.sa.st.sit = true; if (typeof setClock === 'function') setClock('17:02');
+  const mu = cast16(a, 'murase', LK.muraseS, 0.4, 2.9, -Math.PI * 0.6); mu.lookAt = 'P'; if (a.o16_ishii) a.o16_ishii.hidden = true;
+  const KR = () => cine(-0.6, 2.2, 4.0, -3.2, 1.55, 1.6), SA = () => cine(4.4, 2.1, -0.2, 6.0, 1.2, -3.4), NI = () => cine(-3.6, 2.0, 5.2, -6.2, 1.5, 2.9);
+  KR(); await card('留文堂　地下', '同じ日　午後五時', 1600);
+  await say('kuze', 'レウネが、手を貸します。今夜八時、画廊の秋の大競売。……第四十七番「扉を叩く人」が、素材付きで、出品されます。');
+  await say('kuroiwa', '真壁ごと、競売に、か。');
+  await say('kuze', '落札すれば、素材も、引き渡される。……正面から、買い取ります。名義と招待状は、翠絡が。金は、レウネの、個人の財布から。');
+  await say('kuroiwa', '……一族と、組んだのか。');
+  await say('kuze', 'レウネ個人と、です。……代わりに、エデルに近づく役を、引き受けました。');
+  await saku('餌の役、な。');
+  await say('kuroiwa', '……返せる大きさの借りか、それは。');
+  await say('kuze', '……分かりません。');
+  await say('kuroiwa', '正直で、よろしい。');
+  P.st.phone = true; await phoneMsg('非通知', '独り言だ。\n［画像］神領・未完画廊　搬入口　陽盾警備保障の護送車　14:12', '17:04'); P.st.phone = false;
+  await say('kuze', '……乾さんだ。');
+  await saku('番号だけで、名前はない。……あの男らしい。');
+  SA(); await say('saegusa', '写真、回してください。……照合します。');
+  await say('saegusa', '陽盾警備保障の、護送車。勝川で横転した車両と、同じ運行会社、同じ型です。');
+  await say('saegusa', '運行記録の、行き先欄。……勝川の便も、今日の便も。「神領　未完画廊　搬入口」。');
+  NI(); await say('nishina', '拘置所行きの護送車が、画廊に横付け、か。……拘束した文鳥を、素材として、納めとるわけだ。');
+  KR(); await say('kuroiwa', '陽盾は、ユリアの会社だ。一族の、いちばん白い看板だ。……「安心」のな。');
+  await say('kuroiwa', 'その看板の裏で、生き物を、額縁に、納品している。……ユリア本人が、知っているかは、分からんが。');
+  await say('kuroiwa', 'これは、竜を、揺らせる。一族の内側に、ひびを入れられる紙だ。');
+  await say('kuroiwa', 'だが、揺らす相手を間違えれば、春日井が燃える。……今は、しまっておけ。');
+  await say('kuze', '……はい。');
+  await saku('乾の野郎。公安の机に載せずに、こっちに投げてきやがった。');
+  await say('kuze', '……「君の机のほうが、まだ、ましだ」。前にも、そう言っていた。');
+  SA(); await say('saegusa', 'それと、今夜の画廊。……建物の外寸と、中の広さが、合いません。トラックと同じ、天環の空間拡張です。昨日の回廊とは、別物だと思ってください。');
+  NI(); await say('nishina', '迷路になっとるそうだ。招待客は、案内図を見て歩け、とさ。');
+  KR(); await say('kuroiwa', '何が起きるか、分からん場所だ。……戦いになる、と思っておけ。二人、つける。');
+  faceEach(mu); otsCam(mu, 2.2, 1.4); await say('murase', '……行きます。');
+  KR(); await say('kuroiwa', 'もう一人は。……来たな。');
+  const is = cast16(a, 'ishii', LK.ishii, 6.4, 4.2, -Math.PI * 0.75); sfx('door'); cine(2.4, 2.2, 6.2, 5.0, 1.4, 3.6); await walkTo(is, 1.8, 3.8, 1.6); is.lookAt = 'P';
+  faceEach(is); otsCam(is, 2.2, -1.3);
+  nameCard({ s: '人間　内閣 留保班「要」（二十五歳）', b: '石居 雄汰', e: 'いしい ゆうた', col: '#8CC8A8', p: 'がっしりした肩。低い重心。口数は少ない。\n場の全員の位置と、癖を、黙って数える。\n経歴は、村瀬と同じく、黒く塗られている。' }); await sleep(G.skip ? 0 : 1600);
+  await say('ishii', '……石居です。本日付で、こちらに。'); nameCard(null);
+  KR(); await say('kuroiwa', '村瀬と、同じところから来た。……それ以上は、聞くな。');
+  otsCam(mu, 2.2, 1.4); await say('murase', '……久しぶり。');
+  otsCam(is, 2.2, -1.3); await say('ishii', 'ああ。……変わってないな、その目。');
+  await saku('……重心が、低い。足音が、しない。こいつも、人間にしちゃ、静かすぎる。');
+  await say('ishii', '久世さん。……今夜、自分は、あなたの後ろにいます。前だけ、見ていてください。');
+  await say('ishii', '後ろと、全体は、こっちで、見ます。……そういう役なので。');
+  await say('kuze', '……頼む。');
+  KR(); await say('kuroiwa', '三人で、行け。落札して、真壁を、連れて帰れ。……それだけだ。');
+  await say('kuroiwa', '今夜も、全員、帰ってこい。命令だ。');
+  mu.hidden = true; is.hidden = true; CAST.murase = null; await goMaze16(); }
+
+// ---- 迷路の回廊 ----
+async function goMaze16() { S.flags.c16st = 'maze'; G.mode = 'cine'; setObj(''); await goArea('gal16', [0, 26.4], Math.PI); const a = AREAS.gal16; bgm('gallery'); fol16(a, true); folAt16(a, [-1.4, 27.4, Math.PI], [1.2, 27.6, Math.PI]); const ro = a.ro;
+  pan([0, 9, 35], [0, 1.4, 25], [0, 4.2, 31.4], [2, 1.4, 25.4], 5); await card('神領　未完画廊', '同じ夜　午後七時四十分　秋の大競売', 2200);
+  P.facing = Math.atan2(ro.pos.x - P.pos.x, ro.pos.z - P.pos.z); const RO = () => cine(1.2, 2.0, 27.6, 5.3, 1.65, 24.6), KU = () => cine(4.0, 1.9, 24.0, 0, 1.6, 26.4);
+  RO(); await say('rosina', '招待状を、拝見いたしますわ。……翠絡さまの、ご名義。まあ。');
+  await say('rosina', '……二色の方。熟すのが、お早いこと。');
+  KU(); await saku('……顔に出すな。');
+  await say('kuze', '……今夜は、客として、来ました。');
+  RO(); await say('rosina', 'ええ、存じておりますわ。客は、客。素材は、素材。……今夜のあなたは、どちらかしら。');
+  await say('rosina', '回廊は、今夜のために、広げておりますの。勝川で転んだトラックと、同じ、天環の技術ですわ。');
+  KU(); await saku('……三千羽が入る、荷台と、同じ仕掛けか。');
+  RO(); await say('rosina', '中央の大展示室まで、どうぞ、ご自由に。迷われましたら、案内図を。');
+  await say('rosina', '今夜の規則は、ひとつだけ。……競売の前に、作品に、お手を触れないでくださいまし。');
+  pan([0, 12, 35], [0, 1, 19], [0, 42, 26], [0, 0, -2], 5); await narr('黒い硝子の扉の向こうは、迷路だった。……昨日の回廊を、何本も折り畳んで、積み上げたような。');
+  await narr('外から見た建物の、何倍もの広さ。白い壁が、どこまでも、曲がっていた。');
+  cine(2.2, 2.3, 23.2, -0.2, 1.5, 27.0); await say('murase', '……迷路、ですね。');
+  await say('ishii', '真ん中が、明るいです。天井の明かりが、そっちに、集まってる。');
+  setObj('中央の大展示室へ（案内図を頼りに）'); playOn(); saveGame(true); }
+async function evMap16(B) { const a = AREAS.gal16; G.mode = 'cine'; const first = !S.flags.c16map; S.flags.c16map = true; markI('m16map');
+  cine(B.x + 0.5, 2.3, B.z + 2.6, B.x, 1.8, B.z); await narr(first ? '回廊の案内図。……真ん中が、大展示室。扉は、北側にしかない。入口の、ちょうど、真裏だ。' : '回廊の案内図。');
+  a.here.position.set(P.pos.x, 6, P.pos.z); a.here.visible = a.goal.visible = true; const ff = scene.fog ? scene.fog.far : 0; if (scene.fog) scene.fog.far = 240;
+  cine(0, 60, 34, 0, 0, -1); await narr('上から見れば、迷路は、ただの模様だった。……黄色が、今いる場所。赤が、大展示室の扉。');
+  if (first) await saku('入口の裏に、扉。……わざわざ、一周させる気だ。');
+  a.here.visible = a.goal.visible = false; if (scene.fog) scene.fog.far = ff; playOn(); }
+async function evDead16(kind) { const a = AREAS.gal16, d = a.deadP.find(p => p.kind === kind), cx = mzX(d.i), cz = mzZ(d.j), [[ni, nj]] = a.M.nbs(d.i, d.j), ox = d.i - ni, oz = d.j - nj; G.mode = 'cine'; markI('m16' + kind);
+  P.pos.set(cx + ox * 0.5 + oz * 0.5, 0, cz + oz * 0.5 - ox * 0.5); P.facing = Math.atan2(ox, oz); folAt16(a, [cx - ox * 2.7 + oz * 0.7, cz - oz * 2.7 - ox * 0.7, Math.atan2(ox, oz)], [cx - ox * 2.9 - oz * 0.7, cz - oz * 2.9 + ox * 0.7, Math.atan2(ox, oz)]);
+  cine(cx - ox * 1.9 - oz * 1.5, 2.9, cz - oz * 1.9 + ox * 1.5, cx + ox * 1.8, 1.5, cz + oz * 1.8);
+  if (kind === 'knock') { await narr('行き止まりに、黒い、小さな扉。札には「第三収蔵庫　↓」。……ノブは、回らなかった。'); sfx('knock'); await narr('――とん、とん。');
+    await narr('扉の、ずっと下のほうから、音がした。……とん、とん。拳で、何かを、叩く音。');
+    await say('kuze', '……真壁。');
+    await say('ishii', '……下に、三層。音の返り方で、分かります。');
+    await saku('……人間の耳で、三層まで、分かるもんか。');
+    await say('murase', '久世さん。……今夜は、表から、取り返しましょう。');
+    await say('kuze', '……ああ。もう少しだ、真壁。'); }
+  if (kind === 'mirror') { await narr('鏡のような、額縁。……覗き込むと、隅に、背広の男が、小さく、映っていた。'); await narr('題簽。「点景　来館者　作：未完画廊（あなた）」。');
+    await saku('……悪趣味だ。');
+    await say('kuze', '絵の隅の、俺か。……昨日、素材になっていたら、本当に、ここにいたんだろうな。');
+    await say('murase', '……映ってるの、久世さんだけです。自分たちは、映ってません。');
+    await saku('鏡じゃ、ない。……こっちを、見て、描いてやがる。'); }
+  if (kind === 'upside') { await narr('壁に、窓があった。……窓の向こうに、別の回廊。逆さまに、天井を、人が、歩いていた。');
+    await say('ishii', '……あっちの人、こっちを、見上げてます。……いや。見下ろしてるのか。');
+    await saku('空間拡張ってのは、箱を広げるだけじゃないらしい。……上と下まで、畳んである。');
+    await say('kuze', 'トラックの荷台に、三千羽。……この画廊には、何が、何人、畳まれてるんだ。'); }
+  playOn(); }
+
+// ---- 中央大展示室 ----
+async function goHall16() { S.flags.c16st = 'hall'; G.mode = 'cine'; setObj(''); await goArea('hall16', [0, 10.4], Math.PI); const a = AREAS.hall16; bgm('auction16'); a.scr(null); fol16(a, true); folAt16(a, [-1.3, 11.4, Math.PI], [1.3, 11.6, Math.PI]);
+  pan([0, 2.6, 11], [0, 7, -2], [0, 8.6, 15], [0, 2, -6], 6); await narr('迷路の真ん中は、吹き抜けだった。……見上げるほど高い天井に、硝子の天窓。月が、白く、透けていた。');
+  await narr('壁という壁に、大きな額縁。二階の回廊にも、また、額縁。……美術館の、いちばん奥の部屋のようだった。');
+  await narr('並んだ椅子に、異種族の客たちが、静かに、座っていた。……人間の客は、ほかに、見当たらなかった。');
+  cine(0.8, 2.0, -4.2, 0, 1.9, -7.8); await narr('舞台の手前の画架に、見覚えのある絵が、立てかけてあった。……灰色の建物。隅の、小さな人影。');
+  await say('kuze', '……「扉を叩く人」。');
+  setObj('出品作を確かめる（「扉を叩く人」を見てから、席につく）'); playOn(); saveGame(true); }
+async function viewLot16(id) { const a = AREAS.hall16; G.mode = 'cine'; markI('h16l' + id); S.flags.c16v = [...new Set([...(S.flags.c16v || []), id])];
+  if (id === '12') { P.pos.set(-10.0, 0, -4.6); P.facing = Math.atan2(-1.6, 1.6); folAt16(a, [-12.6, 0.6, Math.PI * 0.9], [-13.5, -0.4, Math.PI * 0.85]); cine(-7.2, 2.3, -0.2, -11.5, 1.9, -3.0);
+    await narr('『鳥籠　第三番』　作：マエストロ・オークル（生体素材）');
+    await narr('額縁の中に、文鳥が、いた。……黒い鉢巻きを、締めていた。');
+    await say('gbird', '……ハア……ッ……ハア……ッ……');
+    await say('gbird', '……スクワット……百……いち……');
+    await say('gbird', '……あにき……あにきが……来る……');
+    await saku('……兄貴？');
+    await say('ishii', '……あの文鳥、額縁の中で、まだ、膝を、曲げ伸ばししてます。');
+    await say('murase', '……鍛えてるんですね。出るために。');
+    await narr('久世は、何も、言わなかった。……今夜は、触れてはいけない。応えても、いけない。'); }
+  if (id === '31') { P.pos.set(10.0, 0, -4.6); P.facing = Math.atan2(1.6, 1.6); folAt16(a, [12.6, 0.6, -Math.PI * 0.9], [13.5, -0.4, -Math.PI * 0.85]); cine(7.2, 2.3, -0.2, 11.5, 2.5, -3.0);
+    await narr('『未完　第七番』　作：エデル');
+    await narr('白い画布に、一本の線が、走っていた。');
+    cine(6.0, 3.0, 1.2, 11.6, 2.6, -3.0); await narr('……線は、額縁で、終わっていなかった。額縁の外の、空中に、まだ、続いていた。');
+    await say('kuze', '……額縁の、外まで。');
+    await saku('……くそ。これは、分かる。');
+    await saku('分からないのに、分かる。……昨日の、講評だらけの連中とは、違う。');
+    await say('kuze', '本物は、説明が、いらない、か。');
+    await saku('認めたくないけどな。');
+    await say('ishii', '……線の先、どこまで、続いてるんでしょうね。');
+    await say('kuze', '画廊ごと、エデルだと、レウネが言っていた。……たぶん、この部屋の、外まで。'); }
+  if (id === '47') { const se = a.se; P.pos.set(-0.6, 0, -6.0); P.facing = Math.atan2(0.6, -1.8); folAt16(a, [-0.6, -1.8, Math.PI], [0.6, -1.4, Math.PI]); cine(1.4, 2.1, -4.4, 0, 1.95, -7.8);
+    await narr('『点景　第四十七番　扉を叩く人』　作：マエストロ・セピア');
+    await narr('画架の下に、小さな札。「素材付き。第三収蔵庫より、落札後に、お引き渡し」。');
+    se.lookAt = 'P'; walkTo(se, 1.5, -6.6, 1.2); await sleep(G.skip ? 0 : 900);
+    const SE = () => cine(0.2, 1.95, -3.6, 1.5, 1.8, -6.6), KU = () => cine(2.6, 1.85, -4.2, -0.6, 1.6, -6.0);
+    if (!S.flags.c16metSe) { S.flags.c16metSe = true; SE(); nameCard({ s: MEMB.sepia.role, b: MEMB.sepia.name, e: 'SEPIA', col: MEMB.sepia.col, p: '「扉を叩く人」の作者。点景派の、大家。\n片眼鏡。セピア色の長い髪。燕尾の白いスーツ。\n手には、身の丈ほどの、絵筆。' }); await sleep(G.skip ? 0 : 1800); nameCard(null); }
+    SE(); await say('sepia', 'お目が、高いこと。……私の、いちばんの、自信作ですのよ。');
+    await say('sepia', '点景とは、謙虚さ、ですの。人間は、絵の隅にいるときが、いちばん、美しいのですわ。');
+    await say('sepia', '……あなたが、二色の方？　ヴェーラから、伺っておりますわ。');
+    await say('sepia', '残念。あなたは、隅には、収まりそうに、ありませんわね。……色が、強すぎますもの。');
+    KU(); await say('kuze', '……隅の人は、まだ、叩いていますか。');
+    SE(); await say('sepia', 'ええ、毎晩。……健気でしょう。今夜、どなたかが、お持ち帰りになれば、その方の家の扉を、叩くのでしょうね。');
+    KU(); await saku('……殴るなよ、久世。');
+    await say('kuze', '……今夜は、客です。');
+    SE(); await say('sepia', 'ええ。客は、客。……どうぞ、良い、お買い物を。');
+    se.lookAt = null; walkTo(se, 2.2, -8.1, 1.2).then(() => { se.facing = 0.2; });
+    await say('murase', '……取り返しましょう。正面から。');
+    setObj('席につく（中央の通路）'); }
+  playOn(); }
+
+// ---- 競売 ----
+async function auction16() { const a = AREAS.hall16, [mu, is] = a.fol, ve = a.ve, se = a.se; S.flags.c16st = 'auction'; G.mode = 'cine'; setObj(''); a.folOn = false;
+  P.pos.set(-1.6, 0, 0.4); P.facing = Math.PI; P.st = { sit: true }; for (const [n, x, z] of [[mu, -3.0, 0.4], [is, -1.6, 2.0]]) { n.pos.set(x, 0, z); n.facing = Math.PI; n.st = { sit: true }; n.goal = null; }
+  se.pos.set(2.2, 0, -8.1); se.facing = 0.2; se.lookAt = null; hemi.intensity = 0.55; ve.hidden = false; ve.pos.set(-4.5, 0, -10.9); ve.y = 0.6; ve.facing = 0.15; ve.lookAt = null;
+  const V = () => cine(-3.2, 2.5, -7.4, -4.5, 2.3, -10.9), US = () => cine(-0.2, 1.6, -2.2, -2.0, 1.1, 0.8);
+  sfx('gavel'); cine(0, 3.4, 4.6, 0, 3.0, -10); await narr('照明が、落ちた。……舞台の上に、白いスーツの女が、立っていた。');
+  V(); await say('vera', '皆さま。……未完画廊、秋の大競売へ、ようこそ、お越しくださいました。');
+  await say('vera', '今宵の作品は、どれも、未完。……完成させるのは、お持ち帰りになる、皆さまですわ。');
+  a.scr(LOT16[12]); cine(-7.4, 2.4, -0.6, -11.5, 2.0, -3.0); await say('vera', 'ロット十二。マエストロ・オークル、『鳥籠　第三番』。生体素材、文鳥、一羽。');
+  await narr('札が、上がった。四千万。四千五百万。……額縁の中で、文鳥が、膝を、曲げ伸ばししていた。');
+  await say('gbird', '……ハア……ッ……あにき……');
+  sfx('gavel'); V(); await say('vera', '四千八百万。……ハイエルフの、蒐集家さま。');
+  a.scr(LOT16[31]); cine(7.4, 2.4, -0.6, 11.5, 2.5, -3.0); await say('vera', 'ロット三十一。エデル様、『未完　第七番』。');
+  await say('vera', '……エデル様は、本日も、ご欠席ですわ。ご興味が、ないそうですので。');
+  cine(0, 3.6, 5.4, 0, 1.2, -2.0); await narr('部屋じゅうの札が、一斉に、上がった。十億。十五億。二十億。……誰も、絵から、目を離さなかった。');
+  sfx('gavel'); V(); await say('vera', '二十二億。……竜の、お方。');
+  US(); await saku('……本人は、来もしない。興味もない。……それで、二十二億か。');
+  await say('ishii', '……この部屋の札、半分が、あれに上がりました。');
+  cine(5.6, 2.0, 0.8, 7.9, 1.25, 3.6); await saku('……後ろの列。右の、端。');
+  await narr('紺の背広の、背の高い男が、札も上げずに、座っていた。隣に、角のある、大きな女。');
+  await say('kuze', '……乾さん。');
+  await saku('独り言の、続きをしに来たか。……招待状まで、取って。');
+  await narr('乾は、こちらを、見なかった。……ただ、天井を、一度だけ、見上げた。');
+  a.scr(LOT16[47]); sfx('gavel'); cine(0.9, 1.9, -4.0, 0, 1.95, -7.8); await say('vera', 'ロット四十七。マエストロ・セピア、『点景　第四十七番　扉を叩く人』。');
+  V(); await say('vera', '……素材付きで、ございます。素材は、第三収蔵庫より、落札ののち、お引き渡しいたしますわ。');
+  se.st.bow = true; cine(-0.8, 2.2, -4.4, 2.2, 1.6, -8.1); await narr('画架の脇で、マエストロ・セピアが、深々と、頭を下げた。'); se.st.bow = false;
+  US(); await saku('……物みたいに、言いやがる。');
+  await narr('久世は、札を、握り直した。……掌に、汗が、にじんでいた。');
+  const c = await choose([{ t: '札を、膝の上で、静かに握る', k: '表' }, { t: '札を、いつでも上げられるよう、胸の前に構える', k: '本音' }]); S.flags.c16paddle = c;
+  if (c === 1) { P.st.point = true; await say('ishii', '……いい構えです。一番に、上げてください。'); }
+  V(); await say('vera', '開始価格は、一億から。');
+  await say('vera', 'それでは。……入札を、開始いたしま――');
+  P.st.point = false; await bulkCrash16(); }
+
+// ---- 天井が、ぶっ壊れる ----
+async function fall16(n, sec) { const y0 = n.y || 0, t0 = T.now; while (!G.skip) { const u = Math.min(1, (T.now - t0) / sec); n.y = y0 * (1 - u * u); if (u >= 1) break; await new Promise(r => requestAnimationFrame(r)); } n.y = 0; }
+function skyBreak16(a) { for (const p of a.sky) p.visible = false; for (const b of a.skyBars) b.visible = false;
+  for (let i = 0; i < 70; i++) { const m = new THREE.Mesh(G_('shardG', () => new THREE.PlaneGeometry(0.5, 0.36)), a.glassM); m.position.set(rand(-6, 6), 13 + rand(0, 1), rand(-7, 5)); const v = new THREE.Vector3(rand(-2, 2), rand(-2, 1), rand(-2, 2)), w = rand(2, 8);
+    fxAdd(m, rand(1.4, 2.2), () => { v.y -= 0.5; m.position.addScaledVector(v, 0.016); if (m.position.y < 0.05) { m.position.y = 0.05; v.set(0, 0, 0); } else { m.rotation.x += w * 0.016; m.rotation.y += w * 0.01; } }); }
+  fxFlash(0, 12, -1, 0xFFFFFF, 14, 0.5); }
+async function bulkCrash16() { const a = AREAS.hall16, ku = a.kuro, fk = a.fk, hk = a.hk, [mu, is] = a.fol, ve = a.ve, se = a.se, ro = a.ro, [pia, nella, lucia] = a.st, bm = a.bm;
+  bgm(''); sfx('thunder'); G.shake = 0.3; cine(0, 2.0, 2.6, 0, 11, -2); await narr('天井の硝子が、鳴った。');
+  await sleep(G.skip ? 0 : 500); G.shake = 1.2; sfx('glass'); skyBreak16(a); voicePress(0, 12, -1, true);
+  await say('kuro', 'ブンチョオオオオオオオオオオッッッ！！！！！！！');
+  ku.hidden = false; ku.pos.set(0, 0, -5.4); ku.y = 13; ku.facing = 0; ku.st = { kneel: true }; bgm('bulk16');
+  cine(4.4, 1.2, 0.6, 0, 3.4, -5.4); await fall16(ku, 0.6); boom(0, 0.5, -5.4, 0xE8403A, true); sfx('blast'); G.shake = 1.0; fxRing(0, 0.1, -5.4, 9, 0xFFFFFF, 0.6);
+  for (const b of a.bid) if (Math.hypot(b.pos.x, b.pos.z + 5.4) < 4.2) { b.st = { down: true }; b.pos.x += Math.sign(b.pos.x || 1) * 0.8; }
+  cine(1.8, 1.4, -1.2, 0, 2.2, -5.4); await narr('床が、割れていた。……割れた床の真ん中に、黒い、山のようなものが、膝をついていた。');
+  ku.st = {}; await sleep(G.skip ? 0 : 500); cine(0.4, 1.1, -1.6, 0, 3.2, -5.4); await narr('それは、立ち上がった。……見上げるほどの、黒い、筋肉の塊だった。');
+  nameCard({ s: 'B.U.N society　rate No.7　「絶叫筋王」', b: 'クロ・バルク', e: 'KURO BULK', col: '#E8403A', p: '黒頭文鳥。二百六十センチ。紅い嘴、白い頬。\n胸に鎧の帯、腕に篭手、「07」の、裂けた黒い外套。\n能力「声圧支配」――声で、吹き飛ばし、内側を揺らし、跪かせる。' }); await sleep(G.skip ? 0 : 2200); nameCard(null);
+  cine(0.6, 2.3, -0.4, 0, 2.4, -5.4); await say('kuro', '…………ハアアアアアアアッ…………');
+  await say('kuro', '家族をォォォ……迎えに、来たァァァァ！！！！');
+  fk.hidden = false; fk.y = 13; hk.hidden = false; hk.y = 13; cine(0, 2.4, 1.0, 0, 3, -6.2); await Promise.all([fall16(fk, 0.55), fall16(hk, 0.6)]); boom(-3.6, 0.4, -6.2, 0xF0A040, false); boom(3.6, 0.4, -6.4, 0xA8B4C8, false); G.shake = 0.6;
+  nameCard({ s: 'B.U.N society　rate No.38　バルク・家族「グッドブラザー」', b: 'フッ・キン', e: 'FUKKIN', col: '#F0A040', p: '六つに割れた腹。チャンピオンベルト。\n兄貴の背中を守るのが、弟の筋肉。' }); cine(-2.2, 1.9, -3.8, -3.6, 1.9, -6.2); await say('fukkin', '兄貴ィィ！！　会場の筋肉量、ほぼゼロっス！！　全員、ガリッガリっス！！');
+  nameCard({ s: 'B.U.N society　rate No.52　バルク・家族「グッドブラザー」', b: 'ハイ・キン', e: 'HAIKIN', col: '#A8B4C8', p: '広すぎる背中。棘の肩当て。黒眼鏡。\n無口。背中で、語る。' }); cine(2.2, 1.9, -4.0, 3.6, 2.0, -6.4); await say('haikin', '……額縁の、匂いがする。……兄弟たちの、汗の、匂いだ。'); nameCard(null);
+  cine(0.6, 2.3, -0.4, 0, 2.4, -5.4); await say('kuro', 'そうだァァ！！　勝川で、トラックから出てきた兄弟たちが、言っていたァァ！！');
+  await say('kuro', '俺たちの行き先はァ……拘置所じゃ、なかったとォォ！！　この画廊のォ……額縁の中だったとォォ！！');
+  US16(); await saku('……乾の写真と、同じ話だ。');
+  cine(0.9, 2.1, -2.2, 0, 2.7, -5.4); await say('kuro', '返せェェェ！！！　額縁に埋めた、俺の家族を、全員、返せェェェェ！！！！'); voicePress(0, 2.6, -5.4, false);
+  // 群れが、降ってくる
+  a.crowd.on = true; a.crowd.t = 0; a.bulkOn = true; bm.forEach((n, i) => { n.hidden = false; n.y = 0; n.st = {}; });
+  cine(0, 3.0, 4.6, 0, 9, -2); await narr('天窓の穴から、文鳥が、降ってきた。……十、二十。……数えるのを、やめた。');
+  cine(-3.0, 2.4, 3.2, 0, 1.0, -3.0); await say('bulkM', 'ハアッ！　ハアッ！　ハアッ！　ハアッ！');
+  await narr('白い文鳥、黒い文鳥、灰色の文鳥。……みんな、同じ黒い鉢巻きを締めて、同じ声で、息を吐いていた。');
+  // 無差別に
+  pia.pos.set(-5.6, 0, -1.9); pia.st = { down: true }; lucia.pos.set(5.0, 0, -6.4); lucia.st = { down: true }; nella.pos.set(0.9, 0, -2.4); nella.st = { down: true }; nella.facing = 0.4;
+  for (const b of a.bid) if (!b.st.down && Math.random() < 0.6) { b.st = { down: true }; b.pos.x += rand(-0.6, 0.6); }
+  cine(-7.4, 2.6, 3.4, -5.6, 1.0, -1.9); sfx('hit'); G.shake = 0.5; await narr('白いスーツが、宙を、舞った。……入札者も、学徒も、区別は、なかった。');
+  sfx('hit'); await narr('骨の折れる音が、拍手みたいに、続いた。');
+  await say('pia', 'い、いや……っ、腕が……脚が……っ！');
+  cine(-2.2, 1.9, -3.8, -3.6, 1.9, -6.2); await say('fukkin', 'ハアッ！　すまねェっス！　筋肉は、手加減を、知らねェっス！！');
+  cine(-6.0, 1.6, -2.0, -4.4, 0.6, -4.4); await narr('前の列で、ハイエルフの蒐集家が、動かなかった。……息が、浅い。早く運ばなければ、たぶん、助からない。');
+  cine(6.0, 2.4, 6.2, 7.4, 1.0, 3.0); await narr('後ろの列で、乾が、倒れた入札者の襟を掴んで、壁際へ、引きずっていた。……轟が、その前に、壁のように、立っていた。');
+  // ドーセントとマエストロの反撃
+  ve.y = 0; ve.pos.set(-2.6, 0, -8.0); ve.lookAt = ku.pos; cine(-0.6, 2.0, -4.6, -2.6, 1.9, -8.0); await say('vera', '……当画廊の、規則を、ご存じ？');
+  cine(0.9, 2.1, -2.2, 0, 2.7, -5.4); await say('kuro', '知らんッッッ！！！');
+  ve.st.windup = true; hk.lookAt = ve.pos; cine(3.0, 2.2, -4.4, 1.6, 1.8, -7.4); await sleep(G.skip ? 0 : 300); ve.st.windup = false; ve.st.punch = true; slide(ve.pos, 1.8, -7.0, 0.18); sfx('hit'); boom(3.0, 1.6, -6.6, 0xE0D8F0, false);
+  await narr('主任ドーセントの錫杖が、横から、灰色の背中を、打った。……鉄の棘が、全部、折れた。'); ve.st.punch = false;
+  cine(2.2, 1.9, -4.0, 3.6, 2.0, -6.4); await say('haikin', '……背中で、受けた。');
+  hk.st.windup = true; await sleep(G.skip ? 0 : 250); hk.st.windup = false; hk.st.punch = true; sfx('hit'); ve.st = { down: true }; slide(ve.pos, 9.2, -9.0, 0.3); boom(5.0, 1.4, -7.6, 0xE0D8F0, false); G.shake = 0.5; cine(4.4, 2.6, -3.0, 7.0, 1.0, -8.4);
+  await narr('ハイ・キンが、背中を、ひと振りした。……主任ドーセントが、舞台の端まで、飛んだ。'); hk.st.punch = false;
+  se.st.cast = true; cine(4.6, 2.6, -2.6, 2.2, 1.8, -7.6); await say('sepia', '……点景に、おなりなさい。');
+  const fr = [bm[1], bm[2], bm[3]].map((n, i) => { const f = frame(a.g, n.pos.x, 7, n.pos.z, 1.6, 2.3, artTex('land', 40 + i)); return { f, n }; });
+  for (let k = 0; k < 20 && !G.skip; k++) { for (const F of fr) F.f.position.y = 7 - (7 - 1.4) * (k / 19); await new Promise(r => requestAnimationFrame(r)); }
+  for (const F of fr) { F.f.position.y = 1.4; F.n.hidden = true; } sfx('glass'); cine(0, 4.0, 3.0, 0, 1.4, -5.0);
+  await narr('額縁が、降りてきた。……三羽の文鳥が、画布の隅の、小さな点に、なった。');
+  cine(0.9, 2.1, -2.2, 0, 2.7, -5.4); await say('kuro', '――――ッッ！！！！'); voicePress(0, 2.6, -5.4, true);
+  for (const F of fr) { a.g.remove(F.f); shards(F.f.position.x, 1.4, F.f.position.z, 0xC8B070, 12, 6); F.n.hidden = false; } sfx('glass'); se.st = { reel: true };
+  cine(0, 4.0, 3.0, 0, 1.4, -5.0); await narr('声、だった。……ただの、声で、額縁が、粉になった。');
+  cine(4.6, 2.6, -2.6, 2.2, 1.8, -7.6); await say('sepia', '……私の、額縁が。');
+  ro.pos.set(-7.4, 0, -5.2); ro.st = { guard: true }; fk.pos.set(-6.0, 0, -5.6); fk.lookAt = ro.pos; cine(-4.4, 2.0, -2.2, -6.4, 1.6, -5.6); await narr('ロジーナが、腹の割れた文鳥と、十羽の群れに、囲まれていた。……ドーセントも、マエストロも、手いっぱいだった。');
+  await narr('No.7 には、誰も、届いていなかった。');
+  // 久世たち：目の前の学徒を
+  P.st = {}; mu.st = { guard: true }; is.st = { guard: true }; mu.pos.set(-2.8, 0, -0.4); is.pos.set(-1.8, 0, 1.2); US16();
+  await say('murase', '久世さん、低く。……数が、多すぎる。');
+  await say('ishii', '後ろは、見てます。……前の三列、もう、立ってる客は、いません。');
+  const foe = bm[0]; foe.hidden = false; foe.fight = true; foe.st = {}; foe.pos.set(0, 0, -3.3); foe.facing = 0.3; foe.lookAt = nella.pos;
+  cine(-1.4, 1.9, -0.6, 0.6, 1.0, -2.8); await narr('すぐ前の通路で、狐耳の学徒が、倒れていた。……その上で、文鳥が、拳を、振りかぶっていた。');
+  await say('nella', '……や……やめ……');
+  await saku('……放っとけ。画廊の連中だ。昨日、お前を、素材にしようとした連中だ。');
+  await say('kuze', '……目の前で、潰されるのを、見てろって、言うのか。');
+  await saku('…………ちっ。……かわせ。殴るのは、一瞬だけだ。');
+  P.pos.set(0, 0, -1.4); P.facing = Math.PI;
+  await fight({ foe, alien: true, need: 2, name: 'バルク・家族の文鳥', tempo: 1.1, win: 1.05, open: 0.9, dmg: 1, music: 'bulk16', after: 'bulk16', tip: '文鳥は、倒せない。……かわして、金の「打」で怯ませ、学徒から、引き剥がせ。' });
+  foe.st = {}; foe.pos.set(-4.2, 0, -5.8); foe.fight = false; cine(-1.6, 1.9, 0.4, 0, 1.4, -2.6); await say('bulkM', 'ハアッ……！？　に、人間が、殴ったァ！？');
+  await say('nella', '……なんで……私たちを……');
+  await say('kuze', '……知るか。');
+  // 声圧支配：跪かせる声
+  cine(0.9, 2.1, -2.2, 0, 2.7, -5.4); await say('kuro', '黙れェェェェェェェェ！！！！！'); voicePress(0, 2.6, -5.4, true);
+  for (const b of a.bid) if (!b.st.down) b.st = { kneel: true, bow: true }; P.st = { kneel: true }; is.st = { kneel: true }; mu.st = { guard: true };
+  cine(1.4, 1.7, -4.6, 0, 0.8, -1.4); await narr('膝が、勝手に、折れた。……体の内側が、鐘みたいに、鳴っていた。');
+  await narr('恐ろしい、と思う前に、従いたい、と思っていた。……頭を下げれば、許される気が、した。');
+  await saku('立て、久世……！　あれは、声だ。……声に、膝を、貸すな……！');
+  is.st = {}; await say('ishii', '……息を、吐いて。自分の声を、聞いてください、久世さん。'); P.st = {};
+  mu.facing = Math.PI; cine(-2.2, 1.8, -2.7, -2.8, 1.5, -0.4); await narr('村瀬だけが、立っていた。……拳を、握ったまま。膝は、一度も、折れていなかった。');
+  await say('murase', '……No.7。');
+  await say('ishii', '止まりません。自分たちでは、時間を、稼ぐのが、やっとです。……あれを、止められるのは、');
+  US16(); await saku('……外神竜くらいだ。');
+  // 扉を叩く人の、真上で
+  ku.lookAt = null; cine(3.4, 2.0, -3.0, 0, 2.4, -7.0); await walkTo(ku, 0, -6.5, 2.2); ku.facing = Math.PI;
+  await say('kuro', '額縁はァァ……全部、ぶっ壊すゥゥゥ！！！　中の家族が、出てくるまでェェェ！！！');
+  cine(4.6, 2.6, -2.6, 2.2, 1.8, -7.6); await say('sepia', 'おやめなさい！　その絵は、素材と、繋がっていますのよ！');
+  await say('sepia', '絵が壊れれば、地下の素材も――！');
+  US16(); await say('kuze', '……真壁が。');
+  ku.st.windup = true; cine(-3.2, 1.3, -5.0, 0, 2.5, -7.3); G.shake = 0.3; await narr('黒い拳が、振り上げられた。……扉を叩く人の、真上で。');
+  await narr('――どうする。');
+  const c = await choose([{ t: '……絵の前に、飛び出す', k: '本音' }, { t: 'アセラのチャームを、握る', k: '表' }, { t: '「村瀬、石居。……あいつの足を、止めろ」', k: '表' }, { t: '（朔に、代わる）', k: '裏声' }]);
+  S.flags.c16act = ['front', 'asela', 'team', 'saku'][c];
+  fxFlash(0, 2, -6, 0xFFFFFF, 30, 0.6); G.shake = 0.8; bgm(''); await fade(true); a.bulkOn = false;
+  await card('第七章　中編　競売', '――どうする。', 3200);
+  setMeta({ ch16Clear: true, ch16: packS(), ch16Done: [...DONE] }); showReport16(); await fade(false); }
+function US16() { cine(-0.2, 1.7, -2.2, -2.0, 1.2, 0.6); }
+function showReport16() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); bgm('');
+  const act = { front: '絵の前に、飛び出す', asela: 'アセラのチャームを、握る', team: '村瀬と石居に、No.7 の足を止めさせる', saku: '朔に、代わる' }[S.flags.c16act] || '―';
+  const rv = { deal: '「手を組む」', makabe: '「あんたの家族のためじゃない。真壁のためだ」', saku: '朔「見てるなら、勝手に見てろ」' }[S.flags.c16reune] || '―';
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>中</span><span>七</span></div><h2>第七章　中編　競売</h2><div class="meta">神領　未完画廊　中央大展示室　午後八時</div><table>' +
+    '<tr><td>留文堂</td><td>真壁は第三収蔵庫で生きている。黒岩「借りは、作りすぎるな。作るなら、返せる大きさにしておけ」。仁科「竜が持っとらんのは、家族のことくらいさ」</td></tr>' +
+    '<tr><td>レウネ</td><td>紅鱗、九尾、高蔵寺の橋、台風の夜の寮、文食品の三か所同時。「偶然は三回まで。五回目から、それ、仕事っしょ」。留保を知っているが、ユリアには「保留中」。画廊の中は、レウネの地図でも真っ白（エデルの領域）。今夜の競売目録：LOT 47「扉を叩く人」素材付き。入札の名義と招待状は翠絡、金はレウネの財布から。久世の返事：' + rv + '。「見てるからね。これからも、ずっと」</td></tr>' +
+    '<tr><td>エデルと家族</td><td>ごはんに来ない。ママは毎晩エデルのぶんもよそう（冷めたら、ザイナが黙って食べる）。点景派はエデルの意思ではないが、エデルの名前でやっている。だから家族として止める。エデルはめったに怒らないが、強さはユリアより上（画廊ごとエデル）。ぶつかれば春日井が額縁ごとなくなる。だから、エデルが今年目を向けた「二色」の久世を使う</td></tr>' +
+    '<tr><td>アセラ</td><td>遅れて来た。「揺らさないでくれるかな」「でも、走りの影は悪くなかったって。……あたしに、じゃなくて、影に、だけど」「姉ちゃんに、嫌われても。……あ、嫌われないか」。「何かあったら、駆けつけるから！」――チャームを受け取った</td></tr>' +
+    '<tr><td>乾</td><td>独自に画廊へ。搬入口に陽盾警備保障の護送車。勝川の便も、行き先は「神領　未完画廊　搬入口」。名目「更生のための、芸術活動への協力」。「竜の一族の、いちばん白い看板の、裏側だ」。写真は非通知で久世へ（「独り言だ」）。黒岩「竜を揺らせる紙だ。今は、しまっておけ」。乾は轟と、競売の後ろの列にいた</td></tr>' +
+    '<tr><td>石居</td><td>留保班「要」。村瀬と同じところから来た（黒岩「それ以上は、聞くな」）。「後ろと、全体は、こっちで見ます」。下に三層、を音で聞き分けた</td></tr>' +
+    '<tr><td>未完画廊</td><td>トラックと同じ天環の空間拡張で、迷路の回廊に。扉は大展示室の北側、入口の真裏。行き止まりに「第三収蔵庫　↓」の扉――下から、とん、とん。中央大展示室は吹き抜けと天窓の、美術館のような部屋</td></tr>' +
+    '<tr><td>競売</td><td>LOT 12『鳥籠　第三番』（黒い鉢巻きの文鳥「あにきが、来る」）四千八百万。LOT 31 エデル『未完　第七番』（線が額縁の外まで続く。朔「分からないのに、分かる」）二十二億、エデルは欠席。LOT 47『扉を叩く人』素材付き、開始一億――入札開始の、その瞬間</td></tr>' +
+    '<tr><td>クロ・バルク</td><td>B.U.N society rate No.7「絶叫筋王」。黒頭文鳥、二百六十センチ。天窓を破って「ブンチョオオオオオオオオオオッッッ！！！！！！！」。声圧支配：声で吹き飛ばし、内側を揺らし、跪かせる。マエストロ・セピアの額縁を、声だけで粉にした。目的は、額縁に埋められた「家族」を取り返すこと（勝川のトラックの行き先を、兄弟たちから聞いた）</td></tr>' +
+    '<tr><td>バルク・家族</td><td>グッドブラザー、フッ・キン（No.38）とハイ・キン（No.52）。黒い鉢巻きの群れが「ハアッ！」と無差別に殴り、学徒と客は全身を折られ、命に関わる者も出た。ドーセントとマエストロは群れに手いっぱい。No.7 には誰も届かない。止められるのは、外神竜くらい</td></tr>' +
+    '<tr><td>どうする</td><td>No.7 の拳が「扉を叩く人」の真上に。絵が壊れれば、地下の真壁も。――選んだのは：' + act + '</td></tr></table>' +
+    '<p class="close">黒い拳の下に、扉を叩く人がいる。<br>第七章　後編（準備中）</p>' +
+    '<div class="trow"><button type="button" class="go" id="titleBtn16">タイトルへ</button></div>';
+  $('report').hidden = false; $('titleBtn16').addEventListener('click', () => location.reload()); }
+async function startCh16() { const m = meta(); if (m.ch15) unpackS(m.ch15); else if (m.ch14) unpackS(m.ch14); else if (m.ch12) unpackS(m.ch12); DONE = new Set(m.ch15Done || m.ch14Done || m.ch12Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter16(); }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -9127,6 +9844,7 @@ $('ch12Btn').addEventListener('click', () => { audioOn(); $('title').hidden = tr
 $('ch13Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh13); });
 $('ch14Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh14); });
 $('ch15Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh15); });
+$('ch16Btn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(startCh16); });
 $('contBtn').addEventListener('click', () => { audioOn(); $('title').hidden = true; run(loadGame); });
 $('saveBtn').addEventListener('click', () => { if (G.mode === 'play' && !G.busy) openFiles('save'); });
 $('filesBtn').addEventListener('click', () => { audioOn(); openFiles('load'); });
@@ -9134,6 +9852,6 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15 };
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, MZ16, mzX, mzZ };
 })();
 </script>
