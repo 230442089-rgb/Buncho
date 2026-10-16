@@ -10210,7 +10210,9 @@ makeArea('nest18', { noPlayer: true, place: 'B.U.N society　静止軌道　居�
     // スクワットの台
     for (let k = 0; k < 3; k++) { const x = 6.8 + k * 1.9, z = -2.0; for (const s of [-1, 1]) block(0.14, 2.4, 0.14, 0x2A2A30, x + s * 0.8, 1.2, z, g); part(cyl(0.05, 0.05, 2.0, 8), 0xA8A8B0, x, 1.7, z, g, { rz: Math.PI / 2 }); for (const s of [-1, 1]) part(cyl(0.34, 0.34, 0.12, 16), 0x1A1A1E, x + s * 0.72, 1.7, z, g, { rz: Math.PI / 2 }); a.obs.push({ x, z, hx: 0.9, hz: 0.2 }); }
     // 速報の投影
-    a.holo = plane(5.6, 3.0, signTex(560, 300, [{ t: '地表速報', size: 34, w: 900, c: '#FF4050' }, { t: '春日井・勝川駅前で、乱闘', size: 34 }, { t: '「フードの、ちびい文鳥」が、抗議の三十羽を', size: 26 }, { t: '一羽で、退ける', size: 30, w: 900 }, { t: '目撃：黒い鉢巻き', size: 26, c: '#F2C230' }], { bg: '#14101C', fg: '#F4F2EE' }), 9.6, 3.6, 4.6, g, { transparent: true, opacity: 0.9, fog: false }); a.holo.rotation.y = -Math.PI * 0.62; a.holo.material.blending = THREE.AdditiveBlending; a.holo.visible = false;
+    a.holo = plane(5.6, 3.0, signTex(560, 300, [{ t: '地表速報', size: 34, w: 900, c: '#FF4050' }, { t: '春日井・勝川駅前で、乱闘', size: 34 }, { t: '「フードの、ちびい文鳥」が、抗議の三十羽を', size: 26 }, { t: '一羽で、退ける', size: 30, w: 900 }, { t: '目撃：黒い鉢巻き、赤い結び目', size: 26, c: '#F2C230' }], { bg: '#14101C', fg: '#F4F2EE' }), 12.6, 3.6, 3.0, g, { transparent: true, opacity: 0.9, fog: false }); a.holo.rotation.y = -Math.PI / 2; a.holo.material.blending = THREE.AdditiveBlending; a.holo.visible = false;
+    // 降下口（地表へ）
+    block(0.3, 3.8, 2.8, 0x2A2830, -12.75, 1.9, 4.8, g); for (let k = 0; k < 5; k++) block(0.32, 0.22, 2.8, k % 2 ? 0x1A181E : 0xD8A830, -12.72, 0.4 + k * 0.7, 4.8, g); plane(2.2, 0.5, signTex(220, 50, [{ t: '降下口　地表行き', size: 26, w: 900 }], { bg: '#B8141E', fg: '#FFFFFF' }), -12.55, 4.2, 4.8, g).rotation.y = Math.PI / 2;
     for (const x of [-8, -2, 4, 10]) { const l = glowSprite(0xFF5A4A, 3, 0.35); l.position.set(x, 7.2, 0); g.add(l); }
     // 家族
     a.kuro = npc(a, 'kuro', kuroBulk(), -5.8, 2.2, Math.PI / 2); a.fk = npc(a, 'fukkin', fukkinBird(), -3.2, 0.2, 0); a.hk = npc(a, 'haikin', haikinBird(), -2.0, 4.2, Math.PI);
@@ -10258,9 +10260,9 @@ makeArea('shotengai18', { place: '勝川　弘法通り商店街　午前十時�
 });
 
 // ================= 勝川駅　南口ロータリー（ポ・ンプの格闘） =================
-makeArea('rotary18', { place: '勝川駅　南口ロータリー　午前十一時四十分', bounds: [-12.5, 12.5, -6.6, 6.2], spawn: [-9, 4], spawnFace: 0, cam: [0, 11.5, 9.6], music: 'town18', bg: 0xC0CCD8, fog: [26, 80], light: 0.95, sun: 0.65,
-  build(a) { const g = a.g; const rd = new THREE.Mesh(new THREE.PlaneGeometry(40, 26), new THREE.MeshLambertMaterial({ map: canvasTex(512, 332, (c, w, h) => { c.fillStyle = '#6A6C72'; c.fillRect(0, 0, w, h); c.strokeStyle = '#F0F0EC'; c.lineWidth = 4; c.beginPath(); c.ellipse(w / 2, h * 0.47, 120, 70, 0, 0, TAU); c.stroke(); c.setLineDash([18, 14]); c.beginPath(); c.ellipse(w / 2, h * 0.47, 190, 112, 0, 0, TAU); c.stroke(); c.setLineDash([]); c.fillStyle = '#F0F0EC'; for (let x = 60; x < w - 60; x += 26) c.fillRect(x, h * 0.86, 14, 30); }) })); rd.rotation.x = -Math.PI / 2; g.add(rd);
-    block(40, 0.24, 3, 0xC8C0B4, 0, 0.12, -8.4, g); block(40, 0.24, 3, 0xC8C0B4, 0, 0.12, 8.0, g);
+makeArea('rotary18', { place: '勝川駅　南口ロータリー　午前十一時四十分', bounds: [-12.5, 12.5, -3.4, 6.2], spawn: [-9, 4], spawnFace: 0, cam: [0, 11.5, 9.6], music: 'town18', bg: 0xC0CCD8, fog: [26, 80], light: 0.95, sun: 0.65,
+  build(a) { const g = a.g; const rd = new THREE.Mesh(new THREE.PlaneGeometry(40, 26), new THREE.MeshLambertMaterial({ map: canvasTex(512, 332, (c, w, h) => { c.fillStyle = '#6A6C72'; c.fillRect(0, 0, w, h); c.strokeStyle = '#F0F0EC'; c.lineWidth = 4; c.beginPath(); c.ellipse(w / 2, h * 0.47, 120, 70, 0, 0, TAU); c.stroke(); c.setLineDash([18, 14]); c.beginPath(); c.ellipse(w / 2, h * 0.47, 190, 112, 0, 0, TAU); c.stroke(); c.setLineDash([]); c.fillStyle = '#F0F0EC'; for (let x = 60; x < w - 60; x += 26) c.fillRect(x, h * 0.86, 14, 30); }) })); rd.rotation.x = -Math.PI / 2; g.add(rd); { const base = new THREE.Mesh(new THREE.PlaneGeometry(90, 70), new THREE.MeshLambertMaterial({ color: 0x6A6C72 })); base.rotation.x = -Math.PI / 2; base.position.y = -0.02; g.add(base); }
+    block(40, 0.24, 3, 0xC8C0B4, 0, 0.12, -8.4, g); block(60, 0.24, 6, 0xC8C0B4, 0, 0.12, 9.5, g); for (const [x, w, h, c] of [[-22, 10, 9, 0xD8D0C4], [-10, 12, 6, 0xC8CCD4], [3, 12, 11, 0xE0D8CC], [16, 12, 7, 0xD0D4DA], [28, 10, 9, 0xD8D0C4]]) block(w, h, 6, c, x, h / 2, 16, g);
     block(30, 7, 3, 0xD8D4CC, 0, 3.5, -11.4, g); block(30, 0.6, 3.6, 0x2A4A8A, 0, 5.4, -10.0, g); plane(8, 1.2, signTex(800, 120, [{ t: 'JR　勝川駅　南口', size: 64, w: 900 }], { bg: '#1E5AA8', fg: '#FFFFFF' }), 0, 6.2, -9.85, g);
     for (const x of [-9, -3, 3, 9]) block(3.6, 2.6, 0.1, 0x9AC8E8, x, 1.6, -9.85, g, { emis: 0x1A2A3A });
     // バス停の屋根、タクシー、植え込み
@@ -10562,11 +10564,11 @@ async function evShop18(k) { const a = AREAS.shotengai18, po = a.po, sh = S.flag
 
 // ---- 勝川駅前：抗議の三十羽 ----
 function ponCfg18(a) { const pool = a.pool, at = (n, x, z) => { n.pos.set(x, 0, z); n.facing = Math.atan2(P.pos.x - x, P.pos.z - z); return n; };
-  const ring = (idx, cx, cz, r0, hp, mv, sp) => idx.map((k, j) => { const ang = j / idx.length * TAU + 0.3, r = r0 + (j % 2) * 1.2; return ponFoe(at(pool[k], clamp(cx + Math.sin(ang) * r, -11.5, 11.5), clamp(cz + Math.cos(ang) * r, -6, 5.6)), { hp, moves: mv(j), speed: sp + (j % 3) * 0.3 }); });
+  const ring = (idx, cx, cz, r0, hp, mv, sp) => idx.map((k, j) => { const ang = j / idx.length * TAU + 0.3, r = r0 + (j % 2) * 1.2; return ponFoe(at(pool[k], clamp(cx + Math.sin(ang) * r, -11.5, 11.5), clamp(cz + Math.cos(ang) * r, -2.8, 5.6)), { hp, moves: mv(j), speed: sp + (j % 3) * 0.3 }); });
   return { hp: 10, failKey: 'c18fail', music: 'pon18', maxAtk: 4, tip: 'Space：連打（三段目で吹き飛ばす）／K：ダッシュで殴り抜ける　ゲージが満ちたら Q（脚）',
     waves: [
       { name: '抗議の文鳥', tip: 'Space：連打（三段目で吹き飛ばす）／K：ダッシュで殴り抜ける。ゲージが満ちたら Q（脚）で「一万回の脚」', foes: () => ring([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 1.0, -0.6, 3.2, 3, j => [['placard', 'shout'], ['placard', 'sign'], ['tackle', 'placard']][j % 3], 2.8) },
-      { name: '抗議の文鳥（増援）', tip: '囲まれる前に、ダッシュで抜けろ。ダッシュの最中は、赤い予兆に当たらない', foes: () => { const L = [], B = a.bounds; for (let j = 0; j < 14; j++) { const n = pool[10 + j], side = j % 4, x = side === 0 ? B[0] + 1 : side === 1 ? B[1] - 1 : rand(-9, 9), z = side === 2 ? B[2] + 1 : side === 3 ? B[3] - 1 : rand(-5, 5); L.push(ponFoe(at(n, x, z), { hp: 4, moves: [['tackle', 'placard'], ['placard', 'shout'], ['sign', 'placard'], ['shout', 'tackle']][j % 4], speed: 3.0 + (j % 3) * 0.3 })); } return L; } },
+      { name: '抗議の文鳥（増援）', tip: '囲まれる前に、ダッシュで抜けろ。ダッシュの最中は、赤い予兆に当たらない', foes: () => { const L = [], B = a.bounds; for (let j = 0; j < 14; j++) { const n = pool[10 + j], side = j % 4, x = side === 0 ? B[0] + 1 : side === 1 ? B[1] - 1 : rand(-9, 9), z = side === 2 ? B[2] + 0.8 : side === 3 ? B[3] - 1 : rand(-2.6, 5); L.push(ponFoe(at(n, x, z), { hp: 4, moves: [['tackle', 'placard'], ['placard', 'shout'], ['sign', 'placard'], ['shout', 'tackle']][j % 4], speed: 3.0 + (j % 3) * 0.3 })); } return L; } },
       { name: 'ド・ゴウ（rate 三千二百位）', boss: true, tip: '拡声器の扇、札の旋回、突進、呼び込み、地団駄。……ド・ゴウは、三段目と「脚」でしか、怯まない', foes: () => { const dg = a.dg; dg.hidden = false; dg.y = 0; dg.pos.set(4.0, 0, -1.2); return [ponFoe(dg, { boss: true, armor: true, hp: 46, keep: 2.2, speed: 2.7, reach: 9, moves: ['mega', 'spin', 'charge', 'quake', 'call', 'mega', 'spin', 'charge'], cd: 1.2 }), ...ring([24, 25, 26, 27], 4.0, -1.2, 4.4, 3, j => [['placard', 'shout'], ['tackle', 'placard']][j % 2], 3.0)]; } }],
     reset: () => { P.pos.set(-6.0, 0, 3.0); P.facing = Math.PI * 0.7; AB.hp = AB.maxHp; },
     onFail: async () => { await narr('……膝が、アスファルトについた。'); await say('kuze', 'ポ・ンプ！　下がれ……！'); await say('ponpu', 'まだ……っす……！　一日……一万回……っす……！'); },
@@ -10599,8 +10601,8 @@ async function goRotary18() { G.mode = 'cine'; S.flags.c18st = 'fight'; setObj('
   ponStart(ponCfg18(a)); }
 async function afterFight18() { const a = AREAS.rotary18, dg = a.dg, dr = a.dr; G.mode = 'cine'; for (const f of PON.foes) if (f !== PON.foes[0]) f.kb = null;
   dg.st = { kneel: true }; dg.y = 0; ponDisguise(PONPU_MODEL, false); shards(P.pos.x, 1.6, P.pos.z, 0x6A6E78, 8, 4); P.facing = Math.atan2(dg.pos.x - P.pos.x, dg.pos.z - P.pos.z);
-  cine(P.pos.x + 2.0, 1.6, P.pos.z + 2.0, P.pos.x, 1.0, P.pos.z); await narr('最後の一撃で、フードが、外れた。'); await narr('黒い鉢巻き。……画廊の、額縁の中で、締めていたのと、同じ。');
-  cine(dg.pos.x - 1.6, 1.6, dg.pos.z + 2.0, dg.pos.x, 1.3, dg.pos.z); await say('dogou', '……その、黒い、鉢巻き……'); await say('dogou', 'てめェ……まさか……ポ・ンプ……！？　未帰還の、No.7 の、末の……！');
+  { const ux = dg.pos.x - P.pos.x, uz = dg.pos.z - P.pos.z, L = Math.hypot(ux, uz) || 1, a0 = Math.atan2(ux / L, uz / L) + 1.0; cine(P.pos.x + Math.sin(a0) * 2.4, 1.5, P.pos.z + Math.cos(a0) * 2.4, P.pos.x, 1.0, P.pos.z); } await narr('最後の一撃で、フードが、外れた。'); await narr('黒い鉢巻きと、赤い結び目。……画廊の、額縁の中で、締めていたのと、同じ。');
+  cine(dg.pos.x - 2.6, 1.9, dg.pos.z + 3.2, dg.pos.x, 1.4, dg.pos.z); await say('dogou', '……その、赤い結び目の、鉢巻き……'); await say('dogou', 'てめェ……まさか……ポ・ンプ……！？　未帰還の、No.7 の、末の……！');
   for (const n of a.pool) if (!n.hidden) n.st = { down: true }; await say('demo', 'ポ・ンプ……！？'); await say('demo', 'No.7 の……弟……！？');
   sfx('siren'); await narr('サイレン。……陽盾の、警備車両だった。'); await say('demo', '陽盾だァ！！　引けェ！！');
   await fade(true); for (const n of a.pool) n.hidden = true; dg.pos.set(9.6, 0, 1.6); dg.st = { run: true }; camSnap = true; await fade(false);
@@ -10613,16 +10615,16 @@ async function afterFight18() { const a = AREAS.rotary18, dg = a.dg, dr = a.dr; 
 
 // ---- B.U.N：速報を見る家族 ----
 async function goNest18b() { G.mode = 'cine'; S.flags.c18st = 'rumor'; await goArea('nest18'); const a = AREAS.nest18, ku = a.kuro; bgm('bun'); a.holo.visible = true; a.ponRice.visible = true;
-  ku.pos.set(7.4, 0, 4.6); ku.facing = -Math.PI * 0.62 + Math.PI; ku.st = {}; a.fk.pos.set(6.4, 0, 3.8); a.fk.facing = ku.facing; a.fk.st = {}; a.hk.pos.set(-3.2, 0, -5.6); a.hk.facing = Math.PI / 2; a.hk.st = {};
-  a.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; n.pos.set(3.0 + (i % 4) * 1.1, 0, 6.2 - Math.floor(i / 4) * 0.9); n.facing = Math.atan2(9.6 - n.pos.x, 4.6 - n.pos.z); });
-  newsBar(true, '「未帰還の一羽」、春日井で目撃か　勝川駅前で乱闘', '「人間と一緒にいた」との証言も　B.U.N 地上組'); cine(4.6, 2.6, 7.4, 9.6, 3.0, 4.6); await card('B.U.N　バルク・家族の巣', '同じ日　正午', 1600);
-  await say('fukkin', '兄貴ィィ！！　この、脚の運び……ポ・ンプっス！！　間違いねェっス！！'); cine(5.2, 2.4, 6.6, 7.4, 2.6, 4.6); await say('kuro', '…………生きてたかァ。');
-  await narr('No.7 の声が、はじめて、小さかった。'); ku.st = { armsUp: true }; G.shake = 0.6; sfx('roar'); voiceRing(7.4, 3.0, 4.6, 0xE8403A, 7, 0.7); await say('kuro', '行くぞォォォォ！！！　地上へェェェェ！！！');
-  for (const n of a.mem) n.st = { armsUp: true }; await say('bulkM', 'ハアッ！！　ハアッ！！'); newsBar(false);
-  ku.st = {}; walkTo(ku, -2.2, -5.0, 6).then(() => { ku.st = {}; }); ku.st = { run: true }; await sleep(G.skip ? 0 : 900); ku.goal = null; ku.st = {}; ku.pos.set(-1.6, 0, -4.8); ku.facing = -Math.PI / 2;
-  cine(-0.2, 2.2, -2.0, -2.6, 2.0, -5.4); await say('haikin', '……兄貴。'); await narr('ハイ・キンが、その広すぎる背中で、出口を、塞いでいた。');
-  await say('haikin', '行けば、また、天井が、割れる。……今度は、春日井の、空ごとだ。'); await say('kuro', '……だったら、どうしろってんだァ……！！');
-  await say('haikin', '……待て。あいつは、迷子になって、泣いてるような、弟じゃない。'); cine(1.0, 2.0, -3.0, -1.6, 2.2, -4.8); await narr('No.7 の拳が、震えていた。……その震えが、いつまで、もつか。');
+  ku.pos.set(9.4, 0, 3.2); ku.facing = Math.PI / 2; ku.st = {}; a.fk.pos.set(10.4, 0, 1.4); a.fk.facing = Math.PI / 2; a.fk.st = {}; a.hk.pos.set(-11.6, 0, 4.8); a.hk.facing = Math.PI / 2; a.hk.st = {};
+  a.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; n.pos.set(7.6 + (i % 3) * 1.2, 0, 0.0 + Math.floor(i / 3) * 1.5 + (i % 3 === 1 ? 0.5 : 0)); if (Math.hypot(n.pos.x - 7.0, n.pos.z - 2.2) < 1.2) n.pos.x += 1.4; if (Math.hypot(n.pos.x - ku.pos.x, n.pos.z - ku.pos.z) < 1.0) n.pos.z += 1.2; n.facing = Math.PI / 2; });
+  newsBar(true, '「未帰還の一羽」、春日井で目撃か　勝川駅前で乱闘', '「人間と一緒にいた」との証言も　B.U.N 地上組'); cine(5.2, 3.0, 3.0, 12.6, 3.4, 3.0); await card('B.U.N　バルク・家族の巣', '同じ日　正午', 1600);
+  cine(12.0, 2.3, -0.4, 10.4, 1.9, 1.4); await say('fukkin', '兄貴ィィ！！　この、脚の運び……ポ・ンプっス！！　間違いねェっス！！'); cine(12.2, 2.5, 4.8, 9.4, 2.4, 3.2); await say('kuro', '…………生きてたかァ。');
+  await narr('No.7 の声が、はじめて、小さかった。'); ku.st = { armsUp: true }; G.shake = 0.6; sfx('roar'); voiceRing(9.4, 3.0, 3.2, 0xE8403A, 7, 0.7); await say('kuro', '行くぞォォォォ！！！　地上へェェェェ！！！');
+  for (const n of a.mem) n.st = { armsUp: true }; cine(12.4, 3.2, 2.0, 8.6, 1.6, 2.6); await say('bulkM', 'ハアッ！！　ハアッ！！'); newsBar(false);
+  for (const n of a.mem) n.st = {}; ku.st = { run: true }; walkTo(ku, -9.4, 4.8, 9).then(() => { ku.st = {}; }); cine(-4.0, 3.0, 7.6, -9.0, 1.6, 4.8); await sleep(G.skip ? 0 : 1600); ku.goal = null; ku.st = {}; ku.pos.set(-9.4, 0, 4.8); ku.facing = -Math.PI / 2;
+  cine(-7.0, 2.4, 7.0, -11.0, 1.9, 4.8); await say('haikin', '……兄貴。'); await narr('ハイ・キンが、その広すぎる背中で、降下口を、塞いでいた。');
+  await say('haikin', '行けば、また、天井が、割れる。……今度は、春日井の、空ごとだ。'); cine(-11.2, 2.5, 2.2, -9.4, 2.3, 4.8); await say('kuro', '……だったら、どうしろってんだァ……！！');
+  cine(-7.0, 2.4, 7.0, -11.0, 1.9, 4.8); await say('haikin', '……待て。あいつは、迷子になって、泣いてるような、弟じゃない。'); cine(-11.2, 2.0, 2.6, -9.4, 1.6, 4.8); ku.st = { guard: true }; await narr('No.7 の拳が、震えていた。……その震えが、いつまで、もつか。'); ku.st = {};
   await goCall18(); }
 
 // ---- 留文堂：名乗り出る ----
