@@ -8564,7 +8564,7 @@ makeArea('gal15', { place: '神領　未完画廊　回廊', bounds: [-61.2, 51.
 });
 // ---- 規則の表示 ----
 function galHud(on) { let el = $('galHud'); if (!el) { el = document.createElement('div'); el.id = 'galHud'; el.innerHTML = '<b></b><span></span><i></i><div class="gz"><div></div></div>'; document.body.appendChild(el); } el.hidden = !on; return el; }
-function galHudSet(z) { const el = galHud(true), w = S.flags.c15warn || 0; el.querySelector('b').textContent = GZ[z].name; el.querySelector('span').textContent = '規則：' + GZ[z].rule; el.querySelector('i').textContent = '警告　' + (w >= 1 ? '●' : '○') + (w >= 2 ? '●' : '○'); el.querySelector('.gz').style.display = z === 2 ? 'block' : 'none'; }
+function galHudSet(z) { const el = galHud(true), w = S.flags.c15warn || 0; el.querySelector('b').textContent = GZ[z].name; el.querySelector('span').textContent = '規則：' + GZ[z].rule; el.querySelector('i').textContent = '警告　' + (w >= 1 ? '●' : '○') + (w >= 2 ? '●' : '○'); el.querySelector('.gz').style.display = z === 1 || z === 2 ? 'block' : 'none'; el.querySelector('.gz').title = z === 1 ? '足音' : '視線'; }
 // ================= 第七章　序　点景：台本 =================
 let CP15 = null;
 const CLUE15 = [['book', '来館者名簿'], ['scene', '扉を叩く人'], ['cry', '作品の声'], ['plan', '本日の搬入']];
@@ -8576,15 +8576,20 @@ function updGaze15(u) { const el = $('galHud'); if (el) el.querySelector('.gz di
 const CRIES = ['たすけて……', 'ここから、出して……', 'ブンチョ……ブンチョ……', 'みないで……', 'いたい……いたいよ……', '……だれか……', 'おかあさん……'];
 function galTick15(a, dt) { if (S.chapter !== 15 || S.flags.c15st !== 'gal') return;
   if (G.mode !== 'play' || G.busy) { a.gaze = 0; updGaze15(0); return; }
-  const z = zoneOf(P.pos.x); if (z !== a.zone) { a.zone = z; galHudSet(z); cp15save(); }
-  if (z === 1 && P.st.walk && P.st.run) { run(() => violate15(1)); return; }
+  const z = zoneOf(P.pos.x); if (z !== a.zone) { a.zone = z; a.zoneT = 0; a.runT = 0; a.gaze = 0; a.stepWarn = false; galHudSet(z); updGaze15(0); cp15save(); } a.zoneT = (a.zoneT || 0) + dt;
+  if (z === 1) { // 静寂：境目の三メートルと、入って二秒は数えない。走り続けて一・二秒で違反。止まれば戻る
+    const inner = P.pos.x > GZ[1].x0 + 3 && P.pos.x < GZ[2].x0 - 3, running = P.st.walk && P.st.run && inner && a.zoneT > 2;
+    a.runT = running ? (a.runT || 0) + dt : Math.max(0, (a.runT || 0) - dt * 1.5); updGaze15(a.runT / 1.2);
+    if (running && a.runT > 0.35 && !a.stepWarn) { a.stepWarn = true; toast('……足音が、響いている。'); }
+    if (a.runT <= 0) a.stepWarn = false;
+    if (a.runT >= 1.2) { a.runT = 0; run(() => violate15(1)); return; } }
   if (z === 2) { const near = a.art.some(p => Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 2.6); a.gaze = near && !P.st.walk ? (a.gaze || 0) + dt : Math.max(0, (a.gaze || 0) - dt * 1.5); updGaze15(a.gaze / 5); if (a.gaze >= 5) { a.gaze = 0; run(() => violate15(2)); return; }
     if (!S.flags.c15edel && Math.hypot(P.pos.x - a.ed.pos.x, P.pos.z - a.ed.pos.z) < 3.6) { run(evEdel15); return; } }
   if (z === 3) { a.cryT = (a.cryT || 2) - dt; if (a.cryT <= 0) { a.cryT = rand(3, 6); if (a.birds.some(b => Math.hypot(P.pos.x - b.pos.x, P.pos.z - b.pos.z) < 8)) { toast(pick(CRIES)); sfx('blip'); } } } }
 // ---- 規則違反：一度目は警告、二度目は素材化 ----
 const WARN15 = { 1: ['お客さま。……この回廊では、走らないでくださいまし。', '足音は、作品の呼吸を、乱しますの。'], 2: ['……見つめすぎですわ、お客さま。', '点景は、見つめる側も、いつのまにか、点景に、なってしまいますの。'], 3: ['……作品に、応えてはいけませんわ。', '作品は、応えてもらうために、叫んでいるのではありませんの。'] };
 const WHY15 = { 1: '第一回廊「静寂」で、走った。', 2: '第二回廊「点景」で、作品を、見つめすぎた。', 3: '第三回廊「鳥籠」で、作品の声に、応えた。' };
-async function violate15(z) { const a = AREAS.gal15; G.mode = 'cine'; P.st.walk = false; P.st.run = false; const w = (S.flags.c15warn || 0) + 1; S.flags.c15warn = w; galHudSet(zoneOf(P.pos.x)); updGaze15(0);
+async function violate15(z) { const a = AREAS.gal15; G.mode = 'cine'; P.st.walk = false; P.st.run = false; const w = (S.flags.c15warn || 0) + 1; S.flags.c15warn = w; a.runT = 0; a.gaze = 0; galHudSet(zoneOf(P.pos.x)); updGaze15(0);
   const s = a.st[z - 1]; s.post = s.post || s.pos.clone(); s.hidden = false; s.pos.set(P.pos.x + 1.4, 0, Math.max(-3.8, Math.min(3.8, P.pos.z + (P.pos.z < 2.4 ? 1.6 : -1.6)))); sfx('alert'); faceEach(s); twoShot(s);
   if (!S.flags['c15met_' + s.key]) { S.flags['c15met_' + s.key] = true; const o = MEMB[s.key]; nameCard({ s: o.role, b: o.name, e: '', col: o.col, p: '白いスーツの、画廊の構成員。\n規則を、規則どおりに、運用する。' }); await sleep(G.skip ? 0 : 1300); nameCard(null); }
   for (const l of WARN15[z]) await say(s.key, l);
