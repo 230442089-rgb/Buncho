@@ -10220,18 +10220,17 @@ makeArea('nest18', { noPlayer: true, place: 'B.U.N society　静止軌道　居�
 });
 
 // ================= 勝川　弘法通り商店街（昼） =================
-function shopFront(g, x, z, w, col, name, sub, face) { const F = new THREE.Group(); F.position.set(x, 0, z); F.rotation.y = face; g.add(F);
-  block(w, 5.0, 0.6, col, 0, 2.5, 0, F); block(w - 0.6, 2.4, 0.1, 0x1A2028, 0, 1.3, 0.32, F); block(w, 0.2, 1.4, 0x6A6E78, 0, 2.8, 0.9, F);
-  plane(w - 0.4, 0.8, signTex(Math.round((w - 0.4) * 100), 80, [{ t: name, size: 40, f: MINCHO, w: 900 }], { bg: '#F4F0E8', fg: '#1A1A1E' }), 0, 3.4, 0.32, F); if (sub) plane(w - 1.2, 0.36, signTex(Math.round((w - 1.2) * 100), 36, [{ t: sub, size: 20, w: 800 }], { bg: '#2A2A30', fg: '#F4F0E8' }), 0, 2.4, 0.38, F); return F; }
+function shopFront(g, x, z, w, col, name, sub, face, h = 5.0) { const F = new THREE.Group(); F.position.set(x, 0, z); F.rotation.y = face; g.add(F);
+  block(w, h, 0.6, col, 0, h / 2, 0, F); block(w - 0.6, 2.4, 0.1, 0x1A2028, 0, 1.3, 0.32, F); block(w, 0.2, 1.4, 0x6A6E78, 0, 2.8, 0.9, F);
+  plane(w - 0.4, 0.7, signTex(Math.round((w - 0.4) * 100), 70, [{ t: name, size: 36, f: MINCHO, w: 900 }], { bg: '#F4F0E8', fg: '#1A1A1E' }), 0, Math.min(3.4, h - 0.45), 0.32, F); if (sub) plane(w - 1.2, 0.36, signTex(Math.round((w - 1.2) * 100), 36, [{ t: sub, size: 20, w: 800 }], { bg: '#2A2A30', fg: '#F4F0E8' }), 0, 2.4, 0.38, F); return F; }
 makeArea('shotengai18', { place: '勝川　弘法通り商店街　午前十時半', bounds: [-20, 20, -3.2, 3.2], spawn: [-18.4, 0], spawnFace: Math.PI / 2, cam: [0, 8.5, 8.6], music: 'town18', bg: 0xC8D4E0, fog: [24, 70], light: 0.95, sun: 0.65,
   build(a) { const g = a.g; const rd = new THREE.Mesh(new THREE.PlaneGeometry(44, 9), new THREE.MeshLambertMaterial({ map: canvasTex(512, 104, (c, w, h) => { c.fillStyle = '#B8B0A4'; c.fillRect(0, 0, w, h); c.fillStyle = '#A89E92'; for (let x = 0; x < w; x += 16) for (let y = 0; y < h; y += 16) if ((x + y) % 32 === 0) c.fillRect(x, y, 16, 16); }) })); rd.rotation.x = -Math.PI / 2; g.add(rd);
-    // アーケード
-    for (let x = -20; x <= 20; x += 4) { block(0.2, 0.2, 9.6, 0x8A8E96, x, 5.6, 0, g); } for (const s of [-1, 1]) block(42, 0.3, 0.3, 0x8A8E96, 0, 5.5, s * 4.6, g);
-    { const rf = new THREE.Mesh(new THREE.PlaneGeometry(42, 9.6), new THREE.MeshBasicMaterial({ color: 0xE8F0F8, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false })); rf.rotation.x = -Math.PI / 2; rf.position.y = 5.9; g.add(rf); }
-    plane(6, 0.9, signTex(600, 90, [{ t: '勝川　弘法通り商店街', size: 52, f: MINCHO, w: 900 }], { bg: '#C8323C', fg: '#FFFFFF' }), -14, 5.0, 4.4, g, { double: true });
+    // 街灯と小旗（屋根のない商店街）
+    for (let x = -18; x <= 18; x += 6) for (const sz of [-1, 1]) { const z = sz * 3.3; part(cyl(0.06, 0.08, 3.6, 8), 0x5A5E66, x, 1.8, z, g, { outline: false }); const l = glowSprite(0xFFF0C8, 0.9, 0.5); l.position.set(x, 3.7, z); g.add(l); plane(0.5, 0.8, signTex(50, 80, [{ t: '弘', size: 26, w: 900 }, { t: '法', size: 26, w: 900 }], { bg: x % 12 ? '#C8323C' : '#2A5A9A', fg: '#FFFFFF' }), x + 0.3, 3.0, z, g, { double: true }); }
+    { const gt = new THREE.Group(); gt.position.set(-19.6, 0, 0); g.add(gt); for (const sz of [-1, 1]) block(0.3, 4.2, 0.3, 0x8A8E96, 0, 2.1, sz * 3.6, gt); block(0.4, 0.5, 7.6, 0x8A8E96, 0, 4.3, 0, gt); plane(5.6, 0.7, signTex(560, 70, [{ t: '勝川　弘法通り商店街', size: 44, f: MINCHO, w: 900 }], { bg: '#C8323C', fg: '#FFFFFF' }), 0.22, 4.3, 0, gt, { double: true }).rotation.y = Math.PI / 2; }
     // 北側の店（ことりのいえ、喫茶、シャッター、角を挟んで、米屋）
     const N = (x, w, col, n, s2) => { const F = shopFront(g, x, -4.6, w, col, n, s2, 0); a.obs.push({ x, z: -4.4, hx: w / 2, hz: 0.5, tall: true }); return F; };
-    const Sd = (x, w, col, n, s2) => { const F = shopFront(g, x, 4.6, w, col, n, s2, Math.PI); a.obs.push({ x, z: 4.4, hx: w / 2, hz: 0.5, tall: true }); return F; };
+    const Sd = (x, w, col, n, s2) => { const F = shopFront(g, x, 4.6, w, col, n, s2, Math.PI, 3.6); a.obs.push({ x, z: 4.4, hx: w / 2, hz: 0.5, tall: true }); return F; };
     N(-17, 4, 0xD8D0C4, '喫茶　かちがわ', 'モーニング　〜十一時'); N(-10, 6, 0xB8D0A8, '小鳥専門店　ことりのいえ', '門の前から、五十年'); N(-4, 4, 0x9A9AA4, '（シャッター）', '');
     N(0.5, 3, 0xC8B8A8, '仕立て　異種族向け', '尾・翼・角　穴あけ承ります'); N(13, 5, 0xE8E0CC, '田中米穀店', '新米入荷　コシヒカリ'); N(18.5, 3, 0xA8B4C8, '理容　ミツル', '');
     Sd(-16, 5, 0xD8C8B0, 'ドラッグ　ひだまり', ''); Sd(-9.5, 4, 0xB8B0C8, '古書　鳩居', ''); Sd(-1, 6, 0xD8E8C0, '青果　みどり', '今朝の、とれたて'); Sd(5.5, 4, 0xC8C4BC, '（シャッター）', ''); Sd(11.5, 5, 0xE0C8B8, 'たい焼き　しっぽ', '尻尾まで、あんこ'); Sd(17.5, 4, 0xC8D0D8, '時計・眼鏡　ハセガワ', '');
@@ -10334,7 +10333,7 @@ function ponTick(a, dt) { if (!PON.on || !AB.on || G.mode !== 'play' || G.busy |
   // 倒れた相手：吹き飛んで、転がる
   for (const f of PON.foes) { if (f.kb) { const u = Math.min(1, dt / Math.max(0.01, f.kb.t)); f.n.pos.x += f.kb.x * u; f.n.pos.z += f.kb.z * u; f.kb.x -= f.kb.x * u; f.kb.z -= f.kb.z * u; f.kb.t -= dt; f.n.extMove = false; if (f.kb.t <= 0) f.kb = null; f.n.pos.x = clamp(f.n.pos.x, B[0] + 0.3, B[1] - 0.3); f.n.pos.z = clamp(f.n.pos.z, B[2] + 0.3, B[3] - 0.3); }
     if (!f.alive && f.air > 0) { f.airT += dt; const u = f.airT / f.air; f.n.y = Math.max(0, Math.sin(Math.min(1, u) * Math.PI) * 1.4); if (u >= 1) { f.air = 0; f.n.y = 0; f.n.st = { down: true }; shards(f.n.pos.x, 0.3, f.n.pos.z, 0xC8C0B0, 4, 3); } } }
-  if (!fo.length) { PON.busyWave = true; const i = PON.wave, W = PON.cfg.waves; run(async () => { G.mode = 'cine'; await sleep(G.skip ? 0 : 700); if (i + 1 < W.length) { if (PON.cfg.onWave) await PON.cfg.onWave(i + 1); ponWave(i + 1); PON.busyWave = false; playOn(); } else { ponStop(); await PON.cfg.onClear(); } }); return; }
+  if (!fo.length) { PON.busyWave = true; const i = PON.wave, W = PON.cfg.waves; run(async () => { G.mode = 'cine'; await sleep(G.skip ? 0 : 700); if (i + 1 < W.length) { $('ab').hidden = true; if (PON.cfg.onWave) await PON.cfg.onWave(i + 1); ponWave(i + 1); $('ab').hidden = false; PON.busyWave = false; playOn(); } else { ponStop(); await PON.cfg.onClear(); } }); return; }
   { let nb = fo[0], nd = 1e9; for (const f of fo) { const d = Math.hypot(f.n.pos.x - P.pos.x, f.n.pos.z - P.pos.z); if (d < nd) { nd = d; nb = f; } } AB.boss = nb.n; }
   const attackers = fo.filter(f => f.busy > 0).length;
   for (const f of fo) { f.stun = Math.max(0, f.stun - dt); f.busy = Math.max(0, f.busy - dt); const dx = P.pos.x - f.n.pos.x, dz = P.pos.z - f.n.pos.z, d = Math.hypot(dx, dz) || 1;
@@ -10538,23 +10537,23 @@ function shop18Items() { const a = AREAS.shotengai18; if (a.i18) return; a.i18 =
   addItem(a, { id: 's18out', x: 19.2, z: 0, r: 1.8, label: '勝川駅へ', col: 0xC8323C, once: false, avail: () => on() && got('kt') && got('yo') && got('km'), on: () => goRotary18() }); }
 async function evShop18(k) { const a = AREAS.shotengai18, po = a.po, sh = S.flags.c18shop; G.mode = 'cine'; const near = (x, z) => { po.goal = null; po.pos.set(x, 0, z); };
   if (k === 'kt') { near(-11.0, -0.6); po.facing = Math.PI; P.facing = Math.PI; cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'いらっしゃい。……あら。');
-    cine(-9.0, 1.5, 1.4, -11.0, 0.9, -0.6); await say('kotori', '大きい文鳥さんねえ。'); await say('ponpu', 'じ、自分は、ただの、パーカーっす。'); await saku('……パーカーは、喋らない。');
+    cine(-9.0, 1.5, 1.4, -11.0, 0.9, -0.6); await say('kotori', '大きい文鳥さんねえ。'); cine(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', 'じ、自分は、ただの、パーカーっす。'); await saku('……パーカーは、喋らない。');
     cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'ふふ。いいのよ。B.U.N の子でしょ。……うちはね、どっちの文鳥さんも、お客さん。');
     await say('kotori', '門の前から、五十年、小鳥屋をやってるの。門が開いてからは、ハーピーのお嬢さんたちも、止まり木を買いに来るのよ。');
     await say('kuze', '止まり木を、大きめのを、一本。それと、水浴びの……'); await say('kotori', 'ハーピー用の、水浴び桶ね。Lサイズ。……文鳥はね、水浴びが、いちばん好きなの。毎日、させてあげて。');
-    await say('kotori', '粟玉と、ボレー粉もね。ボレー粉は、牡蠣の殻よ。骨が、丈夫になるの。'); await say('ponpu', '……兄貴が、毎朝、点呼を水の中でやるの、そういうこと、だったっすか。');
-    await say('kotori', 'それから……これは、おまけ。'); sfx('chime'); await narr('小さな、真鍮の鈴だった。');
-    await say('kotori', '文鳥はね、一羽だと、寂しがるの。……鳴らしたら、誰かが、来てくれるように。'); po.st = { bow: true }; await say('ponpu', '……ありがとう、ございます。'); po.st = {};
+    await say('kotori', '粟玉と、ボレー粉もね。ボレー粉は、牡蠣の殻よ。骨が、丈夫になるの。'); cine(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', '……兄貴が、毎朝、点呼を水の中でやるの、そういうこと、だったっすか。');
+    cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7); await say('kotori', 'それから……これは、おまけ。'); sfx('chime'); await narr('小さな、真鍮の鈴だった。');
+    await say('kotori', '文鳥はね、一羽だと、寂しがるの。……鳴らしたら、誰かが、来てくれるように。'); po.st = { bow: true }; cine(-12.4, 1.6, -2.2, -11.0, 0.9, -0.6); await say('ponpu', '……ありがとう、ございます。'); po.st = {}; cine(-8.4, 1.7, 0.6, -10.0, 1.4, -2.7);
     await say('kotori', 'あなたも、ね。'); await say('kuze', '……俺が、ですか。'); await say('kotori', 'ええ。あなた、一羽で飛んでる顔、してるもの。……大事にしてもらいなさいね。');
     toast('止まり木（ハーピー用）・水浴び桶（L）・粟玉・ボレー粉・鈴'); sh.push('kt'); }
   if (k === 'yo') { near(-2.2, 0.6); po.facing = 0; P.facing = 0; cine(0.6, 1.6, -0.6, -1.0, 1.4, 2.7); await say('yaoya', 'いらっしゃいませー！　小松菜、今朝の、とれたてですよ♪');
-    await say('yaoya', '……くんくん。あれ？　お客さん、なんか、鳥さんの、匂い……'); cine(-0.6, 1.4, -0.6, -2.2, 0.9, 0.6); await narr('ポ・ンプが、石になった。');
+    await say('yaoya', '……くんくん。あれ？　お客さん、なんか、鳥さんの、匂い……'); cine(-2.8, 1.5, 2.7, -2.2, 0.9, 0.6); await narr('ポ・ンプが、石になった。');
     cine(0.6, 1.6, -0.6, -1.0, 1.4, 2.7); await say('yaoya', '……ま、いっか♪　鳥さんも、小松菜、好きですもんね！　おまけ、一束！'); toast('小松菜　三束（うち一束、おまけ）');
-    await say('ponpu', '……地上の人、みんな、優しいっす。'); await say('kuze', '……みんな、じゃない。'); await saku('優しくされてるうちは、まだ、正体が割れてないってことだ。'); sh.push('yo'); }
+    cine(-2.8, 1.5, 2.7, -2.0, 1.1, 0.6); await say('ponpu', '……地上の人、みんな、優しいっす。'); await say('kuze', '……みんな、じゃない。'); await saku('優しくされてるうちは、まだ、正体が割れてないってことだ。'); sh.push('yo'); }
   if (k === 'km') { near(12.4, -0.6); po.facing = Math.PI; P.facing = Math.PI; cine(15.6, 1.7, 0.6, 13.6, 1.4, -2.7); await say('komeya', 'いらっしゃい。……おう。文鳥の衆か。');
-    await say('komeya', '隠さんでいい。あんたらの仲間は、よう、米を買いに来てたからな。'); await say('ponpu', 'し、新米っすか！？');
-    await say('komeya', '去年のだ。新米は、来月だな。……文鳥の衆は、炊き方に、うるさいんだ。水は一・二倍、浸けて三十分、ってな。'); await say('ponpu', '……兄貴と、同じこと、言ってるっす。');
-    await say('komeya', '最近は、来ねえな。デモで、それどころじゃ、ねえんだろ。'); await say('komeya', 'あの連中も、ここじゃ、ただの、米好きの客だったんだがなあ。');
+    await say('komeya', '隠さんでいい。あんたらの仲間は、よう、米を買いに来てたからな。'); cine(12.0, 1.5, -2.2, 12.4, 0.9, -0.6); await say('ponpu', 'し、新米っすか！？'); cine(15.6, 1.7, 0.6, 13.6, 1.4, -2.7);
+    await say('komeya', '去年のだ。新米は、来月だな。……文鳥の衆は、炊き方に、うるさいんだ。水は一・二倍、浸けて三十分、ってな。'); cine(12.0, 1.5, -2.2, 12.4, 0.9, -0.6); await say('ponpu', '……兄貴と、同じこと、言ってるっす。');
+    cine(15.6, 1.7, 0.6, 13.6, 1.4, -2.7); await say('komeya', '最近は、来ねえな。デモで、それどころじゃ、ねえんだろ。'); await say('komeya', 'あの連中も、ここじゃ、ただの、米好きの客だったんだがなあ。');
     toast('米　五キロ（去年の）'); sh.push('km'); }
   if (k === 'mr') { po.goal = null; po.pos.set(6.8, 0, -1.6); po.facing = Math.PI; P.facing = Math.PI; cine(9.6, 1.8, 1.4, 8.0, 1.8, -9.0); await narr('角の向こうを、札を掲げた文鳥の列が、通っていった。');
     cine(5.2, 1.4, 0.2, 6.8, 1.0, -1.6); await say('ponpu', '……「ポ・ンプを、返せ」って、書いてあるっす。'); await say('ponpu', '自分、ここに、いるっすけど。');
@@ -10572,8 +10571,8 @@ function ponCfg18(a) { const pool = a.pool, at = (n, x, z) => { n.pos.set(x, 0, 
     reset: () => { P.pos.set(-6.0, 0, 3.0); P.facing = Math.PI * 0.7; AB.hp = AB.maxHp; },
     onFail: async () => { await narr('……膝が、アスファルトについた。'); await say('kuze', 'ポ・ンプ！　下がれ……！'); await say('ponpu', 'まだ……っす……！　一日……一万回……っす……！'); },
     onWave: async i => { if (i === 1) { cine(P.pos.x + 3.6, 3.2, P.pos.z + 4.6, P.pos.x, 1.0, P.pos.z); await say('demo', 'な、なんだ、こいつ……速ェ！！　見えねェ！！');
-        cine(9.2, 3.4, -0.6, 5.6, 2.8, -4.4); await say('dogou', '囲めェ！！　数で押せェ！！　……B.U.N は、物量だァァ！！'); await narr('駅の階段から、さらに、札を持った文鳥が、駆け下りてきた。'); }
-      if (i === 2) { const dg = a.dg; cine(9.0, 2.8, 1.6, 5.4, 2.4, -4.4); await say('dogou', '……どけ。'); dg.goal = null; dg.y = 0; dg.pos.set(4.0, 0, -1.2); dg.facing = Math.atan2(P.pos.x - 4.0, P.pos.z + 1.2); boom(4.0, 0.4, -1.2, 0xFF8A4A, true); sfx('blast'); G.shake = 0.6;
+        cine(11.4, 4.4, 1.6, 5.4, 3.2, -4.4); await say('dogou', '囲めェ！！　数で押せェ！！　……B.U.N は、物量だァァ！！'); await narr('駅の階段から、さらに、札を持った文鳥が、駆け下りてきた。'); }
+      if (i === 2) { const dg = a.dg; cine(11.4, 4.4, 1.6, 5.4, 3.2, -4.4); await say('dogou', '……どけ。'); dg.goal = null; dg.y = 0; dg.pos.set(4.0, 0, -1.2); dg.facing = Math.atan2(P.pos.x - 4.0, P.pos.z + 1.2); boom(4.0, 0.4, -1.2, 0xFF8A4A, true); sfx('blast'); G.shake = 0.6;
         cine(1.0, 2.0, 3.0, 3.6, 1.8, -0.8); await say('dogou', 'rate、三千二百位。ド・ゴウ。……名乗れ、ちび。'); cine(P.pos.x + 1.6, 1.5, P.pos.z + 2.4, P.pos.x, 0.9, P.pos.z); await say('ponpu', '……名乗れないっす。今は。');
         cine(1.0, 2.0, 3.0, 3.6, 1.8, -0.8); await say('dogou', '名乗れねェ奴が、文鳥の抗議の、邪魔をすんのかァ！！'); cine(P.pos.x + 1.6, 1.5, P.pos.z + 2.4, P.pos.x, 0.9, P.pos.z); await say('ponpu', '抗議は、いいっす。……でも、人間の運転手さんを殴るのは、抗議じゃないっす。');
         cine(1.0, 2.0, 3.0, 3.6, 1.8, -0.8); await say('dogou', '竜の看板、背負った人間も、竜と同じだァ！！'); cine(-8.4, 1.8, 6.2, -10.4, 1.6, 4.6); await saku('……どっちも、半分は、正しい。だから、ややこしい。'); } },
@@ -10586,14 +10585,14 @@ async function goRotary18() { G.mode = 'cine'; S.flags.c18st = 'fight'; setObj('
   await narr('ロータリーに、人だかりが、できていた。……真ん中に、陽盾の、小さなトラック。');
   cine(-2.0, 2.0, 3.0, 1.4, 1.6, -2.6); await say('demo', '陽盾は、額縁屋ァ！！'); await say('demo', '中を見せろォ！！　文鳥が、入ってんだろォ！！'); sfx('metal'); G.shake = 0.3;
   cine(2.2, 3.4, 1.6, 5.4, 3.2, -4.4); await say('dogou', '開けろォ！！　開けねェなら、ぶち破るまでだァ！！'); voiceRing(5.4, 3.6, -4.4, 0xFF6A4A, 4, 0.5);
-  cine(-0.8, 1.2, -0.6, 0.4, 0.7, -2.6); await say('driver', 'か、空です！　中は、書類だけで……！　僕は、人間です、ただの、運転手で……！');
+  dr.facing = Math.PI / 4; cine(1.7, 1.25, -1.0, 0.4, 0.8, -2.6); await say('driver', 'か、空です！　中は、書類だけで……！　僕は、人間です、ただの、運転手で……！');
   cine(2.2, 3.4, 1.6, 5.4, 3.2, -4.4); await say('dogou', '人間が、竜の看板、背負ってんじゃねェ！！　……引きずり出せェ！！'); for (let i = 0; i < 3; i++) { const n = a.pool[i]; n.st = { windup: true }; }
-  cine(-8.2, 1.6, 5.8, -9.4, 1.0, 3.8); await say('ponpu', '……違うっす。'); await say('kuze', 'ポ・ンプ？');
+  cine(-7.2, 1.5, 2.4, -9.4, 1.0, 3.8); await say('ponpu', '……違うっす。'); await say('kuze', 'ポ・ンプ？');
   await say('ponpu', '兄貴の拳は、家族のための、拳っす。兄貴の名前の札で、関係ない人を、殴るのは……違うっす！！');
   await say('kuze', '待て、お前が出たら――'); po.st = { run: true }; walkTo(po, 0.0, -1.4, 13).then(() => { po.st = {}; }); sfx('wind'); await sleep(G.skip ? 0 : 700);
   const n0 = a.pool[0]; n0.st = { punch: true }; cine(-1.6, 1.4, 0.6, 0.2, 1.2, -1.8); po.facing = Math.atan2(n0.pos.x, n0.pos.z + 1.4); po.st = { guard: true }; sfx('hit'); G.shake = 0.4; shards(0.2, 1.4, -1.8, 0xF4F0E8, 8, 4); await narr('振り下ろされた札を、フードの文鳥が、片手で、受け止めていた。');
   cine(-8.4, 1.8, 6.2, -10.4, 1.6, 4.6); await saku('……止まらねえよ、あれは。末っ子の顔じゃ、ねえ。');
-  cine(0.8, 1.6, 1.8, 0.0, 1.0, -1.4); await say('demo', 'なんだァ、てめェ……フードの、ちびが。'); await say('ponpu', 'ちびでも……一日、一万回、っす。');
+  cine(0.8, 1.6, 1.8, 0.0, 1.0, -1.4); await say('demo', 'なんだァ、てめェ……フードの、ちびが。'); po.facing = Math.atan2(1.6, -0.2); cine(-2.6, 1.8, -0.4, 0.0, 1.0, -1.4); await say('ponpu', 'ちびでも……一日、一万回、っす。');
   cine(2.2, 3.4, 1.6, 5.4, 3.2, -4.4); await say('dogou', 'やっちまえェェェ！！！');
   // ポ・ンプを操作
   for (const n of a.pool) n.st = {}; dr.pos.set(-1.4, 0, -5.6); dr.st = { kneel: true }; dr.facing = 0; po.hidden = true; P.pos.set(po.pos.x, 0, po.pos.z); P.facing = Math.PI; playAsPonpu(true); ponDisguise(PONPU_MODEL, true); camSnap = true;
