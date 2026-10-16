@@ -10643,36 +10643,36 @@ async function goCall18() { G.mode = 'cine'; S.flags.c18st = 'call'; newsBar(fal
   cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); await say('kuroiwa', '…………三枝。'); cine(4.6, 2.0, -0.4, 3.0, 1.6, -1.6); await say('saegusa', 'はい。足環の通信、こっちで中継して、発信元を、ぼかします。……名古屋港の、貸し倉庫あたりに。');
   cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); await say('kuroiwa', 'やれ。'); cine(1.0, 1.65, 0.6, 1.6, 1.0, 2.4); sfx('holo'); fxFlash(1.6, 0.3, 2.4, 0x8AC8F0, 1.6, 0.4); await narr('ポ・ンプが、脚の環を、二度、叩いた。'); await say('ponpu', '……兄貴。');
   // 巣
-  await goArea('nest18'); const N = AREAS.nest18, ku = N.kuro; bgm('nest18'); N.holo.visible = false; N.ponRice.visible = true; if (!N.ponHolo) { const h = ponpuModel(false), hm = new THREE.MeshBasicMaterial({ color: 0x8AD0FF, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }); h.root.traverse(o => { if (o.isMesh) o.material = hm; }); h.root.position.set(-4.6, 1.0, 2.2); h.root.rotation.y = -Math.PI / 2; N.g.add(h.root); N.ponHolo = h.root; N.ponHoloG = glowSprite(0x8AD0FF, 2.4, 0.4); N.ponHoloG.position.set(-4.6, 1.6, 2.2); N.g.add(N.ponHoloG); }
-  N.ponHolo.visible = true; N.ponHoloG.visible = true; ku.pos.set(-6.6, 0, 2.2); ku.facing = Math.PI / 2; ku.st = {}; N.fk.pos.set(-3.4, 0, 0.4); N.fk.facing = -Math.PI * 0.75; N.fk.st = {}; N.hk.pos.set(-3.4, 0, 4.0); N.hk.facing = -Math.PI * 0.25; N.hk.st = {};
-  N.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; n.pos.set(-1.6 + (i % 6) * 1.1, 0, i < 6 ? -0.2 : 4.6); n.facing = Math.atan2(-4.6 - n.pos.x, 2.2 - n.pos.z); });
-  cine(-3.0, 2.0, 2.2, -6.6, 2.4, 2.2); await say('kuro', '…………ポ・ンプ。'); await narr('No.7 の声が、また、小さかった。');
-  cine(-6.0, 1.9, 3.4, -4.6, 1.5, 2.2); await say('ponpu', '兄貴。……ただいま、っす。……じゃなくて。生きてるっす。');
-  cine(-1.2, 2.2, -1.4, -3.4, 2.0, 0.4); N.fk.st = { armsUp: true }; await say('fukkin', 'ポ・ンプゥゥゥ！！　生きてたっスゥゥゥ！！'); for (const n of N.mem) n.st = { armsUp: true }; await say('bulkM', 'ハアッ！！　ハアッ！！'); for (const n of N.mem) n.st = {}; N.fk.st = {};
-  cine(-3.0, 2.0, 2.2, -6.6, 2.4, 2.2); await say('kuro', 'どこだァ！！　今すぐ、迎えに――'); cine(-6.0, 1.9, 3.4, -4.6, 1.5, 2.2); await say('ponpu', '来ないで、ほしいっす。'); sfx('tick'); await narr('巣が、静かになった。');
+  await goArea('nest18'); const N = AREAS.nest18, ku = N.kuro; bgm('nest18'); N.holo.visible = false; N.ponRice.visible = true; if (!N.ponHolo) { const h = ponpuModel(false), hm = new THREE.MeshLambertMaterial({ color: 0x6AC8FF, emissive: 0x1A4A7A, transparent: true, opacity: 0.55, depthWrite: false }); h.root.traverse(o => { if (o.isMesh) o.material = o.material && o.material.side === THREE.BackSide ? new THREE.MeshBasicMaterial({ color: 0x2A6AA8, side: THREE.BackSide, transparent: true, opacity: 0.4, depthWrite: false }) : hm; }); h.root.position.set(-4.2, 0.15, -0.2); h.root.rotation.y = Math.atan2(-2.4, 2.4); N.g.add(h.root); N.ponHolo = h.root; N.ponHoloG = glowSprite(0x6AC8FF, 1.6, 0.25); N.ponHoloG.position.set(-4.2, 0.2, -0.2); part(cyl(0.5, 0.6, 0.12, 20), 0x3A3A44, -4.2, 0.06, -0.2, N.g, { emis: 0x1A3A5A }); N.g.add(N.ponHoloG); }
+  N.ponHolo.visible = true; N.ponHoloG.visible = true; ku.pos.set(-6.6, 0, 2.2); ku.facing = Math.atan2(2.4, -2.4); ku.st = {}; N.fk.pos.set(-1.8, 0, 0.9); N.fk.facing = Math.atan2(-2.4, -1.1); N.fk.st = {}; N.hk.pos.set(-3.4, 0, 4.0); N.hk.facing = -Math.PI * 0.25; N.hk.st = {};
+  N.mem.forEach((n, i) => { n.y = 0; n.goal = null; n.st = {}; n.pos.set(-1.6 + (i % 6) * 1.1, 0, i < 6 ? -0.2 : 4.6); n.facing = Math.atan2(-4.2 - n.pos.x, -0.2 - n.pos.z); });
+  cine(-3.4, 2.3, 3.6, -6.6, 2.3, 2.2); await say('kuro', '…………ポ・ンプ。'); await narr('No.7 の声が、また、小さかった。');
+  cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '兄貴。……ただいま、っす。……じゃなくて。生きてるっす。');
+  cine(0.6, 2.3, -1.2, -1.8, 2.0, 0.9); N.fk.st = { armsUp: true }; await say('fukkin', 'ポ・ンプゥゥゥ！！　生きてたっスゥゥゥ！！'); for (const n of N.mem) n.st = { armsUp: true }; await say('bulkM', 'ハアッ！！　ハアッ！！'); for (const n of N.mem) n.st = {}; N.fk.st = {};
+  cine(-3.4, 2.3, 3.6, -6.6, 2.3, 2.2); await say('kuro', 'どこだァ！！　今すぐ、迎えに――'); cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '来ないで、ほしいっす。'); sfx('tick'); await narr('巣が、静かになった。');
   await say('ponpu', '迷子になって、人間の人に、拾ってもらったっす。飯も、食わせてもらったっす。プロテインも、買ってもらったっす。……ココア味っす。');
-  cine(-3.0, 2.0, 2.2, -6.6, 2.4, 2.2); await say('kuro', '……人間、だとォ。'); cine(-1.0, 2.0, 5.4, -3.4, 2.0, 4.0); await narr('ハイ・キンが、黒眼鏡の奥で、No.7 を見た。');
-  cine(-6.0, 1.9, 3.4, -4.6, 1.5, 2.2); await say('ponpu', '兄貴。……自分、地上で、やりたいことが、まだまだ、あるっす。');
+  cine(-3.4, 2.3, 3.6, -6.6, 2.3, 2.2); await say('kuro', '……人間、だとォ。'); cine(-1.0, 2.0, 5.4, -3.4, 2.0, 4.0); await narr('ハイ・キンが、黒眼鏡の奥で、No.7 を見た。');
+  cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '兄貴。……自分、地上で、やりたいことが、まだまだ、あるっす。');
   await say('ponpu', '雨ってやつに、当たってみたいっす。水浴びじゃなくて、空から降ってくる水っす。米屋のおっちゃんに、新米の炊き方、習いたいっす。小鳥屋のおばあちゃんにもらった鈴、鳴らしてみたいっす。');
   await say('ponpu', '……それから。兄貴たちが「敵」って言うものが、ほんとに、敵なのか。自分の目で、見てみたいっす。');
-  cine(0.6, 3.4, 6.0, -4.6, 1.2, 2.2); await narr('誰も、何も、言わなかった。……四十八羽の目が、No.7 を見ていた。');
-  cine(-3.0, 2.0, 2.2, -6.6, 2.4, 2.2); await say('kuro', '…………見てこいィ。');
+  cine(0.6, 3.4, 6.0, -4.4, 1.2, 1.0); await narr('誰も、何も、言わなかった。……四十八羽の目が、No.7 を見ていた。');
+  cine(-3.4, 2.3, 3.6, -6.6, 2.3, 2.2); await say('kuro', '…………見てこいィ。');
   ku.st = { armsUp: true }; G.shake = 0.7; sfx('roar'); voiceRing(-6.6, 2.8, 2.2, 0xE8403A, 7, 0.7); await say('kuro', '見てこいィィィィ！！！　見て、聞いて、食って、殴られて……強くなって、帰ってこいィィィィ！！！');
   await say('kuro', '家族はなァァ！！！　どこにいても、家族だァァァァ！！！'); ku.st = {};
-  cine(-1.2, 2.2, -1.4, -3.4, 2.0, 0.4); N.fk.st = { armsUp: true }; await say('fukkin', '末っ子が、巣立ちっスゥゥゥ！！　ハアッ！！　ハアッ！！'); for (const n of N.mem) n.st = { armsUp: true }; await say('bulkM', 'ポ・ンプ！！　ハアッ！！　ポ・ンプ！！　ハアッ！！'); for (const n of N.mem) n.st = {}; N.fk.st = {};
+  cine(0.6, 2.3, -1.2, -1.8, 2.0, 0.9); N.fk.st = { armsUp: true }; await say('fukkin', '末っ子が、巣立ちっスゥゥゥ！！　ハアッ！！　ハアッ！！'); for (const n of N.mem) n.st = { armsUp: true }; await say('bulkM', 'ポ・ンプ！！　ハアッ！！　ポ・ンプ！！　ハアッ！！'); for (const n of N.mem) n.st = {}; N.fk.st = {};
   cine(-1.0, 2.0, 5.4, -3.4, 2.0, 4.0); await say('haikin', '……止まり木は、空けておく。いつでも、帰ってこい。');
-  cine(-3.0, 2.0, 2.2, -6.6, 2.4, 2.2); await say('kuro', '拾ってくれた人間に、伝えとけェ！！'); await say('kuro', '……バルク・家族は、恩を、忘れねェ。一生だァ。'); cine(-6.0, 1.9, 3.4, -4.6, 1.5, 2.2); await say('ponpu', '……はいっす！！');
-  sfx('holo'); cine(-2.4, 3.6, 6.6, -4.6, 1.6, 2.2); await narr('通信に、別の声が、割り込んだ。');
+  cine(-3.4, 2.3, 3.6, -6.6, 2.3, 2.2); await say('kuro', '拾ってくれた人間に、伝えとけェ！！'); await say('kuro', '……バルク・家族は、恩を、忘れねェ。一生だァ。'); cine(-7.8, 2.2, 1.0, -4.2, 0.9, -0.2); await say('ponpu', '……はいっす！！');
+  sfx('holo'); cine(-0.4, 3.6, 5.6, -4.6, 1.2, 1.0); await narr('通信に、別の声が、割り込んだ。');
   await say('chanyu', '……記録官の、チャ・ニュユーだ。この通信は、B.U.N の公式回線に、乗っている。');
   await say('chanyu', 'No.7 の末弟、ポ・ンプ。生存を、確認。所在は――「地上の、とある人間の事務所に、居候」。'); await say('chanyu', '……それ以上は、記録しない。');
   await say('chanyu', '地表への告発のうち、「未帰還の一羽」の項は、取り下げる。陽盾の件は、取り下げない。……以上だ。');
-  cine(-3.0, 2.0, 2.2, -6.6, 2.4, 2.2); await say('kuro', 'チャァァァ！！　恩に着るゥゥゥ！！'); await say('chanyu', '記録しただけだ。……No.7。声を、落とせ。回線が、割れる。');
+  cine(-3.4, 2.3, 3.6, -6.6, 2.3, 2.2); await say('kuro', 'チャァァァ！！　恩に着るゥゥゥ！！'); await say('chanyu', '記録しただけだ。……No.7。声を、落とせ。回線が、割れる。');
   N.ponHolo.visible = false; N.ponHoloG.visible = false; await goStay18(); }
 
 // ---- 居候、終わり ----
 async function goStay18() { G.mode = 'cine'; S.flags.c18st = 'stay'; await goArea('hq', [0.4, 3.0], Math.PI); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); P.model.root.visible = true;
   const { mu, is, po, p } = castHq18(a); p.box.visible = true; mu.pos.set(-2.0, 0, 4.0); mu.facing = Math.PI * 0.4; is.pos.set(-4.8, 0, 3.8); is.facing = Math.PI * 0.6; a.sa.st = {}; a.sa.pos.set(3.0, 0, -1.6); a.sa.facing = -Math.PI / 2; a.ni.pos.set(-3.0, 0, -0.4); a.ni.facing = Math.PI / 2; po.pos.set(1.6, 0, 2.4); po.facing = Math.PI; P.pos.set(0.4, 0, 3.0); P.facing = Math.PI;
-  cine(0.6, 1.6, 4.8, 0.6, 1.4, 3.0); await saku('……あの記録官。分かってて、黙ったな。'); await say('kuze', '……借りが、増えたな。今度は、文鳥に。');
+  cine(1.5, 1.75, 1.3, 0.4, 1.55, 3.0); await saku('……あの記録官。分かってて、黙ったな。'); await say('kuze', '……借りが、増えたな。今度は、文鳥に。');
   cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); await say('kuroiwa', '恩、だそうだ。……借りとは、向きが、逆だ。'); await say('kuroiwa', 'さて。……居候は、今日で、終わりだ。');
   cine(1.0, 1.65, 0.6, 1.6, 1.0, 2.4); await say('ponpu', '……っ。'); cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); sfx('blip');
   nameCard({ s: '内閣 留保班　嘱託', b: 'ポ・ンプ', e: 'PONPU', col: '#F0A0A0', p: 'B.U.N society　辻society　バルク・家族　四十九番目（末）。\nrate 四万二千百十二位――ただし、誰も、まだ、測っていない。\n好物：粟玉、ココア味のソイプロテイン、正確に炊いた米。' }); await sleep(G.skip ? 0 : 2000); nameCard(null);
@@ -10680,15 +10680,15 @@ async function goStay18() { G.mode = 'cine'; S.flags.c18st = 'stay'; await goAre
   cine(-0.4, 2.0, 0.6, -0.4, 1.7, -2.6); await say('kuroiwa', '見たものを、報告しろ。……それが、うちの仕事だ。');
   p.perch.visible = true; p.tub.visible = true; cine(-0.4, 2.6, 7.6, -3.0, 1.2, 4.4); await narr('階段の脇に、太い止まり木が、立っていた。……ハーピー用。名札つき。');
   await say('ishii', '組んでおきました。名札は、僕が。'); await say('murase', '……ボルト、締めました。');
-  po.st = { run: true }; walkTo(po, -3.4, 4.0, 5).then(() => { po.st = {}; }); await sleep(G.skip ? 0 : 900); po.goal = null; po.pos.set(-3.4, 0, 4.5); po.y = 1.0; po.facing = 0; po.st = { sit: true }; sfx('chime');
-  cine(-2.0, 2.0, 2.6, -3.4, 1.8, 4.5); await say('ponpu', '……止まり木っす。'); await say('ponpu', 'ここが、自分の、地上の、止まり木っす！！');
+  po.st = { run: true }; walkTo(po, -3.4, 4.0, 5).then(() => { po.st = {}; }); await sleep(G.skip ? 0 : 900); po.goal = null; po.pos.set(-3.4, 0, 4.5); po.y = 1.0; po.facing = Math.PI; po.st = { sit: true }; sfx('chime');
+  cine(-2.4, 2.1, 2.2, -3.4, 1.8, 4.5); await say('ponpu', '……止まり木っす。'); await say('ponpu', 'ここが、自分の、地上の、止まり木っす！！');
   cine(-3.2, 2.0, 1.4, -3.0, 1.6, -0.4); await say('nishina', 'はっは。……文鳥は、手には乗らんが、止まり木には、乗るな。'); cine(4.6, 2.0, -0.4, 3.0, 1.6, -1.6); await say('saegusa', '名簿、更新しました。……留保班、はじめての、文鳥です。');
-  cine(1.6, 1.7, 5.6, 0.4, 1.5, 3.0); await narr('巣の止まり木と、主家の椀と。……どこにも、帰りを待つ場所が、あった。'); await saku('……考えるな。今夜は。'); await say('kuze', '……ああ。');
+  cine(1.5, 1.75, 1.3, 0.4, 1.55, 3.0); await narr('巣の止まり木と、主家の椀と。……どこにも、帰りを待つ場所が、あった。'); await saku('……考えるな。今夜は。'); await say('kuze', '……ああ。');
   await goReveal18(); }
 
 // ---- 誰も、見ていなかった ----
 async function goReveal18() { G.mode = 'cine'; S.flags.c18st = 'night'; await fade(true); const a = AREAS.hq; if (typeof setClock === 'function') setClock('02:13'); bgm('vol18');
-  for (const k of ['o16_murase', 'o16_ishii']) if (a[k]) a[k].hidden = true; a.sa.hidden = true; a.ni.hidden = true; a.kr.hidden = true; P.model.root.visible = false; const po = a.po18; po.pos.set(-3.4, 0, 4.5); po.y = 1.0; po.st = { sit: true }; po.facing = 0;
+  for (const k of ['o16_murase', 'o16_ishii']) if (a[k]) a[k].hidden = true; a.sa.hidden = true; a.ni.hidden = true; a.kr.hidden = true; P.model.root.visible = false; const po = a.po18; po.pos.set(-3.4, 0, 4.5); po.y = 1.0; po.st = { sit: true }; po.facing = Math.PI;
   if (!a.pk18) { a.pk18 = pocketModel(); a.g.add(a.pk18); } a.pk18.visible = true; a.pk18.position.set(1.3, 0.98, 0.6); a.pk18.rotation.set(0, 0.4, Math.PI / 2 - 0.2);
   const K = a.kz18 || (a.kz18 = kenzokuModel()); a.g.add(K.root); K.root.visible = false; K.root.position.set(1.3, 0.96, 0.6); K.root.scale.setScalar(0.01); hemi.intensity *= 0.5; camSnap = true; await fade(false);
   cine(3.4, 2.2, 2.8, 1.2, 0.9, 0.6); await card('留文堂　地下', '同じ夜　午前二時十三分', 1600);
@@ -10698,11 +10698,11 @@ async function goReveal18() { G.mode = 'cine'; S.flags.c18st = 'night'; await fa
   K.gl.material.opacity = 0.9; cine(0.0, 1.4, 1.6, 0.6, 1.1, 0.4); await narr('巾着の口から、黒とも青ともつかない、小さなものが、這い出した。……ひとつだけの、淡い青の目。');
   for (let k = 0; k <= 30; k++) { K.root.position.set(0.6 - k / 30 * 1.4, 0.96, 0.4 - k / 30 * 0.4); K.root.rotation.y = -Math.PI / 2 + Math.sin(k * 0.5) * 0.3; await sleep(G.skip ? 0 : 35); }
   cine(-1.0, 1.9, 1.8, -0.8, 1.0, 0.0); await narr('それは、勢力図の上を這い、「外神竜一族」の付箋の前で、止まった。……じっと、見ていた。');
-  K.root.rotation.y = Math.PI * 0.75; cine(-1.6, 1.5, 1.0, -3.4, 1.4, 4.5); await narr('止まり木の文鳥を見た。……それから、金庫の扉の、影を。');
+  K.root.rotation.y = Math.PI * 0.75; cine(-2.0, 1.7, 1.2, -3.4, 1.7, 4.5); await narr('止まり木の文鳥を見た。……それから、金庫の扉の、影を。');
   for (let k = 0; k <= 30; k++) { K.root.position.set(-0.8 - k / 30 * 2.8, k < 6 ? 0.96 - k * 0.16 : 0.05, 0.0 - k / 30 * 5.2); await sleep(G.skip ? 0 : 35); } K.gl.material.opacity = 0.0; cine(-2.4, 1.6, -2.4, -3.6, 1.2, -5.5); await sleep(G.skip ? 0 : 500); K.gl.material.opacity = 0.9; await sleep(G.skip ? 0 : 300); K.gl.material.opacity = 0; K.root.visible = false;
   await narr('金庫の扉の影で、淡い青が、一度だけ、瞬いた。');
   // 主家の屋根
-  await fade(true); hemi.intensity *= 2; await goArea('roof6'); const r = AREAS.roof6, yu = r.yu, vo = r.vo; bgm('vol18'); vo.hidden = false; vo.st = { sit: true }; yu.hidden = false; yu.st = { sit: true }; r.inkOn = false; for (const s of r.ink) s.material.opacity = 0; for (const c of r.cups) c.visible = true;
+  await fade(true); hemi.intensity *= 2; await goArea('roof6'); const r = AREAS.roof6, yu = r.yu, vo = r.vo; bgm('vol18'); $('place').textContent = '春日井　外神竜一族　主家の屋根　午前二時十三分'; vo.hidden = false; vo.st = { sit: true }; yu.hidden = false; yu.st = { sit: true }; r.inkOn = false; for (const s of r.ink) s.material.opacity = 0; for (const c of r.cups) c.visible = true;
   if (!r.eye18) { r.eye18 = glowSprite(0x8AC8F0, 0.5, 0); vo.model.head.add(r.eye18); r.eye18.position.set(0.14, 0.04, 0.42); } r.eye18.material.opacity = 0; camSnap = true; await fade(false);
   pan([0, 3.4, 8.0], [0, 1.8, 0], [0, 2.6, 4.2], [0, 1.9, 0], 6); await card('主家の屋根', '同じ時刻', 1600);
   await narr('ユリアは、ヴォルの肩で、眠っていた。'); cine(2.0, 2.5, 2.2, 0.6, 2.4, 0.2); await say('vol', '……あら。'); r.eye18.material.opacity = 0.9; sfx('ura'); await narr('前髪の奥で、淡い青の竜眼が、ひらいた。');
@@ -10710,7 +10710,7 @@ async function goReveal18() { G.mode = 'cine'; S.flags.c18st = 'night'; await fa
   await say('vol', '名前のない、お部屋。地図にない、地下。……レウネさんの地図にも、載っていない場所。');
   await say('vol', '人間が、何人か。文鳥さんが、一羽。……それから、絵の中から、戻ってきた人。');
   await say('vol', 'ふふ。……まだ、何もしませんよぉ。見ているだけ、ですから。');
-  cine(1.2, 2.3, 1.0, 0.6, 2.4, 0.2); await say('vol', '――私のゆり姉に、何か、するつもりなら。……その時は、ね。');
+  cine(1.8, 2.6, 1.6, 0.6, 2.5, 0.2); await say('vol', '――私のゆり姉に、何か、するつもりなら。……その時は、ね。');
   r.eye18.material.opacity = 0; cine(0, 3.0, 4.4, 0, 2.2, 0.2); await say('yuria', '……ん……ヴォル……おちゃ……'); await say('vol', 'はぁい♡　二人分、ありますからねぇ。……おやすみなさい、ゆり姉。');
   await fade(true); await card('7.5章　幕間1　止まり木', '完', 3000); await fade(false); setMeta({ ch18Clear: true, ch18: packS(), ch18Done: [...DONE] }); showReport18(); }
 
