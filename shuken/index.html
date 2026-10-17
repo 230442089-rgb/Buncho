@@ -11533,12 +11533,10 @@ async function goLab20() { G.mode = 'cine'; S.flags.c20st = 'lab'; setObj(''); a
   cKa(); await say('kaere', '満点。……B.U.N は、怒ってるよ。メスどもが、人間を、さらっていくって。'); await say('kaere', 'まあ、そっちは、どうでもいいんだ。……ぼくが、気になってるのは、別のことでね。');
   sfx('holo'); cut18(0, 2.4, 1.0, 0, 2.0, -1.0); await say('kaere', '上位存在ってさ、ふつう、あんまり、心が、動かないんだよ。持ってる力が、大きすぎるから。……心が揺れる前に、たいていのことは、片付いちゃう。');
   await say('kaere', 'でも、人間が相手だと、違う。竜が、宝を抱くみたいに。狐が、尾で、くるむみたいに。……上の連中は、人間にだけ、心を、動かす。');
-  await say('kaere', 'その心が、限界まで、動いたとき。……すごく強い、ショックを受けたとき。あるいは、すごく固く、何かを、決めたとき。'); await say('kaere', '持ってる力と、心が、繋がって。……外に、出てくる。');
-  a.fray.visible = true; sfx('glitch'); await say('kaere', '心が、ほどけて、形を、なくすなら。……「ほつれ」。心の形のまま、力が、まわりを、呑む。');
-  a.weave.visible = true; sfx('chime'); await say('kaere', '心を、編み直して、纏えるなら。……「心装」。心が、そのまま、武器や、鎧になる。');
-  cTn(); await say('tuna', '心が、……武器に？'); cKa(); await say('kaere', 'ぼくの、仮説だけどね。記録は、三件。どれも、千年より、前。'); await say('kaere', '力が大きいほど、出てくるものも、大きい。……だから、試してみたいんだ。上位存在で。');
-  cMs(); await say('moi', '……試す、というのは。'); cKa(); await say('kaere', '心を、こっちから、動かす。……わざと。');
-  cTn(); await say('tuna', 'わざと、誰かの心を、揺らすの？　……それって、傷つけるって、こと？'); cKa(); await say('kaere', '傷つけるかもしれないし、喜ばせるかもしれない。……どっちでも、いいんだよ。限界まで、動けば。');
+  await say('kaere', '心が動くと、閉じてたものが、開くんだ。……蔵とか、巣とか、底とか。その子が、ずっと抱えて、しまい込んでるところが。');
+  await say('kaere', 'その中に、ぼくの欲しいものが、ある。……何かは、まだ、内緒。');
+  cMs(); await say('moi', '……また、それですか。'); cKa(); await say('kaere', 'うん。また、それ。');
+  cTn(); await say('tuna', 'その人の心を、動かすの？　……わざと？'); cKa(); await say('kaere', 'うん。わざと。……傷つけるかもしれないし、喜ばせるかもしれない。開けば、どっちでも、いいんだ。');
   cCs(); await say('cassia', '対象は。'); cKa(); await say('kaere', 'それを、探すのが、今夜の仕事。');
   await say('kaere', '揺り籠ハウスの、モデルルーム。「全室、見守り付き」。……入った人間の、心拍とか、声色とかから、「しあわせ」を測って、持ち主に、送る仕組みだ。');
   await say('kaere', 'つまり、人間の心を、測る網だね。……それを、裏返す。'); await say('kaere', '網の真ん中に、ぼくの「折り目の針」を、刺してきて。そうすれば、測れるのは、人間を見てる持ち主のほう。……上の連中の、心のほうだ。');
@@ -11647,10 +11645,10 @@ async function hug20() { const a = AREAS.aqua20, sh = a.sh; setObj('');
   await saku('……情けねえな。立てねえ。'); await say('kuze', '……立てますよ。……あと、十秒、ください。'); P.st = {}; a.fear = 0; fear20(0); await goDebrief20(); }
 
 // ---- 折り目の内側：報告 ----
-async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; setObj(''); await goArea('kaere20'); ckSave(); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = true; a.weave.visible = true; fear20(0);
+async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; setObj(''); await goArea('kaere20'); ckSave(); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = false; a.weave.visible = false; fear20(0);
   const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cCs = () => cut18(-0.6, 2.0, -0.7, -1.9, 1.7, 1.6), cTn = () => cut18(0.9, 1.9, -0.5, 0, 1.6, 2.0), cMs = () => cut18(0.6, 2.0, -0.7, 1.9, 1.75, 1.6);
   cine(0, 6, 9, 0, 1.2, -1); await card('折り目の内側', '土曜　午前零時', 1400);
-  cKa(); await say('kaere', 'シェオル。底なしの縁。……喜びだけで、針が、底を、打たない。'); await say('kaere', 'ほつれるか、心装になるか。……あの子なら、どっちでも、とんでもないものが、出てくる。');
+  cKa(); await say('kaere', 'シェオル。底なしの縁。……喜びだけで、針が、底を、打たない。'); await say('kaere', 'あの子の底には、落ちてきたものが、全部、しまってある。名前も、約束も、翼も、船も。……ぼくの欲しいものも、たぶん、あそこ。');
   await say('kaere', '次の指名の夜に、ショックを、あげよう。'); cMs(); await say('moi', '……どんな。'); cKa(); await say('kaere', 'いちばん、簡単なのは。……「ソウ」が、いなくなること、かな。');
   cTn(); await say('tuna', '……っ！'); cCs(); await say('cassia', '彼は、人間です。……巻き込むんですか。');
   cKa(); await say('kaere', '巻き込まれてるのは、もう、最初から、だよ。あの子に、十億で、選ばれた時点で。……ぼくらは、ちょっと、背中を、押すだけ。');
@@ -11689,7 +11687,7 @@ function showReport20() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>ひだまり</td><td>カシアは三十秒で、四本目と五本目の取り違えを見つけた。ニュースは「揺籃計画」。タコくん「そのうち魔法がなくなったら、男に、特に文鳥に、蹂躙される。その時が、いちばん楽しみだ」。ツナ「その言い方、嫌だよ」。モイ「そこまで」。カシア「誰かを踏む話なら、聞かない」</td></tr>' +
     '<tr><td>三人のこと</td><td>カシアは、彼よりはるかに有能だった。ツナは、彼よりよっぽど強く、逞しい心を持っていた。モイは、つべこべ言わずに、すべきことを、し続けた。……分かっていたから、言わずにはいられなかった' + (S.flags.c20sorry ? '。「悪かった」とは、言えた' : '') + '</td></tr>' +
     '<tr><td>折り目の内側</td><td>B.U.N No.2 カ・エレの、誰にも言っていない個人事務所と、直属の班（カシア・ツナ・モイ）。「メスの部下を持ってるなんて知れたら、No.2 じゃいられない」</td></tr>' +
-    '<tr><td>ほつれと心装</td><td>上位存在の心が、人間に向かって、限界まで動いたとき、力と心が繋がって外に出る。ほどけて形を失えば「ほつれ」、編み直して纏えば「心装」。記録は三件、どれも千年より前。カ・エレは、わざと心を動かして、試したい</td></tr>' +
+    '<tr><td>カ・エレの狙い</td><td>上の連中は、人間にだけ心を動かす。心が動くと、その子がずっと抱えてしまい込んでいるところ――蔵、巣、底――が開く。その中に、カ・エレの欲しいものがある（何かは、まだ内緒）。傷つけても、喜ばせても、開けばいい</td></tr>' +
     '<tr><td>揺り籠ハウス</td><td>大人の背丈の、柵つきの揺りかご。内側に取っ手のない寝室の扉。名前の欄だけ空いた表札。「見守り」は、人間の「しあわせの値」を持ち主に送り、下がれば「会いに来て」と知らせる。網の真ん中に、折り目の針を二本。網は、裏返された</td></tr>' +
     '<tr><td>港の水族館</td><td>シェオル（表示名を変更）による夜間貸し切り。クラゲ、大水槽、深海。「ことば、ひろいました」「どっちの、いろも、すき」「ソウさんが、ひかりに、みえます」。ベンチで、抱きしめられた。久世の心臓が速いのを、彼女は「わたしと、おんなじ」と喜んだ</td></tr>' +
     '<tr><td>針</td><td>喜びだけで、値が下に抜けた。カ・エレ「次の指名の夜に、ショックを。……いちばん簡単なのは、『ソウ』が、いなくなること」。モイは段取りを、ツナは迷いを、カシアは準備を。カシアの端末に、名前――久世躁一郎</td></tr>' +
@@ -11967,33 +11965,35 @@ async function goTako21() { G.mode = 'cine'; S.flags.c21st = 'tako'; setObj('');
 async function goAgents21() { G.mode = 'cine'; S.flags.c21st = 'agents'; setObj(''); playAs20(null); await goArea('alley21', [-10, 0], Math.PI / 2); ckSave(); const a = AREAS.alley21; P.model.root.visible = false; bgm('night21'); if (PB.on) pbStop(); a.fight = false; a.snow = false;
   for (const n of a.ang.concat([a.cmd])) n.hidden = true; a.cocoon.visible = false; a.seraph.visible = false; a.motes.forEach(f => { f.visible = false; });
   const [fx, fz] = a.fp || [0, 0]; a.feather.visible = true; a.feather.position.set(fx, 0.05, fz); a.feather.rotation.set(-Math.PI / 2, 0, 0.6); a.featherGl.position.set(fx, 0.3, fz);
-  const at = (n, dx, dz) => { n.hidden = false; n.st = {}; n.pos.set(clamp(fx + dx, -10, 10), 0, clamp(fz + dz, -3, 3)); n.facing = Math.atan2(fx - n.pos.x, fz - n.pos.z); }; at(a.cs, 0.7, 0.5); at(a.tn, -1.4, 1.2); at(a.ms, -1.6, -0.8);
-  cine(fx - 4.5, 2.2, fz + 3.0, fx - 1.0, 1.4, fz); await card('栄　裏通り', '同じ夜　午後十時十分', 1400);
+  // スマホの縦長でも切れないように：話す人の正面から一人ずつ、まとめは高く引いて真ん中に
+  const at = (n, dx, dz, f) => { n.hidden = false; n.st = {}; n.pos.set(clamp(fx + dx, -10, 10), 0, clamp(fz + dz, -3, 3)); n.facing = f; }; at(a.cs, 0, -0.5, 0.15); at(a.tn, -1.1, 0.5, 0.5); at(a.ms, 1.1, 0.4, -0.5);
+  const fc = n => cut18(n.pos.x + Math.sin(n.facing) * 3.1, 1.8, n.pos.z + Math.cos(n.facing) * 3.1, n.pos.x, n.st.kneel ? 1.0 : 1.45, n.pos.z), grp = () => cine(fx, 5.2, fz + 7.2, fx, 1.0, fz);
+  grp(); await card('栄　裏通り', '同じ夜　午後十時十分', 1400);
   await narr('路地には、もう、誰もいなかった。……濡れたアスファルトに、羽が、一枚。');
-  a.cs.st = { kneel: true }; cut18(fx + 2.4, 1.5, fz + 2.2, fx + 0.4, 0.8, fz + 0.2); await say('cassia', '……金色。……熾天使の、羽。');
+  a.cs.st = { kneel: true }; fc(a.cs); await say('cassia', '……金色。……熾天使の、羽。');
   await say('cassia', 'ソウの信号、ここで、途切れてる。……横じゃない。上に、持っていかれた。');
   sfx('vib'); await narr('カシアの端末が、短く、震えた。……タコくんからだった。カシアは、片手で、返した。'); await phoneMsg('カシア　→　三人のグループ', 'おめでとう。\n今週は、無理。……ごめん', '22:11');
-  a.cs.st = {}; cine(fx - 4.5, 2.2, fz + 3.0, fx - 1.0, 1.4, fz); await say('tuna', '……私たちが、何かする前に、連れていかれちゃった。');
-  cut18(fx - 0.2, 1.6, fz + 3.0, fx - 1.4, 1.4, fz + 1.2); await say('tuna', 'ねえ、カシア。……カ・エレさんの、ショックの話。これで、本当に、大丈夫なのかな。');
+  a.cs.st = {}; fc(a.tn); await say('tuna', '……私たちが、何かする前に、連れていかれちゃった。');
+  await say('tuna', 'ねえ、カシア。……カ・エレさんの、ショックの話。これで、本当に、大丈夫なのかな。');
   await say('tuna', 'あの人、水族館で、すごく、怖がってた。……シェオルさんも、きっと、今ごろ、月下で、待ってる。……来ないって、知らないで。');
-  cut18(fx - 0.4, 1.7, fz - 2.4, fx - 1.6, 1.5, fz - 0.8); await say('moi', '……やるしか、ないんでしょ。'); await say('moi', '好奇心に、振り回されてるようなもんだけど。……私たちも、そんなこと言ってる立場じゃ、ないし。');
+  fc(a.ms); await say('moi', '……やるしか、ないんでしょ。'); await say('moi', '好奇心に、振り回されてるようなもんだけど。……私たちも、そんなこと言ってる立場じゃ、ないし。');
   await say('moi', 'だったら、段取りだけは、ちゃんとやる。……誰も、底に、落とさないように。');
-  cut18(fx + 2.4, 1.6, fz + 1.4, fx + 0.7, 1.6, fz + 0.5); await say('cassia', '……底が、来る。月下の床から。……たぶん、今夜。');
-  a.tn.st = { guard: true }; cut18(fx - 0.2, 1.6, fz + 3.0, fx - 1.4, 1.4, fz + 1.2); await say('tuna', '……うん。……怖いけど、行く。');
-  cine(fx - 4.5, 2.2, fz + 3.0, fx - 1.0, 1.4, fz); await say('moi', '戻るよ。……カ・エレさんに、報告。'); a.tn.st = {}; await goKaere21(); }
+  fc(a.cs); await say('cassia', '……底が、来る。月下の床から。……たぶん、今夜。');
+  a.tn.st = { guard: true }; fc(a.tn); await say('tuna', '……うん。……怖いけど、行く。');
+  grp(); await say('moi', '戻るよ。……カ・エレさんに、報告。'); a.tn.st = {}; await goKaere21(); }
 
 // ---- 折り目の内側：黙々と ----
-async function goKaere21() { G.mode = 'cine'; S.flags.c21st = 'kaere'; setObj(''); await goArea('kaere20'); ckSave(); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); for (const k of ['csG', 'tnG', 'msG']) a[k].hidden = true; a.fray.visible = true; a.weave.visible = true; a.ka.pos.set(0, 0, 1.0); a.ka.facing = 0;
-  if (!a.ring21) { a.ring21 = new THREE.Mesh(G_('door21', () => new THREE.TorusGeometry(1.8, 0.09, 8, 48)), new THREE.MeshLambertMaterial({ color: 0x2A2440, emissive: 0x3A2A8A })); a.ring21.position.set(0, 2.2, 3.4); a.g.add(a.ring21); a.ringGl = glowSprite(0x9A8AFF, 4, 0.25); a.ringGl.position.set(0, 2.2, 3.4); a.g.add(a.ringGl); }
+async function goKaere21() { G.mode = 'cine'; S.flags.c21st = 'kaere'; setObj(''); await goArea('kaere20'); ckSave(); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); for (const k of ['csG', 'tnG', 'msG']) a[k].hidden = true; a.fray.visible = false; a.weave.visible = false; a.ka.pos.set(0, 0, 2.4); a.ka.facing = 0;
+  if (!a.ring21) { a.ring21 = new THREE.Mesh(G_('door21', () => new THREE.TorusGeometry(1.8, 0.09, 8, 48)), new THREE.MeshLambertMaterial({ color: 0x2A2440, emissive: 0x3A2A8A })); a.ring21.position.set(0, 2.3, 1.0); a.g.add(a.ring21); a.ringGl = glowSprite(0x9A8AFF, 4, 0.25); a.ringGl.position.set(0, 2.3, 0.9); a.g.add(a.ringGl); }
   a.ring21.visible = true; a.holo.material.color.setHex(0x6A3AA0);
-  cine(3.6, 2.4, 1.6, 0, 1.8, 2.2); await card('折り目の内側', '同じ夜　午後十一時', 1400);
+  const wide = () => cine(0, 3.0, 7.6, 0, 2.0, 1.6), ka = () => cut18(0.4, 2.4, 6.6, 0, 2.0, 2.4); wide(); await card('折り目の内側', '同じ夜　午後十一時', 1400);
   await narr('カ・エレは、ひとりだった。……投影台の針は、もう、どこにも、止まっていなかった。');
-  cut18(0, 2.4, 1.0, 0, 2.0, -1.0); await narr('底の値が、上がってくる。……ゆっくり、確実に。月下の床の、真下から。');
-  cut18(2.0, 2.3, 0.6, 0, 2.0, 1.0); await say('kaere', '……来たね。思ってたより、一日、早い。');
+  cut18(2.6, 2.6, -1.0, 0, 1.8, -1.0); await narr('底の値が、上がってくる。……ゆっくり、確実に。月下の床の、真下から。');
+  ka(); await say('kaere', '……来たね。思ってたより、一日、早い。');
   await say('kaere', '天の子たちが、あの子を見てたのは、知ってたよ。……月下の夜から。熾天使が、帰り際に、一度だけ、振り返った。');
   await say('kaere', 'シェオルは、来ないソウを、待ってる。……天は、渡さない。……ぶつかるね。底と、空が。');
   await say('kaere', 'ぶつかったら、空も、底も、しばらくは、ソウのことなんて、見ていられない。');
-  cine(3.6, 2.4, 1.6, 0, 1.8, 2.2); await narr('彼は、それ以上、何も言わなかった。……折り目を、ひとつ、またひとつ、畳んでいく。');
+  wide(); await narr('彼は、それ以上、何も言わなかった。……折り目を、ひとつ、またひとつ、畳んでいく。');
   await narr('扉の向こうは、どこにも、繋がっていなかった。……入口だけがあって、出口のない、小さな部屋だった。');
   for (let t = 0; t <= 1; t += 0.05) { a.ring21.rotation.y = t * Math.PI; a.ringGl.material.opacity = 0.25 + t * 0.4; await sleep(G.skip ? 0 : 40); }
   await fade(true); a.holo.material.color.setHex(0x9A8AFF); a.ring21.visible = false; a.ringGl.material.opacity = 0; await card('第八章　中編　保護', '完　――　下編へ続く', 3000); await fade(false); kuzeAura21(false); setMeta({ ch21Clear: true, ch21: packS(), ch21Done: [...DONE] }); showReport21(); }
