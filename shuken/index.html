@@ -10911,7 +10911,7 @@ async function goOffice19() { G.mode = 'cine'; S.flags.c19st = 'office'; await g
   await goKoryn19(); }
 
 // ---- 紅鱗：人材お預かり部（操作） ----
-function koryn19Items() { const a = AREAS.koryn19; if (a.i19) return; a.i19 = true; const on = on19('koryn'), got = k => (S.flags.c19k || []).includes(k);
+function koryn19Items() { const a = AREAS.koryn19; if (!a.built) { a.build(a); a.built = true; } if (a.i19) return; a.i19 = true; const on = on19('koryn'), got = k => (S.flags.c19k || []).includes(k);
   addItem(a, { id: 'k19v', x: -8.2, z: -3.0, r: 1.6, label: '金庫番に、書類を届ける', col: 0xE3B428, avail: () => on() && !got('v'), on: () => evKoryn19('v'), dyn: a.vault });
   addItem(a, { id: 'k19y', x: 3.5, z: 4.9, r: 1.6, label: '人間の社員と話す', col: 0xE3B428, avail: () => on() && !got('y'), on: () => evKoryn19('y') });
   addItem(a, { id: 'k19r', x: 8.4, z: -3.4, r: 1.6, label: '第三会議室を片付ける', col: 0xE3B428, avail: () => on() && !got('r'), on: () => evKoryn19('r') });
@@ -10958,7 +10958,7 @@ async function evKoryn19(k) { const a = AREAS.koryn19, g = S.flags.c19k || (S.fl
   obj19k(); playOn(); }
 
 // ---- 千路：仕分け（操作） ----
-function hub19Items() { const a = AREAS.hub19; if (a.i19) return; a.i19 = true; const on = on19('hub');
+function hub19Items() { const a = AREAS.hub19; if (!a.built) { a.build(a); a.built = true; } if (a.i19) return; a.i19 = true; const on = on19('hub');
   addItem(a, { id: 'h19take', x: -7.4, z: 0.0, r: 1.5, label: 'ベルトから、荷物を取る', col: 0xE3B428, once: false, avail: () => on() && !a.carry && (S.flags.c19h || 0) < 3, on: () => evHub19('take') });
   a.lanes.forEach(([x, z, t], i) => addItem(a, { id: 'h19l' + i, x, z: z - 0.2, r: 1.5, label: '「' + t + '」へ、置く', col: 0x7AC8FF, once: false, avail: () => on() && !!a.carry && a.carryTo === i, on: () => evHub19('drop', i) }));
   a.lanes.forEach(([x, z, t], i) => addItem(a, { id: 'h19w' + i, x, z: z - 0.2, r: 1.5, label: '（ここではない）', once: false, avail: () => on() && !!a.carry && a.carryTo !== i, on: () => evHub19('wrong', i) }));
@@ -11012,7 +11012,7 @@ async function goWeek19() { G.mode = 'cine'; S.flags.c19st = 'week'; setObj('');
   await fade(false); await goClub19(); }
 
 // ---- 月下（操作） ----
-function club19Items() { const a = AREAS.club19; if (a.i19) return; a.i19 = true; const on = on19('club'), got = k => (S.flags.c19c || []).includes(k);
+function club19Items() { const a = AREAS.club19; if (!a.built) { a.build(a); a.built = true; } if (a.i19) return; a.i19 = true; const on = on19('club'), got = k => (S.flags.c19c || []).includes(k);
   addItem(a, { id: 'c19e', x: -6.4, z: -2.0, r: 1.6, label: 'エルフの客の席に、つく', col: 0xE3B428, avail: () => on() && !got('e'), on: () => evClub19('e') });
   addItem(a, { id: 'c19d', x: 6.4, z: -2.0, r: 1.6, label: '魔族の議員秘書の席に、つく', col: 0xE3B428, avail: () => on() && !got('d'), on: () => evClub19('d') });
   addItem(a, { id: 'c19o', x: 0, z: -2.0, r: 1.6, label: '村瀬の席を、のぞく', avail: () => on() && !got('o'), on: () => evClub19('o') });
