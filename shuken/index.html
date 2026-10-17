@@ -11610,7 +11610,7 @@ async function evAqua20(k) { const a = AREAS.aqua20, sh = a.sh; G.mode = 'cine';
     a.fear = Math.max(a.fear, 0.75); await narr('久世の、指先が、冷たくなっていた。……水槽のせいでは、なかった。'); await saku('……逃げろ、って。体の、いちばん古いところが、言ってる。'); await saku('鼠が、蛇に。……魚が、底に。そういう、怖さだ。理屈じゃない。'); }
   if (k === 'b') { await hug20(); return; }
   obj20q(); a.fol = true; playOn(); }
-async function hug20() { const a = AREAS.aqua20, sh = a.sh;
+async function hug20() { const a = AREAS.aqua20, sh = a.sh; setObj('');
   P.pos.set(-0.55, 0, 1.45); P.facing = Math.PI; P.st = { sit: true }; sh.pos.set(0.55, 0, 1.45); sh.facing = Math.PI; sh.st = { sit: true }; cut18(0, 1.5, -1.4, 0, 1.15, 1.45);
   await narr('ベンチに、並んで、座った。……大水槽の青が、ふたりを、照らしていた。'); await say('sheol', 'ソウさん。……きょう、たのしかった、です。');
   await say('sheol', 'わたし、……すき、って、まだ、よく、わからないので。……もっと、ちゃんと、すきに、なりたい、です。'); await say('sheol', 'もっと、ちかくで、しりたい。……ソウさんの、こと。そこの、ほうまで。');
@@ -11626,10 +11626,10 @@ async function hug20() { const a = AREAS.aqua20, sh = a.sh;
   await say('sheol', 'すき。……もっと、すきに、なります。'); await say('sheol', 'もっと、ちゃんと、あいしたい。……ソウさんの、ぜんぶ、ひろって、だいじに、しまって、あげたい。');
   for (let t = 0; t <= 1; t += 0.05) { a.dim = t; await sleep(G.skip ? 0 : 50); } a.look = true; await narr('大水槽の灯りが、下から、順に、消えていった。……魚たちは、一匹残らず、ふたりを、見ていた。');
   for (const n of [a.cs, a.tn, a.ms]) n.hidden = false; cut18(-1.4, 3.6, 0.8, -2.0, 6.6, -3.2); await sleep(G.skip ? 0 : 900);
-  cut18(-1.4, 7.3, -1.4, -2.0, 7.2, -3.2); await say('cassia', '……針が、振り切れて。……違う。値が、下に、抜けてる。'); await say('moi', '（小声）……カ・エレさん。これ以上は、危ない。');
+  cut18(-1.5, 7.3, -0.3, -2.0, 7.2, -3.2); await say('cassia', '……針が、振り切れて。……違う。値が、下に、抜けてる。'); await say('moi', '（小声）……カ・エレさん。これ以上は、危ない。');
   await say('kaere', '（無線）うん。今夜は、ここまで。……十分だ。いや、十分すぎるねぇ。'); await say('kaere', '（無線）喜びだけで、これだけ、動くなら。……ショックを、あげたら、どうなるかな。');
-  cut18(-0.3, 7.2, -1.6, -0.9, 7.1, -3.3); await say('tuna', '……あの人、すごく、うれしそうだった。'); await say('tuna', '……わざと、壊すのは、やだよ。私。');
-  cut18(-1.4, 7.3, -1.4, -2.0, 7.2, -3.2); await narr('カシアは、下のベンチの男を、見ていた。……手もとの端末に、名前が、出ていた。'); await say('cassia', '……あの人が、ソウ。'); await say('cassia', '静州商事。……久世、躁一郎。');
+  cut18(0.3, 7.2, -0.7, -0.9, 7.1, -3.3); await say('tuna', '……あの人、すごく、うれしそうだった。'); await say('tuna', '……わざと、壊すのは、やだよ。私。');
+  cut18(-1.5, 7.3, -0.3, -2.0, 7.2, -3.2); await narr('カシアは、下のベンチの男を、見ていた。……手もとの端末に、名前が、出ていた。'); await say('cassia', '……あの人が、ソウ。'); await say('cassia', '静州商事。……久世、躁一郎。');
   for (const n of [a.cs, a.tn, a.ms]) n.hidden = true; a.look = false; sh.st = {}; cut18(0.05, 1.6, 4.8, 0.05, 1.45, 2.3); await say('sheol', '……また、しめい、します。……つぎは、もっと、ながく。'); await say('sheol', 'おやすみなさい、ソウさん。……だいすき、です。');
   sh.pos.set(1.6, 0, 1.0); sh.facing = Math.PI / 2; cut18(-0.6, 1.8, 3.6, 2.4, 0.8, 0.6); for (let t = 0; t <= 1; t += 0.04) { a.sink = t * 2.4; await sleep(G.skip ? 0 : 50); } sh.hidden = true; a.sink = 0;
   await narr('彼女は、床に、沈んでいった。……水音は、しなかった。'); for (let t = 1; t >= 0; t -= 0.05) { a.dim = t; await sleep(G.skip ? 0 : 40); }
@@ -11637,7 +11637,7 @@ async function hug20() { const a = AREAS.aqua20, sh = a.sh;
   await saku('……情けねえな。立てねえ。'); await say('kuze', '……立てますよ。……あと、十秒、ください。'); P.st = {}; a.fear = 0; fear20(0); await goDebrief20(); }
 
 // ---- 折り目の内側：報告 ----
-async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; await goArea('kaere20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = true; a.weave.visible = true; fear20(0);
+async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; setObj(''); await goArea('kaere20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = true; a.weave.visible = true; fear20(0);
   const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cCs = () => cut18(-0.6, 2.0, -0.7, -1.9, 1.7, 1.6), cTn = () => cut18(0.9, 1.9, -0.5, 0, 1.6, 2.0), cMs = () => cut18(0.6, 2.0, -0.7, 1.9, 1.75, 1.6);
   cine(0, 6, 9, 0, 1.2, -1); await card('折り目の内側', '土曜　午前零時', 1400);
   cKa(); await say('kaere', 'シェオル。底なしの縁。……喜びだけで、針が、底を、打たない。'); await say('kaere', 'ほつれるか、心装になるか。……あの子なら、どっちでも、とんでもないものが、出てくる。');
@@ -11655,7 +11655,7 @@ async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; await
 
 // ---- 底 ----
 async function goBottom20() { G.mode = 'cine'; S.flags.c20st = 'bottom'; await goArea('void19'); const a = AREAS.void19; bgm('sheol19'); a.ur.hidden = true; a.hm.hidden = true; a.deep.material.opacity = 0.6;
-  if (!a.sh20) a.sh20 = npc(a, 'sheol', sheolModel(), 0, 0.6, 0); const s = a.sh20; s.hidden = false; s.pos.set(0, 0, 0.6); s.y = -0.3; s.facing = 0; s.st = { cross: true };
+  if (!a.sh20) a.sh20 = npc(a, 'sheol', sheolModel(), 0, 0.6, 0); const s = a.sh20; s.hidden = false; s.pos.set(0, 0, 0.6); s.y = -0.3; s.facing = 0; s.st = { carry: true };
   cine(0, 4, 9, 0, 0.8, 0.6); await card('――　底', '', 1400);
   cine(0.6, 1.7, 3.6, 0, 1.5, 0.6); await narr('どこよりも、下の場所。……落ちてきたものが、静かに、積もっている。');
   await say('sheol', '……あったかかった。'); await say('sheol', 'ソウさんの、どきどき。……ずっと、ここに、のこってる。'); await say('sheol', 'すき。……もっと。もっと、すきに、なる。');
@@ -11666,10 +11666,10 @@ async function goBottom20() { G.mode = 'cine'; S.flags.c20st = 'bottom'; await g
 async function goRoom20() { G.mode = 'cine'; S.flags.c20st = 'room'; await goArea('room20'); const a = AREAS.room20; bgm('room20'); a.walk = false; a.bot.position.set(1.8, 0.75, -2.3);
   cine(-2.0, 2.2, 2.2, 1.6, 1.0, -2.0); await card('春日井　タコくんの部屋', '土曜　午前一時', 1400);
   await narr('机の上で、八本足のロボットが、転がっていた。'); cut18(1.0, 1.7, -1.0, 1.0, 1.9, -2.88); await narr('壁には、文鳥のポスターが、貼ってあった。……B.U.N。筋肉と、技術と、数。');
-  cut18(0.4, 1.6, -0.4, 2.1, 1.1, -2.0); await say('tako', '……四本目と、五本目。');
+  cut18(0.9, 1.5, -2.3, 2.2, 1.15, -1.5); await say('tako', '……四本目と、五本目。');
   await narr(S.flags.c20sorry ? 'カシアのファイルは、開かなかった。……自分で、書き直した。三時間、かかった。' : 'カシアのファイルを、開きかけて、やめた。……自分で、書き直した。三時間、かかった。');
   sfx('blip'); a.walk = true; cut18(1.0, 1.3, -1.3, 1.6, 0.8, -2.3); await sleep(G.skip ? 0 : 2000); await narr('八本の足が、はじめて、前に、進んだ。');
-  cut18(0.4, 1.6, -0.4, 2.1, 1.1, -2.0); await say('tako', '…………歩いた。'); await say('tako', '……歩いたぞ。');
+  cut18(0.9, 1.5, -2.3, 2.2, 1.15, -1.5); await say('tako', '…………歩いた。'); await say('tako', '……歩いたぞ。');
   await narr('誰に言えばいいのか、分からなかった。……スマホを持ち上げて、しばらく、画面を、見ていた。'); await say('tako', '……どうでもいいだろ。'); await narr('送らなかった。');
   await fade(true); a.walk = false; await card('第八章　序　ほつれ', '完　――　中編へ続く', 3000); await fade(false); setMeta({ ch20Clear: true, ch20: packS(), ch20Done: [...DONE] }); showReport20(); }
 
