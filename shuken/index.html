@@ -11303,7 +11303,7 @@ makeArea('kaere20', { noPlayer: true, place: 'カ・エレ個人事務所　―�
     a.fray = new THREE.Group(); a.fray.position.set(-0.75, 2.1, -1.0); g.add(a.fray); for (let i = 0; i < 14; i++) part(box(0.04, rand(0.2, 0.5), 0.04), 0xFF6A8A, Math.cos(i / 14 * TAU) * 0.4, Math.sin(i / 14 * TAU) * 0.4, 0, a.fray, { outline: false, emis: 0x8A2A4A, rz: i / 14 * TAU + rand(-0.6, 0.6) }); a.fray.visible = false;
     a.weave = part(G_('weave20', () => new THREE.OctahedronGeometry(0.35, 0)), 0x9AF0FF, 0.75, 2.1, -1.0, g, { emis: 0x2A6A8A, outline: false }); a.weave.visible = false;
     // 入口：倉庫の扉
-    block(1.6, 2.5, 0.12, 0x6A6A70, 0, 1.25, 7.2, g); plane(0.8, 0.3, signTex(160, 60, [{ t: '倉庫', size: 32, w: 900 }], { bg: '#E8E8E0', fg: '#1A1A1E' }), 0, 2.1, 7.12, g, { double: true });
+    block(1.6, 2.5, 0.12, 0x6A6A70, 0, 1.25, 7.2, g); plane(0.8, 0.3, signTex(160, 60, [{ t: '倉庫', size: 32, w: 900 }], { bg: '#E8E8E0', fg: '#1A1A1E' }), 0, 2.1, 7.13, g, { ry: Math.PI });
     a.ka = npc(a, 'kaere', kaereBird(), 0, -2.9, 0);
     a.cs = npc(a, 'cassia', cassiaModel(false), -0.9, 6.0, Math.PI); a.tn = npc(a, 'tuna', tunaModel(false), 0, 6.3, Math.PI); a.ms = npc(a, 'moi', moiModel(false), 0.9, 6.0, Math.PI);
     a.csG = npc(a, 'cassia', cassiaModel(true), -1.9, 1.6, Math.PI); a.tnG = npc(a, 'tuna', tunaModel(true), 0, 2.0, Math.PI); a.msG = npc(a, 'moi', moiModel(true), 1.9, 1.6, Math.PI); },
@@ -11505,8 +11505,8 @@ async function goFam20() { G.mode = 'cine'; S.flags.c20st = 'fam'; setObj(''); p
   await goLab20(); }
 
 // ---- 折り目の内側：カ・エレの事務所 ----
-async function goLab20() { G.mode = 'cine'; S.flags.c20st = 'lab'; await goArea('kaere20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, false); a.fray.visible = false; a.weave.visible = false; a.ka.facing = 0;
-  const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cAll = () => cut18(0.4, 2.0, -0.3, 0, 1.5, 1.8), cCs = () => cut18(-1.2, 1.8, 0.2, -1.9, 1.65, 1.6), cTn = () => cut18(0.6, 1.7, 0.6, 0, 1.55, 2.0), cMs = () => cut18(1.2, 1.8, 0.2, 1.9, 1.7, 1.6);
+async function goLab20() { G.mode = 'cine'; S.flags.c20st = 'lab'; setObj(''); await goArea('kaere20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, false); a.fray.visible = false; a.weave.visible = false; a.ka.facing = 0;
+  const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cAll = () => cut18(3.4, 2.3, -0.4, 0, 1.5, 1.7), cCs = () => cut18(-0.6, 2.0, -0.7, -1.9, 1.7, 1.6), cTn = () => cut18(0.9, 1.9, -0.5, 0, 1.6, 2.0), cMs = () => cut18(0.6, 2.0, -0.7, 1.9, 1.75, 1.6);
   cine(0, 2.2, 2.8, 0, 1.5, 6.4); await card('勝川　「ひだまり」の裏　――　古い倉庫', '火曜　午後八時', 1600);
   await narr('ファミレスの裏の、古い倉庫。……モイが扉を三回叩くと、その奥は、倉庫の何倍も、広かった。');
   pan([0, 3, 6], [0, 2, 0], [3.6, 3.0, 2.0], [0, 1.8, -2.9], 6); await narr('畳まれた壁が、ゆっくりと、回っていた。……棚には、どこの世界のものとも知れない瓶が、並んでいる。');
@@ -11555,9 +11555,9 @@ function cradle20Items() { const a = AREAS.cradle20; if (!a.built) { a.build(a);
   addItem(a, { id: 'k20out', x: 9.6, z: 6.0, r: 1.4, label: '外へ（モイの車）', col: 0xC8323C, once: false, avail: () => on() && ['hub', 'bed', 'spec'].every(got), on: () => evCradle20('out') }); }
 function obj20k() { const got = S.flags.c20k || [], n = ['hub', 'bed', 'spec'].filter(k => got.includes(k)).length; setObj(n >= 3 ? '入口へ戻る（モイの車）' : '夜警に見つからずに：針を二本（中枢・寝室）、仕様書を写す（' + n + '／3）'); }
 async function evCradle20(k) { const a = AREAS.cradle20; G.mode = 'cine'; const got = S.flags.c20k || (S.flags.c20k = []); if (!got.includes(k)) got.push(k);
-  if (k === 'hub') { P.pos.set(1.1, 0, -4.9); P.facing = Math.PI; cut18(2.2, 2.0, -4.6, 1.1, 1.2, -6.0); await narr('棚いっぱいの機械が、静かに、瞬いていた。……三百の部屋の、三百の「見守り」が、ここに、集まっている。');
+  if (k === 'hub') { P.pos.set(1.9, 0, -5.0); P.facing = -2.6; cut18(0.0, 2.1, -4.5, 1.0, 1.1, -6.2); await narr('棚いっぱいの機械が、静かに、瞬いていた。……三百の部屋の、三百の「見守り」が、ここに、集まっている。');
     await say('cassia', '……一本目。'); sfx('zap'); a.pins[0].visible = true; await say('moi', '（無線）針、来た。……カ・エレさんの方で、受けてる。'); await say('kaere', '（無線）うん、うん。……入ってきた、入ってきた。'); }
-  if (k === 'bed') { P.pos.set(-6.6, 0, -4.6); P.facing = -Math.PI / 2; cut18(-5.4, 2.2, -3.0, -8.0, 0.9, -4.6); await narr('大人が、ひとり、寝られる大きさの、揺りかごだった。……柵が、ついていた。');
+  if (k === 'bed') { P.pos.set(-6.6, 0, -4.6); P.facing = -Math.PI / 2; cut18(-8.4, 2.5, -2.3, -7.8, 0.8, -4.7); await narr('大人が、ひとり、寝られる大きさの、揺りかごだった。……柵が、ついていた。');
     await narr('柵の上で、小さな飾りが、回っていた。……鈴の音が、した。'); await say('cassia', '……揺りかご、というより。'); await say('tuna', '（無線）カシア？'); await say('cassia', '……なんでもない。二本目。'); sfx('zap'); a.pins[1].visible = true; }
   if (k === 'spec') { P.pos.set(-9.4, 0, 4.8); P.facing = 0; cut18(-8.2, 2.0, 3.6, -9.6, 1.0, 5.6); sfx('shutter');
     nameCard({ s: '揺籃計画　見守り仕様　第三次案', b: '「見守り」', e: 'CRADLE WATCH', col: '#E8C860', p: '入居者（人間）の心拍・体温・声色から\n「しあわせの値」を算出し、後見人（持ち主）へ常時送る。\n値が下がった場合、後見人へ「会いに来て」と通知する。' });
@@ -11573,7 +11573,7 @@ async function evCradle20(k) { const a = AREAS.cradle20; G.mode = 'cine'; const 
   obj20k(); playOn(); }
 
 // ---- 港の水族館（久世を操作） ----
-async function goAqua20() { G.mode = 'cine'; S.flags.c20st = 'aqua'; S.flags.c20q = []; aqua20Items(); playAs20(null); await goArea('aqua20', [9.4, 5.0], -Math.PI * 0.7); const a = AREAS.aqua20, sh = a.sh; bgm('aqua20');
+async function goAqua20() { G.mode = 'cine'; S.flags.c20st = 'aqua'; S.flags.c20q = []; setObj(''); aqua20Items(); playAs20(null); await goArea('aqua20', [9.4, 5.0], -Math.PI * 0.7); const a = AREAS.aqua20, sh = a.sh; bgm('aqua20');
   a.fol = false; a.fear = 0; a.dim = 0; a.look = false; a.sink = 0; sh.y = 0; sh.hidden = false; sh.pos.set(0.4, 0, -2.9); sh.facing = Math.PI; sh.st = {}; for (const n of [a.cs, a.tn, a.ms]) n.hidden = true; a.dark.material.opacity = 0;
   pan([8, 3, 6], [0, 2, -3], [3.6, 1.9, 1.4], [0.4, 1.8, -2.9], 6); await card('名古屋港　港の水族館', '金曜　午後九時半　――　夜間貸し切り', 1800);
   await narr('大水槽の前に、背の高い客が、ひとり、立っていた。……館内には、ほかに、誰もいなかった。'); await saku('……十億で、水族館を、まるごと、借りたのか。');
@@ -11590,7 +11590,7 @@ function aqua20Items() { const a = AREAS.aqua20; if (!a.built) { a.build(a); a.b
   addItem(a, { id: 'q20b', x: 0, z: 2.4, r: 1.6, label: 'ベンチに座る', col: 0xC8323C, once: false, avail: () => on() && ['j', 'o', 'd'].every(got), on: () => evAqua20('b') }); }
 function obj20q() { const n = (S.flags.c20q || []).length; setObj(n >= 3 ? 'ベンチで、ひと休み' : 'シェオルと、館内を歩く（' + n + '／3）　クラゲ／大水槽／深海'); }
 async function evAqua20(k) { const a = AREAS.aqua20, sh = a.sh; G.mode = 'cine'; a.fol = false; const got = S.flags.c20q || (S.flags.c20q = []); if (!got.includes(k)) got.push(k);
-  if (k === 'j') { P.pos.set(-7.5, 0, -0.3); P.facing = Math.atan2(-1.1, -1.7); sh.pos.set(-9.2, 0, 0.1); sh.facing = Math.atan2(0.6, -2.1); cut18(-6.9, 1.9, -2.5, -8.3, 1.6, -0.2);
+  if (k === 'j') { P.pos.set(-7.4, 0, -0.2); P.facing = Math.atan2(-1.2, -1.8); sh.pos.set(-9.6, 0, -1.0); sh.facing = Math.atan2(2.2, 0.8); cut18(-6.0, 1.8, 1.4, -8.8, 1.6, -1.2);
     await narr('円い水槽の中で、クラゲが、灯りのように、上下していた。'); await say('sheol', 'くらげ、すき。……ほねが、なくて、ずっと、しずんでいくのに、……しずまないの。'); await say('sheol', 'わたし、しずむの、とめられないので。……うらやましい。');
     const j = await choose([{ k: '温情', t: '「……沈まないコツを、知ってるのかもしれませんね」', warm: 1 }, { k: '表', t: '「クラゲも、ずっと泳いでるそうですよ。止まると、沈むから」' }, { k: '裏声', t: '「沈むのも、悪くない。……底なら、それ以上、落ちない」', cold: 1 }]);
     if (j === 0) await say('sheol', 'こつ。……こつ、しりたい。……ソウさん、いっしょに、さがして、くれますか。'); else if (j === 1) await say('sheol', 'ずっと、およいでる。……つかれ、ないのかな。……ソウさんも、ずっと、およいでる、かお、してる。'); else await say('sheol', '……そこなら、おちない。……ふふ。ソウさん、わたしの、いえのこと、ほめて、くれた。');
@@ -11638,7 +11638,7 @@ async function hug20() { const a = AREAS.aqua20, sh = a.sh;
 
 // ---- 折り目の内側：報告 ----
 async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; await goArea('kaere20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = true; a.weave.visible = true; fear20(0);
-  const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cCs = () => cut18(-1.2, 1.8, 0.2, -1.9, 1.65, 1.6), cTn = () => cut18(0.6, 1.7, 0.6, 0, 1.55, 2.0), cMs = () => cut18(1.2, 1.8, 0.2, 1.9, 1.7, 1.6);
+  const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cCs = () => cut18(-0.6, 2.0, -0.7, -1.9, 1.7, 1.6), cTn = () => cut18(0.9, 1.9, -0.5, 0, 1.6, 2.0), cMs = () => cut18(0.6, 2.0, -0.7, 1.9, 1.75, 1.6);
   cine(0, 6, 9, 0, 1.2, -1); await card('折り目の内側', '土曜　午前零時', 1400);
   cKa(); await say('kaere', 'シェオル。底なしの縁。……喜びだけで、針が、底を、打たない。'); await say('kaere', 'ほつれるか、心装になるか。……あの子なら、どっちでも、とんでもないものが、出てくる。');
   await say('kaere', '次の指名の夜に、ショックを、あげよう。'); cMs(); await say('moi', '……どんな。'); cKa(); await say('kaere', 'いちばん、簡単なのは。……「ソウ」が、いなくなること、かな。');
