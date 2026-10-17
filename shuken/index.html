@@ -120,6 +120,7 @@ body.ura #uraVeil { opacity: 1; }
 #card h2 { margin: 0; font-family: var(--mincho); font-weight: 800; font-size: clamp(22px, 5vw, 40px); letter-spacing: .12em; text-wrap: balance; }
 #card p { margin: 0; font-family: var(--mincho); font-size: 14px; color: var(--mute); letter-spacing: .2em; }
 #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .45s; z-index: 15; }
+body.overFade #dlg, body.overFade #phone { z-index: 16; }
 #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 70px); transform: translateX(-50%); background: var(--paper); color: #141A28; padding: 6px 14px; font-size: 13px; font-weight: 700; z-index: 9; pointer-events: none; border-left: 5px solid var(--stamp); max-width: 90vw; }
 
 /* 手帳 */
@@ -10982,7 +10983,7 @@ async function evHub19(k, i) { const a = AREAS.hub19; G.mode = 'cine';
     if (i === 2) { cut18(3.0, 1.9, 1.6, 1.2, 1.0, 4.2); await narr('「揺り籠ハウス」の箱は、ずしりと、重かった。……中身は、表札。三百枚。どれにも、名前の欄が、空いていた。'); await saku('名前を書けば、そこが、そいつの揺りかごか。'); }
     if (i === 1) { cut18(-1.8, 1.9, 1.6, -3.6, 1.0, 4.2); await narr('シャンパンと、名札の束。……「ヒトトキ　提携キャスト」。'); }
     if (i === 0) { cut18(-6.6, 1.9, 1.6, -8.4, 1.0, 4.2); await narr('書類箱の表書きは、一文字だけ。……「揺籃」。'); await saku('全部、同じ方を、向いてやがる。'); } }
-  if (k === 'yk') { cut18(8.4, 1.8, 0.6, 9.2, 1.6, -2.2); await say('yuki', '……人間さん。手、冷たくない？　ここ、マイナス二十度の前だから。');
+  if (k === 'yk') { P.pos.set(9.8, 0, -0.5); talkCam18(a.yk, -1); await say('yuki', '……人間さん。手、冷たくない？　ここ、マイナス二十度の前だから。');
     await say('yuki', '雪女はね、一つだけ、約束させるの。……私は、まだ、誰とも、してない。'); await say('yuki', '「ヒトトキ」でね、何回か、人間さんと、お話ししたの。……でも、時間が来ると、みんな、帰っちゃう。'); await say('yuki', '帰らない約束を、させたら、だめかしら。'); await saku('……帰す気のない店も、帰さない約束も。'); S.flags.c19yk = true; }
   if (k === 'mi') { const mi = a.mi; mi.lookAt = 'P'; cut18(8.0, 1.6, 3.8, 6.4, 1.3, 2.6); await say('miria', '……三つとも、合ってる。ふーん。ざぁこじゃ、ないじゃん。');
     await say('miria', 'ねえ、おじさん。「揺籃」って、聞いた？　……来月から、ミリアの便、全部、それの荷物になるんだって。');
@@ -10995,7 +10996,7 @@ async function evHub19(k, i) { const a = AREAS.hub19; G.mode = 'cine';
   obj19h(); playOn(); }
 
 // ---- 一週間：水・木と、アプリ ----
-async function goWeek19() { G.mode = 'cine'; S.flags.c19st = 'week'; setObj(''); await fade(true);
+async function goWeek19() { G.mode = 'cine'; S.flags.c19st = 'week'; setObj(''); await fade(true); document.body.classList.add('overFade');
   await card('水曜', 'エルフィン・メディカル　――　出向三日目', 1800);
   await narr('エルフの病院では、誰も、走らなかった。……八十歳の人間の患者が、「あと二百年は大丈夫」と言われて、泣いていた。');
   await narr('うれし泣きか、そうでないのか。……理事長のセレスティアは、「千年かければ、どちらでも同じになりますわ」と、笑った。');
@@ -11009,7 +11010,7 @@ async function goWeek19() { G.mode = 'cine'; S.flags.c19st = 'week'; setObj('');
   await saku('……源氏名、か。'); await say('kuze', '……三枝さん、楽しんでませんか。');
   sfx('chime'); await phoneMsg('「ヒトトキ」', 'ソウ さん、指名が入りました！\n指名者：しぇお さま（上位会員・今月の課金額　第１位）\n日時：金曜　午後九時半　場所：夜宴グループ　会員制ラウンジ「月下」\nチップ：￥10,000,000', '23:02');
   await saku('一千万。……おはなし代に。'); await say('kuze', '…………首位、か。');
-  await fade(false); await goClub19(); }
+  document.body.classList.remove('overFade'); await goClub19(); }
 
 // ---- 月下（操作） ----
 function club19Items() { const a = AREAS.club19; if (!a.built) { a.build(a); a.built = true; } if (a.i19) return; a.i19 = true; const on = on19('club'), got = k => (S.flags.c19c || []).includes(k);
@@ -11513,6 +11514,6 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, goWeek19, goClub19, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, evSheol19, goCouncil19, goHq19};
 })();
 </script>
