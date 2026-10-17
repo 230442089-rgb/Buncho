@@ -208,6 +208,8 @@ body.overFade #dlg, body.overFade #phone { z-index: 16; }
 #nameCard b { display: block; font-family: var(--mincho); font-weight: 800; font-size: 28px; line-height: 1.2; margin-top: 2px; }
 #nameCard em { display: block; font-style: normal; font-size: 12.5px; font-weight: 700; margin-top: 4px; color: var(--gold); }
 #nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; white-space: pre-line; }
+#talkSkip { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 14px); bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); z-index: 11; border: 1px solid var(--line); background: rgba(10,13,22,.82); padding: 7px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
+#talkSkip.on { color: #fff; border-color: var(--paper); }
 #skipBtn { position: fixed; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 21; border: 1px solid var(--line); background: rgba(10,13,22,.8); padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
 /* 記録ファイル：書類のフォルダの見た目 */
 #files { position: fixed; inset: 0; z-index: 23; background: rgba(5,7,11,.88); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -361,6 +363,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
 <div id="loc"><small id="locS"></small><b id="locB"></b><i id="locI"></i></div>
 <div id="nameCard"><small id="ncS"></small><b id="ncB"></b><em id="ncE"></em><p id="ncP"></p></div>
 <button type="button" id="skipBtn" hidden>序章をとばす ▶▶</button>
+<button type="button" id="talkSkip" hidden>会話をとばす ▶▶</button>
 <div id="autoSave" aria-live="polite"></div>
 <div id="fade"></div>
 <div id="reveal" hidden></div>
@@ -651,7 +654,7 @@ function choose(opts) { return new Promise(res => { const box = $('choices'); bo
   opts.forEach((o, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = o.k === '裏声' ? 'ura' : o.k === '温情' ? 'warm' : ''; b.innerHTML = '<span class="k">' + (o.k === '裏声' && sakuNamed() ? '朔' : (o.k || '表')) + '</span><span></span>'; b.lastChild.textContent = o.t;
     b.addEventListener('click', () => { box.hidden = true; sfx('choose'); if (o.cover) addCover(o.cover); if (o.warm) S.warm += o.warm; if (o.cold) S.cold += o.cold; res(i); }); box.appendChild(b); });
   const first = box.querySelector('button'); if (first) first.focus({ preventScroll: true }); }); }
-function phoneMsg(from, text, time) { return new Promise(res => { sfx('vib'); G.shake = 0.15; $('phFrom').textContent = from; $('phMsg').textContent = text; $('phTime').textContent = time || '08:14'; const p = $('phone'); p.hidden = false; const close = () => { p.removeEventListener('click', close); p.hidden = true; res(); }; setTimeout(() => p.addEventListener('click', close), 350); }); }
+function phoneMsg(from, text, time) { if (G.skip) return Promise.resolve(); return new Promise(res => { sfx('vib'); G.shake = 0.15; $('phFrom').textContent = from; $('phMsg').textContent = text; $('phTime').textContent = time || '08:14'; const p = $('phone'); p.hidden = false; const close = () => { p.removeEventListener('click', close); p.hidden = true; res(); }; setTimeout(() => p.addEventListener('click', close), 350); }); }
 function card(t, s, ms = 2400) { if (G.skip) return Promise.resolve(); return new Promise(res => { $('cardT').textContent = t; $('cardS').textContent = s || ''; const c = $('card'); c.classList.add('on'); setTimeout(() => { c.classList.remove('on'); setTimeout(res, 700); }, ms); }); }
 function fade(on) { $('fade').style.opacity = on ? 1 : 0; return sleep(G.skip ? 30 : 460); }
 // 台本用のカメラ移動（スローなパン）
@@ -1721,8 +1724,8 @@ function snapNow() { return { v: 1, area: A.id, place: A.place || '', pos: [+P.p
 function flashSaved(text) { const m = $('autoSave'); m.textContent = text; m.classList.remove('on'); void m.offsetWidth; m.classList.add('on'); }
 function saveGame(auto, slot) { if (!A || G.mode !== 'play') return false; const f = readFiles(), id = slot || 'auto'; f[id] = snapNow(); writeJSON(FILES_KEY, f); cloudPut(id, f[id]);
   flashSaved((auto ? '記録しました（自動）' : '記録しました') + (cloud ? '' : lsOK ? '　この端末' : '　ページを閉じると消えます')); refreshTitle(); return true; }
-// 第七章 下編から：場面の始まりで、読み直す場面の名前ごと自動記録する（演出の途中でも書く）
-function ckSave(name) { if (!A) return; S.flags.ck = name; const f = readFiles(); f.auto = snapNow(); writeJSON(FILES_KEY, f); cloudPut('auto', f.auto);
+// 第七章 下編から：場面の始まりで自動記録する（演出の途中でも書く。読み直すときは resumeOf の場面から）
+function ckSave() { if (!A) return; const f = readFiles(); f.auto = snapNow(); writeJSON(FILES_KEY, f); cloudPut('auto', f.auto);
   flashSaved('記録しました（自動）' + (cloud ? '' : lsOK ? '　この端末' : '　ページを閉じると消えます')); refreshTitle(); }
 // ---- アカウントに保存（db）：ページを更新しても、別の端末でも、記録が残る ----
 // 各プレイヤー専用の data/users/<id>/ の下に、ファイルごとに 1 文書（auto, f1〜f3, meta）。本人にしか見えない。
@@ -1745,7 +1748,7 @@ async function cloudInit() { if (!(window.claude && window.claude.use)) return; 
 function playOn() { G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; }
 async function loadSnap(d) { if (!d || !AREAS[d.area]) return; G.mode = 'cine'; unpackS(d.s); DONE = new Set(d.done || []); stationT = 0; applySaku();
   if (S.chapter >= 2) SPK.kuroiwa[0] = '黒岩室長';
-  const ck = typeof RESUME !== 'undefined' && RESUME[S.flags.ck]; if (ck && ck[0] === S.chapter) { $('report').hidden = true; toast(CHN[S.chapter] + '　' + (d.place || '') + ' から'); await ck[1](); return; }
+  const rs = typeof resumeOf === 'function' && resumeOf(); if (rs) { $('report').hidden = true; toast(CHN[S.chapter] + '　' + (d.place || '') + ' から'); await rs(); return; }
   await goArea(d.area, d.pos, d.facing); if (A.stealth) A.det = 0; setObj(d.obj || ''); playOn(); toast(CHN[S.chapter] + '　' + (d.place || '') + ' から'); }
 async function loadGame() { const l = latestFile(); if (l) await loadSnap(l.d); }
 function fmtT(t) { const d = new Date(t), z = n => String(n).padStart(2, '0'); return d.getFullYear() + '.' + z(d.getMonth() + 1) + '.' + z(d.getDate()) + ' ' + z(d.getHours()) + ':' + z(d.getMinutes()); }
@@ -9770,7 +9773,7 @@ function hall17Items() { const a = AREAS.hall16; if (a.i17) return; a.i17 = true
 
 async function chapter17() { G.mode = 'cine'; S.chapter = 17; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; newsBar(false); galHud(false); bgm(''); P.st = {};
   S.flags.c17st = 'open'; MEL.on = false; MEL.ko = {}; MEL.lure = null; PB.on = false;
-  await goArea('hall16', [0, -1.4], Math.PI); ckSave('chapter17'); const a = AREAS.hall16; hall17Items(); hallChaos17(a); fol16(a, true); folAt16(a, [-2.8, -0.4, Math.PI], [-1.8, 1.2, Math.PI]); a.folOn = false; bgm('bulk16');
+  await goArea('hall16', [0, -1.4], Math.PI); ckSave(); const a = AREAS.hall16; hall17Items(); hallChaos17(a); fol16(a, true); folAt16(a, [-2.8, -0.4, Math.PI], [-1.8, 1.2, Math.PI]); a.folOn = false; bgm('bulk16');
   const ku = a.kuro, US = () => cine(1.4, 1.7, -3.4, 0, 1.4, -1.4);
   cine(-3.2, 1.3, -5.0, 0, 2.5, -7.3); await card('第七章　下編', '額縁の外', 2600);
   await narr('黒い拳が、振り上げられていた。……扉を叩く人の、真上で。');
@@ -9853,7 +9856,7 @@ async function evTake17() { const a = AREAS.hall16, is = a.fol[1], mu = a.fol[0]
 function party17(a) { return [pbAlly(a.mu, 'mu', { dmg: 1.4, rate: 0.6, side: 1.9, word: '連携' }), pbAlly(a.is, 'is', { dmg: 2.8, rate: 1.2, side: -1.9, word: '連携・重' })]; }
 function stuWave17(a, idx, pts) { return idx.map((k, j) => { const n = a.stu[k]; n.pos.set(pts[j][0], 0, pts[j][1]); n.facing = 0; return pbFoe(n, { hp: 8, moves: [['swing', 'knife', 'lunge'][j % 3], 'swing', ['knife', 'lunge'][j % 2]], speed: 2.2 + (j % 3) * 0.3 }); }); }
 async function goEsc17() { S.flags.c17st = 'esc'; G.mode = 'cine'; setObj(''); const h = AREAS.hall16; if (h.fol) for (const n of h.fol) n.hidden = true; h.folOn = false;
-  await goArea('esc17', [9.4, 1.0], -Math.PI / 2); ckSave('goEsc17'); const a = AREAS.esc17; bgm('esc17'); a.mu.pos.set(9.8, 0, 2.6); a.is.pos.set(10.6, 0, -0.4); for (const n of [a.mu, a.is]) { n.hidden = false; n.st = {}; n.facing = -Math.PI / 2; }
+  await goArea('esc17', [9.4, 1.0], -Math.PI / 2); ckSave(); const a = AREAS.esc17; bgm('esc17'); a.mu.pos.set(9.8, 0, 2.6); a.is.pos.set(10.6, 0, -0.4); for (const n of [a.mu, a.is]) { n.hidden = false; n.st = {}; n.facing = -Math.PI / 2; }
   for (const n of a.stu) { n.hidden = true; n.st = {}; } a.ro.hidden = true; a.se.hidden = true; a.ed.hidden = true; a.as.hidden = true; a.ne.hidden = true;
   pan([12, 6, 9], [0, 1, -1], [9, 9, 12], [0, 0.5, -1], 4); await narr('回廊の束を、駆け抜けた。……入口の間は、もう、目の前だった。');
   stuWave17(a, [0, 1, 2, 3], [[-6, -3], [-3, 2], [-8, 1], [-2, -4.2]]); for (const k of [0, 1, 2, 3]) { a.stu[k].hidden = false; a.stu[k].facing = Math.PI / 2; }
@@ -9972,7 +9975,7 @@ async function edel17(a) { const se = a.se, ed = a.ed, as = a.as; G.mode = 'cine
   await goRestore17(); }
 
 // ---- 留文堂：真壁を、絵から、戻す ----
-async function goRestore17() { S.flags.c17st = 'restore'; G.mode = 'cine'; setObj('真壁を、絵から、戻す'); await goArea('hq', [-1.0, 2.8], Math.PI); ckSave('goRestore17'); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('01:48');
+async function goRestore17() { S.flags.c17st = 'restore'; G.mode = 'cine'; setObj('真壁を、絵から、戻す'); await goArea('hq', [-1.0, 2.8], Math.PI); ckSave(); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('01:48');
   a.kr.pos.set(-0.4, 0, -2.6); a.kr.lookAt = null; a.kr.facing = 0; a.sa.st.sit = true; a.ni.pos.set(-3.0, 0, 0.4); a.ni.facing = Math.PI / 2;
   const mu = cast16(a, 'murase', LK.muraseS, 2.8, 2.4, -Math.PI * 0.75), is = cast16(a, 'ishii', LK.ishii, 3.6, 1.2, -Math.PI / 2);
   if (!a.dev17) { a.dev17 = reverserModel(); a.dev17.position.set(0, 0.95, -0.2); a.g.add(a.dev17); const pf = frame(a.g, 0, 1.75, -0.12, 1.5, 0.94, canvasTex(320, 200, drawDoor16)); a.pf17 = pf; } a.dev17.visible = true; a.pf17.visible = true;
@@ -10432,7 +10435,7 @@ function obj18() { const b = [S.flags.c18mu ? '' : '村瀬', S.flags.c18is ? '' 
 // ---- 冷たい序：バルク・家族の巣 ----
 async function chapter18() { G.mode = 'cine'; S.chapter = 18; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; newsBar(false); galHud(false); bgm(''); P.st = {};
   S.flags.c18st = 'nest'; S.flags.c18tp = []; PON.on = false; PB.on = false; MEL.on = false;
-  await goArea('nest18'); ckSave('chapter18'); const a = AREAS.nest18, ku = a.kuro; bgm('nest18'); a.holo.visible = false; a.ponRice.visible = false; if (a.ponHolo) a.ponHolo.visible = false;
+  await goArea('nest18'); ckSave(); const a = AREAS.nest18, ku = a.kuro; bgm('nest18'); a.holo.visible = false; a.ponRice.visible = false; if (a.ponHolo) a.ponHolo.visible = false;
   ku.pos.set(-5.8, 0, 2.2); ku.facing = Math.PI / 2; ku.st = { sit: true }; a.fk.pos.set(-9.0, 0, -2.6); a.fk.facing = Math.PI / 2; a.fk.st = {}; a.hk.pos.set(-8.6, 0, -0.6); a.hk.facing = Math.PI / 2; a.hk.st = {};
   a.mem.forEach((n, i) => { const p = a.perches[i % a.perches.length]; n.goal = null; n.pos.set(p[0], 0, p[2] + (i < 6 ? -0.7 : 0.7)); perch18(n, p[1]); n.st = { bow: true, bowA: 0.22 }; n.facing = Math.PI / 2; });
   pan([10, 6, 10], [-4, 2, -2], [-3.4, 4.2, 4.0], [-10.6, 3.2, -4.4], 7); loc('B.U.N society', '静止軌道　居住環「辻」', 'バルク・家族の巣　午前四時'); await sleep(G.skip ? 0 : 2600); loc(null);
@@ -10462,7 +10465,7 @@ async function chapter18() { G.mode = 'cine'; S.chapter = 18; $('report').hidden
   await fade(true); await card('7.5章　幕間1', '止まり木', 3400); await goHq18(); }
 
 // ---- 留文堂：居候をどうするか ----
-async function goHq18() { G.mode = 'cine'; S.flags.c18st = 'meet'; hq18Items(); await goArea('hq', [0.6, 2.9], Math.PI); ckSave('goHq18'); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('08:02');
+async function goHq18() { G.mode = 'cine'; S.flags.c18st = 'meet'; hq18Items(); await goArea('hq', [0.6, 2.9], Math.PI); ckSave(); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('08:02');
   const { mu, is, po, p } = castHq18(a); po.pos.set(3.6, 0, 4.3); po.y = 0.3; po.st = { sit: true }; po.facing = Math.PI; p.box.visible = true; mu.pos.set(2.2, 0, 4.4); mu.facing = Math.PI / 2; mu.st = { sit: true }; is.hidden = true;
   cine(2.8, 2.5, 1.2, 3.1, 0.7, 4.3); await card('留文堂　地下', '翌朝　午前八時', 1800);
   await narr('コピー用紙の段ボールの中で、文鳥が、寝息を立てていた。……ぷすー、ぷすー。');
@@ -10537,7 +10540,7 @@ async function talkPonpu18() { const a = AREAS.hq, po = a.po18, tp = S.flags.c18
   po.lookAt = null; }
 
 // ---- 街へ：広がる抗議 ----
-async function goTown18() { G.mode = 'cine'; S.flags.c18st = 'town'; setObj(''); ckSave('town18'); const a = AREAS.hq, is = a.o16_ishii, po = a.po18;
+async function goTown18() { G.mode = 'cine'; S.flags.c18st = 'town'; setObj(''); ckSave(); const a = AREAS.hq, is = a.o16_ishii, po = a.po18;
   is.goal = null; po.goal = null; is.pos.set(4.6, 0, 3.4); is.facing = Math.atan2(1.0, 1.0); po.pos.set(5.6, 0, 4.4); po.facing = Math.atan2(-1.0, -1.0); P.pos.set(3.4, 0, 4.4); cine(2.4, 2.0, 1.4, 5.1, 1.2, 3.9); await say('ishii', '僕のパーカーと、帽子です。……たぶん、入ります。');
   await fade(true); ponDisguise(po.model, true); po.facing = Math.atan2(1.2, -1.8); cine(6.9, 1.6, 2.4, 5.6, 1.0, 4.4); await fade(false); await say('ponpu', '……あったかいっす。石居さんの、匂いがするっす。'); await say('kuze', '……匂いの話は、やめてやれ。');
   await goArea('shotengai18', [-18.4, 0], Math.PI / 2); const s = AREAS.shotengai18; bgm('town18'); playAsPonpu(false); const sp = s.po; sp.hidden = false; ponDisguise(sp.model, true); sp.pos.set(-19.4, 0, 0.8); sp.goal = null; s.folOn = false; CAST.ponpu = sp.model;
@@ -10600,7 +10603,7 @@ function ponCfg18(a) { const pool = a.pool, at = (n, x, z) => { n.pos.set(x, 0, 
         cine(1.0, 2.0, 3.0, 3.6, 1.8, -0.8); await say('dogou', '名乗れねェ奴が、文鳥の抗議の、邪魔をすんのかァ！！'); cine(P.pos.x + 1.6, 1.5, P.pos.z + 2.4, P.pos.x, 0.9, P.pos.z); await say('ponpu', '抗議は、いいっす。……でも、人間の運転手さんを殴るのは、抗議じゃないっす。');
         cine(1.0, 2.0, 3.0, 3.6, 1.8, -0.8); await say('dogou', '竜の看板、背負った人間も、竜と同じだァ！！'); cine(-8.4, 1.8, 6.2, -10.4, 1.6, 4.6); await saku('……どっちも、半分は、正しい。だから、ややこしい。'); } },
     onClear: async () => { await afterFight18(); } }; }
-async function goRotary18() { G.mode = 'cine'; S.flags.c18st = 'fight'; setObj(''); await goArea('rotary18', [-9, 4], 0); ckSave('goRotary18'); const a = AREAS.rotary18, dg = a.dg, dr = a.dr, po = a.po; bgm('town18'); playAsPonpu(false); P.model.root.visible = false; CAST.ponpu = po.model; ponDisguise(po.model, true);
+async function goRotary18() { G.mode = 'cine'; S.flags.c18st = 'fight'; setObj(''); await goArea('rotary18', [-9, 4], 0); ckSave(); const a = AREAS.rotary18, dg = a.dg, dr = a.dr, po = a.po; bgm('town18'); playAsPonpu(false); P.model.root.visible = false; CAST.ponpu = po.model; ponDisguise(po.model, true);
   a.kz.hidden = false; a.kz.pos.set(-10.4, 0, 4.6); a.kz.facing = Math.PI * 0.7; CAST.kuze = a.kz.model; po.hidden = false; po.pos.set(-9.4, 0, 3.8); po.facing = Math.PI * 0.7; dg.hidden = false; dg.pos.set(5.4, 0, -4.4); dg.y = 2.42; dg.facing = Math.PI * 0.05; dg.st = { armsUp: true };
   dr.hidden = false; dr.pos.set(0.4, 0, -2.6); dr.facing = Math.PI * 0.6; dr.st = { kneel: true };
   for (let i = 0; i < 10; i++) { const n = a.pool[i], ang = -Math.PI * 0.2 + i / 9 * Math.PI * 1.3, r = 2.4 + (i % 3) * 0.7; n.hidden = false; n.st = { armsUp: i % 2 === 0 }; n.pos.set(1.6 + Math.sin(ang) * r, 0, -1.6 + Math.cos(ang) * r * 0.8); n.facing = Math.atan2(0.4 - n.pos.x, -2.6 - n.pos.z); }
@@ -10649,7 +10652,7 @@ async function goNest18b() { G.mode = 'cine'; S.flags.c18st = 'rumor'; await goA
   await goCall18(); }
 
 // ---- 留文堂：名乗り出る ----
-async function goCall18() { G.mode = 'cine'; S.flags.c18st = 'call'; newsBar(false); playAsPonpu(false); await goArea('hq', [0.6, 2.9], Math.PI); ckSave('goCall18'); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('18:04'); P.model.root.visible = true;
+async function goCall18() { G.mode = 'cine'; S.flags.c18st = 'call'; newsBar(false); playAsPonpu(false); await goArea('hq', [0.6, 2.9], Math.PI); ckSave(); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('18:04'); P.model.root.visible = true;
   const { mu, is, po, p } = castHq18(a); p.box.visible = true; mu.pos.set(3.0, 0, 2.6); mu.facing = -Math.PI * 0.7; is.pos.set(-2.6, 0, 2.6); is.facing = Math.PI * 0.7; a.sa.st = {}; a.sa.pos.set(3.0, 0, -1.6); a.sa.facing = -Math.PI / 2; a.ni.pos.set(-3.0, 0, -0.4); a.ni.facing = Math.PI / 2;
   po.pos.set(1.6, 0, 2.4); po.facing = Math.PI; ponDisguise(po.model, false); P.pos.set(0.4, 0, 3.0); P.facing = Math.PI;
   cine(0, 4.8, 6.6, 0, 1.0, -0.2); await card('留文堂　地下', '同じ日　午後六時', 1600);
@@ -10882,7 +10885,7 @@ const cnpc = (A_, k) => A_.npcs.find(n => n.key === k);
 // ---- 冷たい序：界の縁 ----
 async function chapter19() { G.mode = 'cine'; S.chapter = 19; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; newsBar(false); galHud(false); bgm(''); P.st = {};
   S.flags.c19st = 'void'; S.flags.c19k = []; S.flags.c19c = []; PON.on = false; PB.on = false; MEL.on = false;
-  await goArea('void19'); ckSave('chapter19'); const a = AREAS.void19; bgm('void19'); a.deep.material.opacity = 0;
+  await goArea('void19'); ckSave(); const a = AREAS.void19; bgm('void19'); a.deep.material.opacity = 0;
   pan([0, 9, 16], [0, 1, 0], [0, 3.2, 7.6], [0, 1.6, -0.8], 8); await card('第八章　Intro', 'ヒトトキ', 3200);
   await narr('天でも、海でも、地上でもない場所。……上の者と、下の者が、ときどき、立ち話をする。');
   cine(-0.2, 4.6, 3.0, -2.4, 3.9, -1.0); await say('uriela', '……深きもの。ずいぶん、浅いところまで、上がってきたのですね。');
@@ -10926,7 +10929,7 @@ function koryn19Items() { const a = AREAS.koryn19; if (!a.built) { a.build(a); a
   addItem(a, { id: 'k19c', x: -6.5, z: 2.2, r: 1.5, label: '紅鱗の社員と話す', avail: () => on() && !got('c'), on: () => evKoryn19('c') });
   addItem(a, { id: 'k19m', x: 0, z: -4.4, r: 1.8, label: '紅宮常務に、報告する', col: 0xC8323C, once: false, avail: () => on() && got('v') && got('y') && got('r'), on: () => evKoryn19('m') }); }
 function obj19k() { const g = S.flags.c19k || [], left = [['v', '金庫番に書類'], ['y', '人間の社員'], ['r', '第三会議室']].filter(x => !g.includes(x[0])).map(x => x[1]); setObj(left.length ? '紅鱗の一日：' + left.join('／') : '紅宮常務に、報告する'); }
-async function goKoryn19() { G.mode = 'cine'; S.flags.c19st = 'koryn'; koryn19Items(); await goArea('koryn19', [0, 5.6], Math.PI); ckSave('goKoryn19'); const a = AREAS.koryn19, v = a.val; bgm('work19'); v.pos.set(0, 0, -4.2); v.facing = 0; v.lookAt = 'P';
+async function goKoryn19() { G.mode = 'cine'; S.flags.c19st = 'koryn'; koryn19Items(); await goArea('koryn19', [0, 5.6], Math.PI); ckSave(); const a = AREAS.koryn19, v = a.val; bgm('work19'); v.pos.set(0, 0, -4.2); v.facing = 0; v.lookAt = 'P';
   pan([10, 6, 8], [0, 1, -3], [2.4, 3.2, 4.2], [0, 1.6, -3.6], 6); await card('大曽根　紅鱗コンツェルン中部本社', '月曜　午前九時　――　出向一日目', 1800);
   await narr('赤い絨毯。金の縁。窓の外に、大曽根の街。……竜の会社は、どこもかしこも、宝物庫に似ていた。');
   cine(1.6, 1.9, -1.6, 0, 1.7, -4.2); await say('valmina', 'いらっしゃい、久世さん。……また会えて、うれしいわ。');
@@ -10974,7 +10977,7 @@ function hub19Items() { const a = AREAS.hub19; if (!a.built) { a.build(a); a.bui
   addItem(a, { id: 'h19yk', x: 9.2, z: -1.4, r: 1.5, label: '雪女の倉庫長と話す', avail: () => on() && !S.flags.c19yk, on: () => evHub19('yk') }); }
 const HUB19 = [[2, '揺り籠ハウス　モデルルーム', '中身：「全室　見守り付き」の　表札　三百枚'], [1, '夜宴グループ　会員制ラウンジ「月下」', '中身：シャンパン十二本　／　名札　「ヒトトキ」提携キャスト用'], [0, '天環ホールディングス　本社', '中身：書類箱　――　表書き「揺籃」']];
 function obj19h() { const n = S.flags.c19h || 0, a = AREAS.hub19; setObj(n >= 3 ? 'ミリアと話す' : a.carry ? '荷物を、「' + a.lanes[a.carryTo][2] + '」のレーンへ（' + n + '／3）' : 'ベルトの左端で、荷物を取る（' + n + '／3）'); }
-async function goHub19() { G.mode = 'cine'; S.flags.c19st = 'hub'; S.flags.c19h = 0; hub19Items(); await goArea('hub19', [8.6, 4.2], -Math.PI * 0.6); ckSave('goHub19'); const a = AREAS.hub19, mi = a.mi; bgm('work19'); if (a.carry) { a.g.remove(a.carry); a.carry = null; } a.laneBox.forEach(b => { b.visible = false; });
+async function goHub19() { G.mode = 'cine'; S.flags.c19st = 'hub'; S.flags.c19h = 0; hub19Items(); await goArea('hub19', [8.6, 4.2], -Math.PI * 0.6); ckSave(); const a = AREAS.hub19, mi = a.mi; bgm('work19'); if (a.carry) { a.g.remove(a.carry); a.carry = null; } a.laneBox.forEach(b => { b.visible = false; });
   pan([0, 9, 12], [0, 1, -2], [8.8, 2.4, 6.4], [6.4, 1.5, 2.6], 6); await card('春日井　千路ロジスティクス　春日井ハブ', '火曜　午後二時　――　出向二日目', 1800);
   await narr('天井の下を、ハーピーが、荷を抱えて飛んでいた。……ベルトの上を、箱が、休みなく流れていく。');
   mi.lookAt = 'P'; cine(8.0, 1.6, 3.8, 6.4, 1.3, 2.6); await say('miria', 'は～？　出向の人間って、おじさんのこと？　……また来たの？');
@@ -11027,7 +11030,7 @@ function club19Items() { const a = AREAS.club19; if (!a.built) { a.build(a); a.b
   addItem(a, { id: 'c19b', x: -5.4, z: 1.6, r: 1.5, label: '石居と話す（バー）', avail: () => on() && !got('b'), on: () => evClub19('b'), dyn: a.is });
   addItem(a, { id: 'c19v', x: 7.4, z: 4.6, r: 1.6, label: 'VIP席へ　――　しぇお さま', col: 0xC8323C, once: false, avail: () => on() && got('e') && got('d'), on: () => evSheol19() }); }
 function obj19c() { const g = S.flags.c19c || [], left = [['e', 'エルフの客'], ['d', '魔族の議員秘書']].filter(x => !g.includes(x[0])).map(x => x[1]); setObj(left.length ? '接客：' + left.join('／') + 'の席につく　※村瀬と石居ものぞける' : 'VIP席へ　――　指名の「しぇお」さま'); }
-async function goClub19() { G.mode = 'cine'; S.flags.c19st = 'club'; club19Items(); await goArea('club19', [9.2, 4.8], -Math.PI * 0.7); ckSave('goClub19'); const a = AREAS.club19; bgm('club19'); playAsKuzeHost(true); a.sinking = false; a.sinkT = 0;
+async function goClub19() { G.mode = 'cine'; S.flags.c19st = 'club'; club19Items(); await goArea('club19', [9.2, 4.8], -Math.PI * 0.7); ckSave(); const a = AREAS.club19; bgm('club19'); playAsKuzeHost(true); a.sinking = false; a.sinkT = 0;
   pan([0, 8, 12], [0, 1.2, -2], [9.6, 2.4, 6.6], [7.6, 1.4, 3.0], 6); await card('栄　夜宴グループ　会員制ラウンジ「月下」', '金曜　午後九時', 1800);
   await narr('異種族の女たちの、店だった。……人間の男が、酒を注ぎ、話を聞き、笑う。それだけの店。それだけで、一晩で、家が一軒、建つ。');
   a.mgr.lookAt = 'P'; cut18(8.0, 1.9, 3.6, 9.4, 1.7, 1.8); await say('clubMgr', 'ようこそ、「月下」へ。……ソウさん、ね。総帥から、伺っております。');
@@ -11119,7 +11122,7 @@ async function evSheol19() { const a = AREAS.club19, sh = a.sh; G.mode = 'cine';
   playAsKuzeHost(false); await goCouncil19(); }
 
 // ---- 円卓：揺籃計画 ----
-async function goCouncil19() { G.mode = 'cine'; S.flags.c19st = 'council'; await goArea('council6'); ckSave('goCouncil19'); const C = AREAS.council6; bgm('council'); C.holoOn = false; for (const k of ['rurika', 'goka', 'hsis']) { const n = cnpc(C, k); if (n) n.hidden = true; }
+async function goCouncil19() { G.mode = 'cine'; S.flags.c19st = 'council'; await goArea('council6'); ckSave(); const C = AREAS.council6; bgm('council'); C.holoOn = false; for (const k of ['rurika', 'goka', 'hsis']) { const n = cnpc(C, k); if (n) n.hidden = true; }
   for (const n of C.npcs) { n.st = {}; n.lookAt = null; } const te = cnpc(C, 'terues');
   if (!C.h19) { C.h19 = plane(3.4, 1.9, signTex(680, 380, [{ t: '揺籃計画　最終案', size: 52, f: MINCHO, w: 900, c: '#F2C230' }, { t: '住宅（紅鱗）　与信（九尾）　医療（エルフィン）', size: 28 }, { t: '伴侶（夜宴）　法（魔族議連）　資金（天環）', size: 28 }, { t: '界域協定　最終条項　――「一部」の定義を拡張', size: 30, c: '#FF7A7A' }], { bg: '#0A0C14', fg: '#E8E8F0' }), 0, 2.6, -0.4, C.g, { transparent: true, opacity: 0.9, fog: false }); C.h19.material.blending = THREE.AdditiveBlending; } C.h19.visible = true;
   pan([0, 8, 10], [0, 1, 0], [0, 6.4, 8.4], [0, 1.0, -0.4], 6); await card('名古屋　天環ホールディングス本社　最上階「円卓の間」', '同じ夜　午後十一時', 1800);
@@ -11145,7 +11148,7 @@ async function goCouncil19() { G.mode = 'cine'; S.flags.c19st = 'council'; await
   C.h19.visible = false; await goHq19(); }
 
 // ---- 留文堂 ----
-async function goHq19() { G.mode = 'cine'; S.flags.c19st = 'hq'; await goArea('hq', [0.4, 3.0], Math.PI); ckSave('goHq19'); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('01:14'); P.model.root.visible = true;
+async function goHq19() { G.mode = 'cine'; S.flags.c19st = 'hq'; await goArea('hq', [0.4, 3.0], Math.PI); ckSave(); const a = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); bgm('hq'); if (typeof setClock === 'function') setClock('01:14'); P.model.root.visible = true;
   const { mu, is, po, p } = castHq18(a); p.box.visible = false; p.perch.visible = true; p.tub.visible = true; mu.pos.set(-2.0, 0, 4.0); mu.facing = Math.PI * 0.4; is.pos.set(2.6, 0, 3.0); is.facing = -Math.PI * 0.6; po.pos.set(-3.4, 0, 4.5); perch18(po, 1.62); po.facing = Math.PI;
   a.sa.st = {}; a.sa.pos.set(3.0, 0, -1.6); a.sa.facing = -Math.PI / 2; a.ni.pos.set(-3.0, 0, -0.4); a.ni.facing = Math.PI / 2; P.pos.set(0.4, 0, 3.0); P.facing = Math.PI;
   if (!a.pearl19) { a.pearl19 = part(sph(0.07, 12, 10), 0x0A0610, 0.4, 1.0, 0.8, a.g, { emis: 0x0A0410 }); const pg = glowSprite(0x6A3AA0, 0.5, 0.4); pg.position.set(0.4, 1.0, 0.8); a.g.add(pg); a.pearlG = pg; } a.pearl19.visible = true; a.pearlG.visible = true;
@@ -11422,7 +11425,7 @@ function playAs20(m) { if (!KUZE_MODEL) KUZE_MODEL = P.model; for (const M of [T
 async function chapter20() { G.mode = 'cine'; S.chapter = 20; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); playAsKuzeHost(false); playAs20(null); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; newsBar(false); galHud(false); bgm(''); P.st = {}; fear20(0);
   S.flags.c20c = []; S.flags.c20k = []; S.flags.c20q = []; S.flags.c20ph = false; PON.on = false; PB.on = false; MEL.on = false;
   await goCampus20(); }
-async function goCampus20() { G.mode = 'cine'; S.flags.c20st = 'campus'; campus20Items(); playAs20(takoP()); await goArea('campus20', [-10.4, 4.4], Math.PI * 0.75); ckSave('goCampus20'); bgm('campus20');
+async function goCampus20() { G.mode = 'cine'; S.flags.c20st = 'campus'; campus20Items(); playAs20(takoP()); await goArea('campus20', [-10.4, 4.4], Math.PI * 0.75); ckSave(); bgm('campus20');
   pan([-12, 9, 14], [0, 1, -2], [-8.7, 1.9, 2.7], [-10.4, 1.5, 4.4], 7); await card('第八章　序', 'ほつれ', 3200);
   await narr('八本の足があっても、歩けないものは、ある。');
   cut18(-8.7, 1.75, 2.7, -10.4, 1.55, 4.4); nameCard({ s: '尾張工科大学　機械工学科　三年', b: 'タコくん', e: 'TAKO', col: '#F2702A', p: '口が悪い。成績も、悪い。\n家族のほかに、友達は、三人しかいない。\nどこの組織にも、属していない。' }); await say('tako', '……だりぃ。'); nameCard(null);
@@ -11511,7 +11514,7 @@ async function goFam20() { G.mode = 'cine'; S.flags.c20st = 'fam'; setObj(''); p
   await goLab20(); }
 
 // ---- 折り目の内側：カ・エレの事務所 ----
-async function goLab20() { G.mode = 'cine'; S.flags.c20st = 'lab'; setObj(''); await goArea('kaere20'); ckSave('goLab20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, false); a.fray.visible = false; a.weave.visible = false; a.ka.facing = 0;
+async function goLab20() { G.mode = 'cine'; S.flags.c20st = 'lab'; setObj(''); await goArea('kaere20'); ckSave(); const a = AREAS.kaere20; bgm('lab20'); gear20(a, false); a.fray.visible = false; a.weave.visible = false; a.ka.facing = 0;
   const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cAll = () => cut18(3.4, 2.3, -0.4, 0, 1.5, 1.7), cCs = () => cut18(-0.6, 2.0, -0.7, -1.9, 1.7, 1.6), cTn = () => cut18(0.9, 1.9, -0.5, 0, 1.6, 2.0), cMs = () => cut18(0.6, 2.0, -0.7, 1.9, 1.75, 1.6);
   cine(0, 2.2, 2.8, 0, 1.5, 6.4); await card('勝川　「ひだまり」の裏　――　古い倉庫', '火曜　午後八時', 1600);
   await narr('ファミレスの裏の、古い倉庫。……モイが扉を三回叩くと、その奥は、倉庫の何倍も、広かった。');
@@ -11546,7 +11549,7 @@ async function goLab20() { G.mode = 'cine'; S.flags.c20st = 'lab'; setObj(''); a
   await goCradle20(); }
 
 // ---- 揺り籠ハウス　モデルルーム（カシアを操作・潜入） ----
-async function goCradle20() { G.mode = 'cine'; S.flags.c20st = 'cradle'; S.flags.c20k = []; cradle20Items(); playAs20(cassP()); await goArea('cradle20', [9.6, 5.6], -Math.PI * 0.75); ckSave('goCradle20'); const a = AREAS.cradle20; bgm('stealth'); a.det = 0; a.pins.forEach(p => { p.visible = false; });
+async function goCradle20() { G.mode = 'cine'; S.flags.c20st = 'cradle'; S.flags.c20k = []; cradle20Items(); playAs20(cassP()); await goArea('cradle20', [9.6, 5.6], -Math.PI * 0.75); ckSave(); const a = AREAS.cradle20; bgm('stealth'); a.det = 0; a.pins.forEach(p => { p.visible = false; });
   cine(4, 7, 9, 0, 0, -1); await card('春日井　揺り籠ハウス　モデルルーム', '火曜　午後十一時', 1600);
   await narr('灯りの消えたモデルルームは、甘い匂いがした。……柔らかいもので、全部が、できていた。');
   cut18(7.9, 1.9, 3.9, 9.6, 1.6, 5.6); await say('moi', '（無線）聞こえる？　……夜警は、ふたり。ひとりは居間を回ってる。もうひとりは、奥の廊下。灯りの扇に、入らないで。');
@@ -11579,7 +11582,7 @@ async function evCradle20(k) { const a = AREAS.cradle20; G.mode = 'cine'; const 
   obj20k(); playOn(); }
 
 // ---- 港の水族館（久世を操作） ----
-async function goAqua20() { G.mode = 'cine'; S.flags.c20st = 'aqua'; S.flags.c20q = []; setObj(''); aqua20Items(); playAs20(null); await goArea('aqua20', [9.4, 5.0], -Math.PI * 0.7); ckSave('goAqua20'); const a = AREAS.aqua20, sh = a.sh; bgm('aqua20');
+async function goAqua20() { G.mode = 'cine'; S.flags.c20st = 'aqua'; S.flags.c20q = []; setObj(''); aqua20Items(); playAs20(null); await goArea('aqua20', [9.4, 5.0], -Math.PI * 0.7); ckSave(); const a = AREAS.aqua20, sh = a.sh; bgm('aqua20');
   a.fol = false; a.fear = 0; a.dim = 0; a.look = false; a.sink = 0; sh.y = 0; sh.hidden = false; sh.pos.set(0.4, 0, -2.9); sh.facing = Math.PI; sh.st = {}; for (const n of [a.cs, a.tn, a.ms]) n.hidden = true; a.dark.material.opacity = 0;
   pan([8, 3, 6], [0, 2, -3], [3.6, 1.9, 1.4], [0.4, 1.8, -2.9], 6); await card('名古屋港　港の水族館', '金曜　午後九時半　――　夜間貸し切り', 1800);
   await narr('大水槽の前に、背の高い客が、ひとり、立っていた。……館内には、ほかに、誰もいなかった。'); await saku('……十億で、水族館を、まるごと、借りたのか。');
@@ -11643,7 +11646,7 @@ async function hug20() { const a = AREAS.aqua20, sh = a.sh; setObj('');
   await saku('……情けねえな。立てねえ。'); await say('kuze', '……立てますよ。……あと、十秒、ください。'); P.st = {}; a.fear = 0; fear20(0); await goDebrief20(); }
 
 // ---- 折り目の内側：報告 ----
-async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; setObj(''); await goArea('kaere20'); ckSave('goDebrief20'); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = true; a.weave.visible = true; fear20(0);
+async function goDebrief20() { G.mode = 'cine'; S.flags.c20st = 'debrief'; setObj(''); await goArea('kaere20'); ckSave(); const a = AREAS.kaere20; bgm('lab20'); gear20(a, true); a.fray.visible = true; a.weave.visible = true; fear20(0);
   const cKa = () => cut18(2.4, 2.3, -1.6, 0, 2.1, -2.9), cCs = () => cut18(-0.6, 2.0, -0.7, -1.9, 1.7, 1.6), cTn = () => cut18(0.9, 1.9, -0.5, 0, 1.6, 2.0), cMs = () => cut18(0.6, 2.0, -0.7, 1.9, 1.75, 1.6);
   cine(0, 6, 9, 0, 1.2, -1); await card('折り目の内側', '土曜　午前零時', 1400);
   cKa(); await say('kaere', 'シェオル。底なしの縁。……喜びだけで、針が、底を、打たない。'); await say('kaere', 'ほつれるか、心装になるか。……あの子なら、どっちでも、とんでもないものが、出てくる。');
@@ -11702,11 +11705,15 @@ AREAS.aqua20.restore = a => { if (S.chapter === 20) { aqua20Items(); playAs20(nu
 // 水族館の外では、怖さの暗がりを消す
 { const g0 = goArea; goArea = async function (id, ...r) { if (id !== 'aqua20') fear20(0); return g0(id, ...r); }; }
 
-// 続きから（第七章 下編から）：記録した場面の始まりから、読み直す。[章, 場面]
-const RESUME = { chapter17: [17, chapter17], goEsc17: [17, goEsc17], goRestore17: [17, goRestore17],
-  chapter18: [18, chapter18], goHq18: [18, goHq18], town18: [18, async () => { hq18Items(); await goArea('hq', [0.6, 2.9], Math.PI); castHq18(AREAS.hq); await goTown18(); }], goRotary18: [18, goRotary18], goCall18: [18, goCall18],
-  chapter19: [19, chapter19], goKoryn19: [19, goKoryn19], goHub19: [19, goHub19], goClub19: [19, goClub19], goCouncil19: [19, goCouncil19], goHq19: [19, goHq19],
-  goCampus20: [20, goCampus20], goLab20: [20, goLab20], goCradle20: [20, goCradle20], goAqua20: [20, goAqua20], goDebrief20: [20, goDebrief20] };
+// 続きから（第七章 下編から）：記録した場面の始まりから、読み直す。戦いや演出の途中の状態は持ち越さない
+// 章ごとに、その時の段階（c17st など）から、読み直す場面を決める（古い記録にも効く）
+const RESUME = {
+  17: { open: chapter17, melee: chapter17, take: chapter17, out: chapter17, esc: goEsc17, exit: goEsc17, boss: goEsc17, restore: goRestore17 },
+  18: { nest: chapter18, meet: goHq18, hq: goHq18, town: resumeTown18, shop: resumeTown18, fight: goRotary18, rumor: goNest18b, call: goCall18, stay: goStay18, night: goStay18 },
+  19: { void: chapter19, office: chapter19, koryn: goKoryn19, hub: goHub19, week: goWeek19, club: goClub19, vip: goClub19, council: goCouncil19, hq: goHq19 },
+  20: { campus: goCampus20, fam: goFam20, lab: goLab20, cradle: goCradle20, aqua: goAqua20, debrief: goDebrief20, bottom: goDebrief20, room: goDebrief20 } };
+async function resumeTown18() { hq18Items(); await goArea('hq', [0.6, 2.9], Math.PI); castHq18(AREAS.hq); await goTown18(); }
+function resumeOf() { const R = RESUME[S.chapter]; if (!R) return null; return R[S.flags['c' + S.chapter + 'st']] || { 17: chapter17, 18: chapter18, 19: chapter19, 20: goCampus20 }[S.chapter]; }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -12046,6 +12053,11 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
+// 会話をとばす：選択肢か、操作に戻るところまで、台詞と演出を早送りする（もう一度押すと止まる）
+function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b.textContent = on ? 'とばしています　止める ■' : '会話をとばす ▶▶'; b.classList.toggle('on', on);
+  if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
+$('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
+setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
 window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, evSheol19, goCouncil19, goHq19};
 })();
 </script>
