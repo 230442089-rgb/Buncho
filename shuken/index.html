@@ -11904,7 +11904,7 @@ async function goCouncil21() { G.mode = 'cine'; S.flags.c21st = 'council'; await
   C.ld21.hidden = true; C.an21.hidden = true; C.re21.hidden = true; await goAlley21(); }
 
 // ---- 栄の裏通り：白い翼（久世を操作・戦い） ----
-async function goAlley21() { G.mode = 'cine'; S.flags.c21st = 'walk'; await goArea('alley21', [-10, 0], Math.PI / 2); ckSave(); const a = AREAS.alley21; bgm('night21'); kuzeAura21(true); pbStop(); a.fight = false; a.lost = false;
+async function goAlley21() { G.mode = 'cine'; S.flags.c21st = 'walk'; await goArea('alley21', [-10, 0], Math.PI / 2); ckSave(); const a = AREAS.alley21; bgm('night21'); kuzeAura21(true); if (PB.on) pbStop(); a.fight = false; a.lost = false;
   for (const n of a.ang.concat([a.cmd])) { n.hidden = true; n.y = 0; n.st = {}; } a.cocoon.visible = false; a.seraph.visible = false; a.feather.visible = false; for (const n of [a.cs, a.tn, a.ms]) n.hidden = true; a.motes.forEach(f => { f.visible = true; }); a.snow = true;
   pan([-12, 6, 6], [-4, 1.4, 0], [-8.4, 1.9, 2.6], [-10, 1.5, 0], 5); await card('栄　裏通り', '同じ夜　午後九時四十分', 1600);
   await narr('「月下」まで、歩いて、十分。……この路地を、抜ければいい。'); cut18(-8.4, 1.7, 1.8, -10, 1.55, 0); await saku('……雪か？　……いや。');
@@ -11964,7 +11964,7 @@ async function goTako21() { G.mode = 'cine'; S.flags.c21st = 'tako'; setObj('');
   await say('tako', '……あっそ。'); await narr('三人とも、同じ日に、同じように、忙しかった。……それが、少しだけ、引っかかった。'); await goAgents21(); }
 
 // ---- 栄の裏通り：三人が、確かめる ----
-async function goAgents21() { G.mode = 'cine'; S.flags.c21st = 'agents'; setObj(''); playAs20(null); await goArea('alley21', [-10, 0], Math.PI / 2); ckSave(); const a = AREAS.alley21; P.model.root.visible = false; bgm('night21'); pbStop(); a.fight = false; a.snow = false;
+async function goAgents21() { G.mode = 'cine'; S.flags.c21st = 'agents'; setObj(''); playAs20(null); await goArea('alley21', [-10, 0], Math.PI / 2); ckSave(); const a = AREAS.alley21; P.model.root.visible = false; bgm('night21'); if (PB.on) pbStop(); a.fight = false; a.snow = false;
   for (const n of a.ang.concat([a.cmd])) n.hidden = true; a.cocoon.visible = false; a.seraph.visible = false; a.motes.forEach(f => { f.visible = false; });
   const [fx, fz] = a.fp || [0, 0]; a.feather.visible = true; a.feather.position.set(fx, 0.05, fz); a.feather.rotation.set(-Math.PI / 2, 0, 0.6); a.featherGl.position.set(fx, 0.3, fz);
   const at = (n, dx, dz) => { n.hidden = false; n.st = {}; n.pos.set(clamp(fx + dx, -10, 10), 0, clamp(fz + dz, -3, 3)); n.facing = Math.atan2(fx - n.pos.x, fz - n.pos.z); }; at(a.cs, 0.7, 0.5); at(a.tn, -1.4, 1.2); at(a.ms, -1.6, -0.8);
