@@ -11456,7 +11456,7 @@ async function evCampus20(k) { const a = AREAS.campus20; G.mode = 'cine'; const 
 
 // ---- ファミレス「ひだまり」 ----
 async function goFam20() { G.mode = 'cine'; S.flags.c20st = 'fam'; setObj(''); playAs20(null); await goArea('famires20'); const a = AREAS.famires20, tk = a.tk; bgm('fam20'); a.tv1.visible = true; a.tv2.visible = false; for (const n of [a.tk, a.ms, a.cs, a.tn]) { n.hidden = false; n.st = { sit: true }; }
-  const cTk = () => cut18(1.6, 1.55, -0.9, -0.45, 1.2, 0.85), cCs = () => cut18(1.6, 1.55, 0.9, -0.45, 1.2, -0.85), cTn = () => cut18(1.9, 1.55, 0.6, 0.45, 1.2, -0.85), cMs = () => cut18(1.9, 1.55, -0.6, 0.45, 1.2, 0.85);
+  const cTk = () => cut18(-1.5, 1.55, -0.6, -0.45, 1.2, 0.85), cCs = () => cut18(-1.5, 1.55, 0.6, -0.45, 1.2, -0.85), cTn = () => cut18(1.9, 1.55, 0.6, 0.45, 1.2, -0.85), cMs = () => cut18(1.9, 1.55, -0.6, 0.45, 1.2, 0.85);
   cine(2.4, 2.2, 2.4, 0, 1.0, 0); await card('勝川　ファミリーレストラン「ひだまり」', '火曜　午後七時', 1800);
   await narr('窓際の、四人席。……ドリンクバーのグラスが、四つ。');
   cTn(); await say('tuna', 'タコくん、来た！　……こっち、こっち。');
