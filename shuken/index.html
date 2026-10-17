@@ -12104,7 +12104,7 @@ makeArea('city22', { place: '春日井　鳥居松　国道19号', bounds: [-13,
     a.cocP = part(sph(0.5, 12, 10), 0xE8E4F8, 7.4, 1.1, -3.4, g, { s: [1.1, 2.0, 1.1], emis: 0x2A2440 }); a.cocPGl = glowSprite(0x9A8AFF, 2.6, 0.6); a.cocPGl.position.set(7.4, 1.2, -3.4); g.add(a.cocPGl);
     a.rift = new THREE.Group(); g.add(a.rift); block(0.1, 2.8, 0.1, 0x9A6AFF, 0, 1.5, 0, a.rift, { emis: 0x6A3ACA }); { const rg = glowSprite(0x9A6AFF, 2.8, 0.7); rg.position.y = 1.5; a.rift.add(rg); a.riftGl = rg; }
     a.dome = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 16, 0, TAU, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xF4A8D0, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); a.dome.position.set(0, 0, 1); g.add(a.dome);
-    a.wr = new THREE.Mesh(G_('wr22', () => new THREE.TorusGeometry(1.1, 0.08, 8, 40)), new THREE.MeshBasicMaterial({ color: 0x7AC8FF })); g.add(a.wr); a.wrGl = glowSprite(0x7AC8FF, 2.6, 0.6); a.wr.add(a.wrGl);
+    a.wr = new THREE.Mesh(G_('wr22', () => new THREE.TorusGeometry(1.1, 0.08, 8, 40)), new THREE.MeshBasicMaterial({ color: 0x7AC8FF })); g.add(a.wr); a.wrGl = glowSprite(0x7AC8FF, 1.8, 0.35); a.wr.add(a.wrGl);
     // 人物（はじめは、全員、隠しておく）
     a.sh = npc(a, 'sheol', sheolModel(), 0, 1, Math.PI);
     a.ur = npc(a, 'uriela', seraphDress(makeChar(LK.uriela)), 0, -7.6, 0);
@@ -12183,7 +12183,7 @@ function stage22(a, k) { for (const n of a.npcs) { n.hidden = true; n.st = {}; n
   if (k === 'war') { a.blk = 60; a.abT = a.abS = 3.4; a.pilT = 1; sky(); sh({}); a.war = 1; a.float = true; a.bgT = 0x1A0828; }
   if (k === 'after') { a.blk = 60; a.abT = a.abS = 1.4; a.pilT = 0; sky(); a.sky.forEach((n, i) => { const t = i / 10 * TAU, r = 3.6 + (i % 3) * 1.3; n.dropped = true; n.y = 0; n.st = { down: true }; n.pos.set(Math.cos(t) * r, 0, -4.4 + Math.sin(t) * 1.6); }); a.urFly = 0; a.ur.y = 0; a.ur.pos.set(0, 0, -5.6); a.ur.st = { kneel: true }; sh({ kneel: true }); a.sh.model.eyeGlow.material.opacity = 0.3; a.bgT = 0x0E0A18; } }
 function fam22(a, k) { for (const [n, x, z] of [[a.ni, 7.4, -0.4], [a.rn, 4.6, 5.4], [a.mi, -4.2, -3.6], [a.yu, 0, 5.4]]) { n.hidden = false; n.st = {}; n.y = 0; n.goal = null; n.pos.set(x, 0, z); n.facing = Math.atan2(-x, 1 - z); } if (k === 'nirume') a.yu.hidden = true; }
-function ryuho22(a, k) { for (const [n, x, z] of [[a.mu, -10.4, 2.6], [a.is, -11.4, 3.6], [a.po, -11.2, 1.4]]) { n.hidden = false; n.goal = null; n.y = 0; n.pos.set(x, 0, z); n.facing = Math.atan2(-x, 1 - z); n.st = k === 'kneel' ? { kneel: true } : {}; } }
+function ryuho22(a, k) { for (const [n, x, z] of [[a.mu, -11.4, 2.4], [a.is, -12.2, 3.4], [a.po, -12.0, 1.2]]) { n.hidden = false; n.goal = null; n.y = 0; n.pos.set(x, 0, z); n.facing = Math.atan2(-x, 1 - z); n.st = k === 'kneel' ? { kneel: true } : {}; } }
 
 // ---- 始まり ----
 async function chapter22() { G.mode = 'cine'; S.chapter = 22; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); playAsKuzeHost(false); playAs20(null); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; news22off(); galHud(false); bgm(''); P.st = {}; fear20(0); phaseFx22(false); split22(false);
@@ -12547,11 +12547,11 @@ async function goWake22() { G.mode = 'cine'; S.flags.c22st = 'wake'; setObj('');
   await say('shirokuro', '……それに。ここには、折り目の匂いがする。');
   await say('shirokuro', 'カ・エレ。……相変わらず、名を持たぬことを、好む男だ。');
   // ハムスケと、朝真
-  const hm = a.hm, as = a.as; a.wr.visible = true; a.wr.position.set(-10.4, 1.3, 6.0); a.wr.rotation.set(0, 0, 0); sfx('holo'); cine(-8.6, 2.0, 9.6, -10.2, 1.3, 5.6); await z22(500);
-  hm.hidden = false; hm.st = {}; hm.pos.set(-10.4, 0, 6.0); face22(hm, { x: 0, z: 1 }); fxFlash(-10.4, 1.3, 6.0, 0x7AC8FF, 3, 0.4);
+  const hm = a.hm, as = a.as; a.wr.visible = true; a.wr.position.set(-8.25, 1.3, 6.97); a.wr.rotation.set(0, 0, 0); sfx('holo'); cine(-5.0, 2.2, 3.6, -7.7, 1.2, 6.6); await z22(500);
+  hm.hidden = false; hm.st = {}; hm.pos.set(-8.25, 0, 6.97); face22(hm, { x: 0, z: 1 }); fxFlash(-8.25, 1.3, 6.97, 0x7AC8FF, 3, 0.4); for (let t = 0; t <= 1; t += 0.1) { hm.pos.set(-8.25 + 1.05 * t, 0, 6.97 - 0.77 * t); await z22(30); } hm.pos.set(-7.2, 0, 6.2);
   fc22(hm, 2.4, -0.1, 0.3); await say('hamusuke', 'はいは～い、到着～♡　……うわ、底、ふっか～。');
   nameCard({ s: '元 B.U.N society No.6　技術協力者', b: 'ハムスケ', e: 'HAMUSUKE', col: '#F2C860', p: 'キンクマハムスター。空間工学の天才。\n「空間は、作れる。畳める。広げられる。……ハムスターでもね」' }); await z22(1400); nameCard(null);
-  as.hidden = false; as.st = {}; as.pos.set(-7.8, 0, 4.0); face22(as, { x: 0, z: 1 }); a.asFly = true; sfx('wind'); for (let t = 0; t <= 1; t += 0.06) { as.y = 6 * (1 - t); await z22(30); } as.y = 0;
+  as.hidden = false; as.st = {}; as.pos.set(-9.8, 0, 3.4); face22(as, { x: 0, z: 1 }); a.asFly = true; sfx('wind'); for (let t = 0; t <= 1; t += 0.06) { as.y = 6 * (1 - t); await z22(30); } as.y = 0;
   fc22(as, 2.6, 0, -0.3); nameCard({ s: '元 B.U.N society No.9　諜報工作員', b: '朝真（アサマ）', e: 'ASAMA', col: '#F2D24A', p: 'イカル。諜報・潜入・破壊工作。\n「影は、語らない。だが、すべてを記録する」' });
   await say('asama', '……記録、開始。'); nameCard(null);
   fc22(sk, 3.4, 0.8, 0.2); await say('shirokuro', 'ふむ。……今宵も、愛らしいな。'); fc22(hm, 2.4, -0.1, 0.3); await say('hamusuke', 'でしょ～♡'); fc22(as, 2.6, 0, -0.3); await say('asama', '……仕事中です。');
@@ -12566,7 +12566,7 @@ async function goWake22() { G.mode = 'cine'; S.flags.c22st = 'wake'; setObj('');
   sk.model.blade.visible = true; sk.st = { aim: true }; sfx('slash'); split22(true); await z22(600); split22(false); a.abT = a.abS + 1.2; G.shake = 0.8; sfx('roar');
   await narr('底が、軋んだ。……止まったはずの縁が、ふたたび、じわりと、にじんだ。');
   await say('shirokuro', '……ほう。一太刀では、決めきれぬか。……深いな。');
-  hm.st = { guard: true }; a.wr.position.set(-10.4, 1.4, 4.8); fc22(hm, 2.4, -0.1, 0.3); await say('hamusuke', 'じゃ、空間、畳んで、場所つくるね～。……シロクロさま、思いっきり、どうぞ♡');
+  hm.st = { guard: true }; fc22(hm, 2.4, -0.1, 0.3); await say('hamusuke', 'じゃ、空間、畳んで、場所つくるね～。……シロクロさま、思いっきり、どうぞ♡');
   as.st = { guard: true }; as.y = 0.4; fc22(as, 2.6, 0, -0.3); await say('asama', '……退路、確保。……いつでも。');
   cine(-9, 4.2, 11, -6, 1.6, 2.6); await narr('ハムスケが、輪を、構えた。朝真が、翼を、広げた。');
   fc22(sk, 3.0, 0.8, 0.2); await say('shirokuro', '真偽を、定めるのは、私ではない。……事実と、因果と、それに対する、責任だ。');
