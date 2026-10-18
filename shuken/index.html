@@ -1818,7 +1818,7 @@ const CHSYN = [
   '出向明けの久世は、見た目はいつもどおりなのに、誰もが「何か変だ」と言う。主家では、眠っていたニルメが、自分で起き上がる。円卓では、揺籃計画が最後の詰めに入り、新しい顔がふたつ。そして夜、指名先へ向かう久世の前に、白い翼が降りてくる。',
   '白い部屋で、天使たちに甘やかされる久世。来ない人を待つしぇおの手に、金色の羽が落ちてくる。春日井の真ん中で、空と底がぶつかり、留保も、外神竜も、その間に割って入る。そして、繭が消える。',
   '底と空が、ひとつ上の存在へ。春日井を巻き込む戦いに、白と黒の文鳥と、外神竜と、留保が挑む。繭の中で、久世は、自分の無力を殴り続ける。……そして、夜明け。誰にも聞かれなかった人間の中で、何かが、少しだけ、曲がる。',
-  '高蔵寺の、白い三階建て。誰にも選ばれなかった四十七歳の田所は、見回りロボットに体調を聞かれ、うまい朝食を食べ、九十日後の相談を予約する。清潔で、腹も減らない。……ただ、誰も、来ない。'];
+  '高蔵寺の、白い三階建て。誰にも選ばれなかった四十七歳の田所は、見回りロボットに体調を聞かれ、うまい朝食を食べ、九十日後の相談を予約する。竜も、狐も、彼らを見ない。……その夜、田所は、叫び、終わるための道具を探しに、大須の裏へ向かう。そこで、頬の黒い文鳥に、出会う。'];
 const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'];
 function renderChaps() { const m = meta(), L = $('chapList'); L.innerHTML = '';
   CHN.forEach((nm, i) => { const open = chapOpen(m, i), el = document.createElement('div'); el.className = 'ccard' + (/幕間|未来/.test(nm) ? ' inter' : '') + (open ? '' : ' lock') + (open && m['ch' + i + 'Clear'] ? ' done' : '');
@@ -13181,7 +13181,7 @@ makeArea('room24', { place: '高蔵寺　天環ライフサポート第三住宅
     block(0.7, 1.5, 0.6, 0xE8E8E8, 3.3, 0.75, 1.2, g); a.obs.push({ x: 3.3, z: 1.2, hx: 0.4, hz: 0.35 });
     block(1.0, 2.1, 0.06, 0x8A8A90, -1.6, 1.05, 2.6, g); plane(0.5, 0.16, signTex(100, 32, [{ t: '202', size: 22, w: 900 }], { bg: '#F4F4F0', fg: '#3A3A44' }), -1.6, 2.2, 2.56, g, { ry: Math.PI });
     a.robo = mimamori24(g); a.robo.position.set(1.6, 0, 1.3); a.robo.rotation.y = -Math.PI * 0.75; a.drone = drone24(g); a.drone.position.set(0.6, 5, -2.0); a.drone.visible = false; a.night = false; },
-  tick(a, dt) { const t = T.now; a.robo.position.y = Math.abs(Math.sin(t * 1.6)) * 0.01; a.robo.lamp.material.opacity = 0.5 + Math.sin(t * 3) * 0.3; a.robo.eyes.forEach(e => { e.scale.y = Math.sin(t * 0.9) > 0.97 ? 0.2 : 1; });
+  tick(a, dt) { const t = T.now; a.robo.position.y = a.robo.down ? 0.3 : Math.abs(Math.sin(t * 1.6)) * 0.01; a.robo.lamp.material.opacity = 0.5 + Math.sin(t * 3) * 0.3; a.robo.eyes.forEach(e => { e.scale.y = Math.sin(t * 0.9) > 0.97 ? 0.2 : 1; });
     if (a.drone.visible) a.drone.rotation.y += dt * 0.6; a.tvGl.material.opacity = a.tvOn ? 0.35 + Math.sin(t * 7) * 0.05 : 0; }
 });
 
@@ -13221,6 +13221,22 @@ makeArea('town24', { place: '高蔵寺　天環ライフサポート第三住宅
 BGM.room24 = { bpm: 60, f(s, t, sp) { if (s % 8 === 0) tone(mf(48), t, sp * 6, 'sine', 0.02, { a: 0.4 }); if (s % 4 === 2) tone(mf([72, 71, 69, 67, 69, 71, 72, 74][(s >> 2) % 8]), t, sp * 1.5, 'triangle', 0.006, { lp: 1800 }); if (s % 16 === 13) noise(t, 0.04, 0.004, 5000, 'highpass'); } };
 BGM.town24 = { bpm: 92, f(s, t, sp) { const ch = [[60, 64, 67], [57, 60, 64], [62, 65, 69], [55, 59, 62]][(s >> 4) % 4]; if (s % 4 === 0) tone(mf(ch[0] - 12), t, sp * 3, 'sine', 0.025, { a: 0.05 }); if (s % 2 === 0) tone(mf(ch[(s >> 1) % 3] + 12), t, sp * 1.2, 'triangle', 0.007, { lp: 2200 }); if (s % 32 === 30) tone(mf(84), t, sp * 2, 'sine', 0.005); } };
 BGM.dusk24 = { bpm: 58, f(s, t, sp) { const mel = [64, 62, 60, 59, 57, 59, 60, 55]; if (s % 4 === 0) tone(mf(mel[(s >> 2) % 8] + 12), t, sp * 3.4, 'sine', 0.012, { a: 0.02 }); if (s % 16 === 0) tone(mf([45, 43, 41, 40][(s >> 4) % 4]), t, sp * 15, 'triangle', 0.028, { a: 0.8, lp: 900 }); } };
+// ---- 外神竜・異種族の側の声、形のない声 ----
+Object.assign(SPK, { no30: ['B.U.N society　rate No.30', '#C8A0FF'], voice24: ['――形のない声', '#E8D0FF'], pass24a: ['通りすがりの猫族', '#F08AB0'], pass24b: ['通りすがりのエルフ', '#B8E0A0'] });
+// B.U.N society rate No.30：頬まで真っ黒な文鳥。紫の長外套に金の縁、片目に金の輪
+function no30Bird() { const m = makeBird({ coat: 0x2A1A3A, pants: 0x1A1222, cap: 0x0A0A0E, beak: 0xE8505A, longcoat: 0x3A2050, inner: 0x1A1222, trim: 0xC8A040, sleeve: 0x3A2050, hand: 0x0A0A0E, badge: 0xC8A040, s: 1.18 });
+  const white = toon(0xF8F8F8), black = toon(0x0E0E12); m.head.traverse(o => { if (o.isMesh && o.material === white) o.material = black; });
+  for (const sx of [-1, 1]) part(G_('ering30', () => new THREE.TorusGeometry(0.07, 0.018, 6, 16)), 0xE8505A, sx * 0.2, 0.06, 0.285, m.head, { outline: false });
+  part(G_('mono30', () => new THREE.TorusGeometry(0.1, 0.014, 6, 20)), 0xE0C060, 0.2, 0.06, 0.3, m.head, { outline: false, emis: 0x6A5020 }); const gl = glowSprite(0xC8A0FF, 0.5, 0.5); gl.position.set(-0.2, 0.06, 0.32); m.head.add(gl); m.eyeGl = gl; return m; }
+// 叫び、形のない声（台詞の書式）
+{ const st = document.createElement('style'); st.textContent = '#dlg.shout24 { border-top-color: #E0304A; background: rgba(14,4,6,.95); animation: shk24 .11s steps(2) infinite; } #dlg.shout24 #dText { font-size: 1.45em; font-weight: 900; color: #FF9A9A; letter-spacing: .04em; } @keyframes shk24 { 0% { transform: translate(0, 0); } 50% { transform: translate(2px, -1px); } } #dlg.voice24 { border-top-color: #9A6AE0; background: rgba(8,4,14,.95); } #dlg.voice24 #dText { font-family: var(--mincho); color: #E8D0FF; text-shadow: 0 0 12px rgba(200,160,255,.8); }'; document.head.appendChild(st); }
+const shout24 = t => say('tado24', t, { cls: 'shout24' }), voice24 = t => say('voice24', t, { cls: 'voice24' });
+// 低い鐘：ボーン、ボーン（音と、画面の輪）
+SFX.bell24 = () => { const f = 49; tone(f, 0, 6.5, 'sine', 0.24, { a: 0.006 }); tone(f * 2, 0, 5.0, 'sine', 0.09, { a: 0.006 }); tone(f * 2.76, 0, 4.0, 'sine', 0.07, { a: 0.004 }); tone(f * 5.4, 0, 2.2, 'sine', 0.03, { a: 0.003 }); tone(f * 8.93, 0, 1.0, 'sine', 0.014, { a: 0.002 }); noise(0, 0.09, 0.05, 260, 'lowpass'); };
+function bell24(txt = 'ボーン……') { let el = $('bell24'); if (!el) { el = document.createElement('div'); el.id = 'bell24'; el.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9;opacity:0;display:flex;align-items:center;justify-content:center;font-family:serif;font-weight:900;color:rgba(232,208,255,.85);font-size:min(12vw,12vh);letter-spacing:.2em;text-shadow:0 0 30px rgba(154,106,224,.9);background:radial-gradient(circle at center,rgba(20,8,34,0) 0%,rgba(20,8,34,0) 28%,rgba(154,106,224,.35) 31%,rgba(20,8,34,0) 35%,rgba(10,4,18,.75) 100%)'; document.body.appendChild(el); }
+  sfx('bell24'); G.shake = Math.max(G.shake, 0.5); el.textContent = txt; el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = 'scale(0.92)'; void el.offsetWidth; el.style.transition = 'opacity 2.6s ease-out, transform 2.6s ease-out'; el.style.opacity = '0'; el.style.transform = 'scale(1.12)'; }
+BGM.show24 = { bpm: 70, f(s, t, sp) { if (s % 8 === 0) tone(mf(38), t, sp * 2.4, 'sine', 0.05, { a: 0.01 }); if (s % 8 === 3 || s % 8 === 5) tone(mf(45), t, sp * 1.2, 'sine', 0.03, { a: 0.01 }); const ch = [[62, 65, 69, 72], [60, 63, 67, 70], [58, 62, 65, 69], [57, 61, 64, 68]][(s >> 4) % 4]; if (s % 4 === 2) tone(mf(ch[(s >> 2) % 4] + 12), t, sp * 2.2, 'triangle', 0.009, { lp: 2000, a: 0.02 }); if (s % 2 === 1) noise(t, 0.03, 0.004, 7000, 'highpass'); } };
+BGM.night24 = { bpm: 40, f(s, t, sp) { if (s % 16 === 0) tone(mf(36), t, sp * 15, 'sine', 0.05, { a: 2.0 }); if (s % 16 === 8) tone(mf(43), t, sp * 7, 'triangle', 0.012, { a: 1.0, lp: 600 }); } };
 
 // ================= 8.5章　幕間1　見守り =================
 const on24 = k => () => S.chapter === 24 && S.flags.c24st === k;
@@ -13230,7 +13246,7 @@ const talk24 = k => { const t = S.flags.c24t || (S.flags.c24t = []); if (!t.incl
 
 // ---- 始まり ----
 async function chapter24() { G.mode = 'cine'; S.chapter = 24; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); playAsKuzeHost(false); playAs20(null); playAsIshii23(false); playAsTado24(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; news22off(); galHud(false); bgm(''); P.st = {}; P.spdK = 1; fear20(0); phaseFx22(false); split22(false);
-  S.flags.c24r = []; S.flags.c24t = []; S.flags.c24k = []; PON.on = false; PB.on = false; MEL.on = false;
+  S.flags.c24r = []; S.flags.c24t = []; S.flags.c24k = []; S.flags.c24o = []; PON.on = false; PB.on = false; MEL.on = false;
   await goCold24(); }
 
 // ---- 観測艇：数えられていない人たち ----
@@ -13255,9 +13271,9 @@ function room24Items() { const a = AREAS.room24; if (!a.built) { a.build(a); a.b
   addItem(a, { id: 'r24ph', x: 0.0, z: 0.9, r: 1.2, label: 'スマホを、見る', col: 0xE3B428, avail: () => on() && !got('ph'), on: () => evRoom24('ph') });
   addItem(a, { id: 'r24fr', x: 2.8, z: 1.4, r: 1.1, label: '冷蔵庫', avail: () => on() && !got('fr'), on: () => evRoom24('fr') });
   addItem(a, { id: 'r24win', x: 0.6, z: -2.0, r: 1.2, label: '窓の外', avail: () => on() && !got('win'), on: () => evRoom24('win') });
-  addItem(a, { id: 'r24out', x: -1.6, z: 2.0, r: 1.2, label: '外へ、出る', col: 0xC8323C, once: false, avail: () => on() && got('tv') && got('ph'), on: () => goTown24() }); }
+  addItem(a, { id: 'r24out', x: -1.6, z: 2.0, r: 1.2, label: '外へ、出る', col: 0xC8323C, once: false, avail: () => on() && got('tv') && got('ph'), on: () => goShuke24() }); }
 function obj24r() { const g = S.flags.c24r || [], n = ['tv', 'ph'].filter(k => g.includes(k)).length; setObj(n >= 2 ? '外へ、出る（玄関）　……窓や冷蔵庫も、見てもいい' : '部屋で、過ごす（' + n + '／2）　テレビ／スマホ'); }
-async function goRoom24() { G.mode = 'cine'; S.flags.c24st = 'room'; setObj(''); room24Items(); noKuze24(); playAsTado24(true); await goArea('room24', [-1.6, -0.6], 0); ckSave(); const a = AREAS.room24; bgm('room24'); a.tvOn = false; a.drone.visible = false; a.win.material.color.setHex(0xFFFFFF);
+async function goRoom24() { G.mode = 'cine'; S.flags.c24st = 'room'; setObj(''); room24Items(); noKuze24(); playAsTado24(true); await goArea('room24', [-1.6, -0.6], 0); ckSave(); const a = AREAS.room24; bgm('room24'); a.tvOn = false; a.drone.visible = false; a.robo.down = false; a.robo.rotation.set(0, -Math.PI * 0.75, 0); a.win.material.color.setHex(0xFFFFFF);
   if ((S.flags.c24r || []).length) { P.st = {}; obj24r(); playOn(); return; }
   P.st = { sit: true }; P.pos.set(-2.0, 0, -0.9); P.facing = Math.PI / 2;
   cine(0.8, 2.6, 3.4, -1.6, 0.8, -1.0); await card('高蔵寺　天環ライフサポート第三住宅　二〇二号室', '同じ日　午前九時', 1600);
@@ -13295,7 +13311,7 @@ function town24Items() { const a = AREAS.town24; if (!a.built) { a.build(a); a.b
   addItem(a, { id: 'k24o', x: 7.0, z: -2.5, r: 1.5, label: '小川さん', col: 0xE3B428, avail: () => on() && !got('o'), on: () => evTown24('o') });
   addItem(a, { id: 'k24m', x: -6.6, z: -3.7, r: 1.2, label: 'ポスト', avail: () => on() && !got('m'), on: () => evTown24('m') });
   addItem(a, { id: 'k24v', x: 10.2, z: -2.5, r: 1.3, label: '自販機', col: 0xE3B428, avail: () => on() && ['s', 'k', 'o'].every(got) && !got('v'), on: () => evTown24('v') });
-  addItem(a, { id: 'k24h', x: -10.0, z: -3.3, r: 1.3, label: '部屋へ、帰る', col: 0xC8323C, once: false, avail: () => on() && got('v'), on: () => goNight24() }); }
+  addItem(a, { id: 'k24h', x: -10.0, z: -3.3, r: 1.3, label: '部屋へ、帰る', col: 0xC8323C, once: false, avail: () => on() && got('v'), on: () => goTenkan24() }); }
 function obj24k() { const g = S.flags.c24k || [], n = ['s', 'k', 'o'].filter(k => g.includes(k)).length; setObj(g.includes('v') ? '部屋へ、帰る（住宅の入口）' : n >= 3 ? '日が傾いた。……自販機で、何か、買って帰る' : '一日を、過ごす（' + n + '／3）　佐野／無人相談窓口／公園の小川さん'); }
 function dusk24() { scene.background = new THREE.Color(0xD8906A); if (scene.fog) scene.fog.color.setHex(0xD8906A); hemi.intensity = 0.7; sun.intensity = 0.35; }
 async function goTown24() { G.mode = 'cine'; S.flags.c24st = (S.flags.c24k || []).includes('v') ? 'dusk' : 'town'; setObj(''); town24Items(); noKuze24(); playAsTado24(true); await goArea('town24', [-10, -1.8], 0); ckSave(); const a = AREAS.town24; bgm('town24');
@@ -13339,6 +13355,8 @@ async function evTown24(k) { const a = AREAS.town24; G.mode = 'cine'; const got 
     await say('ogawa24', '昔はな。……人間が、人間を、雇っとったんだ。下手でも、遅くても、「おい、そこの」って、呼ばれた。');
     await say('ogawa24', '今は、飯は、文鳥が作る。部屋は、竜が建てる。見回りは、機械がする。……人間は、何も、せんでいい。');
     cine(5.0, 2.2, 6.0, 4, 1.2, 2.4); await narr('通りを、竜の女性と、背の高い人間の男が、腕を組んで、歩いていった。……男は、笑っていた。');
+    await say('pass24a', 'ねえ、あのベンチの人たち。……いつも、いるよね。'); await say('pass24b', '支援住宅の人でしょ。……見ないほうが、いいよ。かわいそうに、なるから。');
+    await narr('二人は、こちらを、一度も、見なかった。……見ないことに、決めている声だった。');
     fc22(o, 2.4, 0, 0.3); await say('ogawa24', '……ああいうのが、選ばれた人間だ。顔がいいか、気が利くか、何か、できるか。');
     await say('ogawa24', '竜は、気に入った人間を、宝物みたいに、抱え込む。狐は、尾で、くるむ。……あとの人間は、飼っとくんだ。腹が減らんように、汚れんように。');
     fc22(P, 2.4, 0, -0.3); const j = await choose([{ k: '言う', t: '「……飼われてるだけ、まだ、ましなんですかね」' }, { k: '言う', t: '「……俺たちは、何のために、いるんですかね」' }]);
@@ -13362,7 +13380,7 @@ async function evTown24(k) { const a = AREAS.town24; G.mode = 'cine'; const got 
   obj24k(); playOn(); }
 
 // ---- 二〇二号室：夜 ----
-async function goNight24() { G.mode = 'cine'; S.flags.c24st = 'night'; setObj(''); room24Items(); noKuze24(); playAsTado24(true); await goArea('room24', [-1.6, 1.4], Math.PI); ckSave(); const a = AREAS.room24; bgm('dusk24');
+async function goNight24() { G.mode = 'cine'; S.flags.c24st = 'night'; setObj(''); room24Items(); noKuze24(); playAsTado24(true); await goArea('room24', [-1.6, 1.4], Math.PI); ckSave(); const a = AREAS.room24; bgm('dusk24'); a.robo.down = false; a.robo.rotation.set(0, -Math.PI * 0.75, 0);
   scene.background = new THREE.Color(0x0A0C14); hemi.intensity = 0.4; sun.intensity = 0.15; a.win.material.color.setHex(0x283048); a.tvOn = false; P.st = { sit: true }; P.pos.set(-2.0, 0, -0.9); P.facing = Math.PI / 2;
   cine(0.8, 2.6, 3.4, -1.6, 0.8, -1.0); await card('二〇二号室', '同じ日　午後九時', 1400);
   const rb = a.robo, n = (S.flags.c24t || []).length; sfx('blip'); cut18(rb.position.x - 1.0, 1.3, rb.position.z - 1.4, rb.position.x, 0.85, rb.position.z);
@@ -13379,30 +13397,199 @@ async function goNight24() { G.mode = 'cine'; S.flags.c24st = 'night'; setObj(''
   else await narr('既読の文字だけが、ついた。……佐野からは、それ以上、何も、来なかった。');
   cut18(0.6, 1.6, -0.4, 0.6, 1.7, -2.8); await narr('窓の外の、向かいの棟。……同じ時間に、同じ灯りが、ひとつずつ、消えていった。');
   await narr('この街には、誰にも選ばれなかった男たちが、四十万人と、少し、暮らしている。……みんな、清潔な部屋で、腹を空かせずに。');
+  // 崩れる
+  bgm('night24'); const rcam = () => cut18(rb.position.x - 1.0, 1.3, rb.position.z - 1.4, rb.position.x, 0.85, rb.position.z), rdown = () => cut18(rb.position.x - 1.3, 0.9, rb.position.z - 1.0, rb.position.x, 0.35, rb.position.z);
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '（……どうして）');
+  await say('tado24', '（どうして、俺は。……どうして、俺みたいなやつらは、ここまで、惨めに、生きなきゃ、ならないんだ）');
+  await say('tado24', '（腹は、減らない。寒くもない。部屋は、きれいだ。……文句を言ったら、罰が当たるくらいに）');
+  await say('tado24', '（だから、誰も、怒らない。……怒る理由を、全部、先に、取り上げられてる）');
+  await say('tado24', '（俺だって。……意味のある、暮らしが、したかった）');
+  await say('tado24', '（誰かに、「おい、田所」って、呼ばれたかった。……「助かった」って、一回でいいから、言われたかった）');
+  await say('tado24', '（荷物を運んでたころは、腰が痛くて、給料は、安くて。……それでも、明日、行く場所が、あった）');
+  await say('tado24', '（今は、明日が、今日と、同じ形をしてる。昨日とも。……十年前とも）');
+  a.tvOn = true; cut18(1.4, 1.4, -0.2, 2.6, 0.9, -2.5); await say('tado24', '（テレビの中で、選ばれたやつらが、笑ってる。竜の腕の中で。狐の尾の中で。天使の、羽の中で）'); a.tvOn = false;
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '（俺は、誰の眼中にも、ない。竜にも、狐にも、天使にも。……人間の女にも。人間の男にも）');
+  await say('tado24', '（竜の家の、ピンクの竜は、好きも嫌いもないやつは、見えないんだとさ。……テレビで、笑いながら、言ってた）');
+  await say('tado24', '（何が、面白いんだ。……これの、何が）');
+  await say('tado24', '（何も、愉快じゃない。……ひとつも、愉快じゃない）');
+  await say('tado24', '（起きて、食って、聞かれて、答えて、記録されて、寝る。……それを、あと、何十年）');
+  await say('tado24', '（俺が、いなくなっても。……ミマモリが、「記録しました」って、言うだけだ）');
+  await say('tado24', '（……こんな思いを、するくらいなら）');
+  await say('tado24', '（生まれなければ、よかった）');
+  await say('tado24', '（……生まれなければ、よかったんだ）');
+  // ミマモリに、当たる
+  sfx('blip'); rcam(); await say('mimamori', '田所さん！　心拍数が、上がっています！　深呼吸を、してみましょう！');
+  P.st = {}; P.pos.set(0.7, 0, 0.5); face22(P, { x: rb.position.x, z: rb.position.z }); fc22(P, 2.2, 0, -0.5); await say('tado24', '……うるせえ。');
+  rcam(); await say('mimamori', '深呼吸を、してみましょう！　はい、吸って～。');
+  cine(-0.4, 2.2, 2.6, 1.2, 0.8, 1.0); P.st = { punch: true }; sfx('punch1'); G.shake = 0.6; rb.rotation.z = 0.35; await z22(260); P.st = {};
+  rcam(); await say('mimamori', '衝撃を、検知しました！　記録しました！　……大丈夫ですか？');
+  fc22(P, 2.2, 0, -0.5); await shout24('大丈夫なわけ、ねえだろ……！');
+  cine(-0.4, 2.2, 2.6, 1.2, 0.8, 1.0); P.st = { punch: true }; sfx('hit'); G.shake = 0.9; rb.down = true; rb.rotation.z = Math.PI / 2; await z22(260); P.st = {}; sfx('down');
+  rdown(); await say('mimamori', '……き、記録、しました。……だい、じょうぶ、です、か。', { cls: 'glitchD' });
+  // 叫ぶ
+  fc22(P, 2.0, 0, 0.3); flash22('#3A0A0A', 900); fear20(0.5); G.shake = 1.0; await shout24('ああああああああああっ！！');
+  await shout24('なんでだよ！　なんでなんだよ！！');
+  G.shake = 1.0; await shout24('俺が、何したってんだよ！！　何もしてねえよ！！　何も、させてもらえねえんだよ！！');
+  flash22('#3A0A0A', 700); await shout24('うまい飯なんか、いらねえよ！！　きれいな部屋なんか、いらねえよ！！');
+  await shout24('誰か！　誰か、見ろよ！！　ここに、いるだろうが！！');
+  G.shake = 1.0; await shout24('見守ってんじゃねえよ！！　見ろよ！！　ちゃんと、見ろよ！！');
+  flash22('#3A0A0A', 900); G.shake = 1.3; await shout24('……ああああああああああああっ！！！');
+  fear20(0.3); cine(0.8, 2.6, 3.4, -0.2, 0.6, 0.2); await z22(900);
+  await narr('喉が、焼けるまで、叫んだ。……壁は、薄かった。');
+  await narr('誰も、来なかった。……隣の部屋の灯りは、ついたままだった。');
+  rdown(); await say('mimamori', '……田所さん。……本日の、記録。……大きな声、十二回。……記録、しました。', { cls: 'glitchD' });
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '（…………）');
+  await say('tado24', '（……もう、うんざりだ）');
+  await say('tado24', '（……終わりに、しよう）');
+  await say('tado24', '（異種族の、道具なら。……大須の骨董市の、裏のほうなら。人間くらい、楽に、終わらせてくれる道具の、ひとつやふたつ。……格安で、転がってるだろ）');
+  sfx('door'); await fade(true); await goOsu24(); }
+
+// ---- 大須　魔界骨董市の、裏：何も、売っていない（田所を操作） ----
+function osu24Items() { const a = AREAS.bazaar; if (!a.built) { a.build(a); a.built = true; } if (a.i24) return; a.i24 = true; const on = on24('osu'), got = k => (S.flags.c24o || []).includes(k);
+  addItem(a, { id: 'o24gb', x: -8, z: -0.6, r: 1.4, label: '古道具屋に、聞く', col: 0xE3B428, avail: () => on() && !got('gb'), on: () => evOsu24('gb') });
+  addItem(a, { id: 'o24im', x: -1, z: -0.6, r: 1.4, label: '魔道具屋に、聞く', col: 0xE3B428, avail: () => on() && !got('im'), on: () => evOsu24('im') });
+  addItem(a, { id: 'o24cy', x: 6, z: -0.6, r: 1.4, label: '宝石屋に、聞く', col: 0xE3B428, avail: () => on() && !got('cy'), on: () => evOsu24('cy') }); }
+function obj24o() { const n = (S.flags.c24o || []).length; setObj('裏の商店街で、探す（' + n + '／3）　古道具／魔道具／宝石・護符'); }
+async function goOsu24() { G.mode = 'cine'; S.flags.c24st = 'osu'; setObj(''); osu24Items(); noKuze24(); playAsTado24(true); await goArea('bazaar', [11, 2.6], -Math.PI / 2); ckSave(); const a = AREAS.bazaar; bgm('night24'); fear20(0.15);
+  scene.background = new THREE.Color(0x0A0610); if (scene.fog) scene.fog.color.setHex(0x0A0610); hemi.intensity = 0.38; sun.intensity = 0.15; for (const n of a.crowd) n.hidden = true; for (const n of [a.gb, a.im, a.cy]) { n.hidden = false; n.st = {}; } if (a.no30) a.no30.hidden = true; P.st = {};
+  if ((S.flags.c24o || []).length >= 3) { await goNo3024(); return; } if ((S.flags.c24o || []).length) { obj24o(); playOn(); return; }
+  cine(13, 3.2, 6, 4, 1.4, 0); await card('名古屋　大須　魔界骨董市　裏の商店街', '同じ夜　午前零時', 1600);
+  await narr('表通りから、一本、入った。……シャッターの半分が、降りていた。灯りの消えかけた屋台だけが、まだ、開いていた。');
+  fc22(P, 2.4, 0, 0.3); await say('tado24', '（……どこかに、あるはずだ。……人間くらい、楽に、終わらせる道具が）');
+  obj24o(); playOn(); }
+async function evOsu24(k) { const a = AREAS.bazaar; G.mode = 'cine'; const got = S.flags.c24o || (S.flags.c24o = []); if (!got.includes(k)) got.push(k);
+  const n = k === 'gb' ? a.gb : k === 'im' ? a.im : a.cy; P.pos.set(n.pos.x + 0.4, 0, n.pos.z + 1.6); face22(P, n.pos); face22(n, P.pos);
+  fc22(P, 2.4, 0, -0.3); await say('tado24', k === 'gb' ? '……人間を、楽に、終わらせる道具。……ないか' : k === 'im' ? '……死ねる道具。……人間用の、楽なやつ' : '……何か、ないか。……終わりにできる、ものは');
+  if (k === 'gb') { fc22(n, 2.4, 0, 0.3); await say('goblin', '……は？　人間を、楽に？'); await say('goblin', 'うちは、古道具屋だぞ。そんな物騒なもん、置いてねえよ。');
+    await say('goblin', 'だいたい、人間の客なんざ、十年ぶりだ。……帰んな。ここは、お前の来るとこじゃねえ。'); }
+  if (k === 'im') { fc22(n, 2.4, 0, 0.3); await say('imp', '死ぬ道具ぅ？　……あはは、ないない。人間向けのは、作っても、売れないもん。');
+    await say('imp', '人間は、竜の宝だからさ。壊したら、怒られるし。'); await say('imp', '……あ。でも、お兄さんは、誰の宝でもないのか。……ふーん。');
+    await say('imp', 'まあ、ないけどね。……ほら、惚れ薬なら、あるよ？　……使う相手、いないか。あはは。'); }
+  if (k === 'cy') { fc22(n, 2.4, 0, 0.3); await narr('ひとつ目の店主は、田所を、しばらく、見ていた。……値踏みでも、哀れみでもない、何も映していない目だった。'); await say('cyclops', '…………。'); await say('cyclops', '……店じまいだ。'); }
+  if (got.length >= 3) { await goNo3024(); return; } obj24o(); playOn(); }
+
+// ---- 行き止まり：B.U.N society　rate No.30 ----
+async function goNo3024() { const a = AREAS.bazaar; G.mode = 'cine'; S.flags.c24st = 'no30'; setObj(''); ckSave(); bgm('');
+  for (const n of [a.gb, a.im, a.cy]) n.hidden = true; P.st = { sit: true }; P.pos.set(-10.6, 0, 2.6); P.facing = Math.PI / 2;
+  cine(-7.6, 2.0, 4.6, -10.6, 0.8, 2.4); await narr('どこにも、なかった。……売っているものは、全部、誰かに、愛されるための道具だった。惚れ薬。護符。宝石。');
+  await narr('誰にも愛されなかった人間が、終わるための道具は、どこにも、なかった。');
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '（……死ぬことすら、用意されてないのか）');
+  await say('tado24', '（……ははっ。……そりゃ、そうか。……誰も、俺のことなんか、考えたことが、ないんだから）');
+  if (!a.no30) a.no30 = npc(a, 'no30', no30Bird(), -11.6, -2.6, 0); const b = a.no30; b.hidden = false; b.st = {}; b.goal = null; b.pos.set(-11.8, 0, -2.8); b.facing = Math.atan2(P.pos.x + 11.8, P.pos.z + 2.8);
+  bgm('show24'); for (let i = 0; i < 4; i++) { sfx('heart'); fxRing(P.pos.x, 0.08, P.pos.z, 1.4 + i * 0.4, 0xC8A0FF, 0.6); await z22(520); }
+  cine(-8.4, 1.8, 3.6, -11.4, 1.6, -0.6); await say('no30', '――おや。');
+  await walk22(b, -10.4, 0.8, 1.2, 2200); face22(b, P.pos);
+  fc22(b, 2.8, 0.4, 0.3); nameCard({ s: 'B.U.N society　rate No.30', b: '――名を、明かさない文鳥', e: 'No.30', col: '#C8A0FF', p: '頬まで、真っ黒な文鳥。\n「外れもの」のために、存在するという。' });
+  await say('no30', 'ずいぶんと、美しい鼓動ですね。'); nameCard(null);
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '……誰だ。');
+  fc22(b, 2.8, 0.4, 0.3); await say('no30', '申し遅れました。B.U.N society、rate、No.30。……名は、ございません。外れものに、名札は、似合いませんから。');
+  await say('no30', '先ほどから、あなたの鼓動を、聴いていました。……乱れて、途切れて、それでも、止まらない。幕が上がらないまま、ずっと続いている、序曲のようだ。');
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '……止めたいんだよ。……止め方を、探しに、来た。');
+  fc22(b, 2.8, 0.4, 0.3); await say('no30', 'ええ。存じております。');
+  await say('no30', '生憎ですが。……自殺の方法などは、お引き受け、できません。');
+  await say('no30', '終わりは、芸術では、ありません。……幕を下ろすのは、演目が、終わってからです。あなたの演目は、まだ、一幕も、始まっていない。');
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '……演目、だと。……俺の人生の、どこに、そんなもんが、ある。');
+  fc22(b, 2.8, 0.4, 0.3); await say('no30', 'ありますとも。……その代わり。あなたのために、新たな美を、授けることは、できるでしょう。');
+  fc22(P, 2.2, 0, 0.4); await say('tado24', '……美？');
+  fc22(b, 2.8, 0.4, 0.3); await say('no30', '竜も、狐も、天使も。……完成されたものしか、愛しません。顔の整った者。気の利く者。何かが、できる者。');
+  await say('no30', '私は、違います。……私は、外れものたちのために、存在します。選ばれなかったもの。数えられなかったもの。誰の眼中にも、なかったもの。');
+  await say('no30', '彼らこそが、真の芸術ですので。');
+  await say('no30', 'ひびの入った器でしか、鳴らない音が、あるのです。……あなたは、ずっと、ひびだらけで、ずっと、黙っていた。');
+  P.st = {}; fc22(P, 2.2, 0, 0.4); const j = await choose([{ k: '手を', t: '（……手を、伸ばす）' }, { k: '黙る', t: '（……何も、言わない）' }]); S.flags.c24h = j;
+  fc22(b, 2.8, 0.4, 0.3); await say('no30', j === 0 ? '……よろしい。' : '……沈黙もまた、ひとつの、拍子です。');
+  await say('no30', 'さあ。……幕を、上げましょう。あなたの、最初の演目を。');
+  b.st = { point: true }; cut18(P.pos.x + 1.4, 1.5, P.pos.z + 1.0, (P.pos.x + b.pos.x) / 2, 1.0, (P.pos.z + b.pos.z) / 2); await narr('文鳥は、自分の頬から、黒い羽根を、一枚、抜いた。……そして、田所の、手のひらに、置いた。');
+  await narr('羽根は、手のひらに、沈んでいった。……溶けるように。最初から、そこにあったように。'); b.st = {};
+  // 鐘
+  bgm(''); await z22(500); fear20(0.6); scene.background = new THREE.Color(0x05020A); hemi.intensity = 0.25; bell24('ボーン……'); await z22(2600);
+  bell24('ボーン……'); await z22(2600);
+  fc22(P, 2.0, 0, 0.4); await say('tado24', '（……なんだ。……鐘？　……頭の、中で）');
+  bell24('ボーン……'); await z22(1800);
+  await voice24('……ずっと、我慢してきたのね。');
+  await voice24('誰にも、見てもらえなくて。……誰にも、呼んでもらえなくて。');
+  bell24('ボーン……'); await voice24('……でも、もう、いいのよ。');
+  await voice24('あなたは、あなたの形に、なっていいの。');
+  bell24('ボーン……'); await z22(1600);
+  fc22(b, 2.8, 0.4, 0.3); await say('no30', '――ショーの、始まりです。');
+  fxFlash(b.pos.x, 1.6, b.pos.z, 0xC8A0FF, 3, 0.5); b.hidden = true; fear20(0.2); cine(-7.6, 2.0, 4.6, -10.6, 0.8, 2.4); await z22(800);
+  await narr('黒い文鳥は、もう、どこにも、いなかった。');
+  cut18(P.pos.x + 0.8, 1.2, P.pos.z + 1.2, P.pos.x, 0.8, P.pos.z); await narr('手のひらに、黒い、羽の形の痣が、残っていた。……鐘の音は、まだ、遠くで、鳴っていた。');
+  fc22(P, 2.0, 0, 0.4); await say('tado24', '（……死にたい、って。……さっきまで、そればっかり、だったのに）');
+  await say('tado24', '（……今は。……今は、何が、したいんだ。……俺は）');
+  bell24('ボーン……'); await z22(1800);
   // 観測艇：締め
-  await goCine24('lab6'); { const b = AREAS.lab6; b.ch.hidden = false; b.tk.hidden = false; b.tk.facing = 0; scene.background = new THREE.Color(0x1A2230); hemi.intensity = 0.6; bgm('');
+  await goCine24('lab6'); { const c = AREAS.lab6; c.ch.hidden = false; c.tk.hidden = false; c.tk.facing = 0; scene.background = new THREE.Color(0x1A2230); hemi.intensity = 0.6; bgm(''); fear20(0);
     cine(0, 2.4, 2.6, 0, 1.7, -0.6); await say('tokiwa', '観測記録、四二七日目、終了。……本日も、春日井は、幸福でした。');
-    fc22(b.ch, 2.6, 0.5, 0.3); await say('chanyu', '……回答率は。'); cine(0, 2.4, 2.6, 0, 1.7, -0.6); await say('tokiwa', '……変わりません。'); }
-  await fade(true); await card('8.5章　幕間1　見守り', '完', 3000); await fade(false); setMeta({ ch24Clear: true, ch24: packS(), ch24Done: [...DONE] }); showReport24(); }
+    fc22(c.ch, 2.6, 0.5, 0.3); await say('chanyu', '……回答率は。'); cine(0, 2.4, 2.6, 0, 1.7, -0.6); await say('tokiwa', '……変わりません。');
+    await say('tokiwa', '……追記。非選択男性、一名。高蔵寺から、大須へ。……鼓動の記録に、知らない波形が、混じっています。');
+    fc22(c.ch, 2.6, 0.5, 0.3); await say('chanyu', '……鐘の、音。');
+    cine(0, 2.4, 2.6, 0, 1.7, -0.6); await say('tokiwa', '……記録の上には、ありません。ですが、確かに、何かが、鳴っています。');
+    fc22(c.ch, 2.6, 0.5, 0.3); await say('chanyu', '……羽の跡。三十番台の。……B.U.N の。'); }
+  await fade(true); await card('8.5章　幕間1　見守り', '完　――　つづく', 3000); await fade(false); setMeta({ ch24Clear: true, ch24: packS(), ch24Done: [...DONE] }); showReport24(); }
+
+// ---- 主家：眼中に、ない ----
+async function goShuke24() { G.mode = 'cine'; S.flags.c24st = 'shuke'; setObj(''); await goCine24('shuke'); ckSave(); const a = AREAS.shuke, F = a.fam; bgm('epi23');
+  for (const k in F) { F[k].hidden = true; F[k].st = { sit: true }; } for (const k of ['furuuru', 'yuria', 'rurika', 'miria', 'rin', 'nirume']) if (F[k]) F[k].hidden = false;
+  if (!a.tv24) { a.tv24 = block(1.8, 1.0, 0.08, 0x0A0A0E, 0, 1.3, 3.4, a.g); a.tvGl24 = glowSprite(0x9AC8F0, 2.4, 0.35); a.tvGl24.position.set(0, 1.3, 3.2); a.g.add(a.tvGl24); } a.tv24.visible = true; a.tvGl24.visible = true;
+  cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await card('春日井　外神竜一族　主家', '同じ日　午後一時', 1400);
+  news22('【特集】見守り住宅の四十万人　――「非選択男性」の暮らし', '住居・食事・見回りは無償　天環ライフサポート「足りないものは、ありません」');
+  await narr('昼のテレビが、見慣れない言葉を、映していた。');
+  fc22(F.yuria, 2.4, 0, 0.3); await say('yuria', 'へ～。……そういう人たち、いるんだ。……え、どこに？');
+  fc22(F.rurika, 2.4, 0, 0.3); await say('rurika', '高蔵寺とか、勝川の、白い団地。……天環の支援住宅よ。テルエスが、ご飯も、部屋も、ちゃんと出してる。');
+  await say('rurika', '困ってないはずよ。……少なくとも、お腹は、空いてない。');
+  fc22(F.miria, 2.4, 0, -0.3); await say('miria', '興味わかな～。……てか、チャンネル変えていい？　映ってる人、みんな、同じ顔してるし。');
+  fc22(F.furuuru, 2.4, 0, 0.3); await say('furuuru', 'みんな、かわいい子たちよ♡　……でも、ママの腕は、二本しか、ないのよねぇ。');
+  fc22(F.nirume, 2.4, 0, 0.3); await say('nirume', '……？　……その人たち、にあ、みえない。');
+  await say('nirume', '……すきが、とんでこない、から。……すきも、きらいも、ない人は、にあには、みえないの。');
+  fc22(F.yuria, 2.4, 0, 0.3); await say('yuria', '……まあ、生きてるなら、いいじゃん？　あーしら、全部は、抱えらんないし。');
+  fc22(F.rin, 2.4, 0, 0.3); await say('rin', '…………。');
+  await say('rin', '……ご飯と部屋があったら、困ってへん、て。……ほんまに、そう言えるんかな。');
+  fc22(F.miria, 2.4, 0, -0.3); await say('miria', '燐、まじめ～。……ほら、変えるよ。');
+  news22off(); a.tvGl24.visible = false; cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await narr('画面は、料理番組に、変わった。……誰も、それ以上、何も、言わなかった。');
+  a.tv24.visible = false; await goTown24(); }
+
+// ---- 円卓の間：灰色の地図 ----
+async function goTenkan24() { G.mode = 'cine'; S.flags.c24st = 'tenkan'; setObj(''); await goCine24('council6'); ckSave(); const C = AREAS.council6; bgm('lab20'); C.holoOn = false;
+  for (const n of C.npcs) { n.st = {}; n.lookAt = null; n.hidden = true; } if (C.h19) C.h19.visible = false; if (C.h21) C.h21.visible = false;
+  if (!C.re21) C.re21 = npc(C, 'reune', makeChar(FAMLK.reune), 1.4, -2.0, Math.atan2(-1.4, -1.2)); const te = cnpc(C, 'terues'), re = C.re21; te.hidden = false; re.hidden = false; te.facing = Math.atan2(1.4, 1.2); re.facing = Math.atan2(-1.4, -1.2);
+  scene.background = new THREE.Color(0x14101C); hemi.intensity = 0.5;
+  cine(0.6, 2.0, 0.6, 0.7, 1.6, -2.6); await card('名古屋　天環ホールディングス本社　最上階「円卓の間」', '同じ日　午後六時', 1400);
+  fc22(re, 2.4, 0, 0.3); await say('reune', 'テル～。支援住宅の、見回りデータ。……四十一万二千件。今月も、異常なし。');
+  fc22(te, 2.4, 0, -0.3); await say('terues', '……そう。……足りないものは。');
+  fc22(re, 2.4, 0, 0.3); await say('reune', 'ない。部屋も、ご飯も、薬も、ロボも。……足りないものは、ない。');
+  await say('reune', 'でもね。あの区画、私の地図の上で、ずっと、灰色なの。……好きも、嫌いも、映らない。誰も、見に行かないから。');
+  await say('reune', '……私も、見てない。見る理由が、ないもん。');
+  fc22(te, 2.4, 0, -0.3); await say('terues', '……人間は、守る。……全部の、人間を。揺り籠に、入らない人間も。');
+  await say('terues', '支援住宅の予算は、揺り籠の、三パーセント。……でも、それで、生きていける。');
+  fc22(re, 2.4, 0, 0.3); await say('reune', '生きていける、と、生きてる、は、違うけどね～。');
+  fc22(te, 2.4, 0, -0.3); await say('terues', '…………。'); await say('terues', '……僕は、竜だから。……全部を、好きには、なれない。');
+  fc22(re, 2.4, 0, 0.3); await say('reune', '知ってる。……だから、ロボに、見させてるんでしょ。');
+  cine(0, 6.4, 8.4, 0, 1.0, -0.4); await narr('円卓の上の地図で、春日井の端の、白い団地の区画だけが、灰色に、沈んでいた。……誰の好きも、届かない色だった。');
+  re.hidden = true; await goNight24(); }
 
 function showReport24() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); news22off(); fear20(0); bgm('dusk24');
   const n = (S.flags.c24t || []).length, j = S.flags.c24j;
-  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>八</span><span>間</span></div><h2>8.5章　幕間1　見守り</h2><div class="meta">高蔵寺　天環ライフサポート第三住宅／天環キャリアサポート 無人相談窓口／タカハラsociety 観測艇</div><table>' +
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>八</span><span>間</span></div><h2>8.5章　幕間1　見守り</h2><div class="meta">高蔵寺　天環ライフサポート第三住宅／外神竜一族 主家／天環ホールディングス／大須 魔界骨董市／タカハラsociety 観測艇</div><table>' +
     '<tr><td>観測艇</td><td>人間の幸福度、全国一位。ただし回答率は六十一パーセント。答えない三十九パーセントの分類は「非選択男性」。住居は天環、食事は文食品、見回りは翠絡のロボット。生活は、生涯、保障されている。春日井には、四十万人と少し</td></tr>' +
     '<tr><td>二〇二号室</td><td>田所 一郎、四十七歳。十年前、千路の春日井ハブで荷物を運ぶ仕事が、ハーピーとロボットに替わった。ミマモリは毎朝「体調は」と聞き、どの答えにも「記録しました」と言う。朝食は、うまい。それが、いちばん、こたえる</td></tr>' +
-    '<tr><td>テレビとスマホ</td><td>揺り籠ハウス、来月から入居開始。「選ばれた人間に、最高の暮らしを」。ヒトトキは、二年、指名なし。「プロフィール写真を、明るいものに」</td></tr>' +
+    '<tr><td>主家</td><td>昼の特集「見守り住宅の四十万人」。ユリア「そういう人たち、いるんだ。……え、どこに？」。ルリカ「お腹は空いてないはず」。ミリア「興味わかな～」。フルル「ママの腕は、二本しかないのよねぇ」。ニルメ「すきも、きらいも、ない人は、にあには、みえないの」。燐だけが「ほんまに、困ってへんて、言えるんかな」</td></tr>' +
     '<tr><td>佐野</td><td>二十六歳。趣味は、ない。ガチャを回すだけ。ヒトトキは三か月「審査中」。「チー牛は、竜にも、狐にも、選ばれないっすよ。……人間の女の人にも」。昨日の会話は、ゼロ</td></tr>' +
     '<tr><td>無人相談窓口</td><td>ホログラムのエルフ。倉庫作業、清掃、警備は、ロボットと異種族で充足。「生活は、生涯、保障されております。どうぞ、ご安心ください」。次の相談は、九十日後</td></tr>' +
-    '<tr><td>小川さん</td><td>六十八歳。八年通って、八年同じ返事。「飯は文鳥が作る。部屋は竜が建てる。見回りは機械がする。……人間は、何もせんでいい」「あとの人間は、飼っとくんだ」「鳩は、まだ、わしを、選んでくれる」</td></tr>' +
+    '<tr><td>小川さん</td><td>六十八歳。「飯は文鳥が作る。部屋は竜が建てる。見回りは機械がする。……人間は、何もせんでいい」「あとの人間は、飼っとくんだ」。通りすがりの異種族「見ないほうが、いいよ。かわいそうに、なるから」</td></tr>' +
     '<tr><td>夕方</td><td>自販機の前で落とした百円玉を、スーツの男が拾う。「……ここに、住んでるんですか」「……そうですか」。男は、しばらく住宅の窓を見上げていた。怒っているようにも、見えた</td></tr>' +
-    '<tr><td>夜</td><td>ミマモリ「人との会話、' + n + '回」「明日も、見守っています！」。佐野から、人間主権回復同盟のチラシ。「選ばれなかった、すべての人間へ」。田所の返事は' + (j === 0 ? '「……やめとけ」' : j === 1 ? '「……俺も、行く」' : '、既読だけ') + '</td></tr></table>' +
-    '<p class="close">誰も、来ない。……見守られているだけで。</p>' +
+    '<tr><td>円卓の間</td><td>見回りデータ、四十一万二千件、異常なし。足りないものは、ない。レウネ「あの区画、私の地図の上で、ずっと灰色。好きも嫌いも映らない。……私も、見てない」。テルエス「予算は揺り籠の三パーセント。でも、それで生きていける」「僕は竜だから、全部を好きには、なれない」</td></tr>' +
+    '<tr><td>夜</td><td>ミマモリ「人との会話、' + n + '回」。佐野から人間主権回復同盟のチラシ。田所の返事は' + (j === 0 ? '「……やめとけ」' : j === 1 ? '「……俺も、行く」' : '、既読だけ') + '。「どうして、俺みたいなやつらは」「意味のある暮らしが、したかった」「何も、愉快じゃない」「生まれなければ、よかった」。ミマモリを殴り倒し、喉が焼けるまで叫ぶ。誰も、来ない。「大きな声、十二回。記録しました」</td></tr>' +
+    '<tr><td>大須</td><td>人間を楽に終わらせる道具を探しに、骨董市の裏へ。ゴブリン「人間の客なんざ十年ぶりだ。帰んな」。インプ「お兄さんは、誰の宝でもないのか」。一つ目の宝石商「……店じまいだ」。売っているのは、誰かに愛されるための道具だけだった</td></tr>' +
+    '<tr><td>rate No.30</td><td>頬まで真っ黒な、名を明かさない文鳥。「自殺の方法などは、お引き受けできません。終わりは、芸術ではありません」「私は、外れものたちのために存在します。彼らこそが、真の芸術ですので」「ひびの入った器でしか、鳴らない音がある」。頬の黒い羽根が、手のひらに沈む</td></tr>' +
+    '<tr><td>鐘</td><td>頭の中で、低い鐘が、ボーン、ボーンと鳴る。形のない声「あなたは、あなたの形に、なっていいの」。No.30「――ショーの、始まりです」。手のひらに、黒い羽の形の痣。観測艇には、知らない波形と、三十番台の羽の跡</td></tr></table>' +
+    '<p class="close">誰も、来ない。……来たのは、鐘の音だけだった。</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn24">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn24').addEventListener('click', () => location.reload()); }
 async function startCh24() { const m = meta(); if (m.ch23) unpackS(m.ch23); else if (m.ch22) unpackS(m.ch22); DONE = new Set(m.ch23Done || m.ch22Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter24(); }
 
 // 続きから：場面の始まりから
-RESUME[24] = { cold: goCold24, room: goRoom24, town: goTown24, dusk: goTown24, night: goNight24 };
+RESUME[24] = { cold: goCold24, room: goRoom24, shuke: goShuke24, town: goTown24, dusk: goTown24, tenkan: goTenkan24, night: goNight24, osu: goOsu24, no30: goOsu24 };
+AREAS.bazaar.restore = (r0 => function (a) { if (r0) r0.call(this, a); if (S.chapter === 24) osu24Items(); })(AREAS.bazaar.restore);
 AREAS.room24.restore = () => { if (S.chapter === 24) room24Items(); };
 AREAS.town24.restore = () => { if (S.chapter === 24) town24Items(); };
 
@@ -13749,6 +13936,6 @@ function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b
   if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
 $('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
