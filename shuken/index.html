@@ -1818,7 +1818,7 @@ const CHSYN = [
   '出向明けの久世は、見た目はいつもどおりなのに、誰もが「何か変だ」と言う。主家では、眠っていたニルメが、自分で起き上がる。円卓では、揺籃計画が最後の詰めに入り、新しい顔がふたつ。そして夜、指名先へ向かう久世の前に、白い翼が降りてくる。',
   '白い部屋で、天使たちに甘やかされる久世。来ない人を待つしぇおの手に、金色の羽が落ちてくる。春日井の真ん中で、空と底がぶつかり、留保も、外神竜も、その間に割って入る。そして、繭が消える。',
   '底と空が、ひとつ上の存在へ。春日井を巻き込む戦いに、白と黒の文鳥と、外神竜と、留保が挑む。繭の中で、久世は、自分の無力を殴り続ける。……そして、夜明け。誰にも聞かれなかった人間の中で、何かが、少しだけ、曲がる。',
-  '高蔵寺の、白い三階建て。誰にも選ばれなかった四十七歳の田所は、見回りロボットに体調を聞かれ、うまい朝食を食べ、九十日後の相談を予約する。竜も、狐も、彼らを見ない。……その夜、田所は、叫び、終わるための道具を探しに、大須の裏へ向かう。そこで、頬の黒い文鳥に、出会う。'];
+  '高蔵寺の北、フェンスに囲まれた「単身者特別居住区」。誰にも選ばれなかった四十七歳の田所と、同じように見向きもされない男たちが、清潔な部屋で、ばらばらに暮らす。田所は、見回りロボットに体調を聞かれ、うまい朝食を食べ、九十日後の相談を予約する。竜も、狐も、彼らを見ない。……その夜、田所は、叫び、終わるための道具を探しに、大須の裏へ向かう。そこで、頬の黒い文鳥に、出会う。'];
 const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'];
 function renderChaps() { const m = meta(), L = $('chapList'); L.innerHTML = '';
   CHN.forEach((nm, i) => { const open = chapOpen(m, i), el = document.createElement('div'); el.className = 'ccard' + (/幕間|未来/.test(nm) ? ' inter' : '') + (open ? '' : ' lock') + (open && m['ch' + i + 'Clear'] ? ' done' : '');
@@ -13186,7 +13186,7 @@ makeArea('room24', { place: '高蔵寺　天環ライフサポート第三住宅
 });
 
 // ---- 高蔵寺　第三住宅の前の通り（住宅・無人相談窓口・公園・無人コンビニ） ----
-makeArea('town24', { place: '高蔵寺　天環ライフサポート第三住宅の前', bounds: [-15, 15, -3.2, 3.6], spawn: [-10, -1.8], spawnFace: 0, cam: [0, 9.5, 9.5], music: 'town24', bg: 0xC8D4E0, fog: [34, 110], light: 0.95, sun: 0.6,
+makeArea('town24', { place: '高蔵寺　単身者特別居住区（天環ライフサポート第三住宅）', bounds: [-15, 15, -3.2, 3.6], spawn: [-10, -1.8], spawnFace: 0, cam: [0, 9.5, 9.5], music: 'town24', bg: 0xC8D4E0, fog: [34, 110], light: 0.95, sun: 0.6,
   build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(50, 30), new THREE.MeshLambertMaterial({ map: canvasTex(500, 300, (c, w, h) => { c.fillStyle = '#9A9A94'; c.fillRect(0, 0, w, h); c.fillStyle = '#C8C4BC'; c.fillRect(0, h * 0.36, w, h * 0.2); c.fillStyle = '#5A5A5E'; c.fillRect(0, h * 0.56, w, h * 0.22); c.fillStyle = '#E8E4D0'; for (let x = 0; x < w; x += 30) c.fillRect(x, h * 0.67, 16, 2); c.fillStyle = '#8A9A70'; c.fillRect(w * 0.6, h * 0.2, w * 0.18, h * 0.16); }) })); fl.rotation.x = -Math.PI / 2; fl.position.z = -1; g.add(fl);
     // 同じ形の、白い三階建て（住宅）
     for (const x of [-13.4, -8.8]) { block(4.2, 6.6, 3.6, 0xF2F2EE, x, 3.3, -7.0, g); for (let f = 0; f < 3; f++) { block(4.2, 0.1, 0.5, 0xC8C8C4, x, 2.0 + f * 2.1, -5.05, g); for (let k = -1; k <= 1; k++) { block(0.7, 0.9, 0.05, 0x8A9AB0, x + k * 1.3, 1.2 + f * 2.1, -5.18, g); block(0.5, 1.5, 0.05, 0xB8B8B4, x + k * 1.3 + 0.55, 0.95 + f * 2.1, -5.18, g); } } }
@@ -13203,7 +13203,7 @@ makeArea('town24', { place: '高蔵寺　天環ライフサポート第三住宅
     block(0.9, 1.8, 0.7, 0xC83A3A, 10.2, 0.9, -3.4, g); block(0.7, 0.9, 0.05, 0xF4F4F4, 10.2, 1.2, -3.04, g, { emis: 0x5A5A5A }); a.obs.push({ x: 10.2, z: -3.4, hx: 0.5, hz: 0.4 }); a.obs.push({ x: 13.0, z: -5.2, hx: 2.5, hz: 1.5 });
     // 掃除ロボ（通りを、行ったり来たり）
     a.bots = []; for (let i = 0; i < 3; i++) { const b = new THREE.Group(); g.add(b); part(cyl(0.3, 0.32, 0.18, 16), 0xF4F4F0, 0, 0.1, 0, b); part(cyl(0.12, 0.12, 0.06, 12), 0x3A3A40, 0, 0.21, 0, b, { outline: false }); b.lamp = glowSprite(0x7AF0F0, 0.3, 0.8); b.lamp.position.y = 0.3; b.add(b.lamp); b.ph = i * 2.1; b.z0 = [-2.2, 0.9, -1.4][i]; a.bots.push(b); }
-    a.robo = mimamori24(g); a.robo.position.set(-4.6, 0, -2.6); a.robo.rotation.y = 0.4; a.obs.push({ x: -4.6, z: -2.6, hx: 0.35, hz: 0.35 });
+    a.robo = mimamori24(g); a.robo.position.set(-4.4, 0, -1.4); a.robo.rotation.y = 0.4; a.obs.push({ x: -4.4, z: -1.4, hx: 0.35, hz: 0.35 });
     // 人：佐野、小川、案内（ホログラム）、久世（夕方）
     a.sano = npc(a, 'sano24', makeChar(LK.sano24), -12.4, -3.9, 0.2); a.sano.st.sit = true;
     a.ogawa = npc(a, 'ogawa24', makeChar(LK.ogawa24), 7.2, -3.3, 0); a.ogawa.st.sit = true;
@@ -13211,8 +13211,8 @@ makeArea('town24', { place: '高蔵寺　天環ライフサポート第三住宅
     a.kz = npc(a, 'kuze', makeChar(LK.kuze), 10.2, -2.4, 0); a.kz.hidden = true; CAST.kuze = KUZE_MODEL || P.model;
     // 通りを歩く、異種族と、選ばれた人間の二人連れ
     a.walk = []; const pair = (lkA, lkB, z, x0, sp, k) => { const pth = [[15, z, 0], [-15, z, 0]]; a.walk.push(npc(a, 'w24a' + k, makeChar(lkA), x0, z, 0, { path: pth, pi: 0, speed: sp }), npc(a, 'w24b' + k, makeChar(lkB), x0 - 0.8, z, 0, { path: pth, pi: 0, speed: sp })); };
-    pair(LK.dragonExec, Object.assign({}, LK.young, { top: 0xE8E8EC, sleeve: 0xE8E8EC, tie: 0x2A5AA8 }), 2.4, -6, 1.1, 0); pair(LK.catgirl, Object.assign({}, LK.young, { hair: 0x5A3A2A, top: 0x3A3A44, sleeve: 0x3A3A44 }), 3.1, 4, 1.0, 1); pair(LK.elfExec, Object.assign({}, LK.young, { top: 0x6A4A3A, sleeve: 0x6A4A3A, tie: 0xC8A040 }), 2.6, 12, 1.2, 2);
-    a.drone = drone24(g); a.drone.position.set(0, 9, 0); a.drone.visible = false; },
+    pair(LK.dragonExec, Object.assign({}, LK.young, { top: 0xE8E8EC, sleeve: 0xE8E8EC, tie: 0x2A5AA8 }), 6.6, -6, 1.1, 0); pair(LK.catgirl, Object.assign({}, LK.young, { hair: 0x5A3A2A, top: 0x3A3A44, sleeve: 0x3A3A44 }), 7.2, 4, 1.0, 1); pair(LK.elfExec, Object.assign({}, LK.young, { top: 0x6A4A3A, sleeve: 0x6A4A3A, tie: 0xC8A040 }), 6.8, 12, 1.2, 2);
+    zone24(a); a.drone = drone24(g); a.drone.position.set(0, 9, 0); a.drone.visible = false; },
   tick(a, dt) { const t = T.now; a.bots.forEach(b => { b.position.set(Math.sin(t * 0.12 + b.ph) * 13, 0, b.z0); b.rotation.y = Math.cos(t * 0.12 + b.ph) > 0 ? Math.PI / 2 : -Math.PI / 2; b.lamp.material.opacity = 0.5 + Math.sin(t * 4 + b.ph) * 0.3; });
     a.robo.lamp.material.opacity = 0.5 + Math.sin(t * 3) * 0.3; a.kGl.material.opacity = 0.3 + Math.sin(t * 2) * 0.08; if (a.drone.visible) a.drone.rotation.y += dt * 0.6; }
 });
@@ -13238,6 +13238,40 @@ function bell24(txt = 'ボーン……') { let el = $('bell24'); if (!el) { el =
 BGM.show24 = { bpm: 70, f(s, t, sp) { if (s % 8 === 0) tone(mf(38), t, sp * 2.4, 'sine', 0.05, { a: 0.01 }); if (s % 8 === 3 || s % 8 === 5) tone(mf(45), t, sp * 1.2, 'sine', 0.03, { a: 0.01 }); const ch = [[62, 65, 69, 72], [60, 63, 67, 70], [58, 62, 65, 69], [57, 61, 64, 68]][(s >> 4) % 4]; if (s % 4 === 2) tone(mf(ch[(s >> 2) % 4] + 12), t, sp * 2.2, 'triangle', 0.009, { lp: 2000, a: 0.02 }); if (s % 2 === 1) noise(t, 0.03, 0.004, 7000, 'highpass'); } };
 BGM.night24 = { bpm: 40, f(s, t, sp) { if (s % 16 === 0) tone(mf(36), t, sp * 15, 'sine', 0.05, { a: 2.0 }); if (s % 16 === 8) tone(mf(43), t, sp * 7, 'triangle', 0.012, { a: 1.0, lp: 600 }); } };
 
+// ---- 単身者特別居住区：フェンス、ゲート、交流サロン、掲示板、鉄棒、空き缶の箱、テーブル、住人たち ----
+Object.assign(SPK, { mado24: ['木下（二〇八号室）', '#9AA8C0'], video24: ['吉尾（ベンチの男）', '#B0A08A'], bar24: ['長谷（鉄棒の男）', '#A8C0A0'], can24: ['岩田（空き缶の男）', '#A8A890'], bbs24: ['名無し（掲示板の男）', '#8A8A9A'], suit24: ['杉本（スーツの男）', '#A0A8B8'], gyu24: ['石原（無人コンビニの前）', '#B8A890'], manga24: ['森田（スケッチブックの男）', '#A8A0B0'], warm24: ['松井（交流サロン）', '#C8B8A0'] });
+LK.mado24 = { skin: SK, hair: 0x1A1A1E, eye: 0x2A2A30, top: 0x8A8A90, sleeve: 0x8A8A90, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x2A2A30, s: 0.96, w: 1.05, st: ['messy', 'glasses'] };
+LK.video24 = { skin: SK, hair: 0x3A3430, eye: 0x2A2A30, top: 0x5A4A3A, sleeve: 0x5A4A3A, bc: 0x4A4A50, leg: 0x4A4A50, shoe: 0x2A2A30, s: 0.97, w: 1.15, st: ['short'] };
+LK.bar24 = { skin: SK, hair: 0x1A1A1A, eye: 0x2A2A30, top: 0xE8E8E8, sleeve: SK, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0xE8E8E8, s: 1.0, w: 1.02, st: ['short'] };
+LK.can24 = { skin: SK2, hair: 0x8A8A8A, eye: 0x2A2A30, top: 0x4A5A4A, sleeve: 0x4A5A4A, bc: 0x3A3A34, leg: 0x3A3A34, shoe: 0x2A2A24, s: 0.94, w: 1.1, st: ['short', 'cap'], capCol: 0x2A3A5A };
+LK.bbs24 = { skin: SK, hair: 0x2A2A2A, eye: 0x2A2A30, top: 0x1A1A1E, sleeve: 0x1A1A1E, bc: 0x2A2A30, leg: 0x2A2A30, shoe: 0x4A4A50, s: 0.95, w: 0.9, st: ['messy', 'glasses'] };
+LK.suit24 = Object.assign({}, LK.young, { hair: 0x6A6460, top: 0x3A3A44, sleeve: 0x3A3A44, bc: 0x3A3A44, leg: 0x3A3A44, shirt: 0xE8E4D8, tie: 0x6A2A2A, s: 0.98, w: 1.05 });
+LK.gyu24 = { skin: SK, hair: 0x1A1A1E, eye: 0x2A2A30, top: 0x3A5A4A, sleeve: 0x3A5A4A, bc: 0x2A2A34, leg: 0x2A2A34, shoe: 0xE8E8E8, s: 0.95, w: 0.95, st: ['short', 'glasses'] };
+LK.manga24 = { skin: SK, hair: 0x2A2420, eye: 0x2A2A30, top: 0x6A6A70, sleeve: 0x6A6A70, bc: 0x3A3A40, leg: 0x3A3A40, shoe: 0x2A2A30, s: 0.97, w: 1.0, st: ['messy', 'beard'] };
+LK.warm24 = { skin: SK2, hair: 0xE0E0E0, eye: 0x2A2A30, top: 0x8A7A6A, sleeve: 0x8A7A6A, bc: 0x4A4A44, leg: 0x4A4A44, shoe: 0x3A3028, s: 0.9, w: 1.0, st: ['short'] };
+function zone24(a) { const g = a.g;
+  // フェンスとゲート（外の通りとの境）
+  for (let x = -15; x <= 15; x += 1.5) { if (Math.abs(x) < 1.2) continue; part(cyl(0.05, 0.05, 1.4, 6), 0x9A9AA0, x, 0.7, 4.6, g, { outline: false }); }
+  for (const y of [0.5, 1.2]) { block(14, 0.05, 0.05, 0x9A9AA0, -8.1, y, 4.6, g); block(14, 0.05, 0.05, 0x9A9AA0, 8.1, y, 4.6, g); }
+  for (const x of [-1.2, 1.2]) block(0.3, 2.4, 0.3, 0xD8D8D4, x, 1.2, 4.6, g); plane(3.4, 0.6, signTex(680, 120, [{ t: '単身者特別居住区', size: 46, f: MINCHO, w: 900 }, { t: 'ここでは、何も、心配いりません', size: 28 }], { bg: '#F4F4F0', fg: '#2A5AA8' }), 0, 2.7, 4.62, g, { ry: Math.PI });
+  for (let x = -14; x <= 14; x += 2.2) if (Math.abs(x) > 2) part(sph(0.55, 10, 8), 0x3A5A3A, x, 0.5, 5.2, g, { s: [1.4, 0.9, 1] });
+  // 交流サロン（壁の抜けた東屋）
+  block(3.2, 0.12, 2.2, 0xE8E4D8, 0.8, 2.6, -4.9, g); block(3.2, 2.6, 0.12, 0xF4F4F0, 0.8, 1.3, -6.0, g); for (const dx of [-1.5, 1.5]) block(0.12, 2.6, 0.12, 0xC8C8C4, 0.8 + dx, 1.3, -3.9, g);
+  plane(2.2, 0.4, signTex(440, 80, [{ t: '交流サロン', size: 40, w: 900 }], { bg: '#F4F4F0', fg: '#5A7A5A' }), 0.8, 2.25, -5.92, g);
+  for (const [x, z] of [[-0.2, -5.2], [0.8, -5.2], [1.8, -5.2], [-0.2, -4.4], [1.8, -4.4]]) { block(0.5, 0.06, 0.5, 0xC8B8A0, x, 0.45, z, g); block(0.5, 0.45, 0.06, 0xC8B8A0, x, 0.68, z - 0.22, g); } a.obs.push({ x: 0.8, z: -5.0, hx: 1.6, hz: 1.0 });
+  // 掲示板
+  block(1.6, 1.1, 0.08, 0x6A5A4A, -5.2, 1.4, -4.3, g); plane(1.5, 1.0, canvasTex(300, 200, (c, w, h) => { c.fillStyle = '#E8E4D0'; c.fillRect(0, 0, w, h); c.fillStyle = '#F4F4F0'; c.fillRect(10, 10, 130, 90); c.fillRect(160, 14, 128, 80); c.fillRect(20, 110, 260, 80); c.fillStyle = '#C8323C'; c.font = '700 14px sans-serif'; c.fillText('交流会', 20, 30); c.fillText('中止', 90, 30); c.fillStyle = '#3A3A44'; c.font = '12px sans-serif'; c.fillText('参加申込 0名', 20, 52); c.fillText('ぬくもり', 170, 34); c.fillText('クッション', 170, 52); c.fillText('追加支給', 170, 70); c.fillText('ここでは、何も、心配いりません', 30, 150); }), -5.2, 1.4, -4.25, g); for (const dx of [-0.75, 0.75]) block(0.08, 1.4, 0.08, 0x5A4A3A, -5.2 + dx, 0.7, -4.3, g); a.obs.push({ x: -5.2, z: -4.3, hx: 0.85, hz: 0.15 });
+  // 鉄棒、空き缶の箱、テーブル、二棟目の階段
+  for (const dx of [-0.7, 0.7]) part(cyl(0.05, 0.05, 2.2, 8), 0x9A9AA0, 5.9 + dx, 1.1, -4.9, g, { outline: false }); part(cyl(0.03, 0.03, 1.5, 8), 0xC8C8C8, 5.9, 2.15, -4.9, g, { rz: Math.PI / 2, outline: false });
+  block(0.8, 0.9, 0.6, 0x3A6AA8, 11.6, 0.45, -3.6, g); a.obs.push({ x: 11.6, z: -3.6, hx: 0.4, hz: 0.3 }); for (let i = 0; i < 9; i++) part(cyl(0.05, 0.05, 0.14, 8), [0xC83A3A, 0x3A8AC8, 0xE8C040][i % 3], 11.1 + (i % 3) * 0.2, 0.07, -2.9 + ((i / 3) | 0) * 0.18, g, { rx: Math.PI / 2, outline: false });
+  block(1.0, 0.06, 0.8, 0xE8E8E8, 14.0, 0.72, -2.2, g); block(0.1, 0.72, 0.1, 0x9A9AA0, 14.0, 0.36, -2.2, g); block(0.4, 0.04, 0.4, 0xF4F4F4, 14.0, 0.5, -1.5, g); part(cyl(0.14, 0.1, 0.12, 12), 0xF2C860, 14.0, 0.81, -2.2, g, { outline: false }); a.obs.push({ x: 14.0, z: -2.2, hx: 0.5, hz: 0.4 });
+  block(1.6, 0.3, 1.0, 0xB8B8B4, -8.0, 0.15, -4.4, g); block(1.6, 0.3, 0.6, 0xB8B8B4, -8.0, 0.45, -4.6, g);
+  // 住人たち
+  const R = (k, L, x, z, f, st, y) => { const n = npc(a, k, makeChar(L), x, z, f); n.st = st || {}; n.y = y || 0; n.home = [x, z, f, st || {}, y || 0]; return n; };
+  a.res = { mado: R('mado24', LK.mado24, -7.6, -5.05, 0, {}, 2.05), video: R('video24', LK.video24, 4.6, -3.3, 0, { sit: true, phone: true }), bar: R('bar24', LK.bar24, 5.9, -4.5, 0, { armsUp: true }), can: R('can24', LK.can24, 11.0, -2.7, Math.PI * 0.2, { kneel: true }),
+    bbs: R('bbs24', LK.bbs24, -1.4, 0.5, Math.PI, { sit: true, phone: true }), suit: R('suit24', LK.suit24, 0.3, 3.4, 0), gyu: R('gyu24', LK.gyu24, 14.0, -1.5, Math.PI, { sit: true }), manga: R('manga24', LK.manga24, -8.0, -3.9, 0.2, { sit: true }), warm: R('warm24', LK.warm24, 0.8, -5.2, 0, { sit: true }) };
+  a.obs.push({ x: 5.9, z: -4.9, hx: 0.8, hz: 0.2 }); CAST.kuze = KUZE_MODEL || P.model; }
+
 // ================= 8.5章　幕間1　見守り =================
 const on24 = k => () => S.chapter === 24 && S.flags.c24st === k;
 function noKuze24() { playAsTado24(false); noKuze23(); }
@@ -13260,6 +13294,9 @@ async function goCold24() { G.mode = 'cine'; S.flags.c24st = 'cold'; setObj('');
   fc22(a.ch, 2.6, 0.5, 0.3); await say('chanyu', '……それでも、答えない。');
   tk(); await say('tokiwa', '分類上は、「非選択男性」。……異種族の誰にも、指名も、囲い込みも、されていない、人間の男性です。');
   await say('tokiwa', '住居は、天環。食事は、文食品。見回りは、翠絡のロボット。……生活は、生涯、保障されています。');
+  await say('tokiwa', '多くは、各区の「単身者特別居住区」に、暮らしています。……入居条件は、単身、交際歴なし、今後の見込み、なし。家賃は、市場価格の、一割。');
+  fc22(a.ch, 2.6, 0.5, 0.3); await say('chanyu', '……見込みなし、を、誰が、決める。');
+  tk(); await say('tokiwa', '天環の、審査窓口です。……面接は、五分。判子は、一度、押されると、消えません。');
   fc22(a.ch, 2.6, 0.5, 0.3); await say('chanyu', '……ネットでは、別の呼び方を、されている。');
   tk(); await say('tokiwa', 'ええ。……ここには、記録しません。');
   cine(0, 3.2, 5.6, 0, 1.6, -1.4); await narr('春日井、人口、五百十一万人。……誰にも選ばれなかった男たちは、四十万人を、少し、超えていた。');
@@ -13310,16 +13347,26 @@ function town24Items() { const a = AREAS.town24; if (!a.built) { a.build(a); a.b
   addItem(a, { id: 'k24k', x: -2.0, z: -2.9, r: 1.4, label: '無人相談窓口', col: 0xE3B428, avail: () => on() && !got('k'), on: () => evTown24('k') });
   addItem(a, { id: 'k24o', x: 7.0, z: -2.5, r: 1.5, label: '小川さん', col: 0xE3B428, avail: () => on() && !got('o'), on: () => evTown24('o') });
   addItem(a, { id: 'k24m', x: -6.6, z: -3.7, r: 1.2, label: 'ポスト', avail: () => on() && !got('m'), on: () => evTown24('m') });
-  addItem(a, { id: 'k24v', x: 10.2, z: -2.5, r: 1.3, label: '自販機', col: 0xE3B428, avail: () => on() && ['s', 'k', 'o'].every(got) && !got('v'), on: () => evTown24('v') });
+  for (const [k, x, z, l] of [['mado', -7.6, -2.2, '二〇八号室のベランダ'], ['video', 4.0, -2.4, 'ベンチの男'], ['bar', 5.9, -3.3, '鉄棒の男'], ['can', 10.6, -1.8, '空き缶の男'], ['bbs', -1.4, 1.3, '縁石の男'], ['suit', 0.3, 2.5, 'ゲートの前の男'], ['gyu', 13.3, -0.9, 'テーブルの若い男'], ['manga', -8.8, -3.0, '階段の男'], ['warm', 0.8, -3.4, '交流サロン']])
+    addItem(a, { id: 'z24' + k, x, z, r: 1.2, label: l, col: 0xE3B428, avail: () => on() && !got(k), on: () => evTown24(k) });
+  addItem(a, { id: 'z24bd', x: -5.2, z: -3.4, r: 1.1, label: '掲示板', avail: () => on() && !got('bd'), on: () => evTown24('bd') });
+  addItem(a, { id: 'k24v', x: 10.2, z: -2.5, r: 1.3, label: '自販機', col: 0xE3B428, avail: () => on() && got('k') && met24() >= 5 && !got('v'), on: () => evTown24('v') });
   addItem(a, { id: 'k24h', x: -10.0, z: -3.3, r: 1.3, label: '部屋へ、帰る', col: 0xC8323C, once: false, avail: () => on() && got('v'), on: () => goTenkan24() }); }
-function obj24k() { const g = S.flags.c24k || [], n = ['s', 'k', 'o'].filter(k => g.includes(k)).length; setObj(g.includes('v') ? '部屋へ、帰る（住宅の入口）' : n >= 3 ? '日が傾いた。……自販機で、何か、買って帰る' : '一日を、過ごす（' + n + '／3）　佐野／無人相談窓口／公園の小川さん'); }
+const RES24 = ['mado', 'video', 'bar', 'can', 'bbs', 'suit', 'gyu', 'manga', 'warm'];
+const met24 = () => { const g = S.flags.c24k || []; return ['s', 'o', ...RES24].filter(k => g.includes(k)).length; };
+function obj24k() { const g = S.flags.c24k || [], n = met24(), kk = g.includes('k'); setObj(g.includes('v') ? '部屋へ、帰る（住宅の入口）' : n >= 5 && kk ? '日が傾いた。……自販機で、何か、買って帰る（ほかの住人とも、話せる）' : '特区で、一日を過ごす　住人と話す（' + Math.min(n, 5) + '／5）' + (kk ? '' : '・無人相談窓口')); }
 function dusk24() { scene.background = new THREE.Color(0xD8906A); if (scene.fog) scene.fog.color.setHex(0xD8906A); hemi.intensity = 0.7; sun.intensity = 0.35; }
 async function goTown24() { G.mode = 'cine'; S.flags.c24st = (S.flags.c24k || []).includes('v') ? 'dusk' : 'town'; setObj(''); town24Items(); noKuze24(); playAsTado24(true); await goArea('town24', [-10, -1.8], 0); ckSave(); const a = AREAS.town24; bgm('town24');
   a.kz.hidden = true; a.kiosk.hidden = true; a.sano.hidden = false; a.sano.st = { sit: true }; a.ogawa.hidden = false; a.ogawa.st = { sit: true }; P.st = {};
+  for (const k in a.res) { const n = a.res[k], h = n.home; n.hidden = false; n.goal = null; n.pos.set(h[0], 0, h[1]); n.facing = h[2]; n.st = Object.assign({}, h[3]); n.y = h[4]; }
   if ((S.flags.c24k || []).includes('v')) { dusk24(); bgm('dusk24'); a.sano.hidden = true; }
   if ((S.flags.c24k || []).length) { obj24k(); playOn(); return; }
-  cine(-10, 4.4, 6.6, -6, 1.2, -1); await narr('外は、晴れていた。……掃除ロボットが、もう、通りを、二往復していた。');
-  await narr('見回りのミマモリが、通りの角で、こちらに、ランプを、向けた。……誰かを、数えるように。');
+  cine(0, 6.4, 13, 0, 1.0, -1); await card('高蔵寺　単身者特別居住区', '同じ日　午後二時', 1600);
+  await narr('高蔵寺の北。フェンスで囲まれた、白い区画。……正式な名前は、「単身者特別居住区」。');
+  await narr('入居条件は、三つ。単身であること。交際歴が、ないこと。今後の見込みも、ないこと。……家賃は、市場価格の、一割。');
+  cine(0, 3.2, 1.0, 0, 1.4, 7); await narr('通りがかりの人は、いなかった。……ここに用のある者が、いないから。フェンスの外の通りを、ときどき、誰かが、目をそらして、通り過ぎるだけだった。');
+  cine(-10, 4.4, 6.6, -4, 1.2, -2); await narr('ベランダに、階段に、ベンチに、縁石に。……男たちが、ひとりずつ、ばらばらに、いた。誰も、誰とも、話していなかった。');
+  await narr('掃除ロボットが、誰もいない通りを、もう、二往復していた。……見回りのミマモリが、こちらに、ランプを、向けた。誰かを、数えるように。');
   obj24k(); playOn(); }
 async function evTown24(k) { const a = AREAS.town24; G.mode = 'cine'; const got = S.flags.c24k || (S.flags.c24k = []); if (!got.includes(k)) got.push(k);
   if (k === 's') { const s = a.sano; P.pos.set(-11.2, 0, -2.6); face22(P, s.pos); face22(s, P.pos); cine(-9.6, 2.6, -0.4, -12.2, 0.8, -3.6);
@@ -13354,9 +13401,9 @@ async function evTown24(k) { const a = AREAS.town24; G.mode = 'cine'; const got 
     fc22(o, 2.4, 0, 0.3); await say('ogawa24', 'はっは。わしは、もう、行かんよ。……八年、通って、八年、同じ返事だった。');
     await say('ogawa24', '昔はな。……人間が、人間を、雇っとったんだ。下手でも、遅くても、「おい、そこの」って、呼ばれた。');
     await say('ogawa24', '今は、飯は、文鳥が作る。部屋は、竜が建てる。見回りは、機械がする。……人間は、何も、せんでいい。');
-    cine(5.0, 2.2, 6.0, 4, 1.2, 2.4); await narr('通りを、竜の女性と、背の高い人間の男が、腕を組んで、歩いていった。……男は、笑っていた。');
-    await say('pass24a', 'ねえ、あのベンチの人たち。……いつも、いるよね。'); await say('pass24b', '支援住宅の人でしょ。……見ないほうが、いいよ。かわいそうに、なるから。');
-    await narr('二人は、こちらを、一度も、見なかった。……見ないことに、決めている声だった。');
+    cine(5.0, 2.2, 6.0, 4, 1.2, 2.4); await narr('フェンスの向こうの通りを、竜の女性と、背の高い人間の男が、腕を組んで、歩いていった。……男は、笑っていた。');
+    await say('pass24a', 'ねえ、あのフェンスの中。……ベンチの人たち、いつも、いるよね。'); await say('pass24b', '特区の人でしょ。……見ないほうが、いいよ。かわいそうに、なるから。');
+    await narr('二人は、フェンスの中を、一度も、見なかった。……見ないことに、決めている声だった。');
     fc22(o, 2.4, 0, 0.3); await say('ogawa24', '……ああいうのが、選ばれた人間だ。顔がいいか、気が利くか、何か、できるか。');
     await say('ogawa24', '竜は、気に入った人間を、宝物みたいに、抱え込む。狐は、尾で、くるむ。……あとの人間は、飼っとくんだ。腹が減らんように、汚れんように。');
     fc22(P, 2.4, 0, -0.3); const j = await choose([{ k: '言う', t: '「……飼われてるだけ、まだ、ましなんですかね」' }, { k: '言う', t: '「……俺たちは、何のために、いるんですかね」' }]);
@@ -13365,10 +13412,72 @@ async function evTown24(k) { const a = AREAS.town24; G.mode = 'cine'; const got 
     await say('ogawa24', '……鳩に、パンでも、やるか。……鳩は、まだ、わしを、選んでくれる。'); talk24('o'); }
   if (k === 'm') { P.pos.set(-6.6, 0, -3.0); P.facing = Math.PI; cut18(-5.6, 1.6, -1.6, -6.6, 0.8, -4.2); await narr('ポストに、チラシが、一枚。……「揺り籠ハウス　入居者募集」。');
     await narr('いちばん下に、小さな字で。……「※ご指名のある方に、限ります」。'); fc22(P, 2.4, 0, 0.3); await say('tado24', '（……ご指名のある方、か）'); }
+  // ---- 特区の住人たち ----
+  if (RES24.includes(k) && a.res[k]) { const n = a.res[k], at = (dx, dz) => { P.pos.set(clamp(n.pos.x + dx, -14.4, 14.4), 0, clamp(n.pos.z + dz, -3.1, 3.5)); face22(P, n.pos); }, me = () => fc22(P, 2.4, 0, -0.3), he = (d = 2.4, dy = 0, sd = 0.3) => fc22(n, d, dy, sd);
+    if (k === 'mado') { at(0, 3.0); P.facing = Math.PI; cine(-5.4, 2.0, -0.6, -7.6, 3.4, -5.05); await narr('二階のベランダに、男が、座っていた。……洗濯物も、何も、干していない、ベランダだった。');
+      he(2.2, 0, 0.2); await say('mado24', '……あ、田所さん。……下には、降りないっす。……降りても、誰も、いないんで。');
+      await say('mado24', '彼女いない歴、イコール、年齢。……三十四年、更新中っす。');
+      await say('mado24', 'ここの入居条件、知ってます？　「単身。交際歴なし。今後の見込み、なし」。……見込みなし、って、窓口の人が、判子、押すんすよ。……エルフの、きれいな人が。');
+      await say('mado24', '五分の、面接でした。……「ご安心ください。ここなら、もう、がんばらなくて、いいですよ」って。……笑顔で。');
+      await say('mado24', '……あの判子の音、まだ、耳に、残ってるっす。……ぽん、って。……俺の、残りの人生、全部に。');
+      me(); await say('tado24', '（……俺の書類にも、押されてる。……同じ、判子が）'); }
+    if (k === 'video') { at(-1.2, 0.6); cine(n.pos.x + 1.6, 1.6, n.pos.z + 2.0, n.pos.x, 0.9, n.pos.z); await narr('ベンチで、男が、スマホの動画を、見ていた。……同じ十秒を、何度も、巻き戻していた。');
+      he(); await say('video24', '……十五年前の、配信。……この子が、俺の名前、読んでくれたんだ。投げ銭、千円で。「いつも、ありがとう、ヨシオさん」って。');
+      await say('video24', '……今は、竜の、奥さん。……この前、テレビに出てた。……幸せそうだった。');
+      await say('video24', '……十秒だけ、なんだよ。……俺の人生で、女の人に、名前、呼んでもらえたの。');
+      await say('video24', '……あと、何回、巻き戻したら、すり切れるのかな。');
+      me(); await say('tado24', '（……すり切れないんだよ、それは。……だから、終われないんだ）'); }
+    if (k === 'bar') { at(0, 1.6); cine(n.pos.x + 2.0, 1.8, n.pos.z + 2.4, n.pos.x, 1.6, n.pos.z); await narr('鉄棒で、男が、黙々と、懸垂を、していた。');
+      he(2.6, 0.4, 0.3); await say('bar24', '……九十八。……九十九。……百。'); n.st = {};
+      await say('bar24', '体だけは、鍛えてるんすよ。……十年。毎日、百回。');
+      await say('bar24', '……見せる相手は、いないっす。健康診断の、ロボが、「体脂肪率、優秀です」って、言ってくれるだけで。');
+      await say('bar24', '……でも、やめたら、何も、残んないんで。……明日も、百回っす。');
+      me(); await say('tado24', '（……百回。……俺には、一回分の、何かも、ない）'); n.st = { armsUp: true }; }
+    if (k === 'can') { at(-0.6, 0.9); cine(n.pos.x + 1.4, 1.4, n.pos.z + 2.0, n.pos.x, 0.6, n.pos.z); await narr('回収箱の前に、男が、しゃがみこんでいた。……空き缶を、一本ずつ、数えていた。');
+      he(2.2, 0, 0.3); await say('can24', '……三百十二。……三百十三。');
+      await say('can24', '空き缶、数えてんだ。……この特区で、一日に、何本、捨てられるか。');
+      await say('can24', '……数えてると、時間が、たつんだよ。……時間が、たつのだけが、救いなんだ。');
+      await say('can24', '……三百十四。……ああ、これは、昨日も、拾ったやつだ。……昨日の俺と、同じ缶を、数えてる。'); }
+    if (k === 'bbs') { at(0.9, 0.4); cine(n.pos.x - 1.6, 1.6, n.pos.z + 2.2, n.pos.x, 0.7, n.pos.z); await narr('縁石に、男が、座っていた。……スマホの画面を、読み上げていた。誰に、聞かせるでもなく。');
+      he(2.2, 0, -0.3); await say('bbs24', '……「今日も、誰とも、話さなかった」。');
+      await say('bbs24', '「同じく」「同じく」「同じく」。……三百件。全部、同じく。');
+      await say('bbs24', '……非選択スレ。この特区の、だいたいのやつが、書いてる。……名前は、ないけど。俺も、名無し。');
+      await say('bbs24', '書いたって、誰も、助けに来ない。……「同じく」が、増えるだけ。');
+      await say('bbs24', '……でも、「同じく」が増えると、ちょっとだけ、ほっとするんだ。……最悪だろ。');
+      me(); await say('tado24', '（……最悪だ。……俺も、たぶん、ほっとする）'); }
+    if (k === 'suit') { at(-0.8, -1.4); cine(n.pos.x + 1.2, 1.8, n.pos.z - 2.6, n.pos.x, 1.4, n.pos.z + 1); await narr('ゲートの前に、スーツの男が、立っていた。……毎朝、ここまで来て、毎朝、ここで、止まる。');
+      n.facing = Math.PI; he(2.4, 0, 0.3); await say('suit24', '……スーツを着てると、どこかに、行くところが、ある気がするんだ。');
+      await say('suit24', 'ゲートの外まで出たら……どこに行けばいいのか、わからなくなる。……だから、ここで、帰る。……三年、毎朝、ここまで。');
+      await say('suit24', '……外の人は、ゲートの中を、見ないよ。……見なくていいように、植木が、植えてある。');
+      cine(0, 2.6, 2.0, 0, 1.0, 7); await narr('フェンスの向こうの通りを、異種族と、選ばれた人間の二人連れが、歩いていった。……植木の高さは、ちょうど、目の高さだった。');
+      n.facing = 0; }
+    if (k === 'gyu') { at(-1.0, 0.4); cine(n.pos.x - 1.4, 1.6, n.pos.z + 2.0, n.pos.x, 0.9, n.pos.z - 0.6); await narr('無人コンビニの前のテーブルで、若い男が、牛丼を、食べていた。');
+      n.facing = Math.atan2(P.pos.x - n.pos.x, P.pos.z - n.pos.z); he(2.2, 0, 0.2); await say('gyu24', '……チーズ牛丼。特盛。温玉付き。……今日、自分で、選んだもの。……これだけっす。');
+      await say('gyu24', 'ネットで、俺らのこと、そう呼ぶんすよね。……チー牛って。……いいっすよ、別に。好きなもん、食ってるだけなのに、笑われるのも、もう、慣れたし。');
+      await say('gyu24', '彼女いない歴、イコール、年齢。二十四年。……まだ、これからだって、窓口の人には、言われなかったっす。判子、押されたんで。');
+      await say('gyu24', '……笑われるのも、誰かに、見られてる、ってことなのかな。……ここだと、それすら、ないっすけど。');
+      n.facing = Math.PI; }
+    if (k === 'manga') { at(0.4, 1.0); cine(n.pos.x + 1.6, 1.6, n.pos.z + 1.8, n.pos.x, 0.8, n.pos.z); await narr('二棟目の階段に、男が、座っていた。……閉じたままのスケッチブックを、膝に、載せていた。');
+      he(2.2, 0, 0.3); await say('manga24', '……漫画、描いてたんだ。十年。');
+      await say('manga24', 'エルフの絵師と、AIが、全部、上手かった。……俺のは、誰も、読まなかった。');
+      await say('manga24', '……描くのを、やめた。……やめても、誰も、気づかなかった。');
+      await say('manga24', '……趣味に打ち込めるやつは、まだ、ましだ、って、言われるだろ。……打ち込む先が、もう、ないんだ。');
+      me(); await say('tado24', '（……打ち込めるだけ、ましだ、って。……俺も、思ってた）'); }
+    if (k === 'warm') { at(0, 1.6); cine(0.8, 2.2, -1.6, 0.8, 0.9, -5.2); await narr('交流サロンの椅子は、五つ。……座っているのは、老人、ひとりだけだった。');
+      await narr('老人は、「人肌の温度」と書かれた、クッションを、抱いていた。');
+      he(2.2, 0, 0.2); await say('warm24', '……特区の、支給品でな。……三十六度五分に、保ってくれる。');
+      await say('warm24', '……最後に、人に、触られたのは。……健康診断の、看護ロボの、ゴム手袋だった。');
+      await say('warm24', '……あれも、三十六度五分、だったかなあ。');
+      await say('warm24', '……温度は、同じなのに。……なんで、こう、寒いのかねえ。');
+      me(); await say('tado24', '（……温度は、合ってる。……合ってるのに）'); }
+    talk24(k); }
+  if (k === 'bd') { P.pos.set(-5.2, 0, -3.4); P.facing = Math.PI; cut18(-4.2, 1.7, -2.2, -5.2, 1.4, -4.3); await narr('掲示板。……「交流会のお知らせ　――本日の交流会は、参加申し込み、ゼロ名のため、中止いたします」。');
+    await narr('その下に。……「ぬくもりクッション、追加支給のお知らせ」。……「入居者の皆さまへ　――ここでは、何も、心配いりません」。');
+    fc22(P, 2.4, 0, 0.3); await say('tado24', '（……交流会は、先月も、中止だった。……先々月も）'); await say('tado24', '（誰も、申し込まない。……申し込んで、誰も来なかったら、って、みんな、思ってる）'); }
   if (k === 'v') { S.flags.c24st = 'dusk'; dusk24(); bgm('dusk24'); a.sano.hidden = true; cine(4, 5, 8, 10, 1.2, -2); await narr('日が、傾いた。……一日で、いちばん、長い時間だった。');
     P.pos.set(10.2, 0, -2.3); P.facing = Math.PI; P.st = {}; cut18(11.6, 1.6, -0.6, 10.2, 1.0, -3.0); sfx('glass'); await narr('自販機に、小銭を入れようとして、落とした。……百円玉が、転がっていった。');
     const kz = a.kz; kz.hidden = false; kz.pos.set(11.8, 0, -1.6); face22(kz, P.pos); kz.st = { kneel: true }; cine(9.0, 1.8, 0.6, 11.0, 0.9, -1.8); await z22(600); kz.st = {};
-    fc22(kz, 2.4, 0, 0.3); await say('kuze', '……どうぞ。'); await narr('スーツの男が、百円玉を、拾って、差し出した。');
+    fc22(kz, 2.4, 0, 0.3); await say('kuze', '……どうぞ。'); await narr('スーツの男が、百円玉を、拾って、差し出した。……特区に、外の人間が入ってくるのは、珍しかった。');
     face22(P, kz.pos); fc22(P, 2.4, 0, -0.3); await say('tado24', '……あ、ども。');
     kz.facing = Math.atan2(-11 - kz.pos.x, -6 - kz.pos.z); cine(12.6, 2.0, 0.6, 11.0, 1.8, -1.6); await narr('男は、住宅のほうを、見た。……同じ形の、白い三階建てを。');
     face22(kz, P.pos); fc22(kz, 2.4, 0, 0.3); await say('kuze', '……ここに、住んでるんですか。');
@@ -13386,7 +13495,7 @@ async function goNight24() { G.mode = 'cine'; S.flags.c24st = 'night'; setObj(''
   const rb = a.robo, n = (S.flags.c24t || []).length; sfx('blip'); cut18(rb.position.x - 1.0, 1.3, rb.position.z - 1.4, rb.position.x, 0.85, rb.position.z);
   await say('mimamori', '田所さん、本日の記録です！');
   await say('mimamori', '歩数、二千三百十二歩。……人との会話、' + n + '回。');
-  await say('mimamori', n >= 3 ? '昨日より、三回、多いです！　すばらしいです！' : n > 0 ? '昨日より、多いです！' : '記録しました！');
+  await say('mimamori', n >= 3 ? '昨日より、' + n + '回、多いです！　すばらしいです！' : n > 0 ? '昨日より、多いです！' : '記録しました！');
   await say('mimamori', 'おやすみなさい！　明日も、見守っています！');
   fc22(P, 2.4, 0, 0.3); await say('tado24', '（……見守っています、か）');
   await say('tado24', '（……見てるだけだ。……誰も、来ない）');
@@ -13409,6 +13518,11 @@ async function goNight24() { G.mode = 'cine'; S.flags.c24st = 'night'; setObj(''
   await say('tado24', '（今は、明日が、今日と、同じ形をしてる。昨日とも。……十年前とも）');
   a.tvOn = true; cut18(1.4, 1.4, -0.2, 2.6, 0.9, -2.5); await say('tado24', '（テレビの中で、選ばれたやつらが、笑ってる。竜の腕の中で。狐の尾の中で。天使の、羽の中で）'); a.tvOn = false;
   fc22(P, 2.2, 0, 0.4); await say('tado24', '（俺は、誰の眼中にも、ない。竜にも、狐にも、天使にも。……人間の女にも。人間の男にも）');
+  await say('tado24', '（ベランダの木下も。動画の吉尾も。空き缶の岩田も。名無しも。……みんな、同じだ）');
+  await say('tado24', '（四十万人が、同じ形の部屋で、同じ飯を食って、同じ「記録しました」を、聞いてる）');
+  await say('tado24', '（誰も、触られてない。……誰も、名前を、呼ばれてない）');
+  await say('tado24', '（クッションが、三十六度五分でも。……それは、温度だ。ぬくもりじゃ、ない）');
+  await say('tado24', '（判子ひとつで、「見込みなし」。……五分の面接で、残りの人生ぜんぶに、判子を、押された）');
   await say('tado24', '（竜の家の、ピンクの竜は、好きも嫌いもないやつは、見えないんだとさ。……テレビで、笑いながら、言ってた）');
   await say('tado24', '（何が、面白いんだ。……これの、何が）');
   await say('tado24', '（何も、愉快じゃない。……ひとつも、愉快じゃない）');
@@ -13573,6 +13687,8 @@ function showReport24() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>観測艇</td><td>人間の幸福度、全国一位。ただし回答率は六十一パーセント。答えない三十九パーセントの分類は「非選択男性」。住居は天環、食事は文食品、見回りは翠絡のロボット。生活は、生涯、保障されている。春日井には、四十万人と少し</td></tr>' +
     '<tr><td>二〇二号室</td><td>田所 一郎、四十七歳。十年前、千路の春日井ハブで荷物を運ぶ仕事が、ハーピーとロボットに替わった。ミマモリは毎朝「体調は」と聞き、どの答えにも「記録しました」と言う。朝食は、うまい。それが、いちばん、こたえる</td></tr>' +
     '<tr><td>主家</td><td>昼の特集「見守り住宅の四十万人」。ユリア「そういう人たち、いるんだ。……え、どこに？」。ルリカ「お腹は空いてないはず」。ミリア「興味わかな～」。フルル「ママの腕は、二本しかないのよねぇ」。ニルメ「すきも、きらいも、ない人は、にあには、みえないの」。燐だけが「ほんまに、困ってへんて、言えるんかな」</td></tr>' +
+    '<tr><td>特区</td><td>高蔵寺の北、フェンスで囲まれた「単身者特別居住区」。入居条件は、単身・交際歴なし・今後の見込みなし。家賃は市場価格の一割。五分の面接で、エルフの職員が判子を押す。通りがかりの人は、いない。フェンスの外を、二人連れが目をそらして通り過ぎる。掲示板には「交流会、参加申し込みゼロ名のため中止」と「ぬくもりクッション、追加支給」</td></tr>' +
+    '<tr><td>住人たち</td><td>木下（三十四）、彼女いない歴イコール年齢、ベランダから降りない。「判子の音が、まだ耳に残ってる」。吉尾（四十一）、十五年前に配信者に名前を呼ばれた十秒を、巻き戻し続ける。長谷（二十九）、見せる相手のいない懸垂、毎日百回。岩田（五十五）、空き缶を数えて時間をつぶす。名無し、非選択スレの「同じく」三百件。杉本（四十五）、スーツで毎朝ゲートまで来て、引き返す。石原（二十四）、「チーズ牛丼。今日、自分で選んだもの。これだけ」。森田（三十八）、漫画をやめても誰も気づかなかった。松井（七十三）、人肌の温度のクッションを抱き「温度は同じなのに、なんで寒いのかねえ」</td></tr>' +
     '<tr><td>佐野</td><td>二十六歳。趣味は、ない。ガチャを回すだけ。ヒトトキは三か月「審査中」。「チー牛は、竜にも、狐にも、選ばれないっすよ。……人間の女の人にも」。昨日の会話は、ゼロ</td></tr>' +
     '<tr><td>無人相談窓口</td><td>ホログラムのエルフ。倉庫作業、清掃、警備は、ロボットと異種族で充足。「生活は、生涯、保障されております。どうぞ、ご安心ください」。次の相談は、九十日後</td></tr>' +
     '<tr><td>小川さん</td><td>六十八歳。「飯は文鳥が作る。部屋は竜が建てる。見回りは機械がする。……人間は、何もせんでいい」「あとの人間は、飼っとくんだ」。通りすがりの異種族「見ないほうが、いいよ。かわいそうに、なるから」</td></tr>' +
