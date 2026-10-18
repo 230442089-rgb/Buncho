@@ -15313,7 +15313,7 @@ const faceTo29 = (n, m) => { n.facing = Math.atan2(m.pos.x - n.pos.x, m.pos.z - 
 function notice29(a, n) { if (a.note29) { a.g.remove(a.note29); } a.note29 = plane(1.4, 0.92, canvasTex(280, 184, (c, w, h) => { c.fillStyle = '#FFF8E8'; c.fillRect(0, 0, w, h); c.fillStyle = '#5A7A5A'; c.font = '900 26px sans-serif'; c.textAlign = 'center'; c.fillText('交流会　再開', w / 2, 44);
   c.fillStyle = '#3A3A44'; c.font = '700 16px sans-serif'; c.fillText('きょう　午後二時　交流サロン', w / 2, 84); c.fillText('どなたでも。名前だけ、持ってきてください', w / 2, 112); c.fillStyle = '#C8823C'; c.font = '700 15px sans-serif'; c.fillText(n ? '参加　' + n : '参加　――', w / 2, 152); }), -5.2, 1.4, -4.22, a.g); }
 // 天環の円卓：テルエスとレウネ
-async function council29() { await goCine29('council6'); const C = AREAS.council6; C.holoOn = false; for (const n of C.npcs) { n.st = {}; n.lookAt = null; n.hidden = true; } if (C.h19) C.h19.visible = false; if (C.h21) C.h21.visible = false;
+async function council29() { await goCine29('council6'); $('place').textContent = '名古屋　天環ホールディングス本社　最上階「円卓の間」'; const C = AREAS.council6; C.holoOn = false; for (const n of C.npcs) { n.st = {}; n.lookAt = null; n.hidden = true; } if (C.h19) C.h19.visible = false; if (C.h21) C.h21.visible = false;
   if (!C.re21) C.re21 = npc(C, 'reune', makeChar(FAMLK.reune), 1.4, -2.0, Math.atan2(-1.4, -1.2)); const te = cnpc(C, 'terues'), re = C.re21; te.hidden = false; re.hidden = false; te.facing = Math.atan2(1.4, 1.2); re.facing = Math.atan2(-1.4, -1.2); return { te, re }; }
 
 // ---- 始まり ----
