@@ -1717,7 +1717,7 @@ const putCh = (m, i) => cloudPut('cs' + i, { s: m['ch' + i], done: m['ch' + i + 
 function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); for (const k in o) { const r = CH_RE.exec(k); if (r && !r[2]) putCh(m, +r[1]); } cloudPut('meta', slimMeta(m)); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
-const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '5.5章　幕間1', '5.5章　幕間2', '第六章　上', '第六章　中', '第六章　下', '6.5章　幕間1', 'とある未来', '第七章　Intro', '第七章　序', '第七章　中編', '第七章　下編', '7.5章　幕間1', '第八章　Intro', '第八章　序', '第八章　中編', '第八章　下編', '第八章　完結編', '8.5章　幕間1', '第九章　Intro', '第九章　序', '第九章　中編', '第九章　下編'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景', '競売', '額縁の外', '止まり木', 'ヒトトキ', 'ほつれ', '保護', '底と空', '是非', '見守り', '宝物', '矮小', '好機', '天賦'];
+const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '5.5章　幕間1', '5.5章　幕間2', '第六章　上', '第六章　中', '第六章　下', '6.5章　幕間1', 'とある未来', '第七章　Intro', '第七章　序', '第七章　中編', '第七章　下編', '7.5章　幕間1', '第八章　Intro', '第八章　序', '第八章　中編', '第八章　下編', '第八章　完結編', '8.5章　幕間1', '第九章　Intro', '第九章　序', '第九章　中編', '第九章　下編', '特殊章'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景', '競売', '額縁の外', '止まり木', 'ヒトトキ', 'ほつれ', '保護', '底と空', '是非', '見守り', '宝物', '矮小', '好機', '天賦', 'なまえを、よぶ'];
 // ---- 記録ファイル：自動記録 1 冊と、手で記録する 3 冊 ----
 const SLOTS = [['auto', '自動記録'], ['f1', 'FILE 01'], ['f2', 'FILE 02'], ['f3', 'FILE 03']];
 function readFiles() { const f = readJSON(FILES_KEY) || {}; if (!f.auto) { const old = readJSON(SAVE_KEY); if (old) { f.auto = old; writeJSON(FILES_KEY, f); try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 消せなくても困らない */ } } } return f; }
@@ -1832,12 +1832,13 @@ const CHSYN = [
   '勝川の子供部屋で暮らす四十二歳の田中こうじは、人魚の歌い手まりなに三年間コメントし続ける「細客」。フェスの日、いちばん後ろで叫び、十秒の握手で「はじめまして」と言われる。その惨めさを見ていた田所の鐘が鳴り、B.U.N が「宝物」と呼ぶものが、生まれる。',
   '間一髪、久世の警棒が刃を受け止めた。鐘は久世を「格上」と呼ぶ。名前があり、席があり、力がある人間だ、と。肩を斬られた久世と、駆けつけたポンプ。消えた鐘は、特区の四十一人の名前を書いたノートを残していた。バズったこうじは、もう一度、見られたがっている。',
   '「これは人の心に関することだ。異種族にはどうしようもない」。留保班は、鐘と声の現象を人間の支配下に置き、主権回復の手がかりにすると決める。久世は怒りから頷くが、竜に救われた弟の顔が浮かぶ。特区には、少しだけカメラが向き始める。そして、まりなの誕生日の夜、こうじに、はじめて鐘が鳴る。',
-  '醜くねじれた「宝物」になったこうじは、生まれてはじめての力に、開き直っていた。殴られたところにだけ返す、一撃で消し飛ぶ拳。鐘も来て、特区のすべてを介錯しようとする。それを止めたのは、名古屋の二十二歳の、三球だった。そのあと、久世の電話が鳴る。'];
+  '醜くねじれた「宝物」になったこうじは、生まれてはじめての力に、開き直っていた。殴られたところにだけ返す、一撃で消し飛ぶ拳。鐘も来て、特区のすべてを介錯しようとする。それを止めたのは、名古屋の二十二歳の、三球だった。そのあと、久世の電話が鳴る。',
+  '研究室の箱の内側で、ねじれた姿のまま、田所とこうじは向かい合っていた。特区では、同盟にも鐘にも行かなかった佐野が、ひとりずつ名前を呼んで、空いたままの五つの椅子に、人を誘う。豚汁を持った紫の服のおかあさん、十秒の配信、夕方のキャッチボール。誰も呼ばなかった名前を、今日は、誰かが呼ぶ。'];
 // 記録ファイルが進んでいる章までは開く（章のクリアの印が残らなかったときの受け皿）
 const fileCh = () => Object.values(readFiles()).reduce((a, d) => Math.max(a, (d && d.s && d.s.chapter) || 0), 0);
 const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh();
 function renderChaps() { const m = meta(), L = $('chapList'); L.innerHTML = '';
-  CHN.forEach((nm, i) => { const open = chapOpen(m, i), el = document.createElement('div'); el.className = 'ccard' + (/幕間|未来/.test(nm) ? ' inter' : '') + (open ? '' : ' lock') + (open && m['ch' + i + 'Clear'] ? ' done' : '');
+  CHN.forEach((nm, i) => { const open = chapOpen(m, i), el = document.createElement('div'); el.className = 'ccard' + (/幕間|未来|特殊/.test(nm) ? ' inter' : '') + (open ? '' : ' lock') + (open && m['ch' + i + 'Clear'] ? ' done' : '');
     const cl = document.createElement('div'); cl.className = 'cl'; const sp = document.createElement('span'); sp.textContent = nm.replace('　', ' '); const b = document.createElement('b'); b.textContent = open ? CHT[i] : '？？？'; cl.append(sp, b); el.appendChild(cl);
     const p = document.createElement('p'); p.textContent = open ? CHSYN[i] : '前の章を終えると、開きます。'; el.appendChild(p);
     if (open) { const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = 'この章から'; bt.addEventListener('click', () => { closeChaps(); startChapter(i); }); el.appendChild(bt); }
@@ -15151,9 +15152,9 @@ async function goHq28() { G.mode = 'cine'; S.flags.c28st = 'hq'; setObj(''); con
   fc22(tk, 2.4, 0, 0.3); await say('takane', '来るのが、仕事です。……それに。久世さんたちが、先に、一点も、やらなかったから。間に合いました。');
   fc22(P, 2.4, 0, 0.3); await saku('（……石居も、村瀬も。……あいつと、同じ、どこかの、匂いがする。……越後とは、別の、どこかの）');
   await say('kuze', '（……ああ）');
-  cine(-0.4, 2.4, 0.4, -0.4, 1.5, -2.6); await say('kuroiwa', '回収した、あの二体は。……上が、預かる。');
+  cine(-0.4, 2.4, 0.4, -0.4, 1.5, -2.6); await say('kuroiwa', '回収した、あの二体は。……留保で、預かる。三枝の、研究室だ。');
   fc22(P, 2.4, 0, 0.3); await say('kuze', '……田中さんと、田所さんは。……人に、戻れるんですか。');
-  cine(-0.4, 2.4, 0.4, -0.4, 1.5, -2.6); await say('kuroiwa', '……わからん。上は、「研究する」と、言っている。');
+  cine(-0.4, 2.4, 0.4, -0.4, 1.5, -2.6); await say('kuroiwa', '……戻す、研究じゃない。……扱えるかどうかを、調べる。');
   fc22(is, 2.4, 0, 0.3); await say('ishii', '……人間の、支配下に、置く。方針どおりだ。');
   fc22(P, 2.4, 0, 0.3); await say('kuze', '……田中さんの、お母さんに。……何て、言えば。');
   cine(-0.4, 2.4, 0.4, -0.4, 1.5, -2.6); await say('kuroiwa', '……言うな。……まだ、何も。');
@@ -15275,6 +15276,249 @@ RESUME[28] = { dawn: goDawn28, nin: goNin28, agent: goNin28, hq: goHq28, after: 
   if (PB.on && PB.wave === 2 && G.mode === 'play' && !G.busy) { x.t28 = (x.t28 || 0) + dt; if (x.t28 > 20) { x.t28 = -999; run(goAgent28); } } }; }
 // 中編の報告から、下編へ
 { const r0 = showReport27; showReport27 = function () { r0(); const row = $('titleBtn27') && $('titleBtn27').parentNode; if (row && !$('ch28Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch28Go'; b.textContent = '第九章　下編 へ'; row.insertBefore(b, row.firstChild); $('titleBtn27').className = 'ghost'; b.addEventListener('click', () => run(chapter28)); } }; }
+
+// ================= 特殊章　なまえを、よぶ：人物・場所・音 =================
+Object.assign(SPK, { clip29: ['十五年前の、配信', '#C8B8E0'] });
+// 佐野（二十六歳）を操作する
+let SANO_MODEL = null;
+function playAsSano29(on) { if (!KUZE_MODEL) KUZE_MODEL = P.model; if (!SANO_MODEL) SANO_MODEL = makeChar(LK.sano24); if (A && SANO_MODEL.root.parent !== A.g) A.g.add(SANO_MODEL.root);
+  if (on) { P.model = SANO_MODEL; SANO_MODEL.root.visible = true; KUZE_MODEL.root.visible = false; CAST.sano24 = SANO_MODEL; } else { SANO_MODEL.root.visible = false; if (P.model === SANO_MODEL) P.model = KUZE_MODEL; } CAST.kuze = KUZE_MODEL; }
+// 高嶺（非番）：紺のジャージに、グローブ
+LK.takane29 = { skin: SK, hair: 0x14141A, eye: 0x1A1A2A, top: 0x2A3A6A, sleeve: 0x2A3A6A, bc: 0x2A2A34, leg: 0x2A2A34, shoe: 0xF4F4F4, s: 1.1, w: 0.95, st: ['short'] };
+function takaneCasual29() { const m = makeChar(LK.takane29); part(box(0.2, 0.22, 0.12), 0x8A5A2A, 0, -0.6, 0.04, m.arms[1]); return m; }
+// 投げた球（光る、小さな）：放物線で、飛ばす
+async function toss29(from, to, ms, h = 1.2) { if (!A) return; const b = glowSprite(0xFFFFFF, 0.35, 0.95); A.g.add(b); const N = Math.max(1, Math.round(ms / 30));
+  for (let i = 0; i <= N; i++) { const u = i / N; b.position.set(from.x + (to.x - from.x) * u, from.y + (to.y - from.y) * u + Math.sin(u * Math.PI) * h, from.z + (to.z - from.z) * u); await z22(30); } A.g.remove(b); }
+
+// ---- 箱の中（研究所の、空間拡張ボックス） ----
+makeArea('box29', { place: '――　箱の、内側', noPlayer: true, bounds: [-6, 6, -6, 6], spawn: [0, 999], cam: [0, 6, 7], music: '', bg: 0xE8F0F8, fog: [14, 50], light: 1.0, sun: 0.4,
+  build(a) { const g = a.g; const fl = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshLambertMaterial({ map: canvasTex(400, 400, (c, w, h) => { c.fillStyle = '#F4F8FC'; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(90,154,255,.25)'; c.lineWidth = 1; for (let i = 0; i <= 20; i++) { c.beginPath(); c.moveTo(i * 20, 0); c.lineTo(i * 20, h); c.stroke(); c.beginPath(); c.moveTo(0, i * 20); c.lineTo(w, i * 20); c.stroke(); } }) })); fl.rotation.x = -Math.PI / 2; g.add(fl);
+    // ねじれた姿のまま。……ただ、ここでは、ちいさく、静か
+    a.td = npc(a, 'tado24', treChar26(), -1.3, 0, Math.PI / 2); a.td.model.root.scale.setScalar(0.62); a.td.st = { kneel: true }; if (a.td.model.aura) a.td.model.aura.material.opacity = 0.06;
+    a.kj = npc(a, 'koji25', ninModel28(), 1.3, 0, -Math.PI / 2); a.kj.model.root.scale.setScalar(0.5); a.kj.st = { sit: true }; if (a.kj.model.aura) a.kj.model.aura.material.opacity = 0.06;
+    // 鐘の影と、割れた画面のかけら：まだ、少しだけ、そばにある
+    a.bellGh = glowSprite(0xC8A0FF, 2.2, 0.14); a.bellGh.position.set(-1.0, 2.6, 0); g.add(a.bellGh);
+    a.bits = []; for (let i = 0; i < 6; i++) { const s = part(box(0.12, 0.16, 0.02), [0x7AD8F0, 0xF8A8D0, 0xF2E060][i % 3], 1.0 + Math.cos(i) * 1.1, 0.8 + (i % 3) * 0.4, Math.sin(i) * 1.1, g, { outline: false, emis: 0x3A3A3A }); a.bits.push(s); }
+    a.warm = glowSprite(0xFFE8B0, 9, 0); a.warm.position.set(0, 3, 0); g.add(a.warm); },
+  tick(a, dt) { const t = T.now; a.bellGh.material.opacity = 0.1 + Math.sin(t * 0.7) * 0.04; a.bits.forEach((s, i) => { s.rotation.y += dt * 0.4; s.position.y += Math.sin(t + i) * dt * 0.05; }); if (a.warmOn) a.warm.material.opacity = Math.min(0.3, a.warm.material.opacity + dt * 0.05); }
+});
+
+// ---- 音：あたたかい、ゆっくりした曲 ----
+BGM.name29 = { bpm: 72, f(s, t, sp) { const ch = [[60, 64, 67, 72], [57, 60, 64, 69], [53, 57, 60, 65], [55, 59, 62, 67]][(s >> 4) % 4];
+  if (s % 2 === 0) tone(mf(ch[(s >> 1) % 4] + 12), t, sp * 3, 'triangle', 0.012, { a: 0.02, lp: 2600 }); if (s % 8 === 0) tone(mf(ch[0] - 12), t, sp * 8, 'sine', 0.04, { a: 0.1 }); if (s % 16 === 6) tone(mf(ch[2] + 24), t, sp * 2, 'sine', 0.006, { a: 0.02 }); } };
+BGM.box29 = { bpm: 48, f(s, t, sp) { if (s % 16 === 0) tone(mf(48), t, sp * 15, 'sine', 0.035, { a: 1.2 }); if (s % 16 === 8) tone(mf(55), t, sp * 7, 'sine', 0.02, { a: 0.8 }); if (s % 32 === 20) tone(mf(76), t, sp * 4, 'triangle', 0.005, { a: 0.3 }); } };
+SFX.catch29 = () => { noise(0, 0.05, 0.12, 900, 'lowpass'); tone(220, 0, 0.08, 'sine', 0.06); };
+
+// ================= 特殊章　なまえを、よぶ =================
+const on29 = k => () => S.chapter === 29 && S.flags.c29st === k;
+const got29 = k => (S.flags.c29z || []).includes(k), mark29 = k => { const g = S.flags.c29z || (S.flags.c29z = []); if (!g.includes(k)) g.push(k); };
+function put29(a, k, mk, x, z, f, st, y) { const E = a.e29 || (a.e29 = {}); const n = E[k] || (E[k] = npc(a, k, mk(), x, z, f)); n.pos.x = x; n.pos.z = z; n.facing = f; n.st = Object.assign({}, st || {}); n.hidden = false; n.lookAt = null; n.goal = null; n.y = y || 0; return n; }
+function noKuze29() { playAsSano29(false); noKuze26(); }
+// 掲示板の、新しい貼り紙
+function notice29(a, n) { if (a.note29) { a.g.remove(a.note29); } a.note29 = plane(1.4, 0.92, canvasTex(280, 184, (c, w, h) => { c.fillStyle = '#FFF8E8'; c.fillRect(0, 0, w, h); c.fillStyle = '#5A7A5A'; c.font = '900 26px sans-serif'; c.textAlign = 'center'; c.fillText('交流会　再開', w / 2, 44);
+  c.fillStyle = '#3A3A44'; c.font = '700 16px sans-serif'; c.fillText('きょう　午後二時　交流サロン', w / 2, 84); c.fillText('どなたでも。名前だけ、持ってきてください', w / 2, 112); c.fillStyle = '#C8823C'; c.font = '700 18px sans-serif'; c.fillText(n ? '参加　' + n : '参加　――', w / 2, 152); }), -5.2, 1.4, -4.22, a.g); }
+
+// ---- 始まり ----
+async function chapter29() { G.mode = 'cine'; S.chapter = 29; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); playAsKuzeHost(false); playAs20(null); playAsIshii23(false); playAsTado24(false); playAsKoji25(false); playAsSano29(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; news22off(); galHud(false); bgm(''); P.st = {}; P.spdK = 1; fear20(0); phaseFx22(false); split22(false);
+  S.flags.c29z = []; PON.on = false; PB.on = false; MEL.on = false; SPK.bbs24[0] = '名無し（掲示板の男）';
+  await goBox29(); }
+
+// ---- 箱の内側：ふたり ----
+async function goBox29() { G.mode = 'cine'; S.flags.c29st = 'box'; setObj(''); await goCine26('box29'); ckSave(); const a = AREAS.box29; bgm('box29'); a.warmOn = false; a.warm.material.opacity = 0;
+  await fade(true); await card('特殊章', 'なまえを、よぶ', 3000); await fade(false);
+  cine(0, 3.4, 6.4, 0, 0.8, 0); await narr('白い、なにもない、場所だった。……上も、下も、なかった。');
+  await narr('箱の、内側。……ふたりは、ねじれた、姿の、ままだった。……ただ、ここでは、ちいさく、静かだった。');
+  fc22(a.kj, 3.0, 0.2, 0.4); await say('koji25', '……ここ、どこ。……僕、まだ、こんな、体……。');
+  fc22(a.td, 2.2, 0, -0.4); await say('tado24', '……箱の、中だ。……人間の、研究室の。……たぶん、もう、出られない。');
+  await say('tado24', '……田中、こうじ。');
+  fc22(a.kj, 3.0, 0.2, 0.4); await say('koji25', '……ひっ。……ま、また、斬るの……？');
+  fc22(a.td, 2.2, 0, -0.4); await say('tado24', '……斬らない。……あのときは。悪かった。');
+  await say('tado24', '田所、一郎だ。……四十七。元、倉庫。');
+  fc22(a.kj, 3.0, 0.2, 0.4); await say('koji25', '……田所、さん。');
+  cine(0, 2.0, 3.4, 0, 0.8, 0); await narr('ふたりとも、しばらく、何も、言わなかった。……言わなくても、そこに、いた。');
+  fc22(a.kj, 3.0, 0.2, 0.4); await say('koji25', '……まりなちゃん、結婚、したんだ。……いちばん、前の、やつと。');
+  fc22(a.td, 2.2, 0, -0.4); await say('tado24', '……そうか。……残念、だったな。');
+  fc22(a.kj, 3.0, 0.2, 0.4); await say('koji25', '……っ、う……。');
+  fc22(a.td, 2.2, 0, -0.4); await say('tado24', '泣け。……ここなら、誰も、笑わない。');
+  await say('tado24', '……俺も、泣かなかった。四十七年。……泣いても、誰も、見てないと、思ってたから。');
+  fc22(a.kj, 3.0, 0.2, 0.4); await say('koji25', '……田所さんは、見てたじゃん。……電車から。ずっと。');
+  fc22(a.td, 2.2, 0, -0.4); await say('tado24', '……ああ。……見てた。');
+  cine(0, 3.4, 6.4, 0, 0.8, 0); await narr('箱の、外のことは、何も、わからなかった。……ただ、遠くで、誰かの、声がする気がした。');
+  await fade(true); await goMorning29(); }
+
+// ---- 特区：朝 ----
+const ZQ29 = [['mado', -7.6, -2.2, '二〇八号室のベランダ（木下）'], ['video', 4.0, -2.4, 'ベンチの男（吉尾）'], ['bbs', -1.4, 1.3, '縁石の男'], ['bar', 5.9, -3.3, '鉄棒の男（長谷）'], ['suit', 0.3, 2.5, 'ゲートの前の男（杉本）'], ['warm', 0.8, -3.4, '交流サロン（松井）']];
+function zone29Items() { const a = AREAS.town24; if (!a.built) { a.build(a); a.built = true; } if (a.i29) return; a.i29 = true; const on = on29('morning');
+  for (const [k, x, z, l] of ZQ29) addItem(a, { id: 'z29' + k, x, z, r: 1.2, label: l, col: 0xE3B428, avail: () => on() && !got29(k), on: () => evZone29(k) });
+  addItem(a, { id: 'z29bd', x: -5.2, z: -3.4, r: 1.1, label: '掲示板（貼り紙を、書く）', col: 0xE3B428, avail: () => on() && !got29('bd'), on: () => evZone29('bd') });
+  addItem(a, { id: 'z29go', x: 0.8, z: -2.6, r: 1.3, label: '午後二時まで、待つ', col: 0xC8823C, once: false, avail: () => on() && got29('bd') && ZQ29.filter(q => got29(q[0])).length >= 4, on: () => evZone29('go') }); }
+function obj29() { const n = ZQ29.filter(q => got29(q[0])).length, b = got29('bd'); setObj(b && n >= 4 ? '午後二時まで、待つ（交流サロン）' : '名前を、呼んで、誘う（' + Math.min(n, 4) + '／4　貼り紙 ' + (b ? '済' : '未') + '）'); }
+async function goMorning29() { G.mode = 'cine'; S.flags.c29st = 'morning'; setObj(''); zone29Items(); noKuze29(); playAsSano29(true); await goArea('town24', [2.0, 1.6], Math.PI); await fade(false); ckSave(); const a = AREAS.town24; bgm('name29');
+  scene.background = new THREE.Color(0xE8EEF4); hemi.intensity = 1.05; zoneCast26(false); a.sano.hidden = true; if (!a.note29) notice29(a, 0); a.note29.visible = got29('bd');
+  if ((S.flags.c29z || []).length) { obj29(); playOn(); return; }
+  P.pos.set(2.0, 0, 1.6); P.facing = Math.PI; cine(0, 6.0, 9.0, 0, 1.0, -1.0); await card('高蔵寺　単身者特別居住区', '少しあと　晴れた朝', 1600);
+  await narr('鐘は、もう、鳴らなかった。……特区は、また、静かに、なっていた。');
+  fc22(P, 2.2, 0, 0.3); nameCard({ s: '天環ライフサポート第三住宅', b: '佐野 優斗', e: 'SANO YUTO', col: '#8AA0C8', p: '二十六歳。趣味は、ない。\n同盟のチラシと、鐘の音の、どっちにも、行かなかった。\n……三つめの、行き先を、探している。' }); await z22(2200); nameCard(null);
+  await say('sano24', '……同盟でも、鐘でも、ない、ほう。');
+  await say('sano24', '……サロンの椅子、五つ、あるんだよな。……ずっと、空いてる。');
+  await say('sano24', '……名前、呼んで、誘ってみよう。……ひとりずつ。');
+  obj29(); playOn(); }
+async function evZone29(k) { const a = AREAS.town24, R = a.res; G.mode = 'cine'; mark29(k); const face = n => { n.facing = Math.atan2(P.pos.x - n.pos.x, P.pos.z - n.pos.z); }, me = () => fc22(P, 2.2, 0, 0.3);
+  if (k === 'mado') { me(); await say('sano24', '……木下さーん！');
+    cine(-7.0, 1.4, -1.6, -7.6, 2.9, -5.05); await say('mado24', '……え。……俺？');
+    me(); await say('sano24', '今日、交流サロン、やります。……椅子、五つ、あるんで。');
+    cine(-7.0, 1.4, -1.6, -7.6, 2.9, -5.05); await say('mado24', '……降りて、いいのかな。');
+    me(); await say('sano24', '……いいと、思います。たぶん。');
+    cine(-7.0, 1.4, -1.6, -7.6, 2.9, -5.05); await say('mado24', '……三年、降りてない。……靴、どこ、しまったっけ。'); }
+  else if (k === 'video') { const r = R.video; face(r); fc22(r, 2.2, 0, 0.3); await narr('吉尾は、いつもの、動画を、見ていた。');
+    me(); await say('sano24', '吉尾さん。……それ、何の、動画ですか。');
+    fc22(r, 2.2, 0, 0.3); await say('video24', '……十五年前の、配信。……俺の名前、呼ばれてる、十秒。');
+    me(); await say('sano24', '……みんなで、見ても、いいですか。');
+    fc22(r, 2.2, 0, 0.3); await say('video24', '……みんなで？　……十秒しか、ないぞ。');
+    me(); await say('sano24', '十秒で、いいです。'); r.facing = r.home[2]; }
+  else if (k === 'bbs') { const r = R.bbs; face(r); me(); await say('sano24', '……あの。名前、聞いても、いいですか。');
+    fc22(r, 2.0, 0, 0.3); await say('bbs24', '……名無し、で、いいよ。……掲示板でも、そう、呼ばれてる。');
+    me(); await say('sano24', '僕、佐野です。佐野、優斗。');
+    fc22(r, 2.0, 0, 0.3); await z22(800); await say('bbs24', '…………中村。……中村、圭一。');
+    SPK.bbs24[0] = '中村 圭一（縁石の男）'; me(); await say('sano24', '中村さん。');
+    fc22(r, 2.0, 0, 0.3); await say('bbs24', '……久しぶりに、呼ばれた。……自分の、名前。'); r.facing = r.home[2]; }
+  else if (k === 'bar') { const r = R.bar; me(); await say('sano24', '長谷さん。……それ、何回、できるんですか。');
+    fc22(r, 2.4, 0, 0.3); await say('bar24', '……四十二。……誰も、数えてくれないから。自分で、数えてる。');
+    me(); await say('sano24', '……今日は、僕が、数えます。');
+    cine(4.4, 1.6, -2.2, 5.9, 1.8, -4.5); await say('sano24', '……三十九、四十、四十一……四十二！');
+    fc22(r, 2.4, 0, 0.3); await say('bar24', '……はは。……はじめて、誰かに、数えて、もらった。'); }
+  else if (k === 'suit') { const r = R.suit; face(r); fc22(r, 2.2, 0, 0.3); await narr('杉本は、今日も、スーツで、ゲートの前に、立っていた。');
+    me(); await say('sano24', '杉本さん。今日は、どちらへ。');
+    fc22(r, 2.2, 0, 0.3); await say('suit24', '……どこにも。……毎朝、ここで、出かける、ふりを、してる。');
+    me(); await say('sano24', '……今日は、サロンに、出勤、しませんか。');
+    fc22(r, 2.2, 0, 0.3); await say('suit24', '……出勤、か。……ネクタイ、締めてて、よかった。'); r.facing = r.home[2]; }
+  else if (k === 'warm') { cine(1.6, 1.6, -2.6, 0.8, 1.0, -5.2); await say('warm24', '……若い人。……椅子、拭いといたよ。五つとも。');
+    await say('warm24', '……三年ぶりに、雑巾、しぼった。……手が、覚えてたよ。'); }
+  else if (k === 'bd') { cut18(-5.2, 1.4, -2.6, -5.2, 1.4, -4.3); await narr('「交流会　中止　参加申込　0名」。……その上に、新しい紙を、貼った。'); notice29(a, 0); a.note29.visible = true;
+    await narr('「交流会　再開。きょう　午後二時。どなたでも。名前だけ、持ってきてください」'); }
+  else if (k === 'go') { await fade(true); await goSalon29(); return; }
+  obj29(); playOn(); }
+
+// ---- 交流サロン：午後二時 ----
+async function goSalon29() { G.mode = 'cine'; S.flags.c29st = 'salon'; setObj(''); noKuze29(); await goCine26('town24'); await fade(false); ckSave(); const a = AREAS.town24, R = a.res; bgm('name29'); scene.background = new THREE.Color(0xF0E8D8); hemi.intensity = 1.05; zoneCast26(false);
+  if (!a.note29) notice29(a, 0); a.note29.visible = true;
+  const seat = [['warm', -0.2, -5.15], ['video', 0.8, -5.15], ['bbs', 1.8, -5.15], ['suit', -0.2, -4.35], ['mado', 1.8, -4.35]]; for (const [k, x, z] of seat) { const r = R[k]; r.hidden = false; r.pos.set(x, 0, z); r.facing = 0; r.st = { sit: true }; r.y = 0; }
+  for (const [k, x, z] of [['bar', -1.2, -3.4], ['can', 2.9, -3.5], ['gyu', -1.6, -2.6], ['manga', 3.2, -2.7]]) { const r = R[k]; r.hidden = false; r.pos.set(x, 0, z); r.facing = Math.atan2(0.8 - x, -4.8 - z); r.st = {}; r.y = 0; }
+  const sn = put29(a, 'sano24', () => makeChar(LK.sano24), 0.8, -2.4, Math.PI);
+  cine(0.8, 3.2, 3.4, 0.8, 1.0, -4.8); await card('高蔵寺　交流サロン', '午後二時', 1600);
+  await narr('椅子は、五つとも、埋まっていた。……座れなかった人は、まわりに、立っていた。');
+  await narr('木下は、サンダルで、降りてきた。……靴は、見つからなかった、らしい。');
+  cine(0.8, 1.8, -2.2, 0.8, 1.0, -4.8); await narr('……誰も、しゃべらなかった。……何を、しゃべればいいのか、誰も、知らなかった。');
+  // 母
+  const m = put29(a, 'kaa25', () => kaaModel25(), 1.6, 3.6, Math.PI, { carry: true }); fc22(m, 2.2, 0, 0.3); await say('kaa25', 'ちょっと！　ここ、交流会！？　……豚汁、作りすぎたから、持ってきたわよ！　あと、梨！');
+  m.pos.set(0.8, 0, -3.2); m.facing = Math.PI; cine(2.6, 2.0, -1.6, 0.8, 1.0, -4.4); await narr('紫の服の、声の大きい、おばさんだった。……誰も、呼んでいないのに、来ていた。');
+  fc22(m, 2.2, 0, 0.3); await say('kaa25', 'あんたたち、ちゃんと、食べてんの！？　……顔色、みんな、うちの、こうじと、おんなじじゃないの！');
+  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……こうじ、さんの。');
+  fc22(m, 2.2, 0, 0.3); await say('kaa25', 'そうよ。……こうじはね、今、ちょっと、遠くに、行ってんの。');
+  await say('kaa25', '……帰ってくるかどうかは、知らないわよ。誰も、教えてくんないし。');
+  await say('kaa25', '……でも、あたしは、待ってんの。');
+  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……待ってる人が、いるのか。');
+  fc22(m, 2.2, 0, 0.3); await say('kaa25', 'いるわよ！　……あんたたちだって、誰か、いるでしょ！');
+  await say('kaa25', 'いないなら、あたしが、待っててやるわよ！　来週も、来るからね！　お椀、洗って、返しなさいよ！');
+  cine(0.8, 3.2, 3.4, 0.8, 1.0, -4.8); await narr('誰かが、小さく、笑った。……それから、もうひとり。');
+  const og = put29(a, 'ogawa24', () => makeChar(LK.ogawa24), -2.4, -3.0, Math.atan2(3.2, -1.8)); fc22(og, 2.2, 0, 0.3); await say('ogawa24', '……豚汁、もう一杯。……わしにも、くれるか。');
+  fc22(m, 2.2, 0, 0.3); await say('kaa25', 'あるわよ！　何杯でも！');
+  // 吉尾の十秒
+  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……あの。……十秒だけ、いいか。');
+  cine(0.8, 1.8, -2.2, 0.8, 1.0, -4.8); await narr('吉尾は、スマホを、みんなのほうへ、向けた。……十五年前の、配信の、十秒。');
+  await say('clip29', '「……あ、ヨシオさん、コメント、ありがと～！　うれしい～！」');
+  await narr('十秒は、すぐに、終わった。……誰かが、手を、叩いた。……ぱち、ぱち、と、まばらに。');
+  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……っ。……ありがとう。……ありがとう、な。');
+  cut18(-5.2, 1.4, -2.6, -5.2, 1.4, -4.3); notice29(a, '九名　＋　おかあさん　＋　小川さん'); await narr('掲示板の「参加」の欄に、数字が、書き込まれた。');
+  await fade(true); m.hidden = true; og.hidden = true; sn.hidden = true; await goCatch29(); }
+
+// ---- 夕方：キャッチボール ----
+async function goCatch29() { G.mode = 'cine'; S.flags.c29st = 'catch'; setObj(''); noKuze29(); await goCine26('town24'); await fade(false); ckSave(); const a = AREAS.town24, R = a.res; bgm('name29'); scene.background = new THREE.Color(0xE8B890); hemi.intensity = 0.85; zoneCast26(false);
+  const sn = put29(a, 'sano24', () => makeChar(LK.sano24), 4.6, 1.0, Math.PI / 2), tk = put29(a, 'takane', () => takaneCasual29(), 10.6, 1.0, -Math.PI / 2);
+  R.bar.pos.set(6.4, 0, -1.6); R.bar.facing = Math.PI * 0.2; R.bbs.pos.set(7.4, 0, -1.8); R.bbs.facing = 0; R.bbs.st = {}; R.video.pos.set(8.4, 0, -1.6); R.video.facing = -0.2; R.video.st = {};
+  cine(7.6, 2.6, 6.0, 7.6, 1.0, 0.4); await card('高蔵寺　特区の、いちばん端', '同じ日　夕方', 1400);
+  await narr('壁に、ボールを、投げている、青年がいた。……一球、一球、ずっと。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', 'あ、すみません。……うるさかった、ですか。');
+  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……いえ。……何球、目ですか。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '二百、八十……いくつだっけ。……あ、数えるの、忘れてました。');
+  await say('takane', '……キャッチボール、しませんか。');
+  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……僕、ボール、投げたこと、ほとんど、ないです。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '大丈夫です。……投げるのは、誰でも、できます。受け取ってくれる人が、いれば。');
+  fc22(sn, 2.2, 0, 0.3); const c = await choose([{ k: '投げる', t: '思いきり、投げる' }, { k: '投げる', t: 'そっと、投げる' }]);
+  sn.st = { punch: true }; sfx('swing'); await toss29({ x: 4.8, y: 1.6, z: 1.0 }, { x: 10.2, y: 0.6, z: c === 0 ? 2.8 : -0.6 }, 700, c === 0 ? 1.6 : 0.6); sn.st = {};
+  tk.st = { duck: true }; tk.pos.z = c === 0 ? 2.6 : -0.4; sfx('catch29'); cine(9.0, 1.4, 4.0, 10.4, 0.8, tk.pos.z); await narr(c === 0 ? 'ボールは、とんでもない、方向へ、飛んでいった。……高嶺は、飛びついて、捕った。' : 'ボールは、届かずに、地面で、はねた。……高嶺は、すくい上げるように、捕った。');
+  tk.st = {}; fc22(tk, 2.4, 0, 0.3); await say('takane', 'ナイスボール！');
+  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……っ、はは。……どこが、ですか。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '届きました。……届いたら、ナイスボール、です。');
+  tk.pos.z = 1.0; await toss29({ x: 10.4, y: 1.6, z: 1.0 }, { x: 4.8, y: 1.2, z: 1.0 }, 600, 0.6); sfx('catch29'); sn.st = { carry: true }; await z22(300); sn.st = {};
+  cine(7.6, 2.6, 6.0, 7.6, 1.0, 0.4); await narr('それから、長谷が、投げた。……中村が、投げた。吉尾も、一球だけ、投げた。');
+  await narr('どれも、ひどい、球だった。……高嶺は、全部、捕った。全部に、「ナイスボール」と、言った。');
+  // 石居
+  const is = put29(a, 'ishii', () => makeChar(LK.ishii), 13.4, 2.6, -Math.PI * 0.6); fc22(is, 2.4, 0, 0.3); await say('ishii', '……高嶺。お前、また、投げ込みか。……迎えに、来たぞ。');
+  cine(12.6, 1.8, 4.6, 7.6, 1.0, 0.4); await narr('石居は、しばらく、それを、見ていた。');
+  fc22(is, 2.0, 0, 0.5); await say('ishii', '（……天から、もらったやつが。……もらって、ないやつらに、投げ返してる）');
+  await say('ishii', '（……あの日は、皮肉だと、思った。……でも）');
+  await say('ishii', '（……届いたら、ナイスボール、か）');
+  await say('ishii', '……おい。……俺にも、一球、よこせ。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', 'はい！');
+  cine(7.6, 2.6, 6.0, 7.6, 1.0, 0.4); await narr('夕方の、特区で。……ボールが、行ったり、来たり、していた。');
+  await fade(true); sn.hidden = true; tk.hidden = true; is.hidden = true; await goNight29(); }
+
+// ---- 夜：ちょっと、いい ----
+async function goNight29() { G.mode = 'cine'; S.flags.c29st = 'night'; setObj(''); noKuze29(); await goCine26('town24'); await fade(false); ckSave(); const a = AREAS.town24, R = a.res; bgm('box29'); scene.background = new THREE.Color(0x1A2030); hemi.intensity = 0.55; zoneCast26(true);
+  for (const k in R) R[k].hidden = true; const md = R.mado; md.hidden = false; md.pos.set(0.8, 0, -5.15); md.facing = 0; md.st = { sit: true }; md.y = 0;
+  if (a.robo) { a.robo.visible = true; a.robo.position.set(1.8, 0, -3.6); a.robo.rotation.y = Math.PI + 0.6; }
+  cine(2.4, 1.8, -1.8, 0.8, 1.0, -5.0); await card('高蔵寺　交流サロン', '同じ夜', 1400);
+  await narr('木下は、ひとりで、サロンの、椅子に、座っていた。……ベランダでは、なかった。');
+  cut18(2.6, 1.2, -2.6, 1.8, 0.9, -3.6); await say('mimamori', '木下さん。……体調は、どうですか。');
+  fc22(md, 2.0, 0, 0.3); await say('mado24', '……ちょっと、いい。');
+  cut18(2.6, 1.2, -2.6, 1.8, 0.9, -3.6); await say('mimamori', '……記録、しました。');
+  cine(2.4, 1.8, -1.8, 0.8, 1.0, -5.0); await narr('ミマモリの、三年分の記録に。……はじめて、「異常なし」では、ない言葉が、残った。');
+  await narr('「ちょっと、いい」。');
+  // 箱の中へ、もう一度
+  await fade(true); await goCine26('box29'); await fade(false); const b = AREAS.box29; bgm('box29'); b.warmOn = true;
+  cine(0, 2.0, 3.4, 0, 0.8, 0); await narr('箱の、内側。');
+  fc22(b.kj, 3.0, 0.2, 0.4); await say('koji25', '……田所さん。……僕たち、もう、帰れないんだよね。');
+  fc22(b.td, 2.2, 0, -0.4); await say('tado24', '……ああ。……たぶん。');
+  fc22(b.kj, 3.0, 0.2, 0.4); await say('koji25', '……母ちゃん、怒ってるかな。……来週も、来るって、誰かに、言ってた、気がする。');
+  fc22(b.td, 2.2, 0, -0.4); await say('tado24', '……お前の母さんは、声が、大きいから。……ここまで、聞こえる、気が、する。');
+  fc22(b.kj, 3.0, 0.2, 0.4); await say('koji25', '……っ、はは。……うるせーババア。');
+  await narr('こうじは、笑いながら、泣いていた。……箱の、内側で。');
+  // 留文堂　地下　研究室
+  await fade(true); await goCine26('hq'); await fade(false); { const h = AREAS.hq; if (typeof hqSlide === 'function') hqSlide(false); if (typeof setClock === 'function') setClock('02:10'); const c = castHq18(h); c.p.box.visible = false; for (const n of [c.mu, c.is, c.po, h.kr]) n.hidden = true; scene.background = new THREE.Color(0x0E1218); hemi.intensity = 0.45;
+    const sa = h.sa; sa.hidden = false; if (!h.box29) { h.box29 = box28(); h.g.add(h.box29); } h.box29.visible = true; h.box29.position.set(sa.pos.x - 0.5, 1.0, sa.pos.z - 0.7);
+    cine(sa.pos.x + 1.8, 1.5, sa.pos.z + 0.9, sa.pos.x - 0.3, 1.0, sa.pos.z - 0.5); await card('留文堂　地下　研究室', '同じ夜　午前二時', 1400);
+    await narr('机の上に、手のひらに乗るほどの、黒い箱が、置かれていた。……継ぎ目が、青く、ゆっくり、光っていた。');
+    await say('saegusa', '……二体とも、今夜は、静かです。……波形が、揃ってる。眠ってる、みたいに。');
+    await narr('観察記録。……「異常なし」と、打ちかけて。三枝の、手が、止まった。');
+    await say('saegusa', '……おやすみなさい。田所さん。……田中さん。');
+    await narr('研究対象の欄に。……三枝は、番号ではなく、ふたりの、名前を、書いた。'); h.box29.visible = false; }
+  await fade(true); await card('特殊章　なまえを、よぶ', '完', 3200); await fade(false); setMeta({ ch29Clear: true, ch29: packS(), ch29Done: [...DONE] }); showReport29(); }
+
+function showReport29() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); news22off(); fear20(0); bgm('name29');
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>名</span><span>前</span></div><h2>特殊章　なまえを、よぶ</h2><div class="meta">箱の内側／高蔵寺　単身者特別居住区／交流サロン</div><table>' +
+    '<tr><td>箱の内側</td><td>ふたりは、ねじれた姿のまま、ちいさく、静かだった。田所「斬らない。あのときは、悪かった」「田所、一郎だ」。こうじ「田所、さん」。「泣け。ここなら、誰も、笑わない」。</td></tr>' +
+    '<tr><td>佐野</td><td>同盟でも、鐘でもない、三つめの行き先。サロンの椅子は五つ、ずっと空いていた。名前を呼んで、ひとりずつ、誘った。</td></tr>' +
+    '<tr><td>木下</td><td>「……え。俺？」「三年、降りてない。靴、どこしまったっけ」。サンダルで、降りてきた。</td></tr>' +
+    '<tr><td>中村 圭一</td><td>名無し、と呼ばれていた人。「……中村。中村、圭一」「久しぶりに、呼ばれた。自分の、名前」。</td></tr>' +
+    '<tr><td>長谷</td><td>鉄棒、四十二回。「はじめて、誰かに、数えてもらった」。</td></tr>' +
+    '<tr><td>杉本・松井</td><td>杉本「出勤、か。ネクタイ、締めててよかった」。松井は、五つの椅子を、三年ぶりに拭いていた。</td></tr>' +
+    '<tr><td>おかあさん</td><td>豚汁と、梨。「顔色、みんな、うちのこうじと、おんなじじゃないの！」「帰ってくるかどうかは、知らないわよ。でも、あたしは、待ってんの」「いないなら、あたしが、待っててやるわよ！　来週も、来るからね！」。</td></tr>' +
+    '<tr><td>十秒</td><td>吉尾の、十五年前の配信の十秒を、みんなで見た。まばらな拍手。「……ありがとう、な」。参加、九名と、おかあさんと、小川さん。</td></tr>' +
+    '<tr><td>キャッチボール</td><td>高嶺「投げるのは、誰でもできます。受け取ってくれる人がいれば」「届いたら、ナイスボールです」。どれもひどい球だった。高嶺は全部捕った。</td></tr>' +
+    '<tr><td>石居</td><td>「天からもらったやつが、もらってないやつらに、投げ返してる」「あの日は皮肉だと思った。でも」「……俺にも、一球、よこせ」。</td></tr>' +
+    '<tr><td>ちょっと、いい</td><td>ミマモリ「体調は、どうですか」。木下「……ちょっと、いい」。三年分の記録に、はじめて「異常なし」ではない言葉が残った。</td></tr>' +
+    '<tr><td>波形</td><td>こうじ「僕たち、もう、帰れないんだよね」。田所「……ああ」。「お前の母さんは、声が大きいから、ここまで聞こえる気がする」。こうじ「……うるせーババア」。留文堂の研究室で、三枝は「おやすみなさい。田所さん。田中さん」と言い、研究対象の欄に、番号ではなく、名前を書いた。</td></tr></table>' +
+    '<p class="close">誰も呼ばなかった名前を、今日は、誰かが、呼んだ。</p>' +
+    '<div class="trow"><button type="button" class="go" id="titleBtn29">タイトルへ</button></div>';
+  $('report').hidden = false; $('titleBtn29').addEventListener('click', () => location.reload()); }
+async function startCh29() { const m = meta(); if (m.ch28) unpackS(m.ch28); else if (m.ch27) unpackS(m.ch27); DONE = new Set(m.ch28Done || m.ch27Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter29(); }
+
+// 続きから：場面の始まりから
+RESUME[29] = { box: goBox29, morning: goMorning29, salon: goSalon29, catch: goCatch29, night: goNight29 };
+AREAS.town24.restore = (r0 => function (a) { if (r0) r0.call(this, a); if (S.chapter === 29) zone29Items(); })(AREAS.town24.restore);
+// 下編の報告から、特殊章へ
+{ const r0 = showReport28; showReport28 = function () { r0(); const row = $('titleBtn28') && $('titleBtn28').parentNode; if (row && !$('ch29Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch29Go'; b.textContent = '特殊章　なまえを、よぶ へ'; row.insertBefore(b, row.firstChild); $('titleBtn28').className = 'ghost'; b.addEventListener('click', () => run(chapter29)); } }; }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -15602,7 +15846,7 @@ P.model = makeChar(LK.kuze); CAST.kuze = P.model;
 // ---- タイトル：続きから／セーブデータから／チャプターから／音 ----
 try { if (localStorage.getItem('reserve-sound') === '0') sound = false; } catch (e) { /* 読めなければ音あり */ }
 $('sndBtn').addEventListener('click', () => { sound = !sound; try { localStorage.setItem('reserve-sound', sound ? '1' : '0'); } catch (e) { /* 残せなくても切り替えはする */ } if (!sound && master) master.gain.value = 0; else if (master) master.gain.value = 0.5; refreshTitle(); });
-const CHSTART = [async () => { await worldIntro(); await prologue(); }, prologue, startCh2, startCh3, startCh4, startCh5, startCh6, startCh7, startCh8, startCh9, startCh10, startCh11, startCh12, startCh13, startCh14, startCh15, startCh16, startCh17, startCh18, startCh19, startCh20, startCh21, startCh22, startCh23, startCh24, startCh25, startCh26, startCh27, startCh28];
+const CHSTART = [async () => { await worldIntro(); await prologue(); }, prologue, startCh2, startCh3, startCh4, startCh5, startCh6, startCh7, startCh8, startCh9, startCh10, startCh11, startCh12, startCh13, startCh14, startCh15, startCh16, startCh17, startCh18, startCh19, startCh20, startCh21, startCh22, startCh23, startCh24, startCh25, startCh26, startCh27, startCh28, startCh29];
 function startChapter(i) { const f = CHSTART[i]; if (!f) return; audioOn(); $('title').hidden = true; run(f); }
 $('contBtn').addEventListener('click', () => { if (!latestFile()) { startChapter(0); return; } const nx = nextCh(); if (nx != null) { startChapter(nx); return; } audioOn(); $('title').hidden = true; run(loadGame); });
 $('chapBtn').addEventListener('click', () => { audioOn(); openChaps(); });
@@ -15619,6 +15863,6 @@ function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b
   if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
 $('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goBox29, goMorning29, evZone29, goSalon29, goCatch29, goNight29, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
