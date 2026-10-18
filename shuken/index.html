@@ -1833,7 +1833,7 @@ const CHSYN = [
   '間一髪、久世の警棒が刃を受け止めた。鐘は久世を「格上」と呼ぶ。名前があり、席があり、力がある人間だ、と。肩を斬られた久世と、駆けつけたポンプ。消えた鐘は、特区の四十一人の名前を書いたノートを残していた。バズったこうじは、もう一度、見られたがっている。',
   '「これは人の心に関することだ。異種族にはどうしようもない」。留保班は、鐘と声の現象を人間の支配下に置き、主権回復の手がかりにすると決める。久世は怒りから頷くが、竜に救われた弟の顔が浮かぶ。特区には、少しだけカメラが向き始める。そして、まりなの誕生日の夜、こうじに、はじめて鐘が鳴る。',
   '醜くねじれた「宝物」になったこうじは、生まれてはじめての力に、開き直っていた。殴られたところにだけ返す、一撃で消し飛ぶ拳。鐘も来て、特区のすべてを介錯しようとする。それを止めたのは、名古屋の二十二歳の、三球だった。そのあと、久世の電話が鳴る。',
-  '円卓の地図で、特区は、まだ灰色だった。同盟にも鐘にも行かなかった佐野が、ひとりずつ名前を呼んで、空いたままの五つの椅子に、人を誘う。豚汁を持った紫の服のおかあさん、確かめに来た外神竜の一族、ベンチの一メートル、竜の球まで捕るキャッチボール、鬼が勝手に運んできた十脚の椅子。誰も呼ばなかった名前を、今日は、誰かが呼ぶ。'];
+  '円卓の地図で、特区は、まだ灰色だった。同盟にも鐘にも行かなかった佐野が、ひとりずつ名前を呼んで、空いたままの五つの椅子に、人を誘う。豚汁を持った紫の服のおかあさん、十五年前の配信のネタ、ユリアのむかしの願いでやって来た外神竜の一族、竜の球まで捕るキャッチボール、鬼の現場の余りの十脚の椅子。誰も呼ばなかった名前を、今日は、誰かが呼ぶ。'];
 // 記録ファイルが進んでいる章までは開く（章のクリアの印が残らなかったときの受け皿）
 const fileCh = () => Object.values(readFiles()).reduce((a, d) => Math.max(a, (d && d.s && d.s.chapter) || 0), 0);
 const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh();
@@ -15360,9 +15360,9 @@ async function evZone29(k) { const a = AREAS.town24, R = a.res; G.mode = 'cine';
   else if (k === 'video') { const r = R.video; face(r); fc22(r, 2.2, 0, 0.3); await narr('吉尾は、いつもの、動画を、見ていた。');
     me(); await say('sano24', '吉尾さん。……それ、何の、動画ですか。');
     fc22(r, 2.2, 0, 0.3); await say('video24', '……十五年前の、配信。……俺の名前、呼ばれてる、十秒。');
-    me(); await say('sano24', '……みんなで、見ても、いいですか。');
-    fc22(r, 2.2, 0, 0.3); await say('video24', '……みんなで？　……十秒しか、ないぞ。');
-    me(); await say('sano24', '十秒で、いいです。'); r.facing = r.home[2]; }
+    me(); await say('sano24', '……今日、サロン、やるんです。来ませんか。');
+    fc22(r, 2.2, 0, 0.3); await say('video24', '……サロン？　……しゃべること、ないぞ。');
+    await say('video24', '……まあ、これくらいなら、ネタに、なるか。……一回だけ、な。'); r.facing = r.home[2]; }
   else if (k === 'bbs') { const r = R.bbs; face(r); me(); await say('sano24', '……あの。名前、聞いても、いいですか。');
     fc22(r, 2.0, 0, 0.3); await say('bbs24', '……名無し、で、いいよ。……掲示板でも、そう、呼ばれてる。');
     me(); await say('sano24', '僕、佐野です。佐野、優斗。');
@@ -15408,14 +15408,25 @@ async function goSalon29() { G.mode = 'cine'; S.flags.c29st = 'salon'; setObj(''
   cine(0.8, 3.2, 3.4, 0.8, 1.0, -4.8); await narr('誰かが、お椀を、受け取った。……それから、もうひとり。');
   const og = put29(a, 'ogawa24', () => makeChar(LK.ogawa24), -2.4, -3.0, Math.atan2(3.2, -1.8)); fc22(og, 2.2, 0, 0.3); await say('ogawa24', '……豚汁、もう一杯。……わしにも、くれるか。');
   fc22(m, 2.2, 0, 0.3); await say('kaa25', 'あるわよ！　何杯でも！');
-  // 外神竜
-  const fu = put29(a, 'furuuru', () => makeChar(FAMLK.furuuru), 2.8, 3.2, Math.PI), yu = put29(a, 'yuria', () => makeChar(FAMLK.yuria), 1.6, 3.6, Math.PI), ri = put29(a, 'rin', () => makeChar(FAMLK.rin), 0.4, 3.6, Math.PI), ni = put29(a, 'nirume', () => makeChar(FAMLK.nirume), -0.8, 3.2, Math.PI);
+  // 吉尾の、ネタ
+  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……じゃあ、俺から、ひとつ。……ネタ、だけど。');
+  cine(0.8, 1.8, -2.2, 0.8, 1.0, -4.8); await narr('吉尾は、スマホを、みんなのほうへ、向けた。……十五年前の、配信の、十秒。');
+  await say('clip29', '「……あ、ヨシオさん、コメント、ありがと～！　うれしい～！」');
+  fc22(R.bar, 2.2, 0, 0.3); await say('bar24', '……十五年、それ、見てたのか。');
+  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '見てた。毎日。……笑って、いいぞ。');
+  cine(0.8, 3.2, 3.4, 0.8, 1.0, -4.8); await narr('誰かが、ふきだした。……それから、みんな、少しだけ、笑った。吉尾も、笑った。');
+  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……はい。この話は、これで、おしまい。……もう、しない。');
+  await narr('吉尾は、スマホを、ポケットに、しまった。');
+  // 外神竜：ユリアの、むかしの、願い
+  const yu = put29(a, 'yuria', () => makeChar(FAMLK.yuria), 1.6, 3.6, Math.PI), fu = put29(a, 'furuuru', () => makeChar(FAMLK.furuuru), 2.8, 3.2, Math.PI), ri = put29(a, 'rin', () => makeChar(FAMLK.rin), 0.4, 3.6, Math.PI), ni = put29(a, 'nirume', () => makeChar(FAMLK.nirume), -0.8, 3.2, Math.PI);
   cine(0.8, 2.4, 0.6, 1.0, 1.4, 3.4); await narr('ゲートの前に、見慣れない、四人が、立っていた。……角と、尾と、大きな、翼。');
-  await narr('外神竜の、一族だった。……住人たちは、豚汁の、お椀を、持ったまま、固まった。');
-  fc22(fu, 3.2, 0.3, 0.3); await say('furuuru', 'あらあら♡　にぎやかねぇ。……ママたちも、まぜて、もらえるかしら？');
-  fc22(yu, 3.2, 0.3, 0.3); await say('yuria', 'あーしら、テレビで、見てさ。……燐が、行くって、聞かなくて。');
-  fc22(ri, 3.2, 0.3, 0.3); await say('rin', '……ご飯と、部屋が、あったら、困ってへん、って。……ずっと、引っかかってて。自分の目で、確かめたかってん。');
-  fu.pos.set(1.6, 0, -2.4); yu.pos.set(2.6, 0, -1.6); ri.pos.set(-0.4, 0, -1.6); ni.pos.set(0.4, 0, -2.0); for (const n of [fu, yu, ri, ni]) faceTo29(n, R.video); sn.pos.set(-1.0, 0, -2.2); sn.facing = Math.PI * 0.75;
+  await narr('外神竜の、一族だった。……住人たちは、お椀を、持ったまま、固まった。');
+  fc22(yu, 3.2, 0.3, 0.3); await say('yuria', 'やっほー。……あ、ごめん。びっくりさせた？');
+  await say('yuria', 'あーし、前に、言ったんだよね。……みんな、笑って、過ごしてほしいって。');
+  await say('yuria', '……みんな、って。ここも、入ってんの。……だから、来ちゃった。');
+  fc22(fu, 3.2, 0.3, 0.3); await say('furuuru', 'あらあら♡　ユリアちゃんが、行くって、聞かなくて。……ママたちも、ついてきちゃった。');
+  fc22(ri, 3.2, 0.3, 0.3); await say('rin', '……うちも。自分の目で、見ときたかってん。');
+  yu.pos.set(2.6, 0, -1.6); fu.pos.set(1.6, 0, -2.4); ri.pos.set(-0.4, 0, -1.6); ni.pos.set(0.4, 0, -2.0); for (const n of [fu, yu, ri, ni]) faceTo29(n, R.video); sn.pos.set(-1.0, 0, -2.2); sn.facing = Math.PI * 0.75;
   faceTo29(m, fu); fc22(m, 2.2, 0, 0.3); await say('kaa25', 'なによ、あんたたち。……竜？　……豚汁、食べる？');
   fc22(fu, 3.2, 0.3, 0.3); await say('furuuru', 'いただくわ♡　……うふふ、お母さん同士ね。');
   fc22(m, 2.2, 0, 0.3); await say('kaa25', '……お椀、洗って、返しなさいよ。竜でも。');
@@ -15424,38 +15435,24 @@ async function goSalon29() { G.mode = 'cine'; S.flags.c29st = 'salon'; setObj(''
   await say('nirume', '……ぶたじる、とか。……いす、とか。……ちいさいけど、みえる。');
   fc22(R.mado, 2.0, -0.4, 0.3); await say('mado24', '……竜に、見えてる、のか。……俺ら。');
   fc22(ni, 2.8, 0.2, 0.3); await say('nirume', '……うん。……きのう、までは、みえなかった。');
-  // 吉尾の十秒
-  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……あの。……十秒だけ、いいか。');
-  cine(0.8, 1.8, -2.2, 0.8, 1.0, -4.8); await narr('吉尾は、スマホを、みんなのほうへ、向けた。……十五年前の、配信の、十秒。');
-  await say('clip29', '「……あ、ヨシオさん、コメント、ありがと～！　うれしい～！」');
-  await narr('十秒は、すぐに、終わった。……誰かが、手を、叩いた。……ぱち、ぱち、と。……竜の、大きな手も、まざっていた。');
-  fc22(yu, 3.2, 0.3, 0.3); await say('yuria', '……え、いい話じゃん。……ずるい、泣きそう。');
-  fc22(R.video, 2.0, -0.4, 0.3); await say('video24', '……っ。……ありがとう。……ありがとう、な。');
+  fc22(yu, 3.2, 0.3, 0.3); await say('yuria', '……笑ってんじゃん。……ちょっとだけ、だけど。');
+  await say('yuria', '……うん。ちょっとで、いいよ。');
   cut18(-5.2, 1.4, -2.6, -5.2, 1.4, -4.3); notice29(a, '九名＋おかあさん＋小川さん＋竜のみなさん'); await narr('掲示板の「参加」の欄に、数字が、書き込まれた。……書ききれなかった。');
   await fade(true); for (const n of [m, og, sn, fu, ri, ni]) n.hidden = true; await goBench29(); }
 
-// ---- ベンチ：一メートル ----
+// ---- フェンスの外：通りがかり ----
 async function goBench29() { G.mode = 'cine'; S.flags.c29st = 'bench'; setObj(''); await goCine29('town24'); await fade(false); ckSave(); const a = AREAS.town24, R = a.res; town29(a); bgm('name29'); scene.background = new THREE.Color(0xF0E0C8); hemi.intensity = 1.0; zoneCast26(false); chairs29(a, false);
   const v = R.video; v.pos.set(4.6, 0, -3.3); v.facing = 0; v.st = { sit: true, phone: true };
-  const ct = put29(a, 'cat24', () => makeChar(LK.catgirl), 7.0, 3.4, Math.PI * 0.9), el = put29(a, 'elf24', () => makeChar(SPEC.elf), 8.0, 3.6, Math.PI * 0.9);
-  cine(5.6, 2.2, 1.2, 5.4, 1.0, -3.0); await card('高蔵寺　特区の、ベンチ', '同じ日　午後四時', 1400);
-  await narr('フェンスの扉が、開いていた。……通りがかりの、ふたりが、のぞきこんでいた。');
-  fc22(el, 2.2, 0, 0.3); await say('elf24', 'テレビで、やってた、とこだよね。……行列の、とこ。');
-  fc22(ct, 2.2, 0, -0.3); await say('cat24', '……なんか、楽しそうな、声、したんだけど。');
-  ct.pos.set(5.5, 0, -3.3); ct.facing = 0; ct.st = { sit: true }; el.pos.set(7.0, 0, -1.6); el.facing = Math.atan2(-1.5, -1.7);
-  cine(5.0, 1.4, -1.2, 5.0, 0.9, -3.3); await narr('猫族の女の子は、ベンチの、端に、座った。……吉尾の、一メートル先だった。');
-  fc22(ct, 1.8, 0, -0.4); await say('cat24', '……ねえ。それ、なに、見てんの？');
-  fc22(v, 1.8, 0, 0.4); await say('video24', '……え。……俺？');
-  fc22(ct, 1.8, 0, -0.4); await say('cat24', 'ほかに、だれも、いないじゃん。');
-  fc22(v, 1.8, 0, 0.4); await say('video24', '……十五年前の、配信。……十秒だけ、俺の、名前が、呼ばれてる。');
-  cine(5.0, 1.4, -1.2, 5.0, 0.9, -3.3); await say('clip29', '「……あ、ヨシオさん、コメント、ありがと～！」');
-  fc22(ct, 1.8, 0, -0.4); await say('cat24', '……いい声じゃん。……てか、お兄さん、ヨシオって、いうんだ。');
-  fc22(v, 1.8, 0, 0.4); await say('video24', '……ああ。……吉尾、です。');
-  fc22(el, 2.2, 0, 0.3); await say('elf24', 'ちょっと～、もう、行くよ～。');
-  fc22(ct, 1.8, 0, -0.4); await say('cat24', 'まって、もうちょい。……ねえ、ヨシオさん、ほかに、なんか、ないの。');
-  cine(5.6, 2.2, 1.2, 5.4, 1.0, -3.0); await narr('ふたりは、しばらく、そこに、いた。……それから、手を振って、帰っていった。');
-  ct.hidden = true; el.hidden = true; v.st = { sit: true }; fc22(v, 1.8, 0, 0.4); await say('video24', '……一メートル、だったな。');
-  await narr('いつかの、駅前と、同じ、距離だった。……今日は、目が、合った。');
+  const ct = put29(a, 'cat24', () => makeChar(LK.catgirl), 0.4, 5.4, -Math.PI / 2), el = put29(a, 'elf24', () => makeChar(SPEC.elf), -0.4, 5.6, -Math.PI / 2);
+  cine(0.2, 1.6, 2.4, 0.0, 1.4, 5.4); await card('高蔵寺　特区の、フェンス', '同じ日　午後四時', 1400);
+  await narr('フェンスの外を。……駅前で、見かけたことのある、ふたりが、通りかかった。');
+  ct.facing = Math.PI; fc22(ct, 2.2, 0, -0.3); await say('cat24', '……なんか、にぎやか。……ここ、こんな声、したっけ。');
+  el.facing = Math.PI * 0.8; fc22(el, 2.2, 0, 0.3); await say('elf24', 'さあ。……ほら、電車、来ちゃう。');
+  fc22(ct, 2.2, 0, -0.3); await say('cat24', '……ん。');
+  ct.facing = -Math.PI / 2; el.facing = -Math.PI / 2; cine(0.2, 1.6, 2.4, 0.0, 1.4, 5.4); await narr('猫族の女の子は、一度だけ、振り返った。……それだけだった。');
+  ct.hidden = true; el.hidden = true;
+  cine(5.6, 2.2, 1.2, 5.4, 1.0, -3.0); await narr('ベンチでは、吉尾が、スマホを、持っていた。');
+  v.st = { sit: true }; fc22(v, 1.8, 0, 0.4); await narr('……今日は、動画を、開かなかった。');
   await fade(true); await goCatch29(); }
 
 // ---- 夕方：キャッチボール ----
@@ -15463,48 +15460,46 @@ async function goCatch29() { G.mode = 'cine'; S.flags.c29st = 'catch'; setObj(''
   const sn = put29(a, 'sano24', () => makeChar(LK.sano24), 4.6, 1.0, Math.PI / 2), tk = put29(a, 'takane', () => takaneCasual29(), 10.6, 1.0, -Math.PI / 2), yu = put29(a, 'yuria', () => makeChar(FAMLK.yuria), 6.0, 2.6, Math.PI * 0.8);
   R.bar.pos.set(6.4, 0, -1.6); R.bar.facing = Math.PI * 0.2; R.bbs.pos.set(7.4, 0, -1.8); R.bbs.facing = 0; R.bbs.st = {}; R.video.pos.set(8.4, 0, -1.6); R.video.facing = -0.2; R.video.st = {};
   cine(7.6, 2.6, 6.0, 7.6, 1.0, 0.4); await card('高蔵寺　特区の、いちばん端', '同じ日　夕方', 1400);
-  await narr('壁に、ボールを、投げている、青年がいた。……一球、一球、ずっと。');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', 'あ、すみません。……うるさかった、ですか。');
-  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……いえ。……何球、目ですか。');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', '二百、八十……いくつだっけ。……あ、数えるの、忘れてました。');
-  await say('takane', '……キャッチボール、しませんか。');
+  await narr('壁に、ボールを、投げている、青年がいた。……一球ごとに、大きな声で、数えていた。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '二百八十六！　……二百八十七！');
+  tk.facing = -Math.PI / 2; await say('takane', 'あっ、こんにちは！　うるさかったら、言ってください！　今日は、三百球まで、って、決めてるんで！');
+  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……三百。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', 'はい！　……あ、そうだ。キャッチボール、しましょう！　壁より、人のほうが、ぜったい、楽しいです！');
   fc22(sn, 2.2, 0, 0.3); await say('sano24', '……僕、ボール、投げたこと、ほとんど、ないです。');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', '大丈夫です。……投げるのは、誰でも、できます。受け取ってくれる人が、いれば。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '大丈夫です！　投げるのは、誰でもできます。捕るのは、俺がやります。どこに来ても、全部、捕りますから！');
   fc22(sn, 2.2, 0, 0.3); const c = await choose([{ k: '投げる', t: '思いきり、投げる' }, { k: '投げる', t: 'そっと、投げる' }]);
   sn.st = { punch: true }; sfx('swing'); await toss29({ x: 4.8, y: 1.6, z: 1.0 }, { x: 10.2, y: 0.6, z: c === 0 ? 2.8 : -0.6 }, 700, c === 0 ? 1.6 : 0.6); sn.st = {};
-  tk.st = { duck: true }; tk.pos.z = c === 0 ? 2.6 : -0.4; sfx('catch29'); cine(9.0, 1.4, 4.0, 10.4, 0.8, tk.pos.z); await narr(c === 0 ? 'ボールは、とんでもない、方向へ、飛んでいった。……高嶺は、飛びついて、捕った。' : 'ボールは、届かずに、地面で、はねた。……高嶺は、すくい上げるように、捕った。');
+  tk.st = { duck: true }; tk.pos.z = c === 0 ? 2.6 : -0.4; sfx('catch29'); cine(9.0, 1.4, 4.0, 10.4, 0.8, tk.pos.z); await narr(c === 0 ? 'ボールは、とんでもない、方向へ、飛んでいった。……高嶺は、迷わず、飛びついて、捕った。' : 'ボールは、届かずに、地面で、はねた。……高嶺は、迷わず、すくい上げて、捕った。');
   tk.st = {}; fc22(tk, 2.4, 0, 0.3); await say('takane', 'ナイスボール！');
   fc22(sn, 2.2, 0, 0.3); await say('sano24', '……っ、はは。……どこが、ですか。');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', '届きました。……届いたら、ナイスボール、です。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '届きました！　届いたら、ナイスボールです。……次は、もっと、いい球、来ますよ！');
   tk.pos.z = 1.0; await toss29({ x: 10.4, y: 1.6, z: 1.0 }, { x: 4.8, y: 1.2, z: 1.0 }, 600, 0.6); sfx('catch29'); sn.st = { carry: true }; await z22(300); sn.st = {};
   cine(7.6, 2.6, 6.0, 7.6, 1.0, 0.4); await narr('それから、長谷が、投げた。……中村が、投げた。吉尾も、一球だけ、投げた。');
-  await narr('どれも、ひどい、球だった。……高嶺は、全部、捕った。全部に、「ナイスボール」と、言った。');
+  await narr('どれも、ひどい、球だった。……高嶺は、全部、捕った。全部に、大きな声で、「ナイスボール！」と、言った。');
   // ユリア
   fc22(yu, 3.2, 0.3, 0.3); await say('yuria', '……あーしも、投げて、いい？');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', 'どうぞ！');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', 'お願いします！　思いっきり、どうぞ！');
   yu.pos.set(4.8, 0, 1.8); yu.facing = Math.PI / 2; yu.st = { punch: true }; sfx('pitch28'); await toss29({ x: 5.0, y: 1.8, z: 1.8 }, { x: 10.4, y: 1.4, z: 1.0 }, 260, 0.1); yu.st = {}; sfx('catch29'); G.shake = 0.5; tk.st = { reel: true }; boom(10.4, 1.4, 1.0, 0xF2C230, false);
-  cine(9.0, 1.4, 4.0, 10.4, 1.2, 1.0); await z22(500); tk.st = {}; await say('takane', '……っ！　……ナイスボール！　……重っ！　竜の球、はじめて、捕りました！');
+  cine(9.0, 1.4, 4.0, 10.4, 1.2, 1.0); await z22(500); tk.st = {}; await say('takane', '……っ、ナイスボール！！　重っ！　……最高です！　もう一球、いいですか！');
   fc22(yu, 3.2, 0.3, 0.3); await say('yuria', 'まじ？　捕れんの！？　……あんた、何者？');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', '……投げるのが、好きな、だけです。');
-  // 鬼嶽
-  const gk = put29(a, 'goka', () => makeChar(EXEC.goka), 2.0, 3.4, Math.PI), ow = put29(a, 'oniW24', () => makeChar(LK.oniW1), 3.2, 3.6, Math.PI, { carry: true });
-  fc22(gk, 2.6, 0.3, 0.3); await say('goka', 'おい。……ここか。椅子が、足りねえって、のは。');
-  fc22(sn, 2.2, 0, 0.3); await say('sano24', '……え。');
-  fc22(gk, 2.6, 0.3, 0.3); await say('goka', '天環から、発注は、来てねえ。……あたしの、勝手だ。');
-  fc22(ow, 2.2, 0, 0.3); await say('oniW24', '姐さん、十脚、持ってきました！');
-  fc22(gk, 2.6, 0.3, 0.3); await say('goka', '……壁を、厚くしとけって、言ったのは、あたしだ。');
-  await say('goka', '……壁の、外にも。座る場所くらい、あったって、いい。');
-  chairs29(a, true); cine(0.4, 3.0, 1.6, 0.4, 0.6, -3.4); await narr('サロンの前に、赤い椅子が、十脚、並んだ。……五つ、だった椅子が、十五に、なった。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '投げるのと、捕るのが、好きなだけです！');
+  // 鬼の現場の、余り
+  const ow = put29(a, 'oniW24', () => makeChar(LK.oniW1), 2.6, 3.4, Math.PI, { carry: true });
+  fc22(ow, 2.2, 0, 0.3); await say('oniW24', '……おう、そこの。……現場の、余りだ。捨てんのも、金、かかるからよ。');
+  await say('oniW24', '置いてくぞ。……礼は、いらねえ。ゴミが、減るだけだ。');
+  chairs29(a, true); ow.hidden = true; cine(0.4, 3.0, 1.6, 0.4, 0.6, -3.4); await narr('サロンの前に、赤い椅子が、十脚、置いていかれた。……五つ、だった椅子が、十五に、なった。');
   // 石居
   const is = put29(a, 'ishii', () => makeChar(LK.ishii), 13.4, 2.6, -Math.PI * 0.6); fc22(is, 2.4, 0, 0.3); await say('ishii', '……高嶺。お前、また、投げ込みか。……迎えに、来たぞ。');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', '石居さん！　お疲れさまです！　あと、十三球で、三百です！');
+  fc22(is, 2.4, 0, 0.3); await say('ishii', '……知るか。');
   cine(12.6, 1.8, 4.6, 7.6, 1.0, 0.4); await narr('石居は、しばらく、それを、見ていた。');
   fc22(is, 2.0, 0, 0.5); await say('ishii', '（……天から、もらったやつが。……もらって、ないやつらに、投げ返してる）');
   await say('ishii', '（……竜まで、まざってやがる）');
   await say('ishii', '（……届いたら、ナイスボール、か）');
   await say('ishii', '……おい。……俺にも、一球、よこせ。');
-  fc22(tk, 2.4, 0, 0.3); await say('takane', 'はい！');
+  fc22(tk, 2.4, 0, 0.3); await say('takane', 'はい！　いきます！');
   cine(7.6, 2.6, 6.0, 7.6, 1.0, 0.4); await narr('夕方の、特区で。……ボールが、行ったり、来たり、していた。');
-  await fade(true); for (const n of [sn, tk, yu, gk, ow, is]) n.hidden = true; await goNight29(); }
+  await fade(true); for (const n of [sn, tk, yu, ow, is]) n.hidden = true; await goNight29(); }
 
 // ---- 夜：ちょっと、いい ----
 async function goNight29() { G.mode = 'cine'; S.flags.c29st = 'night'; setObj(''); await goCine29('town24'); await fade(false); ckSave(); const a = AREAS.town24, R = a.res; town29(a); bgm('night29'); scene.background = new THREE.Color(0x1A2030); hemi.intensity = 0.55; zoneCast26(true); chairs29(a, true);
@@ -15519,18 +15514,17 @@ async function goNight29() { G.mode = 'cine'; S.flags.c29st = 'night'; setObj(''
   await narr('「ちょっと、いい」。');
   // セレネ
   const se = put29(a, 'selene', () => makeChar(LK.selene), 0, 5.4, Math.PI); fc22(se, 2.4, 0, 0.3); await narr('フェンスの、外を。……日傘を、たたんだ、吸血鬼が、通りかかった。');
-  await say('selene', '……あら。');
-  await say('selene', '……今日は、ほんの、少しだけ、香るわ。……甘くは、ないけれど。');
-  await say('selene', '……温かい、汁物と。……汗と。……悪く、ないわね。'); se.hidden = true;
+  await say('selene', '……あら。……ほんの、少しだけ、香るわね。');
+  await say('selene', '……まあ。わたくしの、好みでは、ないけれど。'); se.facing = -Math.PI / 2; await narr('吸血鬼は、足を、止めなかった。'); se.hidden = true;
   // 円卓の間
   await fade(true); { const { te, re } = await council29(); await fade(false); bgm('name29'); scene.background = new THREE.Color(0x1A1828); hemi.intensity = 0.6;
     cine(0.6, 2.0, 0.6, 0.7, 1.6, -2.6); await card('名古屋　天環ホールディングス本社　「円卓の間」', '同じ夜', 1200);
     fc22(re, 2.4, 0, 0.3); await say('reune', 'テル～。……見て。特区の、地図。');
     await say('reune', '……ほんの、ちょっとだけ。……黄色く、なってる。');
     fc22(te, 2.4, 0, -0.3); await say('terues', '……誰かが、何かを、好きに、なったんだろう。');
-    fc22(re, 2.4, 0, 0.3); await say('reune', '燐と、ニルメが、行ってきたって。……豚汁、もらったって。');
+    fc22(re, 2.4, 0, 0.3); await say('reune', 'ユリアたちが、行ってきたって。……豚汁、もらったって。');
     fc22(te, 2.4, 0, -0.3); await say('terues', '……そう。');
-    await say('terues', '……今度。……僕も、燐に、聞いてみる。');
+    await say('terues', '……今度。……僕も、ユリアに、聞いてみる。');
     cine(0, 6.4, 8.4, 0, 1.0, -0.4); await narr('円卓の上の地図で。……灰色の区画の、真ん中に、小さな、点が、ひとつ、灯っていた。'); re.hidden = true; }
   await fade(true); await card('特殊章　なまえを、よぶ', '完', 3200); await fade(false); setMeta({ ch29Clear: true, ch29: packS(), ch29Done: [...DONE] }); showReport29(); }
 
@@ -15542,16 +15536,16 @@ function showReport29() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>中村 圭一</td><td>名無し、と呼ばれていた人。「……中村。中村、圭一」「久しぶりに、呼ばれた。自分の、名前」。</td></tr>' +
     '<tr><td>長谷・杉本・松井</td><td>鉄棒四十二回「はじめて、誰かに、数えてもらった」。「出勤、か。ネクタイ、締めててよかった」。五つの椅子は、三年ぶりに拭かれていた。</td></tr>' +
     '<tr><td>おかあさん</td><td>豚汁と、梨。「あの子は、もう、ここにはいないけど。だから、余ってんのよ。毎日、二人分、作っちゃうから」「あんたたちが食べてくれたら、あたしは、作る理由ができんのよ！」。</td></tr>' +
-    '<tr><td>外神竜</td><td>フルル「ママたちも、まぜてもらえるかしら？」。燐「自分の目で、確かめたかってん」。ニルメ「みえる。ちいさい、すきが、とんでる。きのうまでは、みえなかった」。おかあさん「お椀、洗って返しなさいよ。竜でも」。</td></tr>' +
-    '<tr><td>十秒</td><td>吉尾の、十五年前の配信の十秒を、みんなで見た。竜の大きな手もまざった拍手。参加欄は、書ききれなかった。</td></tr>' +
-    '<tr><td>一メートル</td><td>駅前の猫族が、ベンチの端に座った。「それ、なに見てんの？」「……え。俺？」「ほかに、だれもいないじゃん」「お兄さん、ヨシオっていうんだ」。いつかと同じ距離。今日は、目が合った。</td></tr>' +
-    '<tr><td>キャッチボール</td><td>高嶺「投げるのは、誰でもできます。受け取ってくれる人がいれば」「届いたら、ナイスボールです」。ユリアの竜の球も、捕った。「重っ！」。</td></tr>' +
-    '<tr><td>赤い椅子</td><td>鬼嶽ゴウカ「天環から発注は来てねえ。あたしの勝手だ」「壁を厚くしとけって言ったのは、あたしだ。壁の外にも、座る場所くらい、あったっていい」。五つだった椅子が、十五になった。</td></tr>' +
+    '<tr><td>十秒</td><td>吉尾「ネタ、だけど」。十五年前の配信の十秒。「十五年、それ見てたのか」「見てた。毎日。笑っていいぞ」。みんな、少しだけ笑った。「この話は、これでおしまい。もう、しない」。</td></tr>' +
+    '<tr><td>外神竜</td><td>ユリア「あーし、前に言ったんだよね。みんな、笑って過ごしてほしいって。みんな、って。ここも、入ってんの」。フルル「お母さん同士ね」。おかあさん「お椀、洗って返しなさいよ。竜でも」。ニルメ「みえる。ちいさい、すきが、とんでる」。ユリア「ちょっとで、いいよ」。</td></tr>' +
+    '<tr><td>通りがかり</td><td>駅前の猫族とエルフ。「なんか、にぎやか」「ほら、電車、来ちゃう」。一度だけ、振り返った。それだけ。吉尾は、今日は、動画を開かなかった。</td></tr>' +
+    '<tr><td>キャッチボール</td><td>高嶺「今日は三百球まで、って決めてるんで！」「投げるのは、誰でもできます。捕るのは、俺がやります」「届いたら、ナイスボールです！」。ユリアの竜の球も「重っ！　最高です！」。</td></tr>' +
+    '<tr><td>赤い椅子</td><td>鬼の現場頭「現場の余りだ。捨てんのも金かかるからよ」「礼はいらねえ。ゴミが減るだけだ」。五つだった椅子が、十五になった。</td></tr>' +
     '<tr><td>石居</td><td>「天からもらったやつが、もらってないやつらに、投げ返してる。竜まで、まざってやがる」「……俺にも、一球、よこせ」。</td></tr>' +
     '<tr><td>ちょっと、いい</td><td>ミマモリ「体調は」。木下「……ちょっと、いい」。三年分の記録に、はじめて「異常なし」ではない言葉が残った。</td></tr>' +
-    '<tr><td>香り</td><td>セレネ「今日は、ほんの少しだけ、香るわ。甘くはないけれど。温かい汁物と、汗と。悪くないわね」。</td></tr>' +
-    '<tr><td>点</td><td>レウネ「ほんのちょっとだけ、黄色くなってる」。テルエス「誰かが、何かを、好きになったんだろう」「今度、僕も、燐に聞いてみる」。灰色の区画の真ん中に、小さな点が、ひとつ。</td></tr></table>' +
-    '<p class="close">誰も呼ばなかった名前を、今日は、誰かが、呼んだ。……竜にも、少しだけ、見えた。</p>' +
+    '<tr><td>香り</td><td>セレネ「ほんの少しだけ、香るわね。まあ、わたくしの好みではないけれど」。足は、止めなかった。</td></tr>' +
+    '<tr><td>点</td><td>レウネ「ほんのちょっとだけ、黄色くなってる」。テルエス「誰かが、何かを、好きになったんだろう」「今度、僕も、ユリアに聞いてみる」。灰色の区画の真ん中に、小さな点が、ひとつ。</td></tr></table>' +
+    '<p class="close">誰も呼ばなかった名前を、今日は、誰かが、呼んだ。……ほんの少しだけ、外からも、見えた。</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn29">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn29').addEventListener('click', () => location.reload()); }
 async function startCh29() { const m = meta(); if (m.ch28) unpackS(m.ch28); else if (m.ch27) unpackS(m.ch27); DONE = new Set(m.ch28Done || m.ch27Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter29(); }
