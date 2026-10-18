@@ -13867,11 +13867,16 @@ async function goEyesB24() { G.mode = 'cine'; S.flags.c24st = 'eyesB'; setObj(''
   await goTenkan24(); }
 
 // ================= 第九章　Intro　宝物：人物・場所・音 =================
-Object.assign(SPK, { koji25: ['田中 こうじ', '#C8A078'], post25: ['こうじ@まりな民（ポスト）', '#C8A078'], kaa25: ['母（田中 澄子）', '#D8C8B0'], cat25: ['隣の席の猫族', '#F08AB0'], sal25: ['隣の席のサラリーマン', '#A8B0C0'],
+Object.assign(SPK, { koji25: ['田中 こうじ', '#C8A078'], post25: ['こうじ@まりな民（ポスト）', '#C8A078'], kaa25: ['母（田中 澄子）', '#B07AD0'], cat25: ['隣の席の猫族', '#F08AB0'], sal25: ['隣の席のサラリーマン', '#A8B0C0'],
   kaito25: ['最前列の常連「カイト」', '#8AC8F0'], staff25: ['ネムリアのスタッフ（鬼族）', '#E0703A'], crowd25: ['まわりの客', '#B8B0C8'], line25: ['母（LINE）', '#9AE09A'], tre25: ['宝物「見届けの鐘」', '#C8A0FF'] });
 // 田中こうじ（四十二歳、子供部屋おじさん、細客）
 LK.koji25 = { skin: 0xC89A78, hair: 0x2A2018, eye: 0x1A1A1A, top: 0x6A6A70, sleeve: 0x6A6A70, bc: 0x6A5034, leg: 0x6A5034, shoe: 0xE4E4E0, s: 0.95, w: 1.55, st: ['short', 'narrow'] };
-LK.kaa25 = Object.assign({}, LK.obaa || { skin: SK, hair: 0xC8C8C8, eye: 0x2A2A30, top: 0xB89AA0, sleeve: 0xB89AA0, bottom: 'skirt', bc: 0x6A5A60, leg: SK, shoe: 0x3A3A40, s: 0.88, w: 0.95, st: ['short'] }, { top: 0xA88A90, sleeve: 0xA88A90 });
+// こうじの母（田中 澄子、七十代）：くるくるのパーマ、紫のフリル襟、小太りで、声が大きい
+LK.kaa25 = { skin: 0xE8C4A4, hair: 0x2A2420, eye: 0x2A2A2A, top: 0x6A3A8A, sleeve: 0x6A3A8A, bottom: 'skirt', bc: 0x3A3040, leg: 0xE8C4A4, shoe: 0x3A3030, s: 0.88, w: 1.28, st: ['short'] };
+function kaaModel25() { const m = makeChar(LK.kaa25), H = LK.kaa25.hair;
+  for (let i = 0; i < 26; i++) { const th = (i / 26) * TAU * 3.1, ph = 0.25 + (i % 7) * 0.17, r = 0.33; part(sph(0.075, 7, 5), H, Math.sin(th) * Math.sin(ph) * r, 0.06 + Math.cos(ph) * r, Math.cos(th) * Math.sin(ph) * r - 0.02, m.head, { outline: false }); }
+  for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU; part(sph(0.055, 6, 4), 0x9A6AB8, Math.sin(a) * 0.17, 1.47, Math.cos(a) * 0.17, m.torso, { outline: false, s: [1, 0.6, 1] }); }
+  return m; }
 // 「まりなLOVE」の白いシャツ（フェスの日の勝負服）
 const loveTex25 = () => canvasTex(200, 170, (c, w, h) => { c.fillStyle = '#F2F0EC'; c.fillRect(0, 0, w, h); c.fillStyle = '#5AC8D8'; c.beginPath(); c.arc(w / 2, 62, 40, 0, TAU); c.fill(); c.fillStyle = '#F8E8E0'; c.beginPath(); c.arc(w / 2, 70, 26, 0, TAU); c.fill();
   c.fillStyle = '#2A5A70'; for (const sx of [-1, 1]) { c.beginPath(); c.arc(w / 2 + sx * 10, 70, 4, 0, TAU); c.fill(); } c.fillStyle = '#F07AB0'; for (const [x, y] of [[34, 52], [166, 52]]) { c.beginPath(); c.arc(x - 7, y, 8, 0, TAU); c.arc(x + 7, y, 8, 0, TAU); c.fill(); c.beginPath(); c.moveTo(x - 15, y + 3); c.lineTo(x + 15, y + 3); c.lineTo(x, y + 20); c.fill(); }
@@ -13934,7 +13939,7 @@ makeArea('kroom25', { place: '勝川　田中家　二階　こうじの部屋',
     block(1.6, 1.6, 0.06, 0x4A5A3A, 2.4, 1.6, -2.56, g);
     // ドア
     block(0.9, 2.1, 0.06, 0x8A7A68, -1.9, 1.05, 2.5, g); part(sph(0.04, 8, 6), 0xC8B070, -1.55, 1.0, 2.45, g, { outline: false });
-    a.kaa = npc(a, 'kaa25', makeChar(LK.kaa25), -1.9, 2.0, Math.PI); a.kaa.hidden = true; },
+    a.kaa = npc(a, 'kaa25', kaaModel25(), -1.9, 2.0, Math.PI); a.kaa.hidden = true; },
   tick(a) { a.monGl.material.opacity = 0.32 + Math.sin(T.now * 6) * 0.05; }
 });
 
@@ -14035,19 +14040,24 @@ async function evKroom25(k) { const a = AREAS.kroom25; G.mode = 'cine'; const go
     await narr('引き出しには、小学三年生の、通知表。「協調性に、欠けるところがあります。自分の世界を、大切にしています」');
     fc22(P, 1.8, 0, 0.3); await say('koji25', '……僕の世界、ね。……先生、見る目、あったじゃん。');
     cut18(-1.9, 1.4, -1.0, -2.5, 0.9, -2.3); await narr('机の上には、ライターも、灰皿も、なかった。');
-    fc22(P, 1.8, 0, 0.3); await say('koji25', '……子供部屋おじさんだから、タバコは、吸わない。……母ちゃんが、泣くから。……それだけは、守ってる。'); }
+    fc22(P, 1.8, 0, 0.3); await say('koji25', '……子供部屋おじさんだから、タバコは、吸わない。……母ちゃんに、怒鳴られるから。……あと、たぶん、泣くから。……それだけは、守ってる。'); }
   else if (k === 'bt') { await narr('ペットボトルが、四十六本。カップ麺の容器が、十九個。……数えたのは、今日が、はじめてだった。'); fc22(P, 1.8, 0, 0.3); await say('koji25', '……ゴミの日、いつだっけ。……まあ、いいや。'); }
   else if (k === 'cu') { await narr('カーテンは、三年、開けていない。'); fc22(P, 1.8, 0, 0.3); await say('koji25', '外には、竜も、狐も、天使も、いる。……僕を、見ないやつらが、いっぱい、いる。');
     await say('koji25', '……でも、まりなちゃんは、違う。……まりなちゃんだけは、僕を、見てる。'); }
-  else if (k === 'dr') { const m = a.kaa; P.pos.set(-1.5, 0, 0.9); P.facing = Math.PI * 0.85; m.hidden = false; m.pos.set(-1.9, 0, 2.0); m.facing = Math.PI; m.st = { carry: true };
-    sfx('blip'); cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('ドアを、ノックする音。……こうじが開けるより先に、ドアが、開いた。');
-    fc22(m, 2.0, 0, 0.3); await say('kaa25', 'こうちゃん、起きた？　……ごはん、置いとくね。おにぎり。');
-    fc22(P, 2.0, 0, 0.3); await kShout25('っ……！　勝手に、入ってくんなって、言ってんだろ！！');
-    fc22(m, 2.0, 0, 0.3); await say('kaa25', 'ごめんね。……あのね、これ。……フェス、今日でしょ。'); m.st = {};
+  else if (k === 'dr') { const m = a.kaa; P.pos.set(-0.5, 0, 0.8); P.facing = Math.atan2(-1.4, 1.2); m.hidden = false; m.pos.set(-1.9, 0, 2.0); m.facing = Math.PI; m.st = { carry: true };
+    sfx('blip'); cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('ノックもなしに、ドアが、開いた。');
+    fc22(m, 2.0, 0, 0.3); await say('kaa25', 'こうじ！　アニメばっかり見てないで、たまにはバイトでも行ったら！？');
+    m.st = { point: true }; await say('kaa25', 'ほら、これ！　ここで、バイト募集してるわよ！　文食品の、夜勤の箱詰め。……文鳥さんたちと一緒だって、いいじゃないの！');
+    cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('チラシ。「アルバイト募集」。……隅に、にっこり笑った、顔のイラスト。');
+    fc22(P, 2.0, 0, 0.3); await kShout25('うるせーババアだな！！');
+    fc22(m, 2.0, 0, 0.3); m.st = {}; await say('kaa25', 'うるさくて、結構！　四十二にもなって、ババアに食べさせてもらってんのは、どこの誰よ！');
+    fc22(P, 1.8, 0, 0.3); await say('koji25', '（……そういえば、来週、まりなちゃんの、誕生日だ……）');
+    fc22(m, 2.0, 0, 0.3); await say('kaa25', 'ちょっと、聞いてんの！？　……もう。……はい、これ。');
     cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('茶色い封筒。……中には、一万円札が、一枚。');
-    fc22(m, 2.0, 0, 0.3); await say('kaa25', '年金、入ったから。……おいしいもの、食べておいで。……帰り、気をつけてね。');
+    fc22(m, 2.0, 0, 0.3); await say('kaa25', 'フェス、今日なんでしょ。……ついでに、面接用のシャツでも、買ってきなさい！　余ったら、ちゃんと、ご飯、食べんのよ！');
+    await say('kaa25', '帰り、遅くなるなら、電話しなさいよ！　わかった！？');
     fc22(P, 2.0, 0, 0.3); await say('koji25', '……いいから、出てけよ。');
-    m.hidden = true; cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('階段を、ゆっくり、降りていく音がした。……膝の悪い、母の、足音だった。');
+    m.hidden = true; cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('ドスドスと、階段を、降りていく音がした。……チラシは、机の上に、置いていかれた。');
     fc22(P, 1.8, 0, 0.3); await say('koji25', '……一万円。……握手券、十枚、買える。');
     await say('koji25', '……いや。一枚で、いい。……残りは、スパチャにする。百円ずつ、九十回。……九十回、名前、読んでもらえる。');
     await narr('彼は、まだ、名前を、一度も、読まれたことが、なかった。');
@@ -14089,7 +14099,7 @@ async function goFes25() { G.mode = 'cine'; S.flags.c25st = 'fes'; setObj(''); a
   fc22(kt, 2.0); await say('kaito25', 'まりなー！！　今日も、最高ーー！！');
   kj.st = { armsUp: true }; fc22(kj, 2.0, 0.2, 0); await kShout25('まりなちゃーーーん！！　こうじ！！　こうじだよおおおお！！');
   await kShout25('いちばん、後ろーー！！　見えてるーー！？　ねえ、見えてるーーー！？');
-  cine(0.4, 2.0, 4.6, 0.4, 1.2, 7.4); await say('crowd25', '（……え、なにあいつ）'); await say('crowd25', '（汗、飛んできたんだけど……）');
+  cine(2.8, 2.2, 8.8, 0.4, 1.2, 7.0); await say('crowd25', '（……え、なにあいつ）'); await say('crowd25', '（汗、飛んできたんだけど……）');
   fc22(F.mm, 2.6); await say('mermaid', 'いちばん後ろの子たちも～、ありがと～♡');
   kj.st = {}; fc22(kj, 2.0, 0.2, 0); await say('koji25', '！！　い、今の……！　僕だ……！　僕に、言った……！！');
   await narr('「いちばん後ろの子たち」は、三万人、いた。');
@@ -14162,8 +14172,8 @@ async function goLot25() { G.mode = 'cine'; S.flags.c25st = 'lot'; setObj(''); n
   await say('koji25', '……へへ。……八千回。……僕、八千回、見られてる。');
   await say('koji25', '……明日も、コメント、しよ。……まりなちゃん、きっと、待ってる。');
   cine(-3.0, 2.0, 4.6, -3.0, 0.8, 1.0); await narr('怒りも、悲しみも、どこにも、届かなかった。……届かないまま、男は、また、好きでいようとしていた。');
-  await say('line25', 'こうちゃん　ごはん　とってあるよ　きをつけて　かえってきてね');
-  fc22(P, 1.8, 0, 0.3); await say('koji25', '……うるせえ、よ。'); await narr('そう打って、消した。……何も、送らなかった。'); P.st = { sit: true };
+  await say('line25', 'こうじ！　ごはん　あるから　はやく　かえってきなさい！　チラシ　つくえに　おいといたからね　でんわ　しなさいよ！');
+  fc22(P, 1.8, 0, 0.3); await say('koji25', '……うるせーババア。'); await narr('そう打って、消した。……何も、送らなかった。'); P.st = { sit: true };
   // 田所
   const td = a.tado; td.hidden = false; td.pos.set(4.0, 0, 0.2); bell24('ボーン……'); cine(1.0, 1.8, 3.6, 4.0, 1.2, 0.2); await z22(1600); td.facing = Math.atan2(-7.0, 1.0);
   fc22(td, 2.0, 0, 0.3); await say('tado24', '（……見てた。……電車から、ずっと）');
@@ -14236,8 +14246,8 @@ function showReport25() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
   const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>九</span><span>宝</span></div><h2>第九章　Intro　宝物</h2><div class="meta">高蔵寺　第三住宅／勝川　田中家／JR中央本線／落合公園　ネムリア・フェス／留文堂　地下／落合公園　第三駐車場</div><table>' +
     '<tr><td>三日後</td><td>田所は、眠れない。鐘が鳴る。ミマモリ「体調は」「……鐘が、鳴ってる」「記録、しました」。明るい声「ファンは宝物。……誰のファンにもなれなかった人こそ、ほんとの宝物なんすよ」。</td></tr>' +
     '<tr><td>こうじ</td><td>田中こうじ、四十二歳。勝川の子供部屋。人魚の歌い手まりなに三年間、毎日コメント。スパチャ合計四千二百円の「細客」。「このポストは僕宛だきっと♡」。いいねは二つ、一つは業者。</td></tr>' +
-    '<tr><td>学習机</td><td>入学祝いの机が、三十六年、同じ場所に。通知表「協調性に欠けるところがあります」。タバコは吸わない。母ちゃんが、泣くから。</td></tr>' +
-    '<tr><td>母</td><td>年金の日の、一万円。「おいしいもの、食べておいで」。「……いいから、出てけよ」。膝の悪い足音。握手券は一枚。残りは百円のスパチャ九十回分。名前は、まだ一度も読まれていない。</td></tr>' +
+    '<tr><td>学習机</td><td>入学祝いの机が、三十六年、同じ場所に。通知表「協調性に欠けるところがあります」。タバコは吸わない。母ちゃんに怒鳴られるから。あと、たぶん、泣くから。</td></tr>' +
+    '<tr><td>母</td><td>ノックなしで入ってくる母。「アニメばっかり見てないで、たまにはバイトでも行ったら！？」「うるせーババアだな！！」。面接用のシャツ代の一万円で、握手券を一枚。残りは百円のスパチャ九十回分。名前は、まだ一度も読まれていない。</td></tr>' +
     '<tr><td>電車</td><td>両隣だけ、すき間。猫族「（……隣、臭すぎ）」、サラリーマン「（……オタク、キモ）」。田所の鐘が鳴る。「……俺と、同じだ」。</td></tr>' +
     '<tr><td>フェス</td><td>十万人の、いちばん後ろ。「こうじだよおおお！」。まりな「いちばん後ろの子たちも、ありがと～♡」。後ろの子たちは、三万人いた。</td></tr>' +
     '<tr><td>握手会</td><td>前の男は三十枚、こうじは一枚、十秒。「はじめまして、だよね？」。手を離さず、鬼に引きずられ、片方の靴が脱げた。笑顔は三秒で戻った。彼女は悪くなかった。</td></tr>' +
@@ -14388,7 +14398,7 @@ async function goPush26() { const a = AREAS.lot25, tr = a.e26.tre25, po = a.e26.
 
 // ---- 蒼生メディカルセンター：同じ夜 ----
 function hosp26Items() { const a = AREAS.hospital; if (!a.built) { a.build(a); a.built = true; } if (a.i26) return; a.i26 = true; const on = on26('hosp'), got = k => got26('c26h', k);
-  for (const it of a.items) if (it.id === 'hwin' || it.id === 'doui') { const o0 = it.avail; it.avail = () => S.chapter !== 26 && (!o0 || o0()); }
+  for (const it of a.items) if (!/^h26/.test(it.id)) { const o0 = it.avail; it.avail = () => S.chapter !== 26 && (!o0 || o0()); }
   addItem(a, { id: 'h26sa', x: 1.6, z: 0.8, r: 1.2, label: '三枝', col: 0xE3B428, avail: () => on() && !got('sa'), on: () => evHosp26('sa') });
   addItem(a, { id: 'h26kr', x: 3.2, z: 0.2, r: 1.2, label: '黒岩室長', col: 0xE3B428, avail: () => on() && !got('kr'), on: () => evHosp26('kr') });
   addItem(a, { id: 'h26kaa', x: -5.2, z: 0.2, r: 1.2, label: 'こうじの母', col: 0xE3B428, avail: () => on() && !got('kaa'), on: () => evHosp26('kaa') });
@@ -14398,7 +14408,7 @@ function hosp26Items() { const a = AREAS.hospital; if (!a.built) { a.build(a); a
 function obj26h() { const n = ['sa', 'kr', 'kaa', 'kj'].filter(k => got26('c26h', k)).length; setObj(n >= 4 ? '待合の窓辺へ（夜）' : '病棟で、話を聞く（' + n + '／4）　三枝／黒岩／こうじの母／こうじ'); }
 async function goHosp26() { G.mode = 'cine'; S.flags.c26st = 'hosp'; setObj(''); hosp26Items(); kuzeOn26(true); await goArea('hospital', [2.0, 1.6], -Math.PI / 2); await fade(false); ckSave(); const a = AREAS.hospital; bgm('hosp26'); sling26(true);
   for (const n of a.npcs) n.hidden = true; scene.background = new THREE.Color(0x1A2026); hemi.intensity = 0.6;
-  put26(a, 'saegusa', () => makeChar(LK.saegusa), 1.6, -0.2, 0); put26(a, 'kuroiwa', () => makeChar(LK.kuroiwa), 3.2, -0.6, -0.3); put26(a, 'kaa25', () => makeChar(LK.kaa25), -5.2, -0.6, Math.PI);
+  put26(a, 'saegusa', () => makeChar(LK.saegusa), 1.6, -0.2, 0); put26(a, 'kuroiwa', () => makeChar(LK.kuroiwa), 3.2, -0.6, -0.3); put26(a, 'kaa25', () => kaaModel25(), -5.2, -0.6, Math.PI);
   put26(a, 'koji25', () => kojiModel(false), -7.6, -3.0, Math.PI / 2, { sit: true, phone: true }, 0.4); const po = put26(a, 'ponpu', () => ponpuModel(false), -2.6, 3.7, Math.PI); CAST.ponpu = po.model;
   if (got26('c26h', 'sa') || got26('c26h', 'kr')) { P.pos.set(2.0, 0, 1.6); obj26h(); playOn(); return; }
   cine(4, 3.4, 4.4, 0, 1.0, 0); await card('蒼生メディカルセンター　第三病棟', '同じ夜　午後十一時', 1600);
@@ -14411,28 +14421,39 @@ async function evHosp26(k) { const a = AREAS.hospital, E = a.e26; G.mode = 'cine
     await say('saegusa', '田所さんの場合は、「見届けること」。……誰にも見られなかった人が、最後に、誰かを、見届ける側に、回りたかった。');
     fc22(P, 2.4, 0, 0.3); await say('kuze', '……それで、人を、斬るのか。');
     fc22(s, 2.4, 0, 0.3); await say('saegusa', '本人の中では、たぶん、救いなんです。……介錯、ですから。');
-    await say('saegusa', 'それと。……特区のミマモリ四十一台の記録に、三日前から、毎晩、同じ鐘の波形が、出ています。……聞こえているのは、田所さんだけじゃ、ないのかも、しれません。'); }
+    await say('saegusa', 'それと。……「ボーン」という、鐘の音のこと。あれは、たぶん、宝物の音じゃ、ありません。');
+    await say('saegusa', '田所さんのミマモリの記録だと、鐘が鳴ったあとに、必ず、独り言が、始まっています。……誰かに、返事を、するみたいに。');
+    await say('saegusa', '鐘は、「声」が、聞こえ始める、合図なんです。……明るい、男の人の、声。');
+    fc22(P, 2.4, 0, 0.3); await say('kuze', '……大須の、黒い羽は。');
+    fc22(s, 2.4, 0, 0.3); await say('saegusa', 'その声を拾う、アンテナ、みたいなものだと、思います。……でも、たぶん、羽だけじゃない。');
+    await say('saegusa', 'ある決まったことを、すると。……人は、羽がなくても、自分で、アンテナに、なってしまう。……何をすると、なるのかは、まだ、わかりません。');
+    await say('saegusa', '特区のミマモリの記録に、鐘の波形が出た部屋が、毎晩、増えています。……三日前は、一部屋。昨日は、九部屋。'); }
   else if (k === 'kr') { const r = E.kuroiwa; r.facing = Math.atan2(P.pos.x - r.pos.x, P.pos.z - r.pos.z); fc22(r, 2.4, 0, -0.3); await say('kuroiwa', '……よく、止めた。');
     await say('kuroiwa', '村瀬と石居は、明日、戻る。……それまで、無理はするな。');
     fc22(P, 2.4, 0, 0.3); await say('kuze', '……あの鐘、俺のことを、「格上」だと、言いました。……普通のサラリーマンの時点で、もう、上だと。');
     fc22(r, 2.4, 0, -0.3); await say('kuroiwa', '……格上、か。');
     await say('kuroiwa', '……あながち、間違いでもない。お前は、越後の山で、育てられた。普通の人間が、持たないものを、持っている。');
     await say('kuroiwa', 'だがな、久世。……あれの言う「格」は、強さのことじゃない。……呼ばれる名前が、あるかどうか、だ。'); }
-  else if (k === 'kaa') { const m = E.kaa25; m.facing = Math.atan2(P.pos.x - m.pos.x, P.pos.z - m.pos.z); m.st = { bow: true }; fc22(m, 2.2, 0, 0.3); await say('kaa25', '息子が、ご迷惑を、おかけして……。本当に、申し訳、ございません……！');
-    fc22(P, 2.4, 0, 0.3); await say('kuze', '……いえ。'); m.st = {};
-    fc22(m, 2.2, 0, 0.3); await say('kaa25', 'あの子、二十歳まで、文食品の工場に、勤めてたんです。……ラインが、文鳥さんたちに、替わって。……それから、ずっと、二階に。');
-    await say('kaa25', 'お父さんが亡くなって、十年。……あの子と、ふたりきり、なんです。');
-    await say('kaa25', 'みなさん、あの子のこと、笑うでしょう。……動画も、見ました。……でも。');
-    await say('kaa25', '生まれてきてくれて、よかったって。……私だけは、思ってますから。');
-    fc22(P, 2.4, 0, 0.3); await saku('（……あいつの名前を、呼ぶ人間は。……ひとり、いるじゃないか）'); }
+  else if (k === 'kaa') { const m = E.kaa25; m.facing = Math.atan2(P.pos.x - m.pos.x, P.pos.z - m.pos.z); m.st = { bow: true }; fc22(m, 2.2, 0, 0.3); await say('kaa25', 'すみませんねえ！！　うちの、バカ息子が、ほんっとに、ご迷惑を……！！');
+    await say('kaa25', 'あんたも、頭、下げなさい！　……あら、いないわ。病室か。……もう！'); m.st = {};
+    fc22(P, 2.4, 0, 0.3); await say('kuze', '……いえ。');
+    fc22(m, 2.2, 0, 0.3); await say('kaa25', 'その肩、あの子を、かばってでしょう？　……ほんと、ごめんなさいね。あとで、うちの梨、持ってくから。');
+    await say('kaa25', 'あの子ね、二十歳まで、文食品の工場に、勤めてたのよ。……ラインが、文鳥さんたちに、替わって。それっきり、二階から、降りてこない。');
+    await say('kaa25', 'お父さんが死んで、十年。……あたしが怒鳴らなかったら、あの子、たぶん、一日、誰とも、しゃべらないのよ。');
+    await say('kaa25', 'だからね、毎日、怒鳴ってやるの。「バイト行け」「風呂入れ」「ゴミ出せ」って。……返事は、「うるせーババア」だけどね。');
+    await say('kaa25', '……それでも、返事は、返事でしょ。');
+    await say('kaa25', 'みんな、あの子のこと、笑うでしょうよ。動画も、見たわよ。……でもね。あたしが、産んだのよ。');
+    await say('kaa25', '生まれてきて、よかったって。……あたしだけは、思ってんのよ。……悪い！？');
+    fc22(P, 2.4, 0, 0.3); await say('kuze', '……悪く、ないです。');
+    await saku('（……あいつの名前を、毎日、怒鳴って呼ぶ人間が。……ひとり、いるじゃないか）'); }
   else if (k === 'kj') { const j = E.koji25; P.pos.set(-6.4, 0, -2.6); P.facing = Math.atan2(j.pos.x - P.pos.x, j.pos.z - P.pos.z); cut18(-6.2, 1.5, -2.2, -7.6, 1.0, -3.0); await say('post25', '化け物に襲われた。死ぬかと思った。まりなちゃん、心配して♡');
     fc22(j, 1.8, 0, 0.6); await say('koji25', '……あ。……あんた。……さっきの。');
     await say('koji25', 'ねえ、あの化け物、なんなの？　……また、来る？');
     fc22(P, 2.0, 0, 0.3); await say('kuze', '……わからない。');
     fc22(j, 1.8, 0, 0.6); await say('koji25', '……へへ。……動画、もう、二十万、回ってる。……僕、はじめて、こんなに、見られてる。');
-    await say('koji25', '母ちゃん、外に、いるでしょ。……入れないでよ。恥ずかしいから。');
+    await say('koji25', '母ちゃん、外に、いるでしょ。……声で、わかる。入れないでよ。うるせーから。');
     fc22(P, 2.0, 0, 0.3); await say('kuze', '……あんたのこと、心配してた。');
-    fc22(j, 1.8, 0, 0.6); await say('koji25', '……知ってるよ。……だから、嫌なんだよ。'); }
+    fc22(j, 1.8, 0, 0.6); await say('koji25', '……知ってるよ。……だから、うるせーんだよ。'); }
   else if (k === 'po') { const p = E.ponpu; poCam26(p, 0.3); await say('ponpu', 'あ、兄貴……。自分、間に合わなかったっす。……もっと、早く、飛べたら……。');
     fc22(P, 2.4, 0, 0.3); await say('kuze', '……間に合った。……お前が、押してくれた。');
     poCam26(p, 0.3); await say('ponpu', 'へへ……。……でも、兄貴。あの鐘、最後、ちょっとだけ、泣いてたっす。……鐘の、中で。'); }
@@ -14480,12 +14501,12 @@ async function evNet26(k) { const a = AREAS.kroom25; G.mode = 'cine'; mark26('c2
     await say('koji25', '……あの化け物、また、来ないかな。……来たら、また、バズる。');
     await say('koji25', '……高蔵寺の、特区に、出るって、ネットに、書いてあった。……そうだ。凸、しよ。「宝物の出る団地に、凸してみた」。');
     await say('koji25', '……同接、一万、いけるかも。……ぐふ。'); }
-  else if (k === 'dr') { const m = a.kaa; P.pos.set(-1.5, 0, 0.9); P.facing = Math.PI * 0.85; m.hidden = false; m.pos.set(-1.9, 0, 2.0); m.facing = Math.PI; m.st = {};
-    cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('ドアを開けると、母が、立っていた。');
-    fc22(m, 2.0, 0, 0.3); await say('kaa25', '……こうちゃん、どこか、痛くない？　……今日は、おうちに、いてね。');
-    fc22(P, 2.0, 0, 0.3); await kShout26('うるせえな！　仕事なんだよ！　配信は！');
-    fc22(m, 2.0, 0, 0.3); await say('kaa25', '……そう。……気をつけてね。');
-    m.hidden = true; cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('母は、それ以上、何も、言わなかった。……言えなかった。');
+  else if (k === 'dr') { const m = a.kaa; P.pos.set(-0.5, 0, 0.8); P.facing = Math.atan2(-1.4, 1.2); m.hidden = false; m.pos.set(-1.9, 0, 2.0); m.facing = Math.PI; m.st = {};
+    cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('ドアを開けると、母が、腕を組んで、立っていた。');
+    fc22(m, 2.0, 0, 0.3); await say('kaa25', 'こうじ！　あんた、どこ行く気！？　化け物だか、なんだか、知らないけど！　今日は、家に、いなさい！');
+    fc22(P, 2.0, 0, 0.3); await kShout26('うるせーババア！　仕事なんだよ！　配信は！');
+    fc22(m, 2.0, 0, 0.3); await say('kaa25', '配信が仕事なら、苦労しないわよ！　……もう！　行くなら、ちゃんと、帰ってきなさいよ！　ご飯、作っとくから！');
+    m.hidden = true; cine(0.2, 2.2, 0.0, -1.7, 1.1, 1.6); await narr('母の声は、階段の下まで、追いかけてきた。……こうじは、振り返らなかった。');
     await fade(true); await goZone26(); return; }
   obj26n(); playOn(); }
 
@@ -14509,7 +14530,8 @@ async function goZone26(back) { G.mode = 'cine'; S.flags.c26st = 'zone'; setObj(
   obj26z(); playOn(); }
 async function evZone26(k) { const a = AREAS.town24, R = a.res; G.mode = 'cine'; mark26('c26z', k); const face = n => { n.facing = Math.atan2(P.pos.x - n.pos.x, P.pos.z - n.pos.z); };
   if (k === 'mado') { const r = R.mado; cine(-7.0, 1.4, -1.6, -7.6, 2.9, -5.05); await say('mado24', '……鐘？　……聞こえたよ。三日前から、毎晩。');
-    await say('mado24', '……なあ。あれ、聞こえるとさ。……ちょっとだけ、楽に、なるんだ。……誰かが、俺のこと、数えてるみたいで。');
+    await say('mado24', '……鐘が鳴るとさ。……そのあと、声が、するんだ。明るい、男の声。「顔、暗いっすよ」って。');
+    await say('mado24', '……笑っちゃったよ。三年ぶりに、誰かに、顔のこと、言われた。……ちょっとだけ、楽に、なるんだ。誰かが、俺のこと、数えてるみたいで。');
     fc22(P, 2.4, 0, 0.3); await say('kuze', '……田所さんを、知ってましたか。');
     cine(-7.0, 1.4, -1.6, -7.6, 2.9, -5.05); await say('mado24', '名前は、今、知った。……三年、隣の棟だったのに。'); void r; }
   else if (k === 'video') { const r = R.video; face(r); fc22(r, 2.2, 0, 0.3); await say('video24', '……あんた、昨日の動画の人だろ。スーツで、警棒で、化け物、止めた人。');
@@ -14520,6 +14542,7 @@ async function evZone26(k) { const a = AREAS.town24, R = a.res; G.mode = 'cine';
     await say('video24', '……あの鐘はさ。俺らのこと、ちゃんと、見てくれる。……たったひとつの、もんなんだよ。'); r.facing = r.home[2]; }
   else if (k === 'bbs') { const r = R.bbs; face(r); fc22(r, 2.0, 0, 0.3); await say('bbs24', '……スレ、立ってる。「宝物」。……特区の連中が、書いてる。');
     await say('bbs24', '「次は、俺のとこに、来てほしい」って。……十二人、書いてる。');
+    await say('bbs24', '「鐘が鳴ったら、声がする」「羽なんか、なくても、聞こえる」って。……俺も、昨日から、聞こえる。');
     fc22(P, 2.4, 0, 0.3); await say('kuze', '……来て、ほしい？');
     fc22(r, 2.0, 0, 0.3); await say('bbs24', '……だって。……動画で、見たろ。来たら、名前、呼んでもらえるんだ。……最後に。');
     await say('bbs24', '俺、ここに来てから、名前、一回も、呼ばれてない。……名無しって、呼ばれてる。……掲示板でも。'); r.facing = r.home[2]; }
@@ -14554,6 +14577,8 @@ async function goObs26() { G.mode = 'cine'; S.flags.c26st = 'obs'; setObj(''); a
   await say('tokiwa', '……一瞬だけ、鐘と、同じ形に、なっていました。');
   fc22(c.ch, 2.6, 0.5, 0.3); await say('chanyu', '……共鳴。');
   await say('chanyu', '……あの鐘は、久世さんの、中の、何かに、触れた。……鐘が、「力」と、呼んだ、もの。');
+  cine(0, 2.4, 2.6, 0, 1.7, -0.6); await say('tokiwa', 'ボーン、という波形のあとには、必ず、もう一つ、細い信号が、続いています。……声、のような。');
+  fc22(c.ch, 2.6, 0.5, 0.3); await say('chanyu', '……アンテナ。……羽は、そのひとつに、すぎない。');
   cine(0, 2.4, 2.6, 0, 1.7, -0.6); await say('tokiwa', '……伝えますか？');
   fc22(c.ch, 2.6, 0.5, 0.3); await say('chanyu', '……まだ。');
   await fade(true); await goNight26(); }
@@ -14567,6 +14592,10 @@ async function goNight26() { G.mode = 'cine'; S.flags.c26st = 'night'; setObj(''
   bell24('ボーン……'); await z22(1400); await narr('鐘が、鳴っていた。……特区の、四十一の部屋の、ミマモリが、いっせいに、青く、光った。');
   cine(4.0, 2.0, -0.6, -2.0, 1.0, -3.9); await narr('住人たちが、部屋から、出てきていた。……寝間着のまま、靴も、履かずに。……交流サロンの前に、一列に、並んでいく。');
   await narr('握手会の、列のようだった。');
+  bell24('ボーン……'); await voice24('はーい、みなさん、お待たせしましたー！　今日は、ファン感謝デーっすよ！');
+  await voice24('一列に、並んでくださーい！　押さない、押さない！　……みんな、宝物っすから！');
+  poCam26(po, 0.3); await say('ponpu', '兄貴……。みんな、誰かに、返事、してるっす……。');
+  fc22(P, 2.4, 0, 0.3); await say('kuze', '……誰と、話してる。……俺には、鐘しか、聞こえない。');
   trCam26(tr, 3.4, 0.5); await tre26('……木下、あきら。……三十四歳。');
   await tre26('……三年、ベランダから、降りなかった。……洗濯物も、干さなかった。');
   await tre26('……よく、がんばった。');
@@ -14618,6 +14647,8 @@ async function goEnd26() { const a = AREAS.town24, E = a.e26, tr = E.tre25, po =
   fc22(P, 2.2, 0, 0.4); await say('kuze', '……待て！');
   fxFlash(0.8, 3.4, -4.9, 0xC8A0FF, 3, 0.4); b.hidden = true; cine(0.8, 2.2, -1.4, 0.8, 2.6, -4.9); await narr('屋根の上には、黒い羽が、一枚、落ちていただけだった。');
   fc22(kj, 1.8, 0, 0.3); await say('koji25', '……え。……い、今、僕の、名前……。……鳥が……？');
+  bell24('ボーン……'); await z22(1200); await say('koji25', '……え。……鐘……？');
+  await voice24('……おっ？　……もしかして、聞こえてます？');
   await fade(true); await goEpi26(); }
 
 // ---- 留文堂　地下：翌朝 ----
@@ -14644,15 +14675,15 @@ function showReport26() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>格上</td><td>鐘「普通のサラリーマンの時点で、俺らより上だ。名刺がある。席がある。名前を呼ばれる」「それより、もっと力のある人間だ」「人間はずいぶん矮小になった。それでも、まだ力のある奴はいる。それが、お前だ」。</td></tr>' +
     '<tr><td>ポンプ</td><td>「兄貴ーっ！」。小さな文鳥が、三メートルの鐘を、力で押した。鐘の音と同時に、宝物は消えた。「逃げたんじゃない。鳴り終わっただけだ」。</td></tr>' +
     '<tr><td>こうじ</td><td>「撮った？」「なんで、もっと早く来ないんだよ」「いいよね。強い人は。名前、呼んでもらえて」。</td></tr>' +
-    '<tr><td>病院</td><td>三枝「宝物は、本人のいちばん奥の願いの形。田所さんの願いは、見届けること」。黒岩「あれの言う格は、強さじゃない。呼ばれる名前があるかどうかだ」。母「生まれてきてくれてよかったって、私だけは思ってますから」。</td></tr>' +
+    '<tr><td>病院</td><td>三枝「宝物は、本人のいちばん奥の願いの形。田所さんの願いは、見届けること」。黒岩「あれの言う格は、強さじゃない。呼ばれる名前があるかどうかだ」。母「毎日、怒鳴ってやるの。返事は『うるせーババア』だけどね。それでも、返事は返事でしょ」「あたしが産んだのよ。生まれてきてよかったって、あたしだけは思ってんのよ。悪い！？」。三枝「ボーンという鐘は、声が聞こえ始める合図。黒い羽はアンテナ。でも、羽だけじゃない。ある決まったことをすると、人は自分でアンテナになる」。</td></tr>' +
     '<tr><td>窓辺</td><td>「あの人たちを、もっと小さくしたのは、竜でも狐でもない」「……俺も、含めて」。朔「力があるなら、使い道を間違えるな」。「守る。数えられてなくても」。</td></tr>' +
     '<tr><td>バズ</td><td>再生百二十万。フォロワー三千。半分は笑っていた。「笑われてても、見られてないより、ずっといい」。公式の定型文の返信に「僕のこと、見てたんだ」。「凸、しよ」。</td></tr>' +
-    '<tr><td>特区</td><td>木下「聞こえると、少し楽になる」。吉尾「あの鐘は、俺らをちゃんと見てくれる、たったひとつのもんなんだよ」。名無し「来たら、名前、呼んでもらえるんだ」。松井「ここじゃ、誰が死んでも、鳴らない」。佐野「どっちに行くか、まだ決めてない」。</td></tr>' +
+    '<tr><td>特区</td><td>木下「鐘が鳴ると、声がする。『顔、暗いっすよ』って」。吉尾「あの鐘は、俺らをちゃんと見てくれる、たったひとつのもんなんだよ」。名無し「来たら、名前、呼んでもらえるんだ」。松井「ここじゃ、誰が死んでも、鳴らない」。佐野「どっちに行くか、まだ決めてない」。</td></tr>' +
     '<tr><td>ノート</td><td>二〇二号室のちゃぶ台。四十一人分の名前。最後のページ「誰も呼ばない名前を、俺が呼ぶ」。</td></tr>' +
     '<tr><td>共鳴</td><td>刃を受けた瞬間、久世の鼓動が、一瞬だけ鐘と同じ形になった。チャ・ニュユー「……まだ」伝えない。</td></tr>' +
     '<tr><td>夜の列</td><td>寝間着のまま、裸足で、サロンの前に一列。握手会の列のようだった。「田所さん！」「……その名前で、呼ぶな」。</td></tr>' +
     '<tr><td>見てる</td><td>「俺は、見てほしかっただけだ」「……見てる。今、俺が」。青い目が、少し揺れた。こうじ「もっかい、名前、呼んで！」。鐘「……まだ、見られたいのか」。また、消えた。</td></tr>' +
-    '<tr><td>No.30</td><td>サロンの屋根の上。「あなたの鼓動は、まだ濁っている。他人の目でできている。熟したら、また伺いましょう。田中こうじ様」。</td></tr></table>' +
+    '<tr><td>No.30</td><td>サロンの屋根の上。「あなたの鼓動は、まだ濁っている。他人の目でできている。熟したら、また伺いましょう。田中こうじ様」。……そのあと、こうじの耳にも、ボーン、と鳴った。「……おっ？　もしかして、聞こえてます？」。</td></tr></table>' +
     '<p class="close">名前を呼ばれたかった人たちの列に、名前を呼ぶ鐘が、並んでいた。</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn26">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn26').addEventListener('click', () => location.reload()); }
