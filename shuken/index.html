@@ -1710,7 +1710,11 @@ const MEMS = {}; let lsOK = true;
 function readJSON(k) { try { const v = localStorage.getItem(k); if (v) return JSON.parse(v); } catch (e) { lsOK = false; } return MEMS[k] ? JSON.parse(MEMS[k]) : null; }
 function writeJSON(k, v) { const t = JSON.stringify(v); MEMS[k] = t; try { localStorage.setItem(k, t); lsOK = true; } catch (e) { lsOK = false; } return true; }
 const meta = () => readJSON(META_KEY) || {};
-function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); cloudPut('meta', m); }
+// アカウントの文書は 1 つ 256KB まで。章ごとの状態（chN, chNDone）は大きいので、meta には入れず、章ごとの文書（csN）に分けて置く
+const CH_RE = /^ch(\d+)(Done)?$/;
+function slimMeta(m) { const o = {}, cs = []; for (const k in m) { const r = CH_RE.exec(k); if (!r) o[k] = m[k]; else if (!r[2]) cs.push(+r[1]); } o.cs = cs.sort((a, b) => a - b); return o; }
+const putCh = (m, i) => cloudPut('cs' + i, { s: m['ch' + i], done: m['ch' + i + 'Done'] || [] });
+function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); for (const k in o) { const r = CH_RE.exec(k); if (r && !r[2]) putCh(m, +r[1]); } cloudPut('meta', slimMeta(m)); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
 const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '5.5章　幕間1', '5.5章　幕間2', '第六章　上', '第六章　中', '第六章　下', '6.5章　幕間1', 'とある未来', '第七章　Intro', '第七章　序', '第七章　中編', '第七章　下編', '7.5章　幕間1', '第八章　Intro', '第八章　序', '第八章　中編', '第八章　下編', '第八章　完結編', '8.5章　幕間1'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井の、いちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景', '競売', '額縁の外', '止まり木', 'ヒトトキ', 'ほつれ', '保護', '底と空', '是非', '見守り'];
@@ -1742,8 +1746,14 @@ async function cloudInit() { if (!(window.claude && window.claude.use)) return; 
     else if (l && (!r || l.t > r.t)) cloudPut(id, l); }
   if (changed) writeJSON(FILES_KEY, f);
   // 章の記録（タイトルの変化、章のクリア）は足し合わせる
-  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm); for (const k of ['revealed', 'saku', 'ch1Clear', 'ch2Clear', 'ch3Clear', 'ch4Clear', 'ch5Clear', 'ch6Clear', 'ch7Clear', 'ch8Clear', 'ch9Clear', 'ch10Clear', 'ch11Clear', 'ch12Clear', 'ch13Clear', 'ch14Clear', 'ch15Clear', 'ch16Clear', 'ch17Clear', 'ch18Clear', 'ch19Clear', 'ch20Clear', 'ch21Clear', 'ch22Clear', 'ch23Clear', 'ch24Clear']) m[k] = !!(lm[k] || (rm && rm[k])); for (const k of ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'ch9', 'ch10', 'ch11', 'ch12', 'ch13', 'ch14', 'ch15', 'ch16', 'ch17', 'ch18', 'ch19', 'ch20', 'ch21', 'ch22', 'ch23', 'ch24', 'ch1Done', 'ch2Done', 'ch3Done', 'ch4Done', 'ch5Done', 'ch6Done', 'ch7Done', 'ch8Done', 'ch9Done', 'ch10Done', 'ch11Done', 'ch12Done', 'ch13Done', 'ch14Done', 'ch15Done', 'ch16Done', 'ch17Done', 'ch18Done', 'ch19Done', 'ch20Done', 'ch21Done', 'ch22Done', 'ch23Done', 'ch24Done']) if (!lm[k] && rm && rm[k]) m[k] = rm[k];
-    writeJSON(META_KEY, m); if (JSON.stringify(m) !== JSON.stringify(rm || {})) cloudPut('meta', m); }
+  const rm = await cloudGet('meta'); if (rm !== undefined) { const lm = meta(), m = Object.assign({}, rm || {}, lm), has = new Set((rm && rm.cs) || []);
+    for (const k in m) if (/^(revealed|saku|ch\d+Clear)$/.test(k)) m[k] = !!(lm[k] || (rm && rm[k]));
+    // 章ごとの状態：この端末にないものはアカウントから読む（前の形の meta に入っていればそれを使う）。アカウントにないものは書き足す
+    for (let i = 1; i < CHN.length; i++) { const k = 'ch' + i;
+      if (!lm[k] && rm && rm[k]) { m[k] = rm[k]; m[k + 'Done'] = rm[k + 'Done'] || []; }
+      else if (!lm[k] && has.has(i)) { const c = await cloudGet('cs' + i); if (c && c.s) { m[k] = c.s; m[k + 'Done'] = c.done || []; } }
+      if (m[k] && !has.has(i)) putCh(m, i); }
+    writeJSON(META_KEY, m); const sm = slimMeta(m); if (JSON.stringify(sm) !== JSON.stringify(rm || {})) cloudPut('meta', sm); }
   refreshTitle(); if (!$('files').hidden) renderFiles(); }
 function playOn() { G.cine = null; G.mode = 'play'; updHud(); $('hud').hidden = false; $('act').hidden = false; }
 async function loadSnap(d) { if (!d || !AREAS[d.area]) return; G.mode = 'cine'; unpackS(d.s); DONE = new Set(d.done || []); stationT = 0; applySaku();
@@ -1819,7 +1829,9 @@ const CHSYN = [
   '白い部屋で、天使たちに甘やかされる久世。来ない人を待つしぇおの手に、金色の羽が落ちてくる。春日井の真ん中で、空と底がぶつかり、留保も、外神竜も、その間に割って入る。そして、繭が消える。',
   '底と空が、ひとつ上の存在へ。春日井を巻き込む戦いに、白と黒の文鳥と、外神竜と、留保が挑む。繭の中で、久世は、自分の無力を殴り続ける。……そして、夜明け。誰にも聞かれなかった人間の中で、何かが、少しだけ、曲がる。',
   '高蔵寺の北、フェンスに囲まれた「単身者特別居住区」。誰にも選ばれなかった四十七歳の田所と、同じように見向きもされない男たちが、清潔な部屋で、ばらばらに暮らす。田所は、見回りロボットに体調を聞かれ、うまい朝食を食べ、九十日後の相談を予約する。竜も、狐も、彼らを見ない。……その夜、田所は、叫び、終わるための道具を探しに、大須の裏へ向かう。そこで、頬の黒い文鳥に、出会う。'];
-const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'];
+// 記録ファイルが進んでいる章までは開く（章のクリアの印が残らなかったときの受け皿）
+const fileCh = () => Object.values(readFiles()).reduce((a, d) => Math.max(a, (d && d.s && d.s.chapter) || 0), 0);
+const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh();
 function renderChaps() { const m = meta(), L = $('chapList'); L.innerHTML = '';
   CHN.forEach((nm, i) => { const open = chapOpen(m, i), el = document.createElement('div'); el.className = 'ccard' + (/幕間|未来/.test(nm) ? ' inter' : '') + (open ? '' : ' lock') + (open && m['ch' + i + 'Clear'] ? ' done' : '');
     const cl = document.createElement('div'); cl.className = 'cl'; const sp = document.createElement('span'); sp.textContent = nm.replace('　', ' '); const b = document.createElement('b'); b.textContent = open ? CHT[i] : '？？？'; cl.append(sp, b); el.appendChild(cl);
@@ -13148,8 +13160,8 @@ AREAS.coc23.restore = () => { if (S.chapter === 23) coc23Items(); };
 { const t0 = AREAS.void19.tick; AREAS.void19.tick = function (a, dt) { t0.call(this, a, dt); if (a.epi23) a.ur.y = 0.3 + Math.sin(T.now * 1.3) * 0.08; }; }
 // 北口広場：この章では、第六章の集会のプラカードを片づける
 function signs23(a, on) { for (const s of a.signs || []) { s.visible = on; for (const c of a.g.children) if (c.isMesh && Math.abs(c.position.x - s.position.x) < 0.01 && Math.abs(c.position.z - s.position.z) < 0.01 && Math.abs(c.position.y - 0.9) < 0.01) c.visible = on; } }
-{ const g0 = goArea; goArea = async function (id, ...r) { if (id === 'plaza6' && AREAS.plaza6.built) signs23(AREAS.plaza6, S.chapter !== 23); return g0(id, ...r); }; }
-{ const r0 = AREAS.plaza6.restore; AREAS.plaza6.restore = function (a) { if (r0) r0.call(this, a); signs23(a, S.chapter !== 23); }; }
+{ const g0 = goArea; goArea = async function (id, ...r) { if (id === 'plaza6' && AREAS.plaza6.built) signs23(AREAS.plaza6, S.chapter < 23); return g0(id, ...r); }; }
+{ const r0 = AREAS.plaza6.restore; AREAS.plaza6.restore = function (a) { if (r0) r0.call(this, a); signs23(a, S.chapter < 23); }; }
 // ニュースの帯は、場所が変わったら、いったん消す（要る場面は、着いてから出し直す）
 { const g0 = goArea; goArea = async function (id, ...r) { if (S.chapter >= 22) news22off(); return g0(id, ...r); }; }
 
@@ -13351,7 +13363,7 @@ function town24Items() { const a = AREAS.town24; if (!a.built) { a.build(a); a.b
     addItem(a, { id: 'z24' + k, x, z, r: 1.2, label: l, col: 0xE3B428, avail: () => on() && !got(k), on: () => evTown24(k) });
   addItem(a, { id: 'z24bd', x: -5.2, z: -3.4, r: 1.1, label: '掲示板', avail: () => on() && !got('bd'), on: () => evTown24('bd') });
   addItem(a, { id: 'k24v', x: 10.2, z: -2.5, r: 1.3, label: '自販機', col: 0xE3B428, avail: () => on() && got('k') && met24() >= 5 && !got('v'), on: () => evTown24('v') });
-  addItem(a, { id: 'k24h', x: -10.0, z: -3.3, r: 1.3, label: '部屋へ、帰る', col: 0xC8323C, once: false, avail: () => on() && got('v'), on: () => goTenkan24() }); }
+  addItem(a, { id: 'k24h', x: -10.0, z: -3.3, r: 1.3, label: '部屋へ、帰る', col: 0xC8323C, once: false, avail: () => on() && got('v'), on: () => goEyesB24() }); }
 const RES24 = ['mado', 'video', 'bar', 'can', 'bbs', 'suit', 'gyu', 'manga', 'warm'];
 const met24 = () => { const g = S.flags.c24k || []; return ['s', 'o', ...RES24].filter(k => g.includes(k)).length; };
 function obj24k() { const g = S.flags.c24k || [], n = met24(), kk = g.includes('k'); setObj(g.includes('v') ? '部屋へ、帰る（住宅の入口）' : n >= 5 && kk ? '日が傾いた。……自販機で、何か、買って帰る（ほかの住人とも、話せる）' : '特区で、一日を過ごす　住人と話す（' + Math.min(n, 5) + '／5）' + (kk ? '' : '・無人相談窓口')); }
@@ -13660,7 +13672,7 @@ async function goShuke24() { G.mode = 'cine'; S.flags.c24st = 'shuke'; setObj(''
   await say('rin', '……ご飯と部屋があったら、困ってへん、て。……ほんまに、そう言えるんかな。');
   fc22(F.miria, 2.4, 0, -0.3); await say('miria', '燐、まじめ～。……ほら、変えるよ。');
   news22off(); a.tvGl24.visible = false; cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await narr('画面は、料理番組に、変わった。……誰も、それ以上、何も、言わなかった。');
-  a.tv24.visible = false; await goTown24(); }
+  a.tv24.visible = false; await goEyesA24(); }
 
 // ---- 円卓の間：灰色の地図 ----
 async function goTenkan24() { G.mode = 'cine'; S.flags.c24st = 'tenkan'; setObj(''); await goCine24('council6'); ckSave(); const C = AREAS.council6; bgm('lab20'); C.holoOn = false;
@@ -13687,12 +13699,14 @@ function showReport24() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>観測艇</td><td>人間の幸福度、全国一位。ただし回答率は六十一パーセント。答えない三十九パーセントの分類は「非選択男性」。住居は天環、食事は文食品、見回りは翠絡のロボット。生活は、生涯、保障されている。春日井には、四十万人と少し</td></tr>' +
     '<tr><td>二〇二号室</td><td>田所 一郎、四十七歳。十年前、千路の春日井ハブで荷物を運ぶ仕事が、ハーピーとロボットに替わった。ミマモリは毎朝「体調は」と聞き、どの答えにも「記録しました」と言う。朝食は、うまい。それが、いちばん、こたえる</td></tr>' +
     '<tr><td>主家</td><td>昼の特集「見守り住宅の四十万人」。ユリア「そういう人たち、いるんだ。……え、どこに？」。ルリカ「お腹は空いてないはず」。ミリア「興味わかな～」。フルル「ママの腕は、二本しかないのよねぇ」。ニルメ「すきも、きらいも、ない人は、にあには、みえないの」。燐だけが「ほんまに、困ってへんて、言えるんかな」</td></tr>' +
+    '<tr><td>午後の目</td><td>千路のハーピー「このライン、前は人間がやってたんだって。……考えたこと、なかった」。九重白狐「動かないものに、値段はつけられないわ。……それ、私が考えること？」。紅鱗の人材お預かり部、四十八万から三十二人。「残りなんて、ないのと同じよね」。魔族の秘書「思いつきも、しませんでした」。アスタ「すべての県民の中には、入ってる。言葉の上ではね」。</td></tr>' +
     '<tr><td>特区</td><td>高蔵寺の北、フェンスで囲まれた「単身者特別居住区」。入居条件は、単身・交際歴なし・今後の見込みなし。家賃は市場価格の一割。五分の面接で、エルフの職員が判子を押す。通りがかりの人は、いない。フェンスの外を、二人連れが目をそらして通り過ぎる。掲示板には「交流会、参加申し込みゼロ名のため中止」と「ぬくもりクッション、追加支給」</td></tr>' +
     '<tr><td>住人たち</td><td>木下（三十四）、彼女いない歴イコール年齢、ベランダから降りない。「判子の音が、まだ耳に残ってる」。吉尾（四十一）、十五年前に配信者に名前を呼ばれた十秒を、巻き戻し続ける。長谷（二十九）、見せる相手のいない懸垂、毎日百回。岩田（五十五）、空き缶を数えて時間をつぶす。名無し、非選択スレの「同じく」三百件。杉本（四十五）、スーツで毎朝ゲートまで来て、引き返す。石原（二十四）、「チーズ牛丼。今日、自分で選んだもの。これだけ」。森田（三十八）、漫画をやめても誰も気づかなかった。松井（七十三）、人肌の温度のクッションを抱き「温度は同じなのに、なんで寒いのかねえ」</td></tr>' +
     '<tr><td>佐野</td><td>二十六歳。趣味は、ない。ガチャを回すだけ。ヒトトキは三か月「審査中」。「チー牛は、竜にも、狐にも、選ばれないっすよ。……人間の女の人にも」。昨日の会話は、ゼロ</td></tr>' +
     '<tr><td>無人相談窓口</td><td>ホログラムのエルフ。倉庫作業、清掃、警備は、ロボットと異種族で充足。「生活は、生涯、保障されております。どうぞ、ご安心ください」。次の相談は、九十日後</td></tr>' +
     '<tr><td>小川さん</td><td>六十八歳。「飯は文鳥が作る。部屋は竜が建てる。見回りは機械がする。……人間は、何もせんでいい」「あとの人間は、飼っとくんだ」。通りすがりの異種族「見ないほうが、いいよ。かわいそうに、なるから」</td></tr>' +
     '<tr><td>夕方</td><td>自販機の前で落とした百円玉を、スーツの男が拾う。「……ここに、住んでるんですか」「……そうですか」。男は、しばらく住宅の窓を見上げていた。怒っているようにも、見えた</td></tr>' +
+    '<tr><td>夕方の目</td><td>駅前のエルフと猫族「人間の男子、足りなくない？」「四十万人だって」「……あれは、ちがうでしょ」。一メートル先の男を、一度も見なかった。鬼嶽ゴウカ「来ねえ奴の顔は、覚えらんねえ。壁は厚くしとけ」。セレネ「何も、香らなかった」、ノクタリア「欲しがらない人間は、いないのと同じ」。マリナの配信、八万四千の、ひとつのコメント。</td></tr>' +
     '<tr><td>円卓の間</td><td>見回りデータ、四十一万二千件、異常なし。足りないものは、ない。レウネ「あの区画、私の地図の上で、ずっと灰色。好きも嫌いも映らない。……私も、見てない」。テルエス「予算は揺り籠の三パーセント。でも、それで生きていける」「僕は竜だから、全部を好きには、なれない」</td></tr>' +
     '<tr><td>夜</td><td>ミマモリ「人との会話、' + n + '回」。佐野から人間主権回復同盟のチラシ。田所の返事は' + (j === 0 ? '「……やめとけ」' : j === 1 ? '「……俺も、行く」' : '、既読だけ') + '。「どうして、俺みたいなやつらは」「意味のある暮らしが、したかった」「何も、愉快じゃない」「生まれなければ、よかった」。ミマモリを殴り倒し、喉が焼けるまで叫ぶ。誰も、来ない。「大きな声、十二回。記録しました」</td></tr>' +
     '<tr><td>大須</td><td>人間を楽に終わらせる道具を探しに、骨董市の裏へ。ゴブリン「人間の客なんざ十年ぶりだ。帰んな」。インプ「お兄さんは、誰の宝でもないのか」。一つ目の宝石商「……店じまいだ」。売っているのは、誰かに愛されるための道具だけだった</td></tr>' +
@@ -13704,10 +13718,143 @@ function showReport24() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
 async function startCh24() { const m = meta(); if (m.ch23) unpackS(m.ch23); else if (m.ch22) unpackS(m.ch22); DONE = new Set(m.ch23Done || m.ch22Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter24(); }
 
 // 続きから：場面の始まりから
-RESUME[24] = { cold: goCold24, room: goRoom24, shuke: goShuke24, town: goTown24, dusk: goTown24, tenkan: goTenkan24, night: goNight24, osu: goOsu24, no30: goOsu24 };
+RESUME[24] = { cold: goCold24, room: goRoom24, shuke: goShuke24, town: goTown24, dusk: goTown24, eyesA: goEyesA24, eyesB: goEyesB24, tenkan: goTenkan24, night: goNight24, osu: goOsu24, no30: goOsu24 };
 AREAS.bazaar.restore = (r0 => function (a) { if (r0) r0.call(this, a); if (S.chapter === 24) osu24Items(); })(AREAS.bazaar.restore);
 AREAS.room24.restore = () => { if (S.chapter === 24) room24Items(); };
 AREAS.town24.restore = () => { if (S.chapter === 24) town24Items(); };
+
+// ================= 8.5章　幕間1　見守り：誰も、見ていない（異種族たちの目） =================
+// 嫌っているのでも、避けているのでもない。……はじめから、勘定に、入っていない
+Object.assign(SPK, { harpA24: ['ハーピーの仕分け係', '#E0A040'], harpB24: ['ハーピーの新人', '#F0C070'], fox24: ['査定係の妖狐', '#F0C890'], drg24: ['人材お預かり部の竜', '#E07060'], asec24: ['幹事長の秘書（魔族）', '#C080E0'], elf24: ['駅前のエルフ', '#9AD8A0'], cat24: ['駅前の猫族', '#F08AB0'], oniW24: ['鬼の現場頭', '#E0703A'], cmt24: ['コメント欄', '#A8B8D0'] });
+// その場の人を隠して、この場面の人だけを出す（mk が null なら、その場にいる人をそのまま使う）
+function eyes24(id, list) { const a = AREAS[id]; for (const n of a.npcs) { n.hidden = true; n.lookAt = null; } const E = a.e24 || (a.e24 = {});
+  for (const [k, mk, x, z, f, st] of list) { const n = mk ? (E[k] || (E[k] = npc(a, k + '24e', mk(), x, z, f))) : (cnpc(a, k) || a[k]); if (!n) continue; if (mk) { n.pos.x = x; n.pos.z = z; } n.facing = f; if (mk || st) n.st = Object.assign({}, st || {}); n.hidden = false; n.lookAt = null; E[k] = n; } return E; }
+function eyesBench24(a, x, z, w) { if (!a.bench24) { a.bench24 = new THREE.Group(); block(w, 0.08, 0.5, 0x8A7A68, 0, 0.42, 0, a.bench24); block(w, 0.42, 0.08, 0x5A5048, 0, 0.21, 0.18, a.bench24); a.bench24.position.set(x, 0, z - 0.12); a.g.add(a.bench24); } a.bench24.visible = true; }
+
+// ---- 午後：特集が流れていた、四十分のあいだ ----
+async function goEyesA24() { G.mode = 'cine'; S.flags.c24st = 'eyesA'; setObj('');
+  // 千路ロジスティクス：十年前まで、田所が、箱を運んでいた場所
+  await goCine24('hub19'); ckSave(); bgm('room24'); let E = eyes24('hub19', [['ha', () => makeChar(LK.harpy), -1.2, 0.8, 0.5], ['hb', () => makeChar(LK.harpy2), 0.6, 0.8, -0.5]]);
+  cine(-0.3, 3.4, 6.0, -0.3, 1.0, -0.6); await card('春日井　千路ロジスティクス　春日井ハブ　仕分け場', '同じ日　午後一時十分', 1300);
+  await narr('ベルトの上を、白い箱が、流れていく。……十年前、ここで箱を運んでいたのは、人間の男たちだった。');
+  fc22(E.hb, 2.4); await say('harpB24', 'せんぱーい、この箱、ぜんぶ、同じ宛先なんですけど。……「天環ライフサポート第三住宅」？');
+  fc22(E.ha, 2.4); await say('harpA24', 'あー、それ。毎週来るやつ。ぬくもりクッション、だっけ。……そこ置いといて。ロボが持ってくから。');
+  fc22(E.hb, 2.4); await say('harpB24', 'どんなとこなんですか？');
+  fc22(E.ha, 2.4); await say('harpA24', '……さあ？　行ったこと、ない。……ていうか、行く用事、ないし。');
+  fc22(E.hb, 2.4); await say('harpB24', 'このライン、前は、誰がやってたんですか？');
+  fc22(E.ha, 2.4); await say('harpA24', '人間だって。男の人。……どこ行ったんだろね。');
+  await say('harpA24', '……知らない。考えたこと、なかった。');
+  fc22(E.hb, 2.4); await say('harpB24', 'ですよね～。……あ、それより聞いてくださいよ、配達先の大学の子がぁ、今日も「ありがとう」って、名前で、呼んでくれて～♡');
+  fc22(E.ha, 2.4); await say('harpA24', 'また人間の男の子？　あんた、ほんと、そればっかり見てるね～。');
+  cine(-0.3, 3.4, 6.0, -0.3, 1.0, -0.6); await narr('ふたりの羽が、四十万個目のクッションを、仕分けた。……宛名を、最後まで読んだ者は、いなかった。');
+
+  // 九尾の塔：値段のつかないもの
+  await goCine24('kyubi'); bgm('lab20'); E = eyes24('kyubi', [['hk', () => makeChar(EXEC.hakko), 2.2, -1.6, 0.5], ['fx', () => makeChar(LK.stFox), 4.0, -1.6, -0.5]]);
+  cine(3.1, 3.0, 4.6, 3.1, 1.2, -2.0); await card('名古屋　九尾の塔　査定フロア', '同じ日　午後一時二十五分', 1300);
+  fc22(E.fx, 2.4); await say('fox24', '社長。天環さんから、ご相談が一件。……支援住宅の入居者、四十一万人分の、保険の件で。');
+  fc22(E.hk, 2.4); await say('hakko', '保険？');
+  fc22(E.fx, 2.4); await say('fox24', 'はい。入居者の方々の、与信スコアが、算定できないそうです。収入なし、借入なし、取引なし。……動かない口座、ばかりで。');
+  fc22(E.hk, 2.4); await say('hakko', '……ふふ。動かないものに、値段は、つけられないわ。');
+  await say('hakko', '担保にいただく「将来」が、ないんですもの。……売るものも、欲しがるものも、ない方を、狐は、化かす理由が、ないの。');
+  fc22(E.fx, 2.4); await say('fox24', 'では、どのように、お返事を……');
+  fc22(E.hk, 2.4); await say('hakko', '……ごめんなさい。それ、私が、考えること？');
+  fc22(E.fx, 2.4); await say('fox24', '……いえ。');
+  fc22(E.hk, 2.4); await say('hakko', 'なら、次を。……ヴェイン家の、婚礼のご融資の件は？　あちらは、楽しいわよ。花婿さんが、とても、かわいらしいの。');
+  cine(3.1, 3.0, 4.6, 3.1, 1.2, -2.0); await narr('四十一万人分の書類は、机の端から、床の上の箱へ、移された。……次の書類には、花婿の写真が、ついていた。');
+
+  // 紅鱗コンツェルン：最初の絞り込み
+  await goCine24('koryn19'); bgm('room24'); E = eyes24('koryn19', [['va', () => makeChar(LK.valmina), -0.9, 1.6, 0.5], ['dg', () => makeChar(LK.rclerk), 0.9, 1.6, -0.5]]);
+  cine(0, 3.2, 6.0, 0, 1.1, 0.8); await card('大曽根　紅鱗コンツェルン中部本社　「人材お預かり部」', '同じ日　午後一時三十五分', 1300);
+  await narr('人材お預かり部。……竜が、気に入った人間の男を、「お預かり」する部署だった。');
+  fc22(E.dg, 2.4); await say('drg24', '常務。今月の候補者の抽出、終わりました。……県内の独身男性、全件で、かけています。');
+  fc22(E.va, 2.4); await say('valmina', 'あら、早いのね。何人？');
+  fc22(E.dg, 2.4); await say('drg24', '三十二人です。……母数は、四十八万。');
+  fc22(E.va, 2.4); await say('valmina', '四十八万から、三十二。……ふうん。残りは？');
+  fc22(E.dg, 2.4); await say('drg24', '……残り、ですか？');
+  fc22(E.va, 2.4); await say('valmina', '……ああ、いいの。言ってみただけ。……残りなんて、ないのと、同じよね。');
+  await say('valmina', 'ねえ、その三十二人、写真を見せて。……あら、この子、かわいい。こっちの子は、声がいいのね。うふふ、迷っちゃう。');
+  cine(0, 3.2, 6.0, 0, 1.1, 0.8); await narr('最初の絞り込みで、四十七万九千九百六十八人が、落ちていた。高蔵寺の特区の住人は、ひとり残らず、そこにいた。');
+  await narr('落ちた者の一覧は、作られなかった。……誰も、それを、開く必要がなかったから。');
+
+  // 魔族議員連盟：すべての県民
+  await goCine24('giin'); bgm('lab20'); E = eyes24('giin', [['as', () => makeChar(EXEC.asta), 3.6, 1.8, 0.5], ['sc', () => makeChar(LK.astaSec), 5.4, 1.8, -0.5]]);
+  cine(4.5, 3.0, 5.4, 4.5, 1.1, 1.0); await card('愛知県議会　議員会館　魔族議員連盟控室', '同じ日　午後一時五十分', 1300);
+  fc22(E.sc, 2.4); await say('asec24', '幹事長。来月の、知事の演説原稿です。……「すべての県民に、寄り添う県政を」。');
+  fc22(E.as, 2.4); await say('asta', 'いいわね。……寄り添う相手は？');
+  fc22(E.sc, 2.4); await say('asec24', '子育て世帯、揺り籠の利用者、異種族婚のご家庭、ご高齢の方……');
+  fc22(E.as, 2.4); await say('asta', '支援住宅の人たちは？　四十万人。ほら、さっきの、昼のテレビの。');
+  fc22(E.sc, 2.4); await say('asec24', '……あ。'); await say('asec24', '……すみません。入れるのを、忘れて……いえ。思いつきも、しませんでした。');
+  fc22(E.as, 2.4); await say('asta', 'ふふ。いいのよ。投票率、四パーセントですもの。……思いつかないのは、あなたのせいじゃないわ。');
+  await say('asta', '「すべての県民」の中には、ちゃんと、入ってる。……言葉の上では、ね。');
+  cine(4.5, 3.0, 5.4, 4.5, 1.1, 1.0); await narr('原稿は、一字も、直されなかった。');
+  await narr('……特集は、四十分で、終わった。その四十万人のことを、その日、思い出した者は、ほとんど、いなかった。');
+  await goTown24(); }
+
+// ---- 夕方：一メートル先 ----
+async function goEyesB24() { G.mode = 'cine'; S.flags.c24st = 'eyesB'; setObj('');
+  // 春日井駅 北口：男が足りない、と言うふたり
+  await goCine24('plaza6'); ckSave(); bgm('dusk24'); const P6 = AREAS.plaza6; eyesBench24(P6, -2.0, 2.4, 3.6);
+  let E = eyes24('plaza6', [['el', () => makeChar(SPEC.elf), -3.3, 2.5, 0.3, { sit: true }], ['ct', () => makeChar(LK.catgirl), -2.5, 2.5, -0.2, { sit: true, phone: true }], ['mn', () => makeChar(Object.assign({}, LK.bbs24, { top: 0x4A5A7A, sleeve: 0x4A5A7A })), -1.3, 2.5, 0, { sit: true }]]);
+  for (const n of P6.npcs) if (/^pw/.test(n.key)) n.hidden = false;
+  cine(-2.0, 2.6, 7.4, -2.0, 0.9, 2.4); await card('春日井駅　北口広場', '同じ日　午後五時十分', 1300);
+  fc22(E.el, 2.4, 0, 0.2); await say('elf24', 'はー、ヒトトキ、今月も、全滅。……人間の男子、ほんと、足りなくない？');
+  fc22(E.ct, 2.4, 0, -0.2); await say('cat24', 'わかる～。いい人から、竜と狐に、持ってかれるし。……あたしら一般猫には、回ってこないの。');
+  news22('【再放送】見守り住宅の四十万人', '入居条件は「単身・交際歴なし・今後の見込みなし」　家賃は市場価格の一割');
+  cine(-2.0, 2.6, 7.4, -2.0, 0.9, 2.4); await narr('駅ビルの大型ビジョンで、昼の特集が、再放送されていた。');
+  fc22(E.el, 2.4, 0, 0.2); await say('elf24', '……四十万人、だって。独身の、男の人。');
+  fc22(E.ct, 2.4, 0, -0.2); await say('cat24', '……え？'); await say('cat24', '……あれは、ちがうでしょ。');
+  fc22(E.el, 2.4, 0, 0.2); await say('elf24', 'なにが？');
+  fc22(E.ct, 2.4, 0, -0.2); await say('cat24', '……え、なんだろ。わかんないけど。……ちがうじゃん。');
+  fc22(E.el, 2.4, 0, 0.2); await say('elf24', '……うん。ちがうね。');
+  await say('elf24', 'てか、駅ビルの新しいカフェ、行った？　店員の人間の子、めっちゃかっこいいんだって。');
+  fc22(E.ct, 2.4, 0, -0.2); await say('cat24', 'え、行く行く！　今から行こ！');
+  news22off(); for (const q of P6.npcs) if (/^pw/.test(q.key) && Math.abs(q.pos.z - 2.5) < 2.2) q.hidden = true; cine(0.0, 1.3, 3.6, -2.0, 0.8, 2.5); await narr('ベンチの、反対の端に、紺のシャツの男が、座っていた。……ふたりの、一メートル先だった。');
+  await narr('ふたりは、一度も、そちらを見なかった。……見ないようにしていたのでは、なかった。そこに、誰かがいる、と、思っていなかった。');
+  E.el.hidden = true; E.ct.hidden = true; fc22(E.mn, 1.1); await narr('男は、スマホの画面を、消した。……黒い画面に、自分の顔が、映った。');
+  P6.bench24.visible = false;
+
+  // 鬼嶽建設：窓は、ひとつ
+  await goCine24('onitake'); bgm('dusk24'); E = eyes24('onitake', [['gk', null, 0.4, -3.0, 0.5], ['ow', () => makeChar(LK.oniW1), 2.2, -2.6, -0.6]]); 
+  cine(1.3, 3.0, 2.6, 1.3, 1.1, -2.8); await card('春日井　鬼嶽建設　資材ヤード', '同じ日　午後五時二十分', 1300);
+  fc22(E.ow, 2.4); await say('oniW24', '姐さん。天環から、追加の発注っす。支援住宅、第四と、第五。……高蔵寺の北に、もう二棟。');
+  fc22(E.gk, 2.4); await say('goka', 'おう。……何人、入んだ。');
+  fc22(E.ow, 2.4); await say('oniW24', '二千人っす。……ぜんぶ、ひとり部屋。');
+  fc22(E.gk, 2.4); await say('goka', 'ひとり部屋が、二千。……鬼の寮なら、ひと部屋に、八人、詰めるけどな。');
+  await say('goka', '……で、住むのは、どんな奴らだ。');
+  fc22(E.ow, 2.4); await say('oniW24', 'さあ。……人間の、男っす。');
+  fc22(E.gk, 2.4); await say('goka', '……人間の男、か。');
+  await say('goka', 'あたしの好みは、拳で来る奴だ。……来ねえ奴の顔は、覚えらんねえ。');
+  await say('goka', '壁は、厚くしとけ。声が、隣に、漏れねえように。……それが、いちばん、喜ばれる。');
+  cine(1.3, 3.0, 2.6, 1.3, 1.1, -2.8); await narr('図面の上で、二千の四角が、きれいに、並んでいた。……どの四角にも、窓は、ひとつだった。');
+
+  // 夜宴「月下」：匂いのしない人たち
+  await goCine24('club19'); bgm('show24'); const CL = AREAS.club19; CL.sinking = false; if (CL.dark) CL.dark.material.opacity = 0;
+  E = eyes24('club19', [['se', () => makeChar(LK.selene), -0.9, 0.6, 0.5], ['no', () => makeChar(EXEC.nocta), 0.9, 0.6, -0.5]]);
+  cine(0, 3.0, 4.6, 0, 1.1, -0.6); await card('栄　夜宴グループ　会員制ラウンジ「月下」　開店前', '同じ日　午後五時三十五分', 1300);
+  fc22(E.se, 2.4); await say('selene', '叔母さま、昼の特集、ご覧になって？　……四十万人の、男の方。');
+  fc22(E.no, 2.4); await say('nocta', 'いいえ。……昼は、寝ているもの。');
+  fc22(E.se, 2.4); await say('selene', '私は、見ましたわ。……でも、不思議。画面越しなのに、匂いが、しなかったの。');
+  fc22(E.no, 2.4); await say('nocta', '匂い？');
+  fc22(E.se, 2.4); await say('selene', '血の匂い。……欲しい、とか、悔しい、とか。人間の血は、熱があると、甘く香るでしょう？');
+  await say('selene', 'あの方たち、……何も、香らなかった。');
+  fc22(E.no, 2.4); await say('nocta', '……そう。なら、私たちの、お客さまじゃないわ。');
+  await say('nocta', '夜宴に来るのは、欲しがる人間だけ。……欲しがらない人間は、夜にも、昼にも、いないのと、同じよ。');
+  fc22(E.se, 2.4); await say('selene', '……ええ。'); await say('selene', 'それより叔母さま、今夜の、静州商事の方々。新しい課長さん、とても、いい匂いがしますのよ。');
+  cine(0, 3.0, 4.6, 0, 1.1, -0.6); await narr('扉が、開いた。燭台に、火が、入った。……今夜も、選ばれた人間だけが、入ってきた。');
+
+  // ネムリア・フェス：八万四千の、ひとつ
+  await goCine24('fes'); bgm('dusk24'); const FS = AREAS.fes; FS.dark = false; E = eyes24('fes', [['mm', null, 0, -3.9, 0]]);
+  cine(0, 2.6, 2.6, 0, 1.4, -3.9); await card('春日井　落合公園特設会場　ネムリア・フェス　前日リハーサル', '同じ日　午後五時五十分', 1300);
+  await narr('人魚の歌い手は、リハーサルの合間に、配信を、つけていた。……同時視聴、八万四千。');
+  fc22(E.mm, 2.6); await say('mermaid', 'みんな～、来てくれて、ありがと～♡　……コメント、読むね！');
+  await say('cmt24', '「まりなちゃん今日もかわいい」「明日いちばん前とった！」「赤スパ　ネムリア最高」「ソウマです！来ました！」');
+  await say('mermaid', 'いちばん前の子、ありがと～！　カイトくん、いつも、スパチャ、ありがとね♡　……あ、ソウマくんも来てる！　やっほー！');
+  await say('cmt24', '「……今日も、ありがとう」');
+  cine(0, 2.6, 2.6, 0, 1.4, -3.9); await narr('その一行は、一秒で、画面の上へ、流れていった。……八万四千の、ひとつだった。');
+  fc22(E.mm, 2.6); await say('mermaid', 'じゃあ、明日の、いちばん前の子たちのために。……一曲だけ、歌うね。');
+  await narr('高蔵寺の、ベンチで、吉尾は、同じ配信を、見ていた。……名前を、呼ばれることは、なかった。今日も。');
+  cine(0, 6.4, 9.0, 0, 1.0, -2.0); await narr('誰も、悪くは、なかった。……誰も、見ていなかった。それだけだった。');
+  await goTenkan24(); }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -14052,6 +14199,6 @@ function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b
   if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
 $('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
