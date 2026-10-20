@@ -15533,7 +15533,7 @@ async function goNight29() { G.mode = 'cine'; S.flags.c29st = 'night'; setObj(''
 // ---- ひと月後：そんなに、変わらなかった ----
 async function goAfter29() { G.mode = 'cine'; S.flags.c29st = 'after'; setObj(''); news22off(); await card('', 'ひと月後', 2200);
   // 主家：夕食
-  await goCine29('shuke'); await fade(false); ckSave(); bgm('name29'); { const a = AREAS.shuke, F = a.fam; for (const n of a.npcs) n.hidden = true; if (a.tv24) { a.tv24.visible = false; a.tvGl24.visible = false; }
+  await goCine29('shuke'); await fade(false); ckSave(); bgm('name29'); hemi.intensity = 0.72; { const a = AREAS.shuke, F = a.fam; for (const n of a.npcs) n.hidden = true; if (a.tv24) { a.tv24.visible = false; a.tvGl24.visible = false; }
     for (const k in F) { F[k].hidden = false; F[k].st = { sit: true }; F[k].lookAt = null; }
     cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await card('春日井　外神竜一族　主家', 'ひと月後　夜', 1400);
     await narr('十一人ぶんの、お椀が、並んでいた。……娘たちは、今日も、夜には、ここへ帰ってきた。');
