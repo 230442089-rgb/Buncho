@@ -15821,7 +15821,7 @@ async function chapter30() { G.mode = 'cine'; S.chapter = 30; $('report').hidden
 async function goOpen30() { G.mode = 'cine'; S.flags.c30st = 'open'; setObj(''); await goCine30('dangi30'); ckSave(); const a = AREAS.dangi30; bgm('dangi30'); scene.background = new THREE.Color(0x7A8494); hemi.intensity = 0.7; const E = temple30(a);
   const sm = put30(a, 'shinmai', () => shinmai30(true), 0.4, 4.4, Math.PI, {}); for (const n of E.m) n.st = {};
   await fade(true); await card('第十章　Intro', '断偽', 3000); await fade(false);
-  cine(0, 7.0, 13.0, 0, 1.6, -4.0); await card('春日井　弥勒山の奥　断偽文鳥門　本山', '夜明け前', 1600);
+  cine(0, 9.0, 11.0, 0, 1.4, -4.0); await card('春日井　弥勒山の奥　断偽文鳥門　本山', '夜明け前', 1600);
   await narr('春日井の北、弥勒山の奥に。……地図から消えた、古い寺があった。');
   await narr('門の内側では、文鳥たちが、黙って、落ち葉を、掃いていた。……誰も、口を、きかなかった。');
   fc30(sm, 2.2, 0, 0.3); nameCard({ s: '断偽文鳥門　修行文鳥（入門三か月）', b: 'シ・ンマイ', e: 'SHI-NMAI', col: '#C8B898', p: 'もと、文食品 春日井第三工場 包装課。\nB.U.N rate、九千四百十二位。\n……rate より下で、名前を、もらった。' }); await z22(2200); nameCard(null);
@@ -15879,16 +15879,16 @@ async function evMorning30(k) { const a = AREAS.dangi30, e = a.e30, E = { ge: e.
 
 // ---- 教主、来たる ----
 async function goArrive30() { G.mode = 'cine'; S.flags.c30st = 'arrive'; setObj(''); await goCine30('dangi30'); await fade(false); ckSave(); const a = AREAS.dangi30; bgm(''); scene.background = new THREE.Color(0xA8B0B8); hemi.intensity = 0.9; const E = temple30(a);
-  const sm = put30(a, 'shinmai', () => shinmai30(false), 1.2, -3.0, Math.PI, { kneel: true }); sm.model.broom.visible = false;
-  E.ge.pos.set(0, 0, -4.6); E.ge.facing = Math.PI; E.ge.st = { kneel: true }; E.mu.pos.set(-2.2, 0, -4.2); E.mu.facing = Math.PI; E.mu.st = { kneel: true }; E.za.pos.set(2.2, 0, -4.2); E.za.facing = Math.PI; E.za.st = { kneel: true }; E.za.y = 0;
-  E.hi.pos.set(-1.2, 0, -3.0); E.hi.facing = Math.PI; E.hi.st = { kneel: true }; E.mo.pos.set(-2.6, 0, -2.6); E.mo.facing = Math.PI; E.mo.st = { kneel: true };
-  E.m.forEach((n, i) => { n.pos.set([-3.6, 3.6, -1.2, 1.2, -2.6, 2.6][i], 0, [-1.8, -1.8, -1.6, -1.6, -0.6, -0.6][i]); n.facing = Math.PI; n.st = { kneel: true }; });
+  const sm = put30(a, 'shinmai', () => shinmai30(false), 1.5, -2.6, Math.PI, { kneel: true }); sm.model.broom.visible = false;
+  E.ge.pos.set(-1.0, 0, -4.0); E.ge.facing = Math.PI; E.ge.st = { kneel: true }; E.mu.pos.set(-2.6, 0, -3.8); E.mu.facing = Math.PI; E.mu.st = { kneel: true }; E.za.pos.set(2.6, 0, -3.8); E.za.facing = Math.PI; E.za.st = { kneel: true }; E.za.y = 0;
+  E.hi.pos.set(-1.6, 0, -2.6); E.hi.facing = Math.PI; E.hi.st = { kneel: true }; E.mo.pos.set(-3.0, 0, -2.4); E.mo.facing = Math.PI; E.mo.st = { kneel: true };
+  E.m.forEach((n, i) => { n.pos.set([-3.8, 3.8, -1.7, 1.7, -2.8, 2.8][i], 0, [-1.2, -1.2, -1.0, -1.0, -0.1, -0.1][i]); n.facing = Math.PI; n.st = { kneel: true }; });
   const mz = put30(a, 'mesu', () => mesuZeroGyo30(), 0, 7.6, Math.PI); a.e30.mzG = mz; CAST.mesu = mz.model;
   cine(0, 2.0, -6.4, 0, 1.0, 2.0); await card('本山　本堂の前', '同じ朝', 1400);
   await narr('門下の全員が、本堂の前に、並んでいた。……誰も、顔を、上げなかった。');
   await narr('山門の向こうから、足音が、した。');
-  cine(1.6, 0.7, 2.4, 0, 2.0, 6.0); const w = walk30(mz, 0, -1.0, 1.1); await narr('……黒い影が、石段を、のぼってきた。一段ずつ。急がずに。');
-  await w; mz.facing = Math.PI; fc30(mz, 3.6, 0.6, 0.2); nameCard({ s: '断偽文鳥門（新生文鳥勢力）　創始者・教主', b: 'メス・ゼロ', e: 'MES-ZERO', col: '#C01828', p: '偽りを削ぎ落とし、真を問う。\n身長、二三五センチ。今朝は、黒の法衣に、赤い袈裟の、修行着。\n狂ったように叫び、恐ろしいほど、黙る。' }); await z22(2600); nameCard(null);
+  cine(1.6, 0.7, 2.4, 0, 2.0, 6.0); const w = walk30(mz, 0, -5.4, 1.1); await narr('……黒い影が、石段を、のぼってきた。一段ずつ。急がずに。');
+  await narr('門下の列の、真ん中を。……誰の顔も、見ずに。'); await w; mz.facing = 0; fc30(mz, 3.6, 0.6, 0.2); nameCard({ s: '断偽文鳥門（新生文鳥勢力）　創始者・教主', b: 'メス・ゼロ', e: 'MES-ZERO', col: '#C01828', p: '偽りを削ぎ落とし、真を問う。\n身長、二三五センチ。今朝は、黒の法衣に、赤い袈裟の、修行着。\n狂ったように叫び、恐ろしいほど、黙る。' }); await z22(2600); nameCard(null);
   fc30(E.ge, 2.6, 0.3, 0.3); await say('gedatsu', '……お帰りなさいませ、教主。');
   fc30(mz, 3.6, 0.6, 0.2); await narr('教主は、何も、言わなかった。……長い、長い、沈黙だった。'); await z22(1600);
   await say('mesu', '……灰燼は。');
@@ -15896,19 +15896,19 @@ async function goArrive30() { G.mode = 'cine'; S.flags.c30st = 'arrive'; setObj(
   fc30(E.mu, 2.4, 0.2, -0.3); await say('mujou', '……迎えに、参りますか。');
   fc30(mz, 3.6, 0.6, 0.2); await say('mesu', '……要らぬ。あれは、檻の中で、己の偽りを、削いでおる。');
   face30(mz, sm); fc30(mz, 3.4, 0.6, 0.4); await say('mesu', '……新しい、顔だな。');
-  sm.st = {}; fc30(sm, 2.0, -0.2, 0.3); await say('shinmai', 'シ・ンマイと、申します！　もと、文食品、包装課、rate、九千四百――');
+  sm.st = {}; fc30(sm, 1.9, 0, 1.0); await say('shinmai', 'シ・ンマイと、申します！　もと、文食品、包装課、rate、九千四百――');
   G.shake = 0.8; sfx('blast'); fc30(mz, 2.8, 0.6, 0.3); await say('mesu', '――名乗るなァァ！！', { cls: 'shout24' });
   await say('mesu', 'rate は、B.U.N の、偽りの名だァァ！！', { cls: 'shout24' });
   cine(0, 2.0, -6.4, 0, 1.0, 2.0); await narr('……それきり、また、恐ろしいほど、静かに、なった。'); await z22(1200);
   fc30(mz, 3.4, 0.6, 0.4); await say('mesu', '……シ・ンマイ。……それだけで、よい。');
-  sm.st = { kneel: true }; fc30(sm, 2.0, -0.2, 0.3); await say('shinmai', '……っ、は、はい……！');
+  sm.st = { kneel: true }; fc30(sm, 1.9, 0, 1.0); await say('shinmai', '……っ、は、はい……！');
   fc30(E.za, 2.4, 0.2, 0.3); await say('zange', '教主。……ひとつ、ご報告が。白翼保護財団。天使属が、人間を、「保護」しております。');
   await say('zange', '痛みも、不安も、寂しさもない、白い部屋で。……誰ひとり、出たいとは、言わぬそうです。');
-  face30(mz, E.za); fc30(mz, 3.6, 0.6, 0.2); await z22(1400); await say('mesu', '……偽りだ。');
+  mz.facing = 0; fc30(mz, 3.6, 0.6, 0.2); await z22(1400); await say('mesu', '……偽りだ。');
   G.shake = 1.0; sfx('blast'); await say('mesu', '偽りだァァ！！　痛みなき救いなど、偽りだァァァ！！', { cls: 'shout24' });
-  cine(0, 7.0, 13.0, 0, 1.6, -4.0); await narr('杉の林から、鳥が、一斉に、飛び立った。……そして、また、静かに、なった。');
+  cine(0, 9.0, 11.0, 0, 1.4, -4.0); await narr('杉の林から、鳥が、一斉に、飛び立った。……そして、また、静かに、なった。');
   fc30(mz, 3.6, 0.6, 0.2); await say('mesu', '……今夜、斬る。');
-  fc30(E.mo, 2.0, -0.2, 0.3); await say('momi30', '（……見られるぞ、新米）');
+  fc30(E.mo, 1.9, 0, 1.0); await say('momi30', '（……見られるぞ、新米）');
   await fade(true); await goDress30(); }
 
 // ---- 夜：戦の装束 ----
@@ -15968,13 +15968,13 @@ async function goHaniela30() { G.mode = 'cine'; S.flags.c30st = 'haniela'; setOb
   await narr('……ここにいれば、もう、何も、考えなくて、いい。そう、思ってしまった。');
   const mz = put30(a, 'mesuC', () => mesuZeroBird(), 0, 5.6, Math.PI); CAST.mesu = mz.model; mzOver30(mz.model, false);
   cine(1.2, 0.8, 1.0, 0, 2.2, 5.6); const w = walk30(mz, 0, -1.4, 1.0); await narr('……光の中を、黒い影が、歩いてきた。一歩も、緩めずに。');
-  await w; mz.facing = Math.PI; face30(ha, mz); fc30(ha, 2.6, 0.2, 0.3); await say('haniela', 'あら。……あなたも、疲れた顔。……保護が、必要ね。');
+  await w; mz.facing = Math.PI; face30(ha, mz); fc30(ha, 2.6, 0.2, 1.1); await say('haniela', 'あら。……あなたも、疲れた顔。……保護が、必要ね。');
   fc30(mz, 3.4, 0.8, 0.3); await narr('教主は、何も、言わなかった。'); await z22(1500);
   G.shake = 1.2; mzOver30(mz.model, true); await say('mesu', '――偽りだァァァ！！', { cls: 'shout24' });
   mz.st = { punch: true }; sfx('zan30'); fxFlash(0, 1.8, -3.6, 0xFF2A1A, 6, 0.3); setTimeout(() => { mz.st = {}; }, 300);
   const halo = ha.model.head.children.filter(c => c.isSprite || (c.geometry && c.geometry.type === 'TorusGeometry')); halo.forEach(c => { c.visible = false; }); boom(0, 2.2, -3.8, 0xF2D27A, true);
   cine(0, 2.4, 4.6, 0, 1.4, -2.4); await narr('紙を裂くような、音がした。……光輪が、まっぷたつに、割れていた。');
-  fc30(ha, 2.0, 0.2, 0.3); await say('haniela', '……え？');
+  fc30(ha, 2.4, 0.2, 1.1); await say('haniela', '……え？');
   await say('haniela', '……わたしの、保護、が……。');
   fc30(mz, 3.4, 0.8, 0.3); await narr('二度目の刃は、何の、音も、立てなかった。');
   sfx('zan30'); fxFlash(0, 1.6, -3.8, 0xFFFFFF, 8, 0.5); for (let i = 0; i < 3; i++) boom(rand(-0.6, 0.6), rand(0.8, 2.4), -3.8 + rand(-0.4, 0.4), 0xFFFFFF, false); ha.hidden = true; halo.forEach(c => { c.visible = true; });
@@ -15989,11 +15989,11 @@ async function goHaniela30() { G.mode = 'cine'; S.flags.c30st = 'haniela'; setOb
   await say('kept30', '……いたい。……なんで、いたいんだ……。');
   fc30(mz, 3.4, 0.8, 0.3); await say('mesu', '……それが、真だ。');
   await say('mesu', '出たければ、自分の足で、出よ。……出たくなければ、そこで、凍えよ。');
-  mz.facing = 0; const w2 = walk30(mz, 0, 6.0, 1.1); cine(0, 2.4, 4.6, 0, 1.4, -1.0); await narr('教主は、振り返らずに、出ていった。');
+  mz.facing = 0; const w2 = walk30(mz, 0, 6.0, 1.1); cine(0, 2.4, 4.6, 0, 1.4, -1.0); await narr('教主は、振り返らずに、出ていった。'); await w2; mz.hidden = true;
   fc30(sm, 2.0, 0, 0.3); const c = await choose([{ k: '男に', t: '手を、貸す' }, { k: '男に', t: '……何も、しない' }]);
   if (c === 0) { face30(sm, k0); fc30(sm, 2.0, 0, 0.3); await say('shinmai', '……立てますか。'); k0.st = {}; k0.y = 0; fc30(k0, 2.0, 0, 0.3); await say('kept30', '……ああ。……さむいな。'); await narr('教主は、止めなかった。……止めることも、褒めることも、しなかった。'); S.flags.c30hand = true; }
   else { cine(0, 2.4, 4.6, -3.6, 0.6, 1.6); await narr('男は、しばらく、震えていた。……それから、自分で、立ち上がった。'); k0.st = {}; k0.y = 0; S.flags.c30hand = false; }
-  await w2; mz.hidden = true; await fade(true); await goRec30(); }
+  await fade(true); await goRec30(); }
 
 // ---- B.U.N 中央記録庫 ----
 async function goRec30() { G.mode = 'cine'; S.flags.c30st = 'rec'; setObj(''); await goCine30('bunrec'); await fade(false); ckSave(); bgm('bun'); const B = AREAS.bunrec; for (const n of B.npcs) n.hidden = true; B.ch.hidden = false;
@@ -16031,7 +16031,7 @@ async function goHq30() { G.mode = 'cine'; S.flags.c30st = 'hq'; setObj(''); con
 async function goDawn30() { G.mode = 'cine'; S.flags.c30st = 'dawn'; setObj(''); await goCine30('dangi30'); await fade(false); ckSave(); const a = AREAS.dangi30; bgm('dangi30'); scene.background = new THREE.Color(0xC89A84); hemi.intensity = 0.75; temple30(a);
   for (const k in a.e30) if (!/^(mzG|mzC)$/.test(k)) a.e30[k].hidden = true;
   const mz = put30(a, 'mesu', () => mesuZeroGyo30(), 0, -6.5, Math.PI, { sit: true }, 0.8); a.e30.mzG = mz; CAST.mesu = mz.model; const sm = put30(a, 'shinmai', () => shinmai30(false), 0.6, -2.2, Math.PI);
-  cine(0, 7.0, 13.0, 0, 1.6, -4.0); await card('本山　本堂の階', '夜明け', 1400);
+  cine(0, 9.0, 11.0, 0, 1.4, -4.0); await card('本山　本堂の階', '夜明け', 1400);
   await narr('教主は、本堂の階に、座っていた。……修行着に、戻っていた。');
   face30(sm, mz); fc30(sm, 2.0, 0, 0.3); await say('shinmai', '……教主様。');
   fc30(mz, 3.2, 0.2, 0.3); await z22(1400); await say('mesu', '……問え。');
@@ -16042,7 +16042,7 @@ async function goDawn30() { G.mode = 'cine'; S.flags.c30st = 'dawn'; setObj('');
   fc30(sm, 2.0, 0, 0.3); await say('shinmai', '……じゃあ、教主様は。……何も、答えないんですか。');
   fc30(mz, 3.2, 0.2, 0.3); await say('mesu', '……答えぬ。');
   await say('mesu', '……だから、斬る。');
-  cine(0, 7.0, 13.0, 0, 1.6, -4.0); await narr('夜明けの光が、本堂の屋根を、赤く、染めた。……教主は、また、黙った。');
+  cine(0, 9.0, 11.0, 0, 1.4, -4.0); await narr('夜明けの光が、本堂の屋根を、赤く、染めた。……教主は、また、黙った。');
   if (S.flags.c30hand) { fc30(sm, 2.0, 0, 0.3); await say('shinmai', '（……あの人。……ちゃんと、外に、出られたかな）'); }
   await fade(true); await card('第十章　Intro　断偽', '完', 3200); await fade(false); setMeta({ ch30Clear: true, ch30: packS(), ch30Done: [...DONE] }); showReport30(); }
 
