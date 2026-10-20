@@ -15659,7 +15659,7 @@ AREAS.town24.restore = (r0 => function (a) { if (r0) r0.call(this, a); if (S.cha
 { const r0 = showReport28; showReport28 = function () { r0(); const row = $('titleBtn28') && $('titleBtn28').parentNode; if (row && !$('ch29Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch29Go'; b.textContent = '特殊章　なまえを、よぶ へ'; row.insertBefore(b, row.firstChild); $('titleBtn28').className = 'ghost'; b.addEventListener('click', () => run(chapter29)); } }; }
 
 // ================= 第十章　Intro　断偽：人物・場所・音 =================
-Object.assign(SPK, { gedatsu: ['ゲ・ダツ', '#B8B8C0'], mujou: ['ム・ジョウ', '#E8E4DA'], zange: ['ザ・ンゲ', '#C83A4A'], shinmai: ['シ・ンマイ', '#C8B898'], hie30: ['ヒ・エ', '#A8A090'], momi30: ['モ・ミ', '#B8A888'], dmon30: ['門下の文鳥', '#9A9AA4'], hogo30: ['保護官（天使属）', '#F2E4B0'], hchief30: ['主任保護官', '#F2D27A'], kept30: ['「保護」されていた男', '#B8C0C8'] });
+Object.assign(SPK, { gedatsu: ['ゲ・ダツ', '#B8B8C0'], mujou: ['ム・ジョウ', '#E8E4DA'], zange: ['ザ・ンゲ', '#C83A4A'], shinmai: ['シ・ンマイ', '#C8B898'], hie30: ['ヒ・エ', '#A8A090'], momi30: ['モ・ミ', '#B8A888'], dmon30: ['門下の文鳥', '#9A9AA4'], hogo30: ['保護官（天使属）', '#F2E4B0'], chorus30: ['門下の声', '#9A9AA4'], hchief30: ['主任保護官', '#F2D27A'], kept30: ['「保護」されていた男', '#B8C0C8'] });
 
 // ---- 新生文鳥勢力の紋章：赤い翼、中心の円、上へ伸びる刃 ----
 function emblem30(c, cx, cy, s, col) { c.save(); c.translate(cx, cy); c.scale(s, s); c.fillStyle = col; c.strokeStyle = col;
@@ -15910,7 +15910,7 @@ async function goMorning30() { G.mode = 'cine'; S.flags.c30st = 'morning'; setOb
   scene.background = new THREE.Color(0x9AA4AC); hemi.intensity = 0.85; temple30(a, false, true); if (a.e30.shinmai) a.e30.shinmai.hidden = true; SHIN_MODEL.broom.visible = true;
   const n0 = (S.flags.c30z || []).length; if (got30('sweep')) a.leaves.forEach((l, i) => { l.visible = i % 4 === 0; });
   if (!n0) { cine(0, 7.4, 10.4, 0, 1.0, -1.6); await narr('本堂の前で、門下の声が、ひとつに、なっていた。');
-    await say('dmon30', '偽りを、断てェ……！　偽りを、断てェ……！　偽りを、断てェェ……！', { cls: 'shout24' });
+    cine(0, 2.6, -6.0, 0, 1.0, -2.0); await say('chorus30', '偽りを、断てェ……！　偽りを、断てェ……！　偽りを、断てェェ……！', { cls: 'shout24' });
     await narr('伏しては立ち、立っては伏す。……夜明け前から、ずっと。誰の声も、とっくに、枯れていた。');
     await narr('朝の修行は、四つ。……どれから始めても、よい。'); }
   obj30(); playOn(); }
@@ -15968,7 +15968,7 @@ async function goArrive30() { G.mode = 'cine'; S.flags.c30st = 'arrive'; setObj(
   cine(0, 2.0, -6.4, 0, 1.0, 2.0); await card('本山　本堂の前', '同じ朝', 1400);
   await narr('門下の全員が、本堂の前に、並んでいた。……誰も、顔を、上げなかった。');
   await narr('山門の向こうから、足音が、した。……門下は、伏したまま、声を、揃えた。');
-  await say('dmon30', '偽りを、断て……。偽りを、断て……。偽りを、断て……。');
+  cine(0, 3.0, -5.4, 0, 1.0, 2.0); await say('chorus30', '偽りを、断て……。偽りを、断て……。偽りを、断て……。');
   cine(1.6, 0.7, 2.4, 0, 2.0, 6.0); const w = walk30(mz, 0, -5.4, 1.1); await narr('……黒い影が、石段を、のぼってきた。一段ずつ。急がずに。');
   await narr('門下の列の、真ん中を。……誰の顔も、見ずに。'); await w; mz.facing = 0; fc30(mz, 3.6, 0.6, 0.2); nameCard({ s: '断偽文鳥門（新生文鳥勢力）　創始者・教主', b: 'メス・ゼロ', e: 'MES-ZERO', col: '#C01828', p: '偽りを削ぎ落とし、真を問う。\n身長、二三五センチ。今朝は、黒の法衣に、赤い袈裟の、修行着。\n狂ったように叫び、恐ろしいほど、黙る。' }); await z22(2600); nameCard(null);
   fc30(E.ge, 2.6, 0.3, 0.3); await say('gedatsu', '……お帰りなさいませ、教主。');
