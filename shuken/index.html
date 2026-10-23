@@ -209,7 +209,9 @@ body.overFade #dlg, body.overFade #phone { z-index: 16; }
 #nameCard em { display: block; font-style: normal; font-size: 12.5px; font-weight: 700; margin-top: 4px; color: var(--gold); }
 #nameCard p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: #D6DCE8; white-space: pre-line; }
 #talkSkip { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 14px); bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); z-index: 11; border: 1px solid var(--line); background: rgba(10,13,22,.82); padding: 7px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
-#talkSkip.on { color: #fff; border-color: var(--paper); }
+#talkSkip.on, #talkSkipAll.on { color: #fff; border-color: var(--paper); }
+#talkSkipAll { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 14px); bottom: calc(env(safe-area-inset-bottom, 0px) + 166px); z-index: 11; border: 1px solid var(--line); background: rgba(10,13,22,.82); padding: 7px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
+#talkSkip.on { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); } #talkSkipAll.on { bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); }
 #skipBtn { position: fixed; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 21; border: 1px solid var(--line); background: rgba(10,13,22,.8); padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--mute); }
 /* 記録ファイル：書類のフォルダの見た目 */
 #files { position: fixed; inset: 0; z-index: 23; background: rgba(5,7,11,.88); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -363,7 +365,7 @@ body.withCard #loc b { font-size: clamp(18px, 3vw, 28px); }
 <div id="loc"><small id="locS"></small><b id="locB"></b><i id="locI"></i></div>
 <div id="nameCard"><small id="ncS"></small><b id="ncB"></b><em id="ncE"></em><p id="ncP"></p></div>
 <button type="button" id="skipBtn" hidden>序章をとばす ▶▶</button>
-<button type="button" id="talkSkip" hidden>会話をとばす ▶▶</button>
+<button type="button" id="talkSkip" hidden>この場面をとばす ▶</button><button type="button" id="talkSkipAll" hidden>すべてとばす ▶▶</button>
 <div id="autoSave" aria-live="polite"></div>
 <div id="fade"></div>
 <div id="reveal" hidden></div>
@@ -1938,10 +1940,10 @@ async function evRurika() { S.flags.c2talk = true; const a = AREAS.seiritsu; P.p
   else await say('rurika', '早瀬さんのこと、ずっと心配してくれてたんだよね。……ありがと。');
   await say('rurika', 'でもね、久世さん。');
   cine(-0.6, 1.5, -0.6, 0, 1.25, -2);
-  await say('rurika', '正しくないことをしてる人がいたら、あたしは、それが誰でも止めるよ。竜でも、人間でも。……役所の古い回線の、向こうにいる人でも。');
+  await say('rurika', '正しくないことをしてる人がいたら、わたしは、それが誰でも止めるよ。竜でも、人間でも。……役所の古い回線の、向こうにいる人でも。');
   await say('rurika', 'だから。また、話そうね。逃げないでよ？');
   const e = await choose([{ t: '「……はい。いつでも。」', k: '表', cover: 2 }, { t: '「早瀬を家へ帰してくださって、ありがとうございました。」', k: '温情', warm: 1 }]);
-  if (e === 0) await say('kuze', '……はい。いつでも。'); else { await say('kuze', '早瀬を家へ帰してくださって、ありがとうございました。'); await say('rurika', '……それは、あたしの仕事。でも、どういたしまして。'); }
+  if (e === 0) await say('kuze', '……はい。いつでも。'); else { await say('kuze', '早瀬を家へ帰してくださって、ありがとうございました。'); await say('rurika', '……それは、わたしの仕事。でも、どういたしまして。'); }
   P.st.sit = false; await ura('正しさで殴る女だ。', '……だが、早瀬を家へ帰したのも、あの女だ。');
   addNote('rurikaW', 'ルリカの警告', '「正しくないことをしてる人がいたら、それが誰でも止める。役所の古い回線の、向こうにいる人でも」。正律の四女は、留保室の影に気づき始めている。');
   setObj('相談室を出る（扉へ）'); }
@@ -2456,11 +2458,11 @@ const GUEST = {
     await say('goka', '文句があるなら、拳で来な。……あんた、来ないだろ。'); S.flags.c3b_goka = true; addNote('c3goka', '鬼嶽建設と葛城の選挙区', '葛城の選挙区の公共工事は鬼嶽建設が請け負う。工事が止まれば、町が冬を越せない。'); },
   valmina: async () => { await say('valmina', 'あら、久世さん。……出向の書類、まだ大事に取ってあるのよ。'); await say('valmina', '今夜は事務局ですって？　アスタったら、いい子を見つけたわね。……わたしが先に見つけたのに。'); await ura('竜の目が、まだこちらを向いている。'); },
   nocta: async () => { await say('nocta', '商談の夜は、たいていここで終わるの。今夜は、国の商談。……素敵でしょう？'); await say('nocta', '人間の代表さんたち、みんな緊張してる。かわいいわ。……終わったら、奥の個室で、ゆっくりしてもらうの。'); },
-  rurika: async () => { await say('rurika', '久世さん。……また会ったね。今夜のあたしは、正律の立会人。確認の手続きが「正常」か、ちゃんと見るの。');
+  rurika: async () => { await say('rurika', '久世さん。……また会ったね。今夜のわたしは、正律の立会人。確認の手続きが「正常」か、ちゃんと見るの。');
     await say('rurika', 'ね。あなたは、なんでここにいるの？');
     const c = await choose([{ t: '「事務局のお手伝いです。幹事長に頼まれまして。」', k: '表', cover: 2 }, { t: '「人間の代表が、何を確認するのか、見に来ました。」', k: '本音', cover: -6, warm: 1 }]);
     if (c === 0) { await say('kuze', '事務局のお手伝いです。幹事長に頼まれまして。'); await say('rurika', 'ふーん。……アスタに？　気をつけてね。あの人、人間を「手続き」で集めるから。'); }
-    else { await say('kuze', '人間の代表が、何を確認するのか、見に来ました。'); await say('rurika', '……それ、あたしも知りたい。立会人にも、最終頁、見せてもらえなかったの。'); S.flags.c3ruTrust = true; } },
+    else { await say('kuze', '人間の代表が、何を確認するのか、見に来ました。'); await say('rurika', '……それ、わたしも知りたい。立会人にも、最終頁、見せてもらえなかったの。'); S.flags.c3ruTrust = true; } },
   yuria: async () => { await say('yuria', 'あっ、おにーさん！　紅鱗のときの！　今夜は陽盾が警備だから、よゆーで安全だよ♪');
     await say('yuria', '……でもさー、最近、辻の連中がうるさいんだよね。上のほうから、何か降りてくるって噂もあるし。'); await say('yuria', 'ま、来たら来たで、全員無傷で帰すけど！'); },
   gdb: async () => { await say('gdb', 'チ……失礼しました。陽盾の警備員です。元は、辻の下っ端でした。'); await say('gdb', '今夜は、昔の仲間の匂いがします。……気のせいだと、いいんですが。'); },
@@ -3112,7 +3114,7 @@ async function evLeaveApt() { const a = AREAS.asaiApt; sfx('door'); a.kt.lookAt 
   await say('rurika', '正律として、受理を一旦止めた。本人の意思を、直接確認するまで。……でも、相手は九尾の社長。いつまで止めておけるか、分からない。');
   await say('rurika', 'ね、久世さん。浅井さんは、本当に、結婚したいの？');
   const c = await choose([{ t: '「……したくないと思います。彼は、地元に帰りたがっていました。」', k: '本音', warm: 1, cover: -4 }, { t: '「部下の私生活のことは、分かりかねます。」', k: '表', cover: 3 }]);
-  if (c === 0) { await say('kuze', '……したくないと思います。彼は、地元に帰りたがっていました。'); await say('rurika', '……やっぱり。うん。止めておく。あたしの名前で、止めておくから。'); S.flags.c4ruTrust = true; }
+  if (c === 0) { await say('kuze', '……したくないと思います。彼は、地元に帰りたがっていました。'); await say('rurika', '……やっぱり。うん。止めておく。わたしの名前で、止めておくから。'); S.flags.c4ruTrust = true; }
   else { await say('kuze', '部下の私生活のことは、分かりかねます。'); await say('rurika', '……そう。でも、止めておくよ。署名が震えてる婚姻届は、正常じゃないもん。'); }
   S.flags.c4hold = true; addNote('c4hold', '婚姻届の受理保留', '九尾の秘書室が、浅井と九重白狐の婚姻届を春日井市役所に提出。署名は震え、証人は九尾の役員二人。正律のルリカが、本人の意思確認まで受理を止めた。');
   P.st.phone = false; await sleep(G.skip ? 0 : 400);
@@ -5466,7 +5468,7 @@ async function goSeiritsu8() { G.mode = 'cine'; S.flags.c8st = 'seiritsu'; playA
   await say('glasha', '魔族にとって、契約とは、どんな些細なものであっても絶対です。魔界の絶対権力である魔王様も、邪神様も、契約は絶対だと証言しています。');
   await say('glasha', 'つまり、「契約を反故にしようとする者」への制裁は、正当な権利、ということです。');
   cine(-2.8, 1.8, -0.2, -1.4, 1.5, -2.2); await say('rurika', 'グラシャさん、言い方……！');
-  await say('rurika', '……湊くん。あたしは、人間の法の人だから。正律として、人間の法で、あなたを守りたい。');
+  await say('rurika', '……湊くん。わたしは、人間の法の人だから。正律として、人間の法で、あなたを守りたい。');
   await say('rurika', 'でも。界域協定、第九条。「異種族と人間の間の私的な契約は、当該異種族の法による」。');
   await say('rurika', '……魔族の契約には、人間の法も、正律も、手が出せないの。');
   await saku('第九条。……この国の法律は、魔族の、小さな字一行に負ける。');
@@ -5566,7 +5568,7 @@ async function goAfter8() { G.mode = 'cine'; S.flags.c8st = 'after'; await goAre
   await say('rurika', '婚姻届は、もう、受理されてる。魔族の法で成立した婚姻を、正律は、止められない。');
   await say('glasha', '……ですから、申し上げたのです。');
   a.ru8.st.sit = false; await narr('ルリカが、机を叩いて、立ち上がった。');
-  await say('rurika', 'わかってる！　……でも、あたしは、こんなの、正常だなんて、絶対に言わない。');
+  await say('rurika', 'わかってる！　……でも、わたしは、こんなの、正常だなんて、絶対に言わない。');
   await say('rurika', '第九条が、そう書いてあっても。……絶対に。');
   // 春：駅前
   await goArea('station', [0.4, -5.4], Math.PI); const s = AREAS.station; bgm('city'); if (s.asai) s.asai.hidden = true;
@@ -6869,7 +6871,7 @@ async function chapter11() { G.mode = 'cine'; S.chapter = 11; $('report').hidden
   await narr('円卓が、静まった。声を荒げたわけでもないのに、誰も、続きを言わなかった。');
   await say('terues', '……四千二百十一は、帰ってこない。');
   cine(-0.4, 2.2, 0.2, -2.1, 1.7, -2.5); await say('rurika', '正律として、言う。文食品を「種族殺し」で告発する。……でも、B.U.N は界域協定の外。法廷じゃ、裁けない。');
-  await say('rurika', 'だから、あたしは、止めない。……止められない、じゃなくて。止めない。');
+  await say('rurika', 'だから、わたしは、止めない。……止められない、じゃなくて。止めない。');
   cine(0, 6.4, 8.4, 0, 1.0, -0.4);
   await say('valmina', '紅鱗の私兵を、出すわ。');
   await say('nocta', '夜宴は、夜を貸す。……今夜だけは、吸血鬼も、人間を追わない。');
@@ -13676,8 +13678,8 @@ async function goShuke24() { G.mode = 'cine'; S.flags.c24st = 'shuke'; setObj(''
   news22('【特集】見守り住宅の四十万人　――「非選択男性」の暮らし', '住居・食事・見回りは無償　天環ライフサポート「足りないものは、ありません」');
   await narr('昼のテレビが、見慣れない言葉を、映していた。');
   fc22(F.yuria, 2.4, 0, 0.3); await say('yuria', 'へ～。……そういう人たち、いるんだ。……え、どこに？');
-  fc22(F.rurika, 2.4, 0, 0.3); await say('rurika', '高蔵寺とか、勝川の、白い団地。……天環の支援住宅よ。テルエスが、ご飯も、部屋も、ちゃんと出してる。');
-  await say('rurika', '困ってないはずよ。……少なくとも、お腹は、空いてない。');
+  fc22(F.rurika, 2.4, 0, 0.3); await say('rurika', '高蔵寺とか、勝川の、白い団地。……天環の、支援住宅。テルエスが、ご飯も、部屋も、ちゃんと出してるの。');
+  await say('rurika', '困ってない、はず。……少なくとも、お腹は、空いてない。');
   fc22(F.miria, 2.4, 0, -0.3); await say('miria', '興味わかな～。……てか、チャンネル変えていい？　映ってる人、みんな、同じ顔してるし。');
   fc22(F.furuuru, 2.4, 0, 0.3); await say('furuuru', 'みんな、かわいい子たちよ♡　……でも、ママの腕は、二本しか、ないのよねぇ。');
   fc22(F.nirume, 2.4, 0, 0.3); await say('nirume', '……？　……その人たち、にあ、みえない。');
@@ -15202,7 +15204,7 @@ async function goAfter28() { G.mode = 'cine'; S.flags.c28st = 'after'; setObj(''
     cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await card('春日井　外神竜一族　主家', '同じ日　夕食', 1200);
     fc22(F.yuria, 2.4, 0, 0.3); await say('yuria', 'ねえ、特区の、行列の、ニュース、見た？　あと、化け物が出たって。');
     fc22(F.miria, 2.4, 0, -0.3); await say('miria', '見てない～。……化け物って、どうせ、また、天使とか、そういうのっしょ？');
-    fc22(F.rurika, 2.4, 0, 0.3); await say('rurika', 'テルエスは、放っておけって。……人間の、役所が、片付けたみたいよ。');
+    fc22(F.rurika, 2.4, 0, 0.3); await say('rurika', 'テルエスは、放っておけって。……人間の役所が、片付けたみたい。');
     fc22(F.nirume, 2.4, 0, 0.3); await say('nirume', '……あの日。……すきが、とんできた。……すごく、おおきくて、くろい、すき。');
     await say('nirume', '……「みられたい」って、すき。……すぐ、きえちゃった。');
     fc22(F.rin, 2.4, 0, 0.3); await say('rin', '……なんか、あったんやな。人間の、ほうで。');
@@ -16207,7 +16209,7 @@ async function chapter31() { G.mode = 'cine'; S.chapter = 31; $('report').hidden
 async function goCall31() { G.mode = 'cine'; S.flags.c31st = 'call'; setObj(''); hosp31Items(); kuze31(); await goArea('hospital', [9.0, 0.2], -Math.PI / 2); const a = AREAS.hospital; ckSave(); bgm('call31'); scene.background = new THREE.Color(0x141A20); hemi.intensity = 0.5;
   const { wt, vo } = ward31(a, { down: true }); vo.pos.set(-4.2, 0, 0.4); vo.facing = Math.PI / 2; const nu = put31(a, 'nurse26', () => makeChar(LK.nurse31), 6.8, 0.6, -Math.PI / 2);
   await fade(true); await card('第十章　序', '同意', 3000); await fade(false);
-  cine(6.0, 2.6, 4.0, 2.0, 1.0, 0.2); await card('蒼生メディカルセンター　第三病棟', '第九章の、終わりの夜　午前一時四十分', 1600);
+  cine(9.6, 2.0, 0.2, 0, 1.2, 0.2); await card('蒼生メディカルセンター　第三病棟', '第九章の、終わりの夜　午前一時四十分', 1600);
   await narr('上着も、着ずに、走ってきた。……夜の病棟は、昼より、ずっと、広く見えた。');
   P.pos.set(7.6, 0, 0.2); P.facing = -Math.PI / 2; fc22(nu, 2.4, 0, 0.3); await say('nurse26', '久世さん……！　こちらです。……ヴォル先生が、お待ちです。');
   P.pos.set(-2.4, 0, 0.4); P.facing = -Math.PI / 2; vo.facing = Math.PI / 2; nu.hidden = true;
@@ -16428,7 +16430,7 @@ function showReport31() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>断偽の夜</td><td>雌の異種族を殺す集団。渉の命をつなぐのは、竜の細胞。「お前が守るのは、竜か、弟か」「……両方だ」。ヴォル「あなたの『職場』の方々は、あの文鳥たちを、どうご覧に？」「私の家族に何かあったら、外のことでも、争いますから」。</td></tr>' +
     '<tr><td>同じ夜、北の外れ</td><td>千路ロジスティクスの夜間の荷受け場。ハーピーの運び手たちを、ザ・ンゲの率いる断偽の門下が襲う。「メスであること。それだけで、足りる」。ひとりが斬られたところへ、カシアが割って入る。「メスかどうかで、人を、数えない」。門下を、殺さずに退ける。……「教主が、お見えになれば。汝も、斬られる」。教主は、まだ、来ていない。</td></tr></table>' +
     '<tr><td>報道と声明</td><td>翌朝、どの局も同じ話。B.U.N society 中央記録局のチャ・ニュユーが声明。「断偽文鳥門は、事実上、独立した、無関係の集団」。「在籍は、所属ではありません」。教主の rate は「記録にない」。……「無関係」だけが切り取られ、百万回、再生された。</td></tr>' +
-    '<tr><td>円卓</td><td>ハーピーの娘「空を飛ぶのが、こわいって」。ミリア「止めないし。止めたら向こうの勝ちじゃん」。ウリエラ「天は裁かない。だから、私が行きます」。白狐「十二年前の、あの刃や」。夜宴は送りの車を全部出し、鬼嶽は夜の現場に若いのを回す。エルフィンは文鳥の受け入れを見合わせ、魔族議連は「文鳥の移動の届け出制」。止めたのは、正律の四女だけ。ユリアは、来なかった。</td></tr>' +
+    '<tr><td>円卓</td><td>ハーピーの娘「空を飛ぶのが、こわいって」。ミリア「止めたら、あいつらの思う壺。……でも、意地で飛ばして、もう一人落ちたら、あたしが落としたのと同じ」。止めたら人が死ぬ便だけを、低く、陽盾をつけて飛ばす。「飛びたくない子は、飛ばなくていい。それ、負けじゃないから」。ウリエラ「天は裁かない。だから、私が行きます」。白狐「十二年前の、あの刃や」。夜宴は送りの車を全部出し、鬼嶽は夜の現場に若いのを回す。エルフィンは文鳥の受け入れを見合わせ、魔族議連は「文鳥の移動の届け出制」。ルリカ「もう！　そんなの、正常じゃない！……正律で止める。わたしの名前で」。ユリアは、来なかった。</td></tr>' +
     '<tr><td>陽盾</td><td>誰も命じていないのに、練兵場に灯りがついていた。十本の蝋燭。セリ「飛び方、教えたの、私で」。ルーシェ「死ななきゃいけないほどのことは、誰も、してない」。ゴウラ「十人ですよ！！」。岩城「俺は人間で、男だ。狙われない。それが、いちばん、腹が立つ」。ユリア「ごめんね。間に合わなくて」「……許さない。あーし、これだけは、ぜったい、許せない」「誰も、もう、ひとりで、帰さないで」「泣くのは、ぜんぶ、終わってから」。</td></tr>' +
     '<tr><td>街</td><td>五日後。「文鳥が怖い」六割。入店お断りの貼り紙、シャッターに「断偽＝文鳥」。配達員「同じ、くちばし、だから」。ことりのいえの窓には、ひび。それでも「どっちの文鳥さんも、お客さん」。ポ・ンプ「B.U.N に、帰ったほうが、いいっすかね」。久世「帰るな。お前は、断偽じゃない」。</td></tr>' +
     '<p class="close">断偽は、止める。渉のために。……それから、この街が、こいつを、憎みきる前に。</p>' +
@@ -16697,10 +16699,18 @@ async function goCouncil31() { G.mode = 'cine'; S.flags.c31st = 'council'; setOb
   await say('terues', '「無関係」、だって。……B.U.N は。');
   F(C.hp, -0.3); await say('hsis', 'うちの、運び手の子。……まだ、目、覚めてません。羽が、半分、ないって。');
   await say('hsis', '夜間便、止めようって、声が、出てます。……空を、飛ぶのが、こわいって。');
-  F(mi, -0.3); await say('miria', 'は？　止めないし。');
-  await say('miria', 'ミリアの子に、手ぇ、出したんだよ。……止めたら、向こうの、勝ちじゃん。ざぁこな、鳥のくせに。');
-  await say('miria', 'かわりに、陽盾の子に、乗ってもらう。……全部の、便に。');
-  F(C.te); await say('terues', 'ミリア。……お前も、女だ。'); F(mi, -0.3); await say('miria', '……知ってる。だから、なに。');
+  F(mi, -0.3); await say('miria', 'は～？　止めるわけ、ないじゃん。');
+  await say('miria', 'ここで、夜間便、ぜんぶ止めたら。……あいつらの、思う壺でしょ。「翼のあるメスは、空から、いなくなった」って。');
+  await say('miria', '……ムカつく。ほんっと、ムカつく。あたしの子に、手ぇ出して。ざぁこな、鳥のくせに。');
+  await z22(700); await narr('ミリアの、声が。……ふっと、静かになった。');
+  await say('miria', '……でも。あの子、羽、半分、ないんだよ。');
+  await say('miria', '意地で、飛ばして。……もう一人、落ちたら。それ、あたしが、落としたのと、同じじゃん。');
+  await say('miria', 'だから、ぜんぶは、止めない。……薬と、水と、インスリン。止めたら、人が、死ぬ便だけ、飛ばす。');
+  await say('miria', '低く。電線の下。燐の線が、光ってるとこだけ。……陽盾の子に、ひとりずつ、ついてもらう。');
+  await say('miria', '軌跡は、あたしが、ぜんぶ見とく。……山から、降りてくる線が、一本でも、見えたら。その便は、飛ばさない。');
+  await say('miria', '飛びたくない子は、飛ばなくていい。……それ、負けじゃ、ないから。');
+  F(C.hp, -0.3); await say('hsis', '……ミリアさん。');
+  F(C.te); await say('terues', 'ミリア。……お前も、女だ。'); F(mi, -0.3); await say('miria', '……知ってる。だから、あたしが、見るの。あたしの子たちの、空なんだけど。');
   F(ur, -0.35); await say('uriela', '……私が、留守に、していた。それだけの、ことで、十人。');
   await say('uriela', 'あの子たちの「保護」を、私は、好きでは、なかった。……でも、殺されるほどの、ことでは、なかった。');
   await say('uriela', '天は、裁かない。……だから、私が、行きます。');
@@ -16713,12 +16723,13 @@ async function goCouncil31() { G.mode = 'cine'; S.flags.c31st = 'council'; setOb
   F(gk, -0.3); await say('goka', '名乗りも、契りもなく、斬る。……鬼の、いちばん、嫌いな、やり方だ。');
   await say('goka', 'うちの若いのを、夜の現場に、回す。荷受け場にもな。……契りのない刃は、通さねえ。');
   F(C.ce); await say('celes', 'エルフィン・メディカルは、当面。……文鳥の、お客様の、受け入れを、見合わせます。職員の、安全の、ために。');
-  F(C.ru); await say('rurika', 'それ、断偽じゃない文鳥まで、締め出すことに、なるけど。……正律としては、ちょっと、見過ごせないかなー。');
+  F(C.ru); await say('rurika', 'もう！　それって、断偽じゃない文鳥まで、締め出すってことでしょ。……正律として、見過ごせません。');
   F(C.as, -0.3); await say('asta', '議連としては、緊急の、改定案を、出すわ。……界域協定、附則。文鳥の、移動の、届け出制。');
-  F(C.ru); await say('rurika', '……十垓羽、全部に？'); F(C.as, -0.3); await say('asta', '票は、そっちに、流れるのよ。……人間の、票も、ね。');
+  F(C.ru); await say('rurika', '十垓羽、全部に！？　……もう！　そんなの、正常じゃない！'); F(C.as, -0.3); await say('asta', '票は、そっちに、流れるのよ。……人間の、票も、ね。');
+  F(C.ru); await say('rurika', '……だったら、正律で、止める。わたしの、名前で。');
   F(C.va, -0.3); await say('valmina', 'くだらない。……竜を、メスと呼ぶ、鳥。来れば、いいわ。紅鱗の、庭に。');
   F(C.te); await say('terues', '来たら、死ぬのは、ヴァルミナかもしれない。'); F(C.va, -0.3); await say('valmina', '……ふん。');
-  F(C.te); await say('terues', '……ユリアは。'); F(C.ru); await say('rurika', '来てない。……陽盾に、いる。');
+  F(C.te); await say('terues', '……ユリアは。'); F(C.ru); await say('rurika', '来てない。……ユリア姉さんは、陽盾に、いる。');
   cine(0, 7.2, 8.6, 0, 1.0, -0.2); await narr('円卓の、誰も、その名前を、続けなかった。');
   await narr('文鳥を、締め出す話は、誰も、止めなかった。……正律の、四女の、ほかには。');
   for (const n of [gk, ur, mi]) n.hidden = true; await fade(true); await goYotate31(); }
@@ -17165,11 +17176,16 @@ $('filesClose').addEventListener('click', closeFiles); $('filesSwitch').addEvent
 $('fileIn').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) importFile(f); e.target.value = ''; });
 refreshTitle(); bootPending();
 $('skipBtn').addEventListener('click', () => { G.skip = true; $('skipBtn').hidden = true; clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); loc(null); const f = dlgDone; dlgDone = null; if (f) f(); });
-// 会話をとばす：選択肢か、操作に戻るところまで、台詞と演出を早送りする（もう一度押すと止まる）
-function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b.textContent = on ? 'とばしています　止める ■' : '会話をとばす ▶▶'; b.classList.toggle('on', on);
+// 会話をとばす：「この場面」は次の場所・場面の札まで、「すべて」は選択肢か操作に戻るところまで、台詞と演出を早送りする（もう一度押すと止まる）
+function talkSkip(on, scene) { G.skip = on; G.skipTalk = on; G.skipScene = on && !!scene; const b = $('talkSkip'), b2 = $('talkSkipAll');
+  b.textContent = on && scene ? 'とばしています　止める ■' : 'この場面をとばす ▶'; b2.textContent = on && !scene ? 'とばしています　止める ■' : 'すべてとばす ▶▶'; b.classList.toggle('on', on && !!scene); b2.classList.toggle('on', on && !scene);
   if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
-$('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
-setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
+$('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk, true));
+$('talkSkipAll').addEventListener('click', () => talkSkip(!G.skipTalk, false));
+// 場面の切れ目：場所が変わる、場面の札が出る
+{ const g0 = goArea; goArea = function (...a) { if (G.skipScene) talkSkip(false); return g0.apply(this, a); }; const c0 = card; card = function (...a) { if (G.skipScene) talkSkip(false); return c0.apply(this, a); }; }
+setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); const show = talk && (G.skipTalk || !$('dlg').hidden);
+  $('talkSkip').hidden = !(show && (!G.skipTalk || G.skipScene)); $('talkSkipAll').hidden = !(show && (!G.skipTalk || !G.skipScene)); }, 120);
 window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, showReport31, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
