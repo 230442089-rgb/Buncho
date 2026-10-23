@@ -1071,7 +1071,7 @@ makeArea('bridge', { noPlayer: true, place: '', bounds: [-8, 8, -6, 6], spawn: [
     const scrn = plane(18, 9, holoKas, 0, 6, -10, g, { transparent: true, opacity: 0.92, fog: false }); scrn.material.blending = THREE.AdditiveBlending; a.scrn = scrn;
     const ult = plane(5, 6.2, holoUlt, 0, 7, -7.5, g, { transparent: true, opacity: 0, fog: false }); ult.material.blending = THREE.AdditiveBlending; a.ult = ult;
     // ザ・コシ（中央）と、上位 rate の側近たち（一糸乱れぬ隊列）
-    const ko = npc(a, 'koshi', makeBird({ coat: 0x6C6A72, vest: 0x2A2830, cap: 0x17141A, beak: 0xE8A0A8, scarf: 0xFF3D55, muscle: true, s: 1.8, core: 0xFF3D55 }), 0, 0, Math.PI); a.koshi = ko;
+    const ko = npc(a, 'koshi', makeBird({ coat: 0x6C6A72, vest: 0x2A2830, cap: 0x17141A, beak: 0xE8A0A8, scarf: 0xFF3D55, muscle: true, s: 1.26, core: 0xFF3D55 }), 0, 0, Math.PI); ko.model.g.scale.set(1.26 * 1.24, 1.26, 1.26 * 1.14); a.koshi = ko;
     a.elite = []; const ranks = [[-2.6, 2.4], [2.6, 2.4], [-4.6, 3.6], [4.6, 3.6], [-6.4, 5.0], [6.4, 5.0], [-1.5, 5.4], [1.5, 5.4], [-3.6, 6.8], [3.6, 6.8], [-5.6, 8.2], [5.6, 8.2], [0, 7.6], [-2.0, 9.2], [2.0, 9.2], [0, 10.6]];
     ranks.forEach(([x, z], i) => { const e = npc(a, 'el' + i, makeBird({ coat: 0x16141A, vest: 0x26222C, cap: 0x0C0A10, beak: 0xC9A3AA, scarf: i < 6 ? 0x5A1220 : 0x2A2830, muscle: true, s: 1.5, core: 0xFF3040 }), x, z, Math.PI); e.still = true; a.elite.push(e); });
     for (let i = 0; i < 8; i++) { const s = glowSprite(0x3A60C0, 5, 0.18); s.position.set(rand(-10, 10), 7, rand(-10, 4)); g.add(s); } },
@@ -2067,8 +2067,8 @@ async function startCh2() { const m = meta(); if (m.ch1) unpackS(m.ch1); DONE = 
 
 // ================= 第三章　人間の代表 =================
 // ---- 人物 ----
-const shirobunBird = () => makeBird({ coat: 0x1A1A1E, pants: 0x1A1A1E, hakama: true, cap: 0xF8F8F4, beak: 0xF08088, longcoat: 0xF4F2EC, trim: 0xB01828, sleeve: 0xF4F2EC, hand: 0x1A1A1E, tassel: 0xB01828, armMark: 0x1A1A1E, katana: true, muscle: true, s: 1.6 });
-const chanyuBird = () => makeBird({ coat: 0x16161C, pants: 0x16161C, cap: 0x9A9AA6, beak: 0xE8505A, longcoat: 0xEEEEF2, inner: 0x16161C, trim: 0xB8B8C8, sleeve: 0xEEEEF2, hand: 0x101014, badge: 0xC8D0E0, tablet: 0x9AB0FF, s: 1.16 });
+const shirobunBird = () => makeBird({ coat: 0x1A1A1E, pants: 0x1A1A1E, hakama: true, cap: 0xF8F8F4, beak: 0xF08088, longcoat: 0xF4F2EC, trim: 0xB01828, sleeve: 0xF4F2EC, hand: 0x1A1A1E, tassel: 0xB01828, armMark: 0x1A1A1E, katana: true, muscle: true, s: 1.22 });
+const chanyuBird = () => makeBird({ coat: 0x16161C, pants: 0x16161C, cap: 0x9A9AA6, beak: 0xE8505A, longcoat: 0xEEEEF2, inner: 0x16161C, trim: 0xB8B8C8, sleeve: 0xEEEEF2, hand: 0x101014, badge: 0xC8D0E0, tablet: 0x9AB0FF, s: 1.2 });
 LK.katsuragi = { skin: SK2, hair: 0xB8B8BE, eye: 0x2A2A2A, brow: 0x8A8A90, browTilt: 0.18, top: 0x343A48, sleeve: 0x343A48, bc: 0x343A48, leg: 0x343A48, shoe: 0x1A1A1E, shirt: 0xF4F4F4, tie: 0x2A5A3A, badge: 0xC8A040, s: 0.98, w: 1.14, st: ['short', 'glasses'] };
 LK.astaSec = { skin: 0xE8D0E8, hair: 0x4A2A6A, eye: 0xFF4060, top: 0x1A1020, sleeve: 0x1A1020, bottom: 'skirt', bc: 0x1A1020, leg: 0x1A1020, shoe: 0x0A0A0E, shirt: 0xE8E0F0, s: 1.02, w: 0.95, st: ['bob', 'horns', 'glasses'], hornCol: 0x2A1A2A, prop: 'tablet', propHand: 1 };
 LK.vguard = { skin: 0xF4F0F4, hair: 0x2A2A34, eye: 0xD01030, top: 0x14080C, sleeve: 0x14080C, bc: 0x14080C, leg: 0x14080C, shoe: 0x0A0A0E, shirt: 0xE8E0E8, tie: 0x8A0A18, s: 1.08, w: 1.05, st: ['short', 'cape', 'narrow'], capeCol: 0x3A0A12 };
@@ -2346,26 +2346,26 @@ async function chapter3() { G.mode = 'cine'; S.chapter = 3; S.cover = Math.max(S
   const faceOff = () => { B.ch.facing = Math.atan2(B.sb.pos.x - B.ch.pos.x, B.sb.pos.z - B.ch.pos.z); B.sb.facing = Math.atan2(B.ch.pos.x - B.sb.pos.x, B.ch.pos.z - B.sb.pos.z); }, three = () => pan([0.8, 3.0, -8.4], [0.5, 2.0, -2.0], [0.6, 2.8, -7.6], [0.5, 2.0, -2.0], 8);
   faceOff(); three(); nameCard(null);
   await say('shirobun', 'また、ため息ですか。辛気くさい顔をしていますね、チャ。');
-  await say('chanyu', '原因の大半は、あなただ。先月分の始末書が、まだ三件残っている。');
+  await say('chanyu', '原因の大半は、あなたです。……先月分の始末書が、まだ三件、残ってるんだが。');
   await say('shirobun', '知りませんよ。燃えたものは、戻りませんから。');
   await narr('灰色の文鳥は、表情を変えないまま、静かに息を吐いた。');
   B.ch.facing = 0.55; pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6); await say('koshi', '……報告。');
-  await say('chanyu', '地表、日本。界域協定の改定案を提出する。');
+  await say('chanyu', '地表、日本。界域協定の改定案が、提出されます。');
   for (let i = 0; i <= 30; i++) { B.holo.material.opacity = i / 30 * 0.95; await sleep(G.skip ? 0 : 25); }
   pan([0, 3.4, -9.4], [0, 4.6, -4.6], [0, 3.8, -8.6], [0, 4.8, -4.6], 6);
-  await say('chanyu', '第三十条、留保条項が削除されている。附則により、日本の残余主権は、異種族評議に帰属する。');
-  await say('chanyu', '成立すれば、協定に署名した当文明の席は、意味を失う。');
+  await say('chanyu', '第三十条、留保条項が削除されています。附則により、日本の残余主権は、異種族評議に帰属します。');
+  await say('chanyu', '成立すれば、協定に署名した当文明の席は、意味を失います。');
   pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6);
   await say('koshi', '……誰が書いた。');
-  await say('chanyu', '魔族議員連盟幹事長、アスタ・ベルフェ。来週、名古屋の夜宴ホテルで「人間の代表」に確認させる予定だ。形式上は、人間が自ら決めたことになる。');
+  await say('chanyu', '魔族議員連盟幹事長、アスタ・ベルフェ。来週、名古屋の夜宴ホテルで「人間の代表」に確認させる予定です。形式上は、人間が自ら決めたことになる。');
   faceOff(); three();
   await say('shirobun', 'それなら、話は早いでしょう。議場ごと焼いてしまえば、確認も何もありません。');
-  await say('chanyu', '焼けば、記録が残らない。手続きを潰すなら、記録で潰すべきだ。……あなたのやり方では、後始末がすべて私に回ってくる。');
+  await say('chanyu', '焼けば、記録が残りません。手続きを潰すなら、記録で潰すべきです。……あなたのやり方だと、後始末が、全部、私に回ってくるんだ。');
   B.sb.st.sit = false; faceOff();
   await say('shirobun', 'では、回してください。あなた、片付けがお好きでしょう。');
-  await say('chanyu', '好きでやっていると思っているのか。');
+  await say('chanyu', '……好きで、やってると、思ってるのか。');
   await say('shirobun', '……おや。やりますか、記録係さん。');
-  await say('chanyu', '……やらない。消耗するだけだ。');
+  await say('chanyu', '……やりません。消耗する、だけだ。');
   // No.3 が止める
   G.shake = 0.5; sfx('down'); pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.6, -4.6], [0, 3.3, 0], 4);
   await say('koshi', '――やめろ。');
@@ -2373,13 +2373,13 @@ async function chapter3() { G.mode = 'cine'; S.chapter = 3; S.cover = Math.max(S
   await narr('番号の差は、ひとつかふたつ。いつ入れ替わってもおかしくない三羽だった。それでも、いまの壇の中心は、この灰色の文鳥だ。');
   await say('koshi', '……両方だ。');
   await say('koshi', 'シロブン。行け。燃やすのは、議場だけだ。');
-  await say('chanyu', '……待て、コシ。一桁を、軽々しく地表に出すのか。');
-  await say('chanyu', 'No.4 が表に出た時点で、「B.U.N が本気で動いた」という記録が残る。竜の一族も、異種族評議も、そう読む。……この種の仕事は、二桁の部隊で足りる。');
+  await say('chanyu', '……待ってください、コシ。一桁を、軽々しく、地表に出すのか。');
+  await say('chanyu', 'No.4 が表に出た時点で、「B.U.N が本気で動いた」という記録が残ります。竜の一族も、異種族評議も、そう読む。……この種の仕事は、二桁の部隊で、足りるでしょう。');
   await say('shirobun', 'ですから、私が行くんですよ。二桁では、竜のご長女に一発で畳まれて終わりです。');
-  await say('chanyu', '……あなたの気質なら、行くだろうとは思っていた。思ってはいたが。');
+  await say('chanyu', '……あなたの気質なら、行くだろうとは、思っていました。……思っては、いたが。');
   await say('koshi', '……行け。');
   await say('shirobun', 'はい、はい。……久しぶりに、「西」を着ていきましょうか。');
-  await say('chanyu', '着るな。文日獄衣は、地表で着るものではない。あなたが全力で着れば、議場どころか、名古屋の街区がひとつ消える。');
+  await say('chanyu', '着ないでください。文日獄衣は、地表で着るものじゃない。あなたが全力で着たら、議場どころか、名古屋の街区が、ひとつ消えます。');
   await say('shirobun', '昔ほどは燃えませんよ。私も、ずいぶん丸くなりましたから。……ふふ。');
   await say('chanyu', '……丸くなって、あれか。');
   await say('koshi', 'チャ。記録を残せ。……止めた、という記録を。');
@@ -7284,7 +7284,7 @@ async function goDictator11() { G.mode = 'cine'; await goArea('bridge'); const B
   await say('shirobun', '溶かされていましたよ、きれいに。……あの竜、普段は、殴らない子なんですって。');
   pan([-4.8, 3.0, -0.6], [-1.6, 2.2, -2.6], [-4.4, 2.8, -1.0], [-1.6, 2.3, -2.6], 6);
   await say('chanyu', '記録しました。「外神竜、B.U.N の資産を、初めて、直接、破壊」。……均衡の、最初の亀裂として。');
-  await say('chanyu', 'それと。「ガチ旨。」の在庫、全量の廃棄を、提案する。');
+  await say('chanyu', 'それと。「ガチ旨。」の在庫、全量の廃棄を、提案します。');
   await say('shirobun', 'あら。辻の子たちが、泣きますよ。……見ものですねぇ。');
   await say('chanyu', '泣かせておけ。……あれは、文明ではない。');
   pan([0, 4.0, -6.0], [0, 3.2, 0], [0, 3.8, -5.0], [0, 3.3, 0], 6); await say('koshi', '……チャ。お前は、どちらの味方だ。');
@@ -7341,7 +7341,7 @@ function playAsYuria(on) { if (!KUZE_MODEL) KUZE_MODEL = P.model; if (!YURIA_MOD
   P.model = on ? YURIA_MODEL : KUZE_MODEL; CAST.kuze = KUZE_MODEL; CAST.yuria = YURIA_MODEL; YURIA_MODEL.root.visible = on; KUZE_MODEL.root.visible = !on; }
 // No.2 カ・エレ（シナモン文鳥・タカハラ実践一号）と、No.1 絶尊
 const kaereBird = () => makeBird({ coat: 0x1A1A22, pants: 0x1A1A22, cap: 0x8A6450, beak: 0xE87070, longcoat: 0xE6E6EC, inner: 0x16161C, trim: 0x8A7AF0, sleeve: 0xE6E6EC, hand: 0x1A1A22, badge: 0x8A7AF0, core: 0x9A8AFF, armMark: 0x8A7AF0, s: 1.22 });
-function zessonBird() { const m = makeBird({ coat: 0x121018, pants: 0x121018, cap: 0x0A0A0E, beak: 0xE8A0A8, muscle: true, core: 0xFF3A20, armMark: 0xFF5A2A, s: 2.15 });
+function zessonBird() { const m = makeBird({ coat: 0x121018, pants: 0x121018, cap: 0x0A0A0E, beak: 0xE8A0A8, muscle: true, core: 0xFF3A20, armMark: 0xFF5A2A, s: 1.45 });
   const cape = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.95, 1.7, 16, 1, true, Math.PI * 0.62, Math.PI * 0.76), new THREE.MeshToonMaterial({ color: 0x5A0A12, gradientMap: gradTex, side: THREE.DoubleSide })); cape.position.set(0, 0.95, -0.05); m.torso.add(cape);
   for (let k = 0; k < 7; k++) { const l = glowSprite(0xFF5A2A, 0.25, 0.7); l.position.set(rand(-0.4, 0.4), rand(0.4, 1.6), 0.44); m.torso.add(l); } return m; }
 // ホ・マレ（無派閥・rate rank No.991）：傷だらけの桜文鳥。包帯、古傷、粟の袋
@@ -7690,17 +7690,17 @@ async function goEnforcer12() { G.mode = 'cine'; await goArea('enfOut'); bgm('en
   await narr('B.U.N DICTATOR の、さらに奥。記録にも、命令系統図にも載らない要塞が、ひとつ。');
   await narr('ERRORS ANNIHILATED.　DIMENSIONS SUBDUED.');
   loc(null); await goArea('enfHall'); const a = AREAS.enfHall, zs = a.zs, ka = a.ka; a.doorOn = false; ka.hidden = true;
-  pan([0, 9, 14], [0, 2, -3.6], [0, 4.2, 6.4], [0, 3.2, -3.6], 10);
+  pan([0, 9, 14], [0, 2, -3.6], [0, 3.4, 5.4], [0, 2.2, -3.6], 10);
   await narr('果てのない広間に、立っているのは、一羽だけだった。');
   await narr('足もとのはるか下で、黒い特異点が、輪を回している。');
-  cine(3.6, 3.8, 3.0, 0, 3.0, -3.6);
-  nameCard({ s: 'B.U.N society No.1　最上位裁定者', b: '絶尊', e: 'B.U.N ULTIMATUM', col: '#FF3A20', p: 'B.U.N society の思想・筋力・技術・支配を統合した、最終回答。\n身長、約二・八メートル。一人称は「余」。\n余の命は、命令そのもの。余の裁定は、宇宙の終着。' });
+  cine(3.0, 2.9, 2.2, 0, 2.1, -3.6);
+  nameCard({ s: 'B.U.N society No.1　最上位裁定者', b: '絶尊', e: 'B.U.N ULTIMATUM', col: '#FF3A20', p: 'B.U.N society の思想・筋力・技術・支配を統合した、最終回答。\n身長、約二メートル。No.一桁の中で、ひと回り大きい。一人称は「余」。\n余の命は、命令そのもの。余の裁定は、宇宙の終着。' });
   await sleep(G.skip ? 0 : 1800); nameCard(null);
   sfx('zapline'); a.doorOn = true; cine(1.0, 2.6, -1.2, 4.4, 1.6, 2.6); await narr('広間の空気が、幾何学の形に、折れた。……紫の光の向こうから、一羽が、踏み出してきた。');
   ka.hidden = false; ka.pos.set(4.0, 0, 2.2); walkTo(ka, 2.2, -0.6, 1.2); await sleep(G.skip ? 0 : 1600); a.doorOn = false;
   ka.lookAt = zs.pos; zs.lookAt = ka.pos; cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2);
   nameCard({ s: 'B.U.N society No.2　タカハラsociety 実践No.1', b: 'カ・エレ', e: 'KA-ERE', col: '#9A8AFF', p: 'シナモン文鳥。機動研究者／総合技術士。一人称は「ぼく」。\n次元を折り畳み、繋ぎ、留める。\nチャ・ニュユーが、うっかり名前を漏らした相手。' });
-  const c2 = () => cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2), cz = () => cine(-3.0, 3.6, 0.8, 0.2, 3.2, -3.2), ck = () => cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6);
+  const c2 = () => cine(7.6, 3.9, -6.6, 0.6, 2.6, -2.2), cz = () => cine(-2.4, 2.7, 0.4, 0.2, 2.2, -3.2), ck = () => cine(5.0, 2.9, -3.9, 2.2, 1.9, -0.6);
   await say('kaere', 'どうも、絶尊。……カ・エレ、ただいま戻りました。');
   nameCard(null); cz(); await say('ult', '……カ・エレか。よい。楽にせよ。');
   c2(); await say('kaere', 'もう、楽にしてますよ。……ここ、ぼくらしか、いませんから。');
@@ -7752,7 +7752,7 @@ async function goEnforcer12() { G.mode = 'cine'; await goArea('enfOut'); bgm('en
   await say('kaere', 'つまり、複数世界規模の現実錨が成功したら。……いちばん影響が少ないのは、ぼくら、文鳥なんですよ。');
   await say('kaere', 'その先のことは、ぼく、あんまり興味がないから、いいんですけど。');
   c2(); await say('kaere', 'ひょっとして。……残ったフィジカルで、メスを、狩り尽くすつもりかい。');
-  pan([-3.0, 3.6, 0.8], [0.2, 3.2, -3.2], [-1.8, 3.1, -0.4], [0.1, 2.8, -3.4], 7); await sleep(G.skip ? 0 : 1600);
+  pan([-2.4, 2.7, 0.4], [0.2, 2.2, -3.2], [-1.4, 2.4, -0.8], [0.1, 2.0, -3.4], 7); await sleep(G.skip ? 0 : 1600);
   await narr('絶尊は、答えなかった。');
   await narr('胸の赤い炉心だけが、ゆっくりと、脈を打っていた。');
   c2(); await say('kaere', '……ま、いいや。ぼくは、扉を作るだけですから。');
@@ -16430,7 +16430,7 @@ function showReport31() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>断偽の夜</td><td>雌の異種族を殺す集団。渉の命をつなぐのは、竜の細胞。「お前が守るのは、竜か、弟か」「……両方だ」。ヴォル「あなたの『職場』の方々は、あの文鳥たちを、どうご覧に？」「私の家族に何かあったら、外のことでも、争いますから」。</td></tr>' +
     '<tr><td>同じ夜、北の外れ</td><td>千路ロジスティクスの夜間の荷受け場。ハーピーの運び手たちを、ザ・ンゲの率いる断偽の門下が襲う。「メスであること。それだけで、足りる」。ひとりが斬られたところへ、カシアが割って入る。「メスかどうかで、人を、数えない」。門下を、殺さずに退ける。……「教主が、お見えになれば。汝も、斬られる」。教主は、まだ、来ていない。</td></tr></table>' +
     '<tr><td>報道と声明</td><td>翌朝、どの局も同じ話。B.U.N society 中央記録局のチャ・ニュユーが声明。「断偽文鳥門は、事実上、独立した、無関係の集団」。「在籍は、所属ではありません」。教主の rate は「記録にない」。……「無関係」だけが切り取られ、百万回、再生された。</td></tr>' +
-    '<tr><td>会見のあと</td><td>文食品のメス肉について、チャ・ニュユー「当該部門は解体、ガ・ンテツは No. を剥奪の上、処分済み。許されない過ち」。……記者のいなくなった会見室で、シ・ロブン「辻では、あのメス肉は絶賛されておりました」「ガ・ンテツくんの罪は、作ったことではありません。異種族に、足がついたこと」「断偽も同じですよ。困るのは、文鳥がやったと映ること」。チャ・ニュユーは「……記録、しました」。</td></tr>' +
+    '<tr><td>会見のあと</td><td>文食品のメス肉について、チャ・ニュユー「当該部門は解体、ガ・ンテツは No. を剥奪の上、処分済み。許されない過ち」。……記者のいなくなった会見室で、シ・ロブン「辻では、あのメス肉、絶賛でしたでしょう」「ガ・ンテツくんの罪は、作ったことじゃありません。異種族に、足がついたこと」「ま、私は、しーらない、ですけど」「メスを斬るのは、まあ、ご自由に。困るのは、文鳥がやったって映ることくらいで」。チャ・ニュユー「……あなたは、いつも、そうだ」「……記録、しました」。</td></tr>' +
     '<tr><td>円卓</td><td>ハーピーの娘「空を飛ぶのが、こわいって」。ミリア「止めたら、あいつらの思う壺。……でも、意地で飛ばして、もう一人落ちたら、あたしが落としたのと同じ」。止めたら人が死ぬ便だけを、低く、陽盾をつけて飛ばす。「飛びたくない子は、飛ばなくていい。それ、負けじゃないから」。ウリエラ「保護は、少し強引だったかもしれない。それでも、本気で救いたかった」「天は裁かない。だから、私が行きます」。白狐「十二年前の、あの刃や」。エルフィン「七年で、四千二百十一。文食品が『肉』にした、私たちの娘たちの数よ」。ゴウカ「おふくろの分も、まだ何ひとつ終わっちゃいねえ」。夜宴は送りの車を全部出し、鬼嶽は夜の現場に若いのを回す。エルフィンは文鳥の受け入れを見合わせ、魔族議連は「文鳥の移動の届け出制」。ルリカ「もう！　そんなの、正常じゃない！……正律で止める。わたしの名前で」。ユリアは、来なかった。</td></tr>' +
     '<tr><td>陽盾</td><td>誰も命じていないのに、練兵場に灯りがついていた。十本の蝋燭。セリ「飛び方、教えたの、私で」。ルーシェ「保護は正しいと思ってた。ちょっと無理やりなところは、あったけど」「死ななきゃいけないほどのことは、誰も、してない」。ゴウラ「十人ですよ！！」。岩城「俺は人間で、男だ。狙われない。それが、いちばん、腹が立つ」。ユリア「ごめんね。間に合わなくて」「……許さない。あーし、これだけは、ぜったい、許せない」「誰も、もう、ひとりで、帰さないで」「泣くのは、ぜんぶ、終わってから」。</td></tr>' +
     '<tr><td>街</td><td>五日後。「文鳥が怖い」六割。入店お断りの貼り紙、シャッターに「断偽＝文鳥」。配達員「同じ、くちばし、だから」。ことりのいえの窓には、ひび。それでも「どっちの文鳥さんも、お客さん」。ポ・ンプ「B.U.N に、帰ったほうが、いいっすかね」。久世「帰るな。お前は、断偽じゃない」。</td></tr>' +
@@ -16691,16 +16691,20 @@ async function goNews31() { G.mode = 'cine'; S.flags.c31st = 'news'; setObj('');
   a.flash = true; cine(0, 3.4, 7.0, 0, 1.4, -2.8); await narr('会見室が、ざわめいた。……十垓羽を記録する society の、どこにも、教主の名は、なかった。'); a.flash = false;
   await fade(true); news22off(); for (const n of a.rep) n.hidden = true; hemi.intensity = 0.32; const sr = put31(a, 'shirobun', () => shirobunBird(), 2.4, -1.4, -Math.PI * 0.75); CAST.shirobun = sr.model; ch.pos.set(0.2, 0, -1.6); ch.facing = Math.PI * 0.45; sr.facing = -Math.PI * 0.55;
   cine(1.2, 2.2, 3.4, 1.2, 1.7, -1.5); await fade(false); await narr('会見の、あと。……記者のいなくなった、会見室に。白い外套の文鳥が、ひとり、残っていた。');
-  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', 'お疲れさまでした、チャ・ニュユーさん。……「許されない、過ち」。よい、言葉ですねぇ。');
-  fc30(ch, 2.4, 0.2, -0.4); await say('chanyu', '……シ・ロブン。辻の No.4 が、なぜ、ここに。');
-  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', 'ガ・ンテツくんの、No. を、剥がしたのは、わたくしですから。……見届けに、来たんですよ。あなたが、どこまで、言うのかを。');
-  await say('shirobun', '記録係の、あなたなら、ご存じでしょう。……辻では、あの「メス肉」は、絶賛されておりました。わたくしも、嫌いでは、ありません。');
-  await say('shirobun', 'ガ・ンテツくんの、罪は。……作ったことでは、ありません。異種族に、足が、ついたこと。それだけです。');
-  await say('shirobun', '隠しきれない、仕事は。……仕事では、ありませんからねぇ。');
+  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', 'おつかれさまでしたー、チャ。……「許されない、過ち」。ふーん。いいんじゃないですか。');
+  fc30(ch, 2.4, 0.2, -0.4); await say('chanyu', '……シ・ロブン。なぜ、ここに、いるんですか。……辻の No.4 が、顔を出す場じゃ、ないだろう。');
+  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', '暇だったので。……ガ・ンテツくんの No. を剥がしたの、私ですしねぇ。あなたが、どこまで言うのか、ちょっと、見物に。');
+  await say('shirobun', 'ほら。辻では、あの「メス肉」、絶賛でしたでしょう。……私も、嫌いじゃ、ありませんでしたよ。');
+  await say('shirobun', 'ガ・ンテツくんの罪は、作ったことじゃ、ありません。……異種族に、足が、ついたこと。それだけです。');
+  await say('shirobun', '隠しきれない仕事は、仕事じゃ、ありませんからねぇ。……ま、私は、しーらない、ですけど。');
   fc30(ch, 2.4, 0.2, -0.4); ch.st = { cross: true }; await narr('チャ・ニュユーは、胃のあたりを、押さえた。'); ch.st = {};
-  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', '断偽も、同じですよ。……メスを、斬ることそのものに、辻は、とやかく、申しません。困るのは、「文鳥が、やった」と、映ること。');
+  await say('chanyu', '……あなたは、いつも、そうだ。燃やすだけ、燃やして。片付けは、全部、こっちに回すんですから。');
+  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', 'はい、はい。……ごめんなさいね、ごめんなさいね。');
+  await say('shirobun', '断偽も、同じですよ。メスを斬るのは、まあ、ご自由に。……困るのは、「文鳥が、やった」って、映ることくらいで。');
   fc30(ch, 2.4, 0.2, -0.4); await say('chanyu', '……記録、しました。');
-  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', 'ええ。……あなたは、いつも、そうでしたね。食べない、記録係さん。');
+  fc30(sr, 2.4, 0.2, 0.4); await say('shirobun', 'さあ……。あなたは、いつも、そうでしたねぇ。食べない、記録係さん。');
+  await say('shirobun', 'じゃ、私は、これで。……いま、いそがしいので。');
+  cine(1.2, 2.2, 3.4, 1.2, 1.7, -1.5); await narr('いそがしいはずの No.4 は、あくびを、ひとつして、出ていった。');
   sr.hidden = true; hemi.intensity = 0.8; for (const n of a.rep) n.hidden = false; cine(0, 3.4, 7.0, 0, 1.4, -2.8);
   news22('【B.U.N 声明】断偽文鳥門は「事実上、独立した無関係の集団」', '教主メス・ゼロの rate は「記録にない」　――　街の声「無関係と言われても、見分けがつかない」');
   await say('anchor31', '……B.U.N は、無関係と、していますが。街の声は、こうです。');
@@ -17305,6 +17309,6 @@ $('talkSkipAll').addEventListener('click', () => talkSkip(!G.skipTalk, false));
 { const g0 = goArea; goArea = function (...a) { if (G.skipScene) talkSkip(false); return g0.apply(this, a); }; const c0 = card; card = function (...a) { if (G.skipScene) talkSkip(false); return c0.apply(this, a); }; }
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); const show = talk && (G.skipTalk || !$('dlg').hidden);
   $('talkSkip').hidden = !(show && (!G.skipTalk || G.skipScene)); $('talkSkipAll').hidden = !(show && (!G.skipTalk || !G.skipScene)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
