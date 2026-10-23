@@ -13248,7 +13248,7 @@ function no30Bird() { const m = makeBird({ coat: 0x2A1A3A, pants: 0x1A1222, cap:
   for (const sx of [-1, 1]) part(G_('ering30', () => new THREE.TorusGeometry(0.07, 0.018, 6, 16)), 0xE8505A, sx * 0.2, 0.06, 0.285, m.head, { outline: false });
   part(G_('mono30', () => new THREE.TorusGeometry(0.1, 0.014, 6, 20)), 0xE0C060, 0.2, 0.06, 0.3, m.head, { outline: false, emis: 0x6A5020 }); const gl = glowSprite(0xC8A0FF, 0.5, 0.5); gl.position.set(-0.2, 0.06, 0.32); m.head.add(gl); m.eyeGl = gl; return m; }
 // 叫び、形のない声（台詞の書式）
-{ const st = document.createElement('style'); st.textContent = '#dlg.shout24 { border-top-color: #E0304A; background: rgba(14,4,6,.95); animation: shk24 .11s steps(2) infinite; } #dlg.shout24 #dText { font-size: 1.45em; font-weight: 900; color: #FF9A9A; letter-spacing: .04em; } @keyframes shk24 { 0% { transform: translate(0, 0); } 50% { transform: translate(2px, -1px); } } #dlg.voice24 { border-top-color: #9A6AE0; background: rgba(8,4,14,.95); } #dlg.voice24 #dText { font-family: var(--mincho); color: #E8D0FF; text-shadow: 0 0 12px rgba(200,160,255,.8); }'; document.head.appendChild(st); }
+{ const st = document.createElement('style'); st.textContent = '#dlg.shout24 { border-top-color: #E0304A; background: rgba(14,4,6,.95); animation: shk24 .11s steps(2) infinite; } #dlg.shout24 #dText { font-size: 1.45em; font-weight: 900; color: #FF9A9A; letter-spacing: .04em; } @keyframes shk24 { 0% { translate: 0 0; } 50% { translate: 2px -1px; } } #dlg.voice24 { border-top-color: #9A6AE0; background: rgba(8,4,14,.95); } #dlg.voice24 #dText { font-family: var(--mincho); color: #E8D0FF; text-shadow: 0 0 12px rgba(200,160,255,.8); }'; document.head.appendChild(st); }
 const shout24 = t => say('tado24', t, { cls: 'shout24' }), voice24 = t => say('voice24', t, { cls: 'voice24' });
 // 低い鐘：ボーン、ボーン（音と、画面の輪）
 SFX.bell24 = () => { const f = 49; tone(f, 0, 6.5, 'sine', 0.24, { a: 0.006 }); tone(f * 2, 0, 5.0, 'sine', 0.09, { a: 0.006 }); tone(f * 2.76, 0, 4.0, 'sine', 0.07, { a: 0.004 }); tone(f * 5.4, 0, 2.2, 'sine', 0.03, { a: 0.003 }); tone(f * 8.93, 0, 1.0, 'sine', 0.014, { a: 0.002 }); noise(0, 0.09, 0.05, 260, 'lowpass'); };
@@ -16192,7 +16192,7 @@ function playAsCassia31(on) { if (!KUZE_MODEL) KUZE_MODEL = P.model; if (!CAS31)
 const on31 = k => () => S.chapter === 31 && S.flags.c31st === k;
 const got31 = k => (S.flags.c31z || []).includes(k), mark31 = k => { const g = S.flags.c31z || (S.flags.c31z = []); if (!g.includes(k)) g.push(k); };
 function put31(a, k, mk, x, z, f, st, y) { const E = a.e31 || (a.e31 = {}); const n = E[k] || (E[k] = npc(a, k, mk(), x, z, f)); n.pos.x = x; n.pos.z = z; n.facing = f; n.st = Object.assign({}, st || {}); n.hidden = false; n.lookAt = null; n.goal = null; n.y = y || 0; return n; }
-const kuze31 = () => { playAsCassia31(false); kuzeOn26(false); };
+const kuze31 = () => { if (CSB.on) csbEnd31(); playAsCassia31(false); kuzeOn26(false); };
 const walk31 = (n, x, z, sp = 1.4) => new Promise(res => { n.goal = { x, z, speed: sp, res }; });
 // 病棟の人々：渉は三〇七号室のベッド、ヴォルは廊下
 function ward31(a, st) { for (const n of a.npcs) n.hidden = true; const wt = a.wt; wt.hidden = false; wt.pos.set(-7.5, 0, -3.6); wt.facing = Math.PI / 2; wt.st = Object.assign({}, st); wt.y = 0.6; wt.lookAt = null;
@@ -16351,7 +16351,7 @@ async function goHub31() { G.mode = 'cine'; S.flags.c31st = 'hub'; setObj(''); k
   const M = [0, 1, 2, 3].map(i => { const n = put31(a, 'dmon31' + i, () => member30(i, true), [2.4, 9.4, 10.4, 3.8][i], [1.2, 0.8, 3.4, 0.1][i], Math.atan2(6 - [2.4, 9.4, 10.4, 3.8][i], 3 - [1.2, 0.8, 3.4, 0.1][i])); n.y = 6.0; n.hidden = true; return n; });
   const za = put31(a, 'zange', () => zange30(), 6.4, 0.3, 0); za.y = 6.0; za.hidden = true;
   await say('chorus30', '……偽りを、断てェ……。偽りを、断てェ……。');
-  for (const n of [...M, za]) { n.hidden = false; n.y = 0; fxRing(n.pos.x, 0.05, n.pos.z, 0x9A9AA4, 1.6); } sfx('wind'); G.shake = 0.4; bgm('dangi30');
+  for (const n of [...M, za]) { n.hidden = false; n.y = 0; fxRing(n.pos.x, 0.05, n.pos.z, 1.6, 0x9A9AA4); } sfx('wind'); G.shake = 0.4; bgm('dangi30');
   H.forEach(n => { n.facing = Math.atan2(6.4 - n.pos.x, 0.3 - n.pos.z); }); cine(6.2, 3.0, 8.8, 6.4, 1.2, 1.0); await narr('文鳥たちが、音もなく、床に、降りた。……黒い戦装束。胸に、断つ、の紋。');
   fc30(H[2], 2.4, 0, 0.4); await say('hp31c', '……文鳥？　え、配達の、ひと……？');
   fc30(za, 3.0, 0.2, 0.4); await say('zange', '翼を、持つ、メス。……空を、飛ぶことで、地に、触れぬ、ことで。救われた、気でいる。');
@@ -16362,7 +16362,7 @@ async function goHub31() { G.mode = 'cine'; S.flags.c31st = 'hub'; setObj(''); k
   fc30(za, 3.0, 0.2, 0.4); await say('zange', '何も、していない。……そうだ。メスで、あること。それだけで、足りる。');
   H[0].facing = Math.atan2(m0.pos.x - H[0].pos.x, m0.pos.z - H[0].pos.z); await walk31(m0, 5.6, 2.2, 2.4); m0.st = { punch: true }; await z22(240);
   sfx('slash'); fxFlash(5.2, 1.4, 2.4, 0xF4F8FF, 2.4, 0.25); G.shake = 0.6; m0.st = {}; m0.pos.set(7.6, 0, 1.2); m0.st = { down: true };
-  const cs = put31(a, 'cassia', () => cassiaModel(true), 5.2, 2.2, Math.atan2(6.4 - 5.2, 0.3 - 2.2)); fxRing(5.2, 0.05, 2.2, 0xA8D8F0, 2.2); bgm('');
+  const cs = put31(a, 'cassia', () => cassiaModel(true), 5.2, 2.2, Math.atan2(6.4 - 5.2, 0.3 - 2.2)); cassiaDraw31(cs.model, true); slashFx31(5.2, 1.1, 2.2, cs.facing, { s: 3.6, roll: 0.3 }); burstFx31(5.6, 1.3, 1.6, 2.4); fxRing(5.2, 0.05, 2.2, 2.2, 0x7AD0FF); bgm('');
   cine(3.0, 1.8, 6.0, 5.2, 1.2, 2.2); await narr('白い外套が、刃の前に、立っていた。……黒い、刀。');
   fc30(cs, 2.4, 0, 0.5); await say('cassia', '……そこまで。');
   fc30(za, 3.0, 0.2, 0.4); await say('zange', '……人の、形を、した。……メスが、もう一羽。');
@@ -16371,27 +16371,29 @@ async function goHub31() { G.mode = 'cine'; S.flags.c31st = 'hub'; setObj(''); k
   await say('cassia', '……メスかどうかで、人を、数えない。あなたたちとは、そこが、違う。');
   cs.facing = Math.atan2(H[0].pos.x - cs.pos.x, H[0].pos.z - cs.pos.z); fc30(cs, 2.2, 0, -0.6); await say('cassia', '飛んで。……その子を、抱えて。上は、まだ、空いてる。');
   fc30(H[0], 2.2, 0, 0.5); await say('hp31', '……う、うん……！');
-  for (const n of H) n.hidden = true; fxRing(6.2, 3.0, 3.2, 0xE0A040, 2.0); sfx('wind'); cine(6.0, 2.0, 8.6, 6.0, 4.6, 1.0); await narr('羽音が、天井の、割れた窓へ、抜けていった。');
+  for (const n of H) n.hidden = true; fxRing(6.2, 3.0, 3.2, 2.0, 0xE0A040); sfx('wind'); cine(6.0, 2.0, 8.6, 6.0, 4.6, 1.0); await narr('羽音が、天井の、割れた窓へ、抜けていった。');
   cs.facing = Math.atan2(6.4 - cs.pos.x, 0.3 - cs.pos.z); fc30(za, 3.0, 0.2, 0.4); await say('zange', '……よい。翼は、また、数えれば、いい。');
   await say('zange', '先に。……この、メスを、断つ。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '……少しだけ。本気で、いく。');
+  sfx('sheath31'); fxFlash(cs.pos.x + 0.3, 1.0, cs.pos.z, 0x7AD0FF, 2.2, 0.35); cs.st = { guard: true }; await narr('刃文が、青く、灯った。');
   await fade(true); await goFight31(); }
 
 async function goFight31() { G.mode = 'cine'; S.flags.c31st = 'fight'; setObj(''); if (PB.on) pbStop(); kuze31(); await goArea('hub19', [5.0, 3.6], Math.PI); const a = AREAS.hub19; hub31(a); playAsCassia31(true); await fade(false); ckSave();
   P.pos.set(5.0, 0, 3.6); P.facing = Math.PI; P.st = {}; const za = put31(a, 'zange', () => zange30(), 6.4, 0.4, 0); za.hidden = true;
-  const W0 = [[2.8, 0.8], [5.0, 0.6], [8.4, 0.9], [9.8, 2.8]], mem = i => put31(a, 'dmon31' + i, () => member30(i, true), W0[i][0], 0.0 + W0[i][1], 0);
-  const W1 = [0, 1, 2, 3].map(mem);
-  cine(5.0, 7.6, 11.0, 6.0, 0.8, 1.6); await card('戦闘　――　夜間の荷受け場', '断偽の刃は、振り抜いたあとに、隙ができる。……隙に、斬れ', 2400); setObj('断偽の門下を、退けろ');
+  const W0 = [[2.6, 0.9], [4.6, 0.5], [6.8, 0.6], [8.8, 1.0], [10.2, 2.8], [9.6, 4.8]], mem = i => put31(a, 'dmon31' + i, () => member30(i, true), W0[i][0], 0.0 + W0[i][1], 0);
+  const W1 = [0, 1, 2, 3, 4, 5].map(mem);
+  cine(5.0, 7.6, 11.0, 6.0, 0.8, 1.6); await card('戦闘　――　黒刃', 'カシア、少しだけ、本気。……連撃で、閃く。攻撃の直前で避ければ、見切り', 2600); setObj('断偽の門下を、退けろ');
   const foe = (n, hp, mv) => pbFoe(n, { hp, moves: mv, keep: 2.6, speed: 2.0, reach: 7, hate: { P: 3 } });
-  pbStart({ anchor: W1[1], allies: [], hp: 7, failKey: 'c31hub', music: 'raid30', tip: '斬る（Space）、かわす（K／X）。袈裟の一太刀・跳び込みは、振り抜いたあとに隙ができる',
-    waves: [{ name: '断偽の門下', foes: () => { W1.forEach((n, i) => { n.hidden = false; n.st = {}; n.pos.set(W0[i][0], 0, W0[i][1]); }); za.hidden = true; return W1.map((n, i) => foe(n, 5, i % 2 ? ['tobi31', 'kiri31'] : ['kiri31'])); } },
-      { name: 'ザ・ンゲ', tip: '唱和の輪は、外へ広がる。……離れて、かわせ', foes: () => { za.hidden = false; za.st = {}; za.pos.set(6.4, 0, 0.4); const b = put31(a, 'dmon31b', () => member30(4, true), 3.0, 1.6, 0), c = put31(a, 'dmon31c', () => member30(1, true), 9.4, 1.8, 0); return [foe(za, 14, ['kyou31', 'kiri31', 'tobi31']), foe(b, 4, ['kiri31']), foe(c, 4, ['tobi31'])]; } }],
+  pbStart({ anchor: W1[1], allies: [], hp: 7, failKey: 'c31hub', music: 'raid30', tip: '斬（Space）連打で連撃・閃歩　避（K）攻撃の直前で見切り→返し斬り　技（Q）月輪・零閃',
+    waves: [{ name: '断偽の門下', foes: () => { W1.forEach((n, i) => { n.hidden = false; n.st = {}; n.pos.set(W0[i][0], 0, W0[i][1]); }); za.hidden = true; return W1.map((n, i) => foe(n, 7, i % 2 ? ['tobi31', 'kiri31'] : ['kiri31'])); } },
+      { name: 'ザ・ンゲ', tip: '唱和の輪は、外へ広がる。……離れて、かわせ', foes: () => { za.hidden = false; za.st = {}; za.pos.set(6.4, 0, 0.4); const b = put31(a, 'dmon31b', () => member30(4, true), 3.0, 1.6, 0), c = put31(a, 'dmon31c', () => member30(1, true), 9.4, 1.8, 0), d = put31(a, 'dmon31d', () => member30(2, true), 7.8, 4.8, 0); return [foe(za, 28, ['kyou31', 'kiri31', 'tobi31']), foe(b, 6, ['kiri31']), foe(c, 6, ['tobi31']), foe(d, 6, ['kiri31', 'tobi31'])]; } }],
     reset: () => { P.pos.set(5.0, 0, 3.6); P.st = {}; }, onFail: async () => { await narr('……膝を、ついた。刀を、杖にして、立つ。……まだ、終わってない。'); },
     onWave: async i => { if (i === 1) { za.hidden = false; za.pos.set(6.4, 0, 0.4); za.facing = Math.atan2(P.pos.x - 6.4, P.pos.z - 0.4); fc30(za, 3.0, 0.2, 0.4); await say('zange', '……よい、刃だ。迷いが、ない。……だが、汝の、刃は、殺さぬ、刃だ。'); await say('zange', '殺さぬ、刃で。……断偽は、止まらぬ。'); } },
     onClear: async () => { await goHubEnd31(); } });
-  $('abMeN').textContent = 'カシア'; }
+  $('abMeN').textContent = 'カシア'; csbStart31(); }
 
 async function goHubEnd31() { G.mode = 'cine'; S.flags.c31st = 'hubEnd'; setObj(''); if (PB.on) pbStop(); kuze31(); await goCine30('hub19', [0, 999], 0); const a = AREAS.hub19; hub31(a, true); await fade(false); ckSave(); bgm('dangi30');
-  const za = put31(a, 'zange', () => zange30(), 6.4, 0.5, 0.15, { kneel: true }); const cs = put31(a, 'cassia', () => cassiaModel(true), 5.8, 3.0, Math.atan2(6.4 - 5.8, 0.5 - 3.0));
+  const za = put31(a, 'zange', () => zange30(), 6.4, 0.5, 0.15, { kneel: true }); const cs = put31(a, 'cassia', () => cassiaModel(true), 5.8, 3.0, Math.atan2(6.4 - 5.8, 0.5 - 3.0)); cassiaDraw31(cs.model, true);
   [0, 1, 2, 3].forEach(i => put31(a, 'dmon31' + i, () => member30(i, true), [2.6, 3.8, 8.8, 9.8][i], [0.8, 2.0, 1.4, 3.2][i], 0, { down: true }));
   cine(7.4, 3.6, 8.8, 6.0, 0.8, 1.4); await narr('門下の文鳥たちは、床に、伏していた。……誰も、死んでは、いなかった。');
   fc30(za, 3.0, 0.2, 0.4); await say('zange', '……殺さぬのか。');
@@ -16401,7 +16403,7 @@ async function goHubEnd31() { G.mode = 'cine'; S.flags.c31st = 'hubEnd'; setObj(
   await say('zange', '天使も、狐も、運命も。……あの方の、刃の前では、ただの、メスだ。');
   fc30(cs, 2.4, 0, 0.5); await say('cassia', '……その人が、来る前に。片づける。');
   za.st = {}; for (const n of Object.values(a.e31)) if (/^dmon31/.test(n.key)) { n.st = {}; } await say('chorus30', '……偽りを、断てェ……。');
-  sfx('wind'); for (const n of Object.values(a.e31)) if (/^dmon31|^zange$/.test(n.key) && !n.hidden) { fxRing(n.pos.x, 0.05, n.pos.z, 0x9A9AA4, 1.4); n.hidden = true; }
+  sfx('wind'); for (const n of Object.values(a.e31)) if (/^dmon31|^zange$/.test(n.key) && !n.hidden) { fxRing(n.pos.x, 0.05, n.pos.z, 1.4, 0x9A9AA4); n.hidden = true; }
   cine(7.4, 3.6, 8.8, 6.0, 0.8, 1.4); await narr('唱和だけを、残して。……文鳥たちは、梁の上の、暗がりへ、消えた。'); bgm('');
   sfx('vib'); fc30(cs, 2.2, 0, 0.6); await say('cassia', '……カ・エレさん。四十八件目。……未遂。ひとり、怪我。生きてる。');
   await say('ktel31', 'うん。……よく、間に合ったね。');
@@ -16409,7 +16411,7 @@ async function goHubEnd31() { G.mode = 'cine'; S.flags.c31st = 'hubEnd'; setObj(
   await say('cassia', '来てない。……「お見えに、なれば」って、言ってた。');
   await say('ktel31', 'そう。……じゃあ、まだ、間に合う。');
   await say('ktel31', 'カシア。……次は、ひとりで、行かないで。あの人の、前では。きみも、メスだから。');
-  fc30(cs, 2.4, 0, 0.5); await say('cassia', '……了解。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '……了解。'); sfx('sheath31'); cassiaDraw31(cs.model, false);
   cs.facing = Math.atan2(7.8 - cs.pos.x, -6.4 - cs.pos.z); cine(6.4, 1.4, 6.8, 7.8, 5.0, -6.4); await narr('割れた窓の、向こう。……北の、弥勒山の方角から、風が、吹いていた。');
   await narr('教主は。……まだ、来ていない。');
   await fade(true); await card('第十章　序　同意', '完', 3200); await fade(false); setMeta({ ch31Clear: true, ch31: packS(), ch31Done: [...DONE] }); showReport31(); }
@@ -16433,10 +16435,165 @@ async function startCh31() { const m = meta(); if (m.ch30) unpackS(m.ch30); else
 // 続きから：場面の始まりから
 RESUME[31] = { call: goCall31, wait: goWait31, morning: goMorning31, night: goNight31, hub: goHub31, fight: goFight31, hubEnd: goHubEnd31 };
 // 荷受け場の戦い
-{ const a = AREAS.hub19, t0 = a.tick; a.tick = function (x, dt) { if (t0) t0.call(this, x, dt); if (S.chapter === 31 && AB.on) { abTick(x, dt); pbTick(x, dt); } }; }
+{ const a = AREAS.hub19, t0 = a.tick; a.tick = function (x, dt) { if (t0) t0.call(this, x, dt); if (S.chapter === 31) { const ts = csbTick(dt); if (AB.on) { abTick(x, dt * ts); pbTick(x, dt * ts); } } }; }
 AREAS.hospital.restore = (r0 => function (a) { if (r0) r0.call(this, a); if (S.chapter === 31) hosp31Items(); })(AREAS.hospital.restore);
 // 第十章 Intro の報告から、序へ
 { const r0 = showReport30; showReport30 = function () { r0(); const row = $('titleBtn30') && $('titleBtn30').parentNode; if (row && !$('ch31Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch31Go'; b.textContent = '第十章　序　同意 へ'; row.insertBefore(b, row.firstChild); $('titleBtn30').className = 'ghost'; b.addEventListener('click', () => run(chapter31)); } }; }
+
+// ================= カシア：黒刃（見た目・刀・斬撃の欠片・高速の立ち回り） =================
+// ---- 見た目：白くふくらんだ外套、黒の体衣に金の差し色、腰に黒い鞘 ----
+Object.assign(LK.cassiaG, { hair: 0xDCE6F6, katana: false, glove: 0x18181E, shoe: 0x101014, boots: 0x16161C });
+// 黒刃：柄は手の位置（y=0）、刃は -y へ。柄は黒に金の菱巻き、柄頭に青い石、刃文は青く光る
+function katana31() { const g = new THREE.Group();
+  part(box(0.055, 0.3, 0.06), 0x121216, 0, 0.1, 0, g, { ol: 1.1 });
+  for (let i = 0; i < 4; i++) part(box(0.062, 0.03, 0.066), 0xD8A040, 0, i * 0.07, 0, g, { outline: false, rz: 0.5 });
+  part(cyl(0.04, 0.04, 0.05, 8), 0x1A1A20, 0, 0.27, 0, g, { outline: false });
+  part(sph(0.03, 8, 6), 0x4AB8FF, 0, 0.3, 0, g, { outline: false, emis: 0x2A8AE0 });
+  part(cyl(0.11, 0.11, 0.025, 16), 0x16161A, 0, -0.07, 0, g, { ol: 1.08 });
+  part(box(0.05, 0.05, 0.075), 0xD8A040, 0, -0.1, 0, g, { outline: false });
+  part(box(0.025, 1.1, 0.07), 0x22262E, 0, -0.67, 0, g, { ol: 1.06 });
+  part(box(0.03, 1.08, 0.012), 0x8ADFFF, 0, -0.67, 0.03, g, { outline: false, emis: 0x3AA8FF });
+  part(box(0.024, 0.14, 0.05), 0x22262E, 0, -1.26, -0.008, g, { outline: false, rx: 0.4 });
+  return g; }
+function saya31() { const g = new THREE.Group(); part(box(0.075, 1.3, 0.085), 0x101014, 0, -0.65, 0, g, { ol: 1.06 });
+  for (const y of [-0.25, -0.6, -0.95]) part(box(0.08, 0.02, 0.09), 0x2A2E38, 0, y, 0, g, { outline: false });
+  part(box(0.082, 0.07, 0.092), 0x3A3E48, 0, -1.3, 0, g, { outline: false }); part(box(0.08, 0.04, 0.09), 0xD8A040, 0, -0.02, 0, g, { outline: false }); return g; }
+function cassiaGear31(m) { const T = m.torso, H = m.head;
+  for (const pv of m.arms) { for (const y of [-0.12, -0.3]) part(G_('puff31', () => new THREE.TorusGeometry(0.15, 0.05, 6, 14)), 0xF6F6F8, 0, y, 0, pv, { rx: Math.PI / 2, ol: 1.04 });
+    part(cyl(0.1, 0.1, 0.06, 10), 0x16161C, 0, -0.46, 0, pv, { outline: false }); part(box(0.05, 0.04, 0.12), 0xD8A040, 0, -0.53, 0.05, pv, { outline: false }); }
+  for (const sx of [-1, 1]) part(box(0.07, 0.1, 0.03), 0xD8A040, sx * 0.09, 1.52, 0.2, T, { outline: false });
+  for (const sx of [-1, 1]) for (const y of [0.6, 0.85]) part(G_('ring31', () => new THREE.TorusGeometry(0.045, 0.012, 6, 14)), 0xD8D8DE, sx * 0.24, y, 0.27, T, { outline: false });
+  for (const pv of m.legs) { part(box(0.05, 0.26, 0.02), 0xE0A040, 0, -0.14, 0.08, pv, { outline: false, rz: 0.3 }); part(box(0.18, 0.05, 0.1), 0xD8A040, 0, -0.8, -0.1, pv, { outline: false }); }
+  part(cyl(0.02, 0.02, 0.01, 10), 0xA8D8F4, 0.19, -0.04, 0.27, H, { rx: Math.PI / 2, outline: false });
+  const sa = saya31(); sa.position.set(-0.27, 0.98, 0.08); sa.rotation.set(1.15, 0, 0.12); m.g.add(sa); m.saya31 = sa; m.kat31 = katana31(); cassiaDraw31(m, false); return m; }
+// 抜く／納める
+function cassiaDraw31(m, on) { const k = m.kat31; if (!k) return; if (on) { m.arms[1].add(k); k.position.set(0, -0.55, 0.02); k.rotation.set(0.35, 0, 0); } else { m.saya31.add(k); k.position.set(0, 0, 0); k.rotation.set(0, 0, 0); } m.drawn31 = on; }
+cassiaModel = (f0 => function (gear) { const m = f0(gear); if (gear) cassiaGear31(m); return m; })(cassiaModel);
+
+// ---- 斬撃の欠片：黒い結晶の弧、青白い刃先、散る欠片、弾ける星、一文字 ----
+let SLT31 = null;
+function slTex31() { if (SLT31) return SLT31; const dia = (c, x, y, s) => { c.beginPath(); c.moveTo(x, y - s); c.lineTo(x + s * 0.5, y); c.lineTo(x, y + s); c.lineTo(x - s * 0.5, y); c.closePath(); c.fill(); c.stroke(); };
+  const arc = canvasTex(512, 256, (c, w, h) => { const cx = w / 2, cy = h * 1.55, R = h * 1.35, a0 = Math.PI * 1.22, a1 = Math.PI * 1.78;
+    c.beginPath(); c.arc(cx, cy, R, a0, a1); c.arc(cx, cy + 40, R - 6, a1 - 0.02, a0 + 0.02, true); c.closePath(); const gr = c.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(10,14,24,0)'); gr.addColorStop(0.3, 'rgba(16,22,36,.9)'); gr.addColorStop(1, 'rgba(28,38,58,.98)'); c.fillStyle = gr; c.fill();
+    c.strokeStyle = 'rgba(140,175,215,.5)'; c.lineWidth = 2; for (let i = 0; i < 16; i++) { const a = a0 + 0.06 + i * 0.1, r1 = R - 14 - (i % 3) * 9; c.beginPath(); c.moveTo(cx + Math.cos(a) * (R - 36), cy + Math.sin(a) * (R - 36) + 18); c.lineTo(cx + Math.cos(a + 0.04) * r1, cy + Math.sin(a + 0.04) * r1); c.stroke(); }
+    c.lineCap = 'round'; c.shadowColor = '#5AC8FF'; c.shadowBlur = 24; c.strokeStyle = '#BFEAFF'; c.lineWidth = 8; c.beginPath(); c.arc(cx, cy, R - 3, a0 + 0.05, a1 - 0.01); c.stroke(); c.shadowBlur = 0; c.strokeStyle = '#FFFFFF'; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, R - 3, a0 + 0.1, a1 - 0.02); c.stroke();
+    c.fillStyle = 'rgba(18,24,38,.92)'; c.strokeStyle = 'rgba(160,215,255,.85)'; c.lineWidth = 1.4; for (let i = 0; i < 30; i++) { const a = a0 + Math.random() * 0.4, r = R - 30 - Math.random() * 70; dia(c, cx + Math.cos(a) * r, cy + Math.sin(a) * r, 4 + Math.random() * 11); } });
+  const burst = canvasTex(256, 256, (c, w, h) => { const cx = w / 2, cy = h / 2; c.fillStyle = 'rgba(16,22,36,.95)'; c.strokeStyle = 'rgba(150,210,255,.9)'; c.lineWidth = 1.6;
+    for (let i = 0; i < 18; i++) { const a = i / 18 * TAU + Math.random() * 0.2, L = 50 + Math.random() * 72, s = 7 + Math.random() * 9; c.save(); c.translate(cx, cy); c.rotate(a); c.beginPath(); c.moveTo(14, -s * 0.4); c.lineTo(L, 0); c.lineTo(14, s * 0.4); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+    const rg = c.createRadialGradient(cx, cy, 0, cx, cy, 62); rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(0.3, 'rgba(150,220,255,.9)'); rg.addColorStop(1, 'rgba(60,140,255,0)'); c.fillStyle = rg; c.fillRect(0, 0, w, h);
+    c.strokeStyle = '#FFFFFF'; c.lineWidth = 3; c.shadowColor = '#7AD0FF'; c.shadowBlur = 12; for (let i = 0; i < 6; i++) { const a = Math.random() * TAU; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * 112, cy + Math.sin(a) * 112); c.stroke(); } });
+  const shard = canvasTex(64, 64, c => { c.fillStyle = 'rgba(18,24,38,.95)'; c.strokeStyle = '#A8DCFF'; c.lineWidth = 3; dia(c, 32, 32, 27); c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(32, 7); c.lineTo(32, 57); c.stroke(); });
+  const line = canvasTex(512, 64, (c, w, h) => { c.shadowColor = '#5AC8FF'; c.shadowBlur = 16; c.strokeStyle = '#CFF0FF'; c.lineWidth = 6; c.beginPath(); c.moveTo(6, h / 2); c.lineTo(w - 6, h / 2); c.stroke(); c.shadowBlur = 0; c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(10, h / 2); c.lineTo(w - 10, h / 2); c.stroke();
+    c.fillStyle = 'rgba(18,24,38,.9)'; c.strokeStyle = 'rgba(160,215,255,.8)'; c.lineWidth = 1; for (let i = 0; i < 18; i++) dia(c, Math.random() * w, h / 2 + (Math.random() - 0.5) * 30, 3 + Math.random() * 7); });
+  SLT31 = { arc, burst, shard, line }; return SLT31; }
+const _q31 = new THREE.Quaternion(), _ax31 = new THREE.Vector3(1, 0, 0), _ay31 = new THREE.Vector3(0, 1, 0);
+// 弧：face の向きに張り出す。roll で傾け（斜め・斬り上げ）、mir で向きを返す
+function slashFx31(x, y, z, face, o = {}) { const mat = new THREE.MeshBasicMaterial({ map: slTex31().arc, transparent: true, depthWrite: false, side: THREE.DoubleSide }); const m = new THREE.Mesh(G_('slash31', () => new THREE.PlaneGeometry(1, 0.5)), mat);
+  const S0 = o.s || 3.4, mir = o.mir || 1, dd = o.dist ?? 0.55; m.quaternion.setFromAxisAngle(_ay31, face).multiply(_q31.setFromAxisAngle(_ax31, Math.PI / 2)).multiply(new THREE.Quaternion().setFromAxisAngle(_ay31, o.roll || 0));
+  m.position.set(x + Math.sin(face) * dd, y, z + Math.cos(face) * dd); m.renderOrder = 5;
+  fxAdd(m, o.life || 0.26, u => { mat.opacity = u < 0.2 ? 1 : 1 - (u - 0.2) / 0.8; const s = S0 * (0.78 + 0.32 * Math.min(1, u * 4)); m.scale.set(s * mir, s, 1); }); return m; }
+function burstFx31(x, y, z, s = 1.8, life = 0.24) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: slTex31().burst, transparent: true, depthWrite: false, rotation: Math.random() * TAU })); sp.position.set(x, y, z); sp.renderOrder = 6; fxAdd(sp, life, u => { sp.material.opacity = 1 - u * u; sp.scale.setScalar(s * (0.6 + u * 0.8)); }); }
+function shardFx31(x, y, z, n = 6, spd = 4) { const tx = slTex31().shard; for (let i = 0; i < n; i++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, rotation: Math.random() * TAU })), v = new THREE.Vector3(rand(-1, 1), rand(0.3, 1.2), rand(-1, 1)).normalize().multiplyScalar(spd * rand(0.5, 1)), life = rand(0.3, 0.5);
+  m.scale.setScalar(rand(0.18, 0.36)); m.position.set(x, y, z); fxAdd(m, life, u => { const t = u * life; m.position.set(x + v.x * t, y + v.y * t - 5 * t * t, z + v.z * t); m.material.opacity = 1 - u; m.material.rotation += 0.25; }); } }
+function lineFx31(x0, z0, x1, z1, life = 1.0) { const mat = new THREE.MeshBasicMaterial({ map: slTex31().line, transparent: true, depthWrite: false, side: THREE.DoubleSide }), m = new THREE.Mesh(G_('line31', () => new THREE.PlaneGeometry(1, 1)), mat), dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz) || 0.1;
+  m.position.set((x0 + x1) / 2, 1.0, (z0 + z1) / 2); m.rotation.order = 'YXZ'; m.rotation.set(-Math.PI / 2, Math.atan2(dx, dz) - Math.PI / 2, 0); m.scale.set(L + 0.8, 0.5, 1); m.renderOrder = 5; fxAdd(m, life, u => { mat.opacity = u < 0.75 ? 1 : 1 - (u - 0.75) / 0.25; }); }
+// ---- 音 ----
+SFX.cut31 = () => { noise(0, 0.09, 0.22, 5200, 'highpass'); noise(0.01, 0.12, 0.12, 2400); tone(2900, 0, 0.16, 'sine', 0.03, { f1: 1700 }); };
+SFX.cutHit31 = () => { noise(0, 0.05, 0.3, 3000, 'highpass'); tone(160, 0, 0.12, 'square', 0.06, { f1: 60, lp: 1200 }); tone(3800, 0.01, 0.28, 'sine', 0.022); tone(5200, 0.02, 0.2, 'sine', 0.014); };
+SFX.blink31 = () => { noise(0, 0.1, 0.12, 6000, 'highpass'); tone(1200, 0, 0.1, 'sine', 0.02, { f1: 3000 }); };
+SFX.sheath31 = () => { tone(2200, 0, 0.06, 'square', 0.04, { lp: 4000 }); tone(3300, 0.02, 0.45, 'sine', 0.03); };
+SFX.getsu31 = () => { noise(0, 0.35, 0.25, 4200); tone(880, 0, 0.4, 'triangle', 0.05, { f1: 1760 }); };
+SFX.mikiri31 = () => { tone(1760, 0, 0.5, 'sine', 0.04, { f1: 880 }); tone(2640, 0.05, 0.6, 'sine', 0.02); };
+SFX.reisen31 = () => { tone(55, 0, 1.2, 'sine', 0.3, { f1: 30 }); noise(0, 0.6, 0.3, 3500, 'highpass'); for (let i = 0; i < 6; i++) tone(2400 + i * 400, i * 0.03, 0.4, 'sine', 0.018); };
+
+// ---- 高速の立ち回り（カシアを操るとき、PB の上に重ねる） ----
+// 斬る：連撃（右薙ぎ→左薙ぎ→斬り上げ→袈裟）、遠ければ閃歩で詰める。避ける：瞬歩、攻撃の直前なら「見切り」で時が遅れ、次の一太刀が返し斬り。
+// 技：刃気 4 で「黒刃・月輪」、満ちれば「黒刃・零閃」
+const CSB = { on: false, ki: 0, step: 0, comboT: 0, act: 0, buf: 0, hs: 0, slow: 0, sw: null, dash: null, ghosts: [], gi: 0, counter: 0, tech: false, freeze: false }, KI31 = 8;
+const SW31 = [{ dur: 0.13, act: 0.15, r: 2.8, arc: 2.3, dmg: 1, roll: 0.15, mir: 1, word: '一閃' }, { dur: 0.13, act: 0.15, r: 2.8, arc: 2.3, dmg: 1, roll: -0.2, mir: -1, word: '二閃' },
+  { dur: 0.14, act: 0.17, r: 3.0, arc: 1.8, dmg: 1, roll: 1.1, mir: 1, word: '三閃', y: 1.25 }, { dur: 0.2, act: 0.3, r: 3.4, arc: 2.8, dmg: 2, roll: -0.75, mir: -1, word: '四閃・断', fin: true }];
+const csbOn31 = () => CSB.on && PB.on && AB.on && P.model === CAS31;
+function csbStart31() { CSB.on = true; CSB.ki = 0; CSB.step = 0; CSB.comboT = 0; CSB.act = 0; CSB.buf = 0; CSB.hs = 0; CSB.slow = 0; CSB.sw = null; CSB.dash = null; CSB.counter = 0; CSB.tech = false; CSB.freeze = false;
+  cassiaDraw31(CAS31, true); csbGhosts(); P.spdK = 1.55; document.body.classList.add('csb31'); csbHud(); }
+function csbEnd31() { CSB.on = false; CSB.freeze = false; CSB.tech = false; document.body.classList.remove('csb31', 'csbp31', 'mikiri31', 'reisen31'); for (const g of CSB.ghosts) g.r.visible = false;
+  if (CAS31) { for (const a of CAS31.arms) a.rotation.y = 0; CAS31.torso.rotation.y = 0; } }
+function csbHud() { const b = $('abSkill'); if (!b) return; b.style.setProperty('--k', (CSB.ki / KI31).toFixed(3)); b.lastChild.textContent = CSB.ki >= KI31 ? '零閃' : CSB.ki >= 4 ? '月輪' : '刃気'; b.classList.toggle('ready', CSB.ki >= 4); }
+// 残像：カシアの写し（同じ骨組みを、青い半透明で）
+function csbGhosts() { if (CSB.ghosts.length || !CAS31) return; const src = []; CAS31.root.traverse(o => src.push(o));
+  for (let i = 0; i < 10; i++) { const r = CAS31.root.clone(true), mat = new THREE.MeshBasicMaterial({ color: 0x7AC8FF, transparent: true, opacity: 0, depthWrite: false }), dst = [];
+    r.traverse(o => { dst.push(o); if (o.isMesh) { const bs = o.material && o.material.side === THREE.BackSide; o.material = mat; if (bs) o.visible = false; } }); r.visible = false; CSB.ghosts.push({ r, mat, dst, src, t: 0, life: 1, op: 0 }); } }
+function csbGhost(x, z, face, op = 0.55, life = 0.3) { csbGhosts(); const g = CSB.ghosts[CSB.gi++ % CSB.ghosts.length]; if (!g) return; if (g.r.parent !== A.g) A.g.add(g.r);
+  const n = Math.min(g.src.length, g.dst.length); for (let i = 1; i < n; i++) { const s = g.src[i], d = g.dst[i]; d.position.copy(s.position); d.rotation.copy(s.rotation); d.scale.copy(s.scale); }
+  g.r.position.set(x, CAS31.root.position.y, z); g.r.rotation.y = face; g.r.visible = true; g.op = op; g.t = life; g.life = life; g.mat.opacity = op; }
+function csbNear(r) { let t = null, td = r; for (const f of PB.foes) { if (!f.alive) continue; const d = Math.hypot(f.n.pos.x - P.pos.x, f.n.pos.z - P.pos.z); if (d < td) { td = d; t = f; } } return t; }
+function csbFoes(r, face, arc) { return PB.foes.filter(f => { if (!f.alive) return false; const dx = f.n.pos.x - P.pos.x, dz = f.n.pos.z - P.pos.z, d = Math.hypot(dx, dz); if (d > r) return false; if (arc >= TAU || d < 0.8) return true; const a = Math.atan2(dx, dz) - face; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < arc / 2; }); }
+function csbBlink(x, z) { const B = A.bounds, x0 = P.pos.x, z0 = P.pos.z; x = clamp(x, B[0] + 0.6, B[1] - 0.6); z = clamp(z, B[2] + 0.6, B[3] - 0.6);
+  csbGhost(x0, z0, P.facing, 0.6, 0.34); for (let k = 1; k <= 3; k++) { const u = k / 4; csbGhost(x0 + (x - x0) * u, z0 + (z - z0) * u, P.facing, 0.5 - k * 0.1, 0.2 + k * 0.04); } P.pos.x = x; P.pos.z = z; sfx('blink31'); }
+function csbPop(t, y = 2.7) { const sp = scr(P.pos.x, y, P.pos.z); if (sp) popAt(sp, t, 'warm'); }
+function csbHit(f, dmg, kb, big, noKi) { const crit = f.open > 0, x = f.n.pos.x, z = f.n.pos.z; pbDamage(f, dmg * (crit ? 2 : 1)); f.hate.P = (f.hate.P || 0) + 3; f.tgt = 'P'; f.rt = 1.4; f.cd = Math.max(f.cd, 0.35);
+  burstFx31(x, 1.2, z, big ? 2.6 : 1.8); shardFx31(x, 1.2, z, big ? 9 : 5, big ? 6 : 4); sfx('cutHit31');
+  if (kb && f.alive) { const dx = x - P.pos.x, dz = z - P.pos.z, L = Math.hypot(dx, dz) || 1, B = A.bounds; abTween(f.n, clamp(x + dx / L * kb, B[0] + 0.6, B[1] - 0.6), clamp(z + dz / L * kb, B[2] + 0.6, B[3] - 0.6), 0.12); }
+  if (crit) abPop('隙！', '#7AD0FF'); if (!noKi) { CSB.ki = Math.min(KI31, CSB.ki + (crit ? 1.5 : 1)); csbHud(); } }
+function csbAttack() { if (!AB.on || G.mode !== 'play' || G.busy || CSB.tech) return; if (CSB.act > 0) { CSB.buf = 0.25; return; }
+  const t = csbNear(6.5); if (CSB.counter > 0 && t) return csbCounter(t);
+  CSB.step = CSB.comboT > 0 ? (CSB.step + 1) % 4 : 0; const sw = SW31[CSB.step]; CSB.comboT = 0.7; CSB.act = sw.act; CSB.sw = { i: CSB.step, t: 0, dur: sw.dur };
+  if (t) { const dx = t.n.pos.x - P.pos.x, dz = t.n.pos.z - P.pos.z, d = Math.hypot(dx, dz) || 1; P.facing = Math.atan2(dx, dz); if (d > 1.9) csbBlink(t.n.pos.x - dx / d * 1.35, t.n.pos.z - dz / d * 1.35); }
+  sfx('cut31'); slashFx31(P.pos.x, sw.y || 1.0, P.pos.z, P.facing, { roll: sw.roll, mir: sw.mir, s: sw.fin ? 4.4 : 3.4 });
+  const hit = csbFoes(sw.r, P.facing, sw.arc); for (const f of hit) csbHit(f, sw.dmg, sw.fin ? 1.4 : 0.45, sw.fin);
+  if (hit.length) { CSB.hs = sw.fin ? 0.11 : 0.05; G.shake = Math.max(G.shake, sw.fin ? 0.5 : 0.22); csbPop(sw.word); } }
+function csbCounter(t) { CSB.counter = 0; const a = Math.atan2(t.n.pos.x - P.pos.x, t.n.pos.z - P.pos.z); csbBlink(t.n.pos.x + Math.sin(a) * 1.3, t.n.pos.z + Math.cos(a) * 1.3); P.facing = a + Math.PI;
+  CSB.act = 0.3; CSB.sw = { i: 3, t: 0, dur: 0.2 }; sfx('cut31'); slashFx31(P.pos.x, 1.0, P.pos.z, P.facing, { roll: -0.75, mir: -1, s: 4.8 });
+  for (const f of csbFoes(3.4, P.facing, 3.0)) { f.open = Math.max(f.open, 0.1); csbHit(f, 2, 1.6, true); } CSB.hs = 0.12; G.shake = 0.6; csbPop('返し斬り'); }
+function csbDash() { if (!AB.on || G.mode !== 'play' || G.busy || AB.dashCd > 0 || CSB.tech) return;
+  let mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + stick.x, mz = (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0) + stick.y;
+  if (Math.hypot(mx, mz) < 0.2) { mx = -Math.sin(P.facing); mz = -Math.cos(P.facing); } const L = Math.hypot(mx, mz);
+  // 攻撃の、発動の直前に、その中から抜けたら：見切り
+  if (AB.teles.some(t => !t.fired && t.dur - t.t < 0.42 && abInside(t, P.pos.x, P.pos.z))) csbMikiri();
+  CSB.dash = { x: mx / L, z: mz / L, t: 0.13, g: 0 }; AB.dodgeT = 0.36; AB.dashCd = 0.3; AB.inv = Math.max(AB.inv, 0.22); sfx('blink31'); csbGhost(P.pos.x, P.pos.z, P.facing, 0.6, 0.3); }
+function csbMikiri() { if (CSB.slow > 0) return; CSB.slow = 1.1; CSB.counter = 1.7; AB.inv = Math.max(AB.inv, 0.6); sfx('mikiri31'); abPop('見切り', '#7AD0FF'); document.body.classList.add('mikiri31'); CSB.ki = Math.min(KI31, CSB.ki + 1); csbHud(); }
+function csbSkill() { if (!csbOn31() || G.mode !== 'play' || G.busy || CSB.tech) return; if (CSB.ki >= KI31) { run0(csbReisen); return; } if (CSB.ki >= 4) return csbGetsurin(); abPop('刃気が、足りない', '#9AA6BC'); sfx('metal'); }
+const run0 = f => { f().catch(e => console.error(e)); };
+function csbGetsurin() { CSB.ki -= 4; csbHud(); CSB.act = 0.42; CSB.sw = { i: 4, t: 0, dur: 0.34 }; AB.inv = Math.max(AB.inv, 0.5); sfx('getsu31'); const x = P.pos.x, z = P.pos.z, f0 = P.facing;
+  for (let k = 0; k < 4; k++) setTimeout(() => { if (AB.on && A) slashFx31(x, 0.9 + k * 0.08, z, f0 + k * Math.PI / 2, { roll: k % 2 ? 0.1 : -0.1, s: 4.8, dist: 0.25, life: 0.32 }); }, k * 55);
+  fxRing(x, 0.1, z, 4.2, 0x7AD0FF, 0.45); fxRing(x, 0.12, z, 3.2, 0xFFFFFF, 0.3); for (const f of csbFoes(3.9, 0, TAU)) csbHit(f, 2, 1.8, true, true); CSB.hs = 0.12; G.shake = 0.7; csbPop('黒刃・月輪', 2.9); }
+async function csbReisen() { CSB.tech = true; CSB.ki = 0; csbHud(); const tg = PB.foes.filter(f => f.alive).sort((a, b) => Math.hypot(a.n.pos.x - P.pos.x, a.n.pos.z - P.pos.z) - Math.hypot(b.n.pos.x - P.pos.x, b.n.pos.z - P.pos.z)).slice(0, 7);
+  AB.inv = 99; CSB.freeze = true; document.body.classList.add('reisen31'); sfx('reisen31'); csbPop('黒刃・零閃', 2.9); await sleep(260); const B = A.bounds;
+  for (const f of tg) { const x = P.pos.x, z = P.pos.z, a = Math.atan2(f.n.pos.x - x, f.n.pos.z - z), nx = clamp(f.n.pos.x + Math.sin(a) * 1.2, B[0] + 0.6, B[1] - 0.6), nz = clamp(f.n.pos.z + Math.cos(a) * 1.2, B[2] + 0.6, B[3] - 0.6);
+    lineFx31(x, z, nx, nz, 1.5); csbGhost(x, z, a, 0.65, 0.6); P.facing = a; P.pos.x = nx; P.pos.z = nz; CSB.sw = { i: CSB.sw && CSB.sw.i === 0 ? 1 : 0, t: 0, dur: 0.07 }; sfx('blink31'); slashFx31(nx, 1.0, nz, a + Math.PI, { s: 2.6, mir: tg.indexOf(f) % 2 ? -1 : 1, dist: 0.4 }); await sleep(75); }
+  CSB.sw = { i: 5, t: 0, dur: 0.55 }; await sleep(420); sfx('sheath31'); await sleep(240); if (!AB.on) { CSB.tech = false; CSB.freeze = false; return; }
+  for (const f of tg) { if (!f.alive) continue; burstFx31(f.n.pos.x, 1.2, f.n.pos.z, 3.4, 0.42); shardFx31(f.n.pos.x, 1.2, f.n.pos.z, 12, 7); csbHit(f, 5, 1.8, true, true); }
+  document.body.classList.remove('reisen31'); fxFlash(P.pos.x, 1.2, P.pos.z, 0x7AD0FF, 8, 0.4); G.shake = 1.0; CSB.freeze = false; CSB.tech = false; AB.inv = 0.6; }
+// 構えと、斬りの形（animChar のあとで上書き）
+function csbPose(dt) { const m = CAS31, R = m.arms[1], Lf = m.arms[0]; R.rotation.order = 'YXZ'; Lf.rotation.order = 'YXZ'; let rx, ry, lx, ly, ty = 0, gy = 0, spin = 0; const sw = CSB.sw;
+  if (sw) { sw.t += dt; const u = Math.min(1, sw.t / sw.dur), e = 1 - Math.pow(1 - u, 3);
+    if (sw.i === 0) { rx = -1.45; ry = 1.4 - 2.8 * e; ty = -0.5 + e; } else if (sw.i === 1) { rx = -1.45; ry = -1.4 + 2.8 * e; ty = 0.5 - e; }
+    else if (sw.i === 2) { rx = 0.4 - 3.3 * e; ry = 0.3; ty = 0.2; gy = 0.3 * Math.sin(u * Math.PI); } else if (sw.i === 3) { rx = -3.0 + 2.6 * e; ry = 0.9 - 1.5 * e; ty = 0.4 - 0.8 * e; gy = 0.5 * Math.sin(u * Math.PI); }
+    else if (sw.i === 4) { rx = -1.5; ry = 0; spin = e * TAU; } else { rx = 0.2; ry = -0.7; ty = -0.3; }
+    lx = sw.i === 5 ? -0.2 : rx * 0.85; ly = sw.i === 5 ? 0.5 : ry * 0.85 - 0.25; if (sw.t > sw.dur + 0.14) CSB.sw = null; }
+  else if (P.st.walk) { rx = 0.95; ry = 0.25; lx = 0.9; ly = -0.2; m.torso.rotation.x = 0.32; }
+  else { rx = -0.55; ry = 0.35; lx = -0.75; ly = -0.15; ty = -0.25; }
+  R.rotation.set(rx, ry, 0); Lf.rotation.set(lx, ly, 0); m.torso.rotation.y = ty; m.g.position.y += gy; m.root.rotation.y += spin; }
+function csbTick(dt) { if (!csbOn31()) { if (CSB.on && !PB.on) csbEnd31(); return 1; }
+  for (const g of CSB.ghosts) if (g.t > 0) { g.t -= dt; g.mat.opacity = g.op * Math.max(0, g.t / g.life); if (g.t <= 0) g.r.visible = false; }
+  if (G.mode === 'play' && !G.busy) {
+    CSB.act = Math.max(0, CSB.act - dt); CSB.comboT = Math.max(0, CSB.comboT - dt); CSB.counter = Math.max(0, CSB.counter - dt);
+    if (CSB.buf > 0) { CSB.buf -= dt; if (CSB.act <= 0) { CSB.buf = 0; csbAttack(); } }
+    if (CSB.dash) { const v = 30 * dt, B = A.bounds; P.pos.x = clamp(P.pos.x + CSB.dash.x * v, B[0] + 0.5, B[1] - 0.5); P.pos.z = clamp(P.pos.z + CSB.dash.z * v, B[2] + 0.5, B[3] - 0.5); P.facing = Math.atan2(CSB.dash.x, CSB.dash.z);
+      CSB.dash.g -= dt; if (CSB.dash.g <= 0) { CSB.dash.g = 0.03; csbGhost(P.pos.x, P.pos.z, P.facing, 0.45, 0.24); } CSB.dash.t -= dt; if (CSB.dash.t <= 0) CSB.dash = null; }
+    if (AB.fine) { AB.fine = false; csbMikiri(); } }
+  document.body.classList.toggle('csbp31', G.mode === 'play' && !G.busy); csbPose(dt); P.model.root.position.set(P.pos.x, 0, P.pos.z);
+  let ts = 1; if (CSB.hs > 0) { CSB.hs -= dt; ts = 0.04; } else if (CSB.slow > 0) { CSB.slow -= dt; ts = 0.3; if (CSB.slow <= 0) document.body.classList.remove('mikiri31'); } if (CSB.freeze) ts = 0; return ts; }
+// 入力：斬る／避ける は、カシアのときだけ差し替える。技は Q（U／F でも）
+{ const a0 = pbAttack; pbAttack = function () { if (csbOn31()) return csbAttack(); return a0(); }; const d0 = abDash; abDash = function () { if (csbOn31()) return csbDash(); return d0(); }; }
+addEventListener('keydown', e => { if (!csbOn31() || G.mode !== 'play' || G.busy) return; if (['KeyQ', 'KeyU', 'KeyF'].includes(e.code)) { e.preventDefault(); if (!e.repeat) csbSkill(); } }, true);
+{ const b = document.createElement('button'); b.type = 'button'; b.id = 'abSkill'; b.innerHTML = '技<small>刃気</small>'; $('ab').appendChild(b); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); csbSkill(); });
+  const v = document.createElement('div'); v.id = 'mk31'; document.body.appendChild(v);
+  const st = document.createElement('style'); st.textContent = '#abSkill { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 130px); bottom: calc(env(safe-area-inset-bottom, 0px) + 112px); width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255,255,255,.85); color: #fff; font-size: 20px; font-weight: 900; pointer-events: auto; display: none; place-items: center; align-content: center; line-height: 1; touch-action: manipulation; background: conic-gradient(#5AC8FF calc(var(--k, 0) * 360deg), rgba(14,22,40,.92) 0); box-shadow: 0 0 0 4px rgba(14,22,40,.55); }' +
+    ' body.csb31 #abSkill { display: grid; } #abSkill small { display: block; font-size: 10px; opacity: .9; margin-top: 3px; } #abSkill.ready { animation: sk31 .6s ease-in-out infinite alternate; } @keyframes sk31 { to { box-shadow: 0 0 18px 6px rgba(90,200,255,.85); } }' +
+    ' @media (max-width: 560px) { #abSkill { right: calc(env(safe-area-inset-right, 0px) + 112px); bottom: calc(env(safe-area-inset-bottom, 0px) + 100px); width: 56px; height: 56px; } }' +
+    ' #mk31 { position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .15s; box-shadow: inset 0 0 160px 40px rgba(60,170,255,.5); } body.mikiri31 #mk31 { opacity: 1; } body.reisen31 #mk31 { opacity: 1; background: rgba(4,8,20,.42); box-shadow: inset 0 0 200px 60px rgba(20,60,140,.7); }' +
+    ' body.csbp31 #act { color: transparent; } body.csbp31 #act::after { content: "斬"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 26px; }';
+  document.head.appendChild(st); }
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -16781,6 +16938,6 @@ function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b
   if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
 $('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, showReport31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, showReport31, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
