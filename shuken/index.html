@@ -1835,7 +1835,7 @@ const CHSYN = [
   '醜くねじれた「宝物」になったこうじは、生まれてはじめての力に、開き直っていた。殴られたところにだけ返す、一撃で消し飛ぶ拳。鐘も来て、特区のすべてを介錯しようとする。それを止めたのは、名古屋の二十二歳の、三球だった。そのあと、久世の電話が鳴る。',
   '円卓の地図で、特区は、まだ灰色だった。同盟にも鐘にも行かなかった佐野が、ひとりずつ名前を呼んで、空いたままの五つの椅子に、人を誘う。豚汁を持った紫の服のおかあさん、十五年前の配信のネタ、ユリアのむかしの願いでやって来た外神竜の一族、竜の球まで捕るキャッチボール、鬼の現場の余りの十脚の椅子。誰も呼ばなかった名前を、今日は、誰かが呼ぶ。……それでも、ひと月後の特区は、そんなに変わらなかった。',
   '十二年前、運命を操る狐を二太刀で斬った夜から、女の異種族が殺されはじめた。弥勒山の奥のその廃寺に、断偽文鳥門の本山がある。rate の底から来た文鳥たちが、黙って掃き、洗い、刀を振り、経を読む。その朝、教主メス・ゼロが、ついに地上に姿を現す。「痛みなき救いなど、偽りだ」。その夜、白翼保護財団の「繭」で、天使たちが殺される。',
-  '九章の終わりの夜、午前一時四十分。蒼生からの電話は、渉の移植した弁と組織が、同時に拒絶を起こしたという報せだった。残る手は、ヴォルの細胞から育てた、竜の組織だけ。そして、それを体に持つ人間は、外神竜一族の「庇護下」に登録される。竜を疑い続けてきた、留保の人間の、弟が。久世は、ペン先を二度止めて、署名する。'];
+  '九章の終わりの夜、午前一時四十分。蒼生からの電話は、渉の移植した弁と組織が、同時に拒絶を起こしたという報せだった。残る手は、ヴォルの細胞から育てた、竜の組織だけ。そして、それを体に持つ人間は、外神竜一族の「庇護下」に登録される。竜を疑い続けてきた、留保の人間の、弟が。久世は、ペン先を二度止めて、署名する。……同じ夜、北の外れの荷受け場では、ハーピーの運び手たちに、断偽の刃が向けられていた。そこへ、黒い刀の、カシアが来る。教主は、まだ、来ていない。'];
 // 記録ファイルが進んでいる章までは開く（章のクリアの印が残らなかったときの受け皿）
 const fileCh = () => Object.values(readFiles()).reduce((a, d) => Math.max(a, (d && d.s && d.s.chapter) || 0), 0);
 const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh();
@@ -16174,24 +16174,37 @@ BGM.call31 = { bpm: 60, f(s, t, sp) { if (s % 4 === 0) { tone(55, t, sp * 0.8, '
 // 夜明けの廊下：ゆっくり、ほどける和音
 BGM.dawn31 = { bpm: 56, f(s, t, sp) { const ch = [[57, 60, 64], [53, 57, 60], [55, 59, 62], [52, 55, 59]][(s >> 4) % 4]; if (s % 4 === 0) tone(mf(ch[(s >> 2) % 3] + 12), t, sp * 4, 'triangle', 0.01, { a: 0.1, lp: 2000 }); if (s % 16 === 0) tone(mf(ch[0] - 12), t, sp * 15, 'sine', 0.035, { a: 0.6 }); } };
 SFX.monitor31 = () => { for (let i = 0; i < 4; i++) tone(1480, i * 0.12, 0.06, 'square', 0.02); };
+// ---- 同じ夜、北の外れ：ハーピーの夜間便と、カシア ----
+Object.assign(SPK, { hp31: ['ハーピーの運び手（夜間便）', '#E0A040'], hp31b: ['ハーピーの運び手（夜間便）', '#9AB0D0'], hp31c: ['ハーピーの運び手（夜間便）', '#E0B060'], ktel31: ['電話の向こうの、カ・エレ', '#9A8AFF'] });
+// 断偽の門下の技：袈裟の一太刀、跳び込み、唱和の輪
+Object.assign(PBM, {
+  kiri31(f, tp) { const fc = faceTo(f, tp); f.busy = 0.9; pbTele({ kind: 'sector', x: f.n.pos.x, z: f.n.pos.z, face: fc, r: 3.0, arc: 1.4, dur: 0.85, col: 0xC83A4A, snd: 'slash', onFire: () => { f.n.st.punch = true; setTimeout(() => { f.n.st.punch = false; }, 220); f.open = 1.1; } }); return 2.3; },
+  tobi31(f, tp) { const fc = faceTo(f, tp), L = Math.min(7, Math.hypot(tp.x - f.n.pos.x, tp.z - f.n.pos.z) + 1.2), B = A.bounds, ex = clamp(f.n.pos.x + Math.sin(fc) * L, B[0] + 1, B[1] - 1), ez = clamp(f.n.pos.z + Math.cos(fc) * L, B[2] + 1, B[3] - 1); f.busy = 1.4;
+    pbTele({ kind: 'rect', x: f.n.pos.x, z: f.n.pos.z, face: fc, len: Math.hypot(ex - f.n.pos.x, ez - f.n.pos.z), w: 1.2, dur: 0.85, col: 0x8A1A2A, onFire: () => { abTween(f.n, ex, ez, 0.16); f.open = 1.2; sfx('wind'); } }); return 2.6; },
+  kyou31(f) { f.busy = 2.0; f.n.st.armsUp = true; setTimeout(() => { f.n.st.armsUp = false; }, 900); pbTele({ kind: 'ring', x: f.n.pos.x, z: f.n.pos.z, r: 1.4, r2: 6.0, dur: 1.2, col: 0x9A9AA4, onFire: () => { f.open = 1.6; } }); return 2.9; } });
+// カシア（仕事着、黒刃）を操る
+let CAS31 = null;
+function playAsCassia31(on) { if (!KUZE_MODEL) KUZE_MODEL = P.model; if (!CAS31) CAS31 = cassiaModel(true); if (A && CAS31.root.parent !== A.g) A.g.add(CAS31.root);
+  if (on) { P.model = CAS31; CAS31.root.visible = true; KUZE_MODEL.root.visible = false; CAST.cassia = CAS31; P.spdK = 1.15; } else { CAS31.root.visible = false; if (P.model === CAS31) P.model = KUZE_MODEL; P.spdK = 1; } CAST.kuze = KUZE_MODEL; }
 
 // ================= 第十章　序　同意 =================
 // 九章の終わりの電話。……渉を救う、竜の組織と、「庇護下」の署名
 const on31 = k => () => S.chapter === 31 && S.flags.c31st === k;
 const got31 = k => (S.flags.c31z || []).includes(k), mark31 = k => { const g = S.flags.c31z || (S.flags.c31z = []); if (!g.includes(k)) g.push(k); };
 function put31(a, k, mk, x, z, f, st, y) { const E = a.e31 || (a.e31 = {}); const n = E[k] || (E[k] = npc(a, k, mk(), x, z, f)); n.pos.x = x; n.pos.z = z; n.facing = f; n.st = Object.assign({}, st || {}); n.hidden = false; n.lookAt = null; n.goal = null; n.y = y || 0; return n; }
+const kuze31 = () => { playAsCassia31(false); kuzeOn26(false); };
 const walk31 = (n, x, z, sp = 1.4) => new Promise(res => { n.goal = { x, z, speed: sp, res }; });
 // 病棟の人々：渉は三〇七号室のベッド、ヴォルは廊下
 function ward31(a, st) { for (const n of a.npcs) n.hidden = true; const wt = a.wt; wt.hidden = false; wt.pos.set(-7.5, 0, -3.6); wt.facing = Math.PI / 2; wt.st = Object.assign({}, st); wt.y = 0.6; wt.lookAt = null;
   const vo = a.vol; vo.hidden = false; vo.lookAt = null; vo.st = {}; CAST.vol = vo.model; CAST.wataru = wt.model; return { wt, vo }; }
 
 // ---- 始まり ----
-async function chapter31() { G.mode = 'cine'; S.chapter = 31; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); playAsKuzeHost(false); playAs20(null); playAsIshii23(false); playAsTado24(false); playAsKoji25(false); playAsSano29(false); playAsShin30(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; news22off(); galHud(false); bgm(''); P.st = {}; P.spdK = 1; fear20(0); phaseFx22(false); split22(false);
+async function chapter31() { G.mode = 'cine'; S.chapter = 31; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsMurase(false); playAsYuria(false); playAsKuzeF(false); playAsPonpu(false); playAsKuzeHost(false); playAs20(null); playAsIshii23(false); playAsTado24(false); playAsKoji25(false); playAsSano29(false); playAsShin30(false); playAsCassia31(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; news22off(); galHud(false); bgm(''); P.st = {}; P.spdK = 1; fear20(0); phaseFx22(false); split22(false);
   S.flags.c31z = []; PON.on = false; PB.on = false; MEL.on = false;
   await goCall31(); }
 
 // ---- 九章の終わりの夜：電話の中身 ----
-async function goCall31() { G.mode = 'cine'; S.flags.c31st = 'call'; setObj(''); hosp31Items(); kuzeOn26(false); await goArea('hospital', [9.0, 0.2], -Math.PI / 2); const a = AREAS.hospital; ckSave(); bgm('call31'); scene.background = new THREE.Color(0x141A20); hemi.intensity = 0.5;
+async function goCall31() { G.mode = 'cine'; S.flags.c31st = 'call'; setObj(''); hosp31Items(); kuze31(); await goArea('hospital', [9.0, 0.2], -Math.PI / 2); const a = AREAS.hospital; ckSave(); bgm('call31'); scene.background = new THREE.Color(0x141A20); hemi.intensity = 0.5;
   const { wt, vo } = ward31(a, { down: true }); vo.pos.set(-4.2, 0, 0.4); vo.facing = Math.PI / 2; const nu = put31(a, 'nurse26', () => makeChar(LK.nurse31), 6.8, 0.6, -Math.PI / 2);
   await fade(true); await card('第十章　序', '同意', 3000); await fade(false);
   cine(6.0, 2.6, 4.0, 2.0, 1.0, 0.2); await card('蒼生メディカルセンター　第三病棟', '第九章の、終わりの夜　午前一時四十分', 1600);
@@ -16238,7 +16251,7 @@ async function goCall31() { G.mode = 'cine'; S.flags.c31st = 'call'; setObj('');
   await fade(true); await goWait31(); }
 
 // ---- 夜明けの廊下 ----
-async function goWait31() { G.mode = 'cine'; S.flags.c31st = 'wait'; setObj(''); kuzeOn26(false); await goArea('hospital', [-4.8, 3.6], Math.PI); await fade(false); ckSave(); const a = AREAS.hospital; bgm('dawn31'); scene.background = new THREE.Color(0x8A98A8); hemi.intensity = 0.65;
+async function goWait31() { G.mode = 'cine'; S.flags.c31st = 'wait'; setObj(''); kuze31(); await goArea('hospital', [-4.8, 3.6], Math.PI); await fade(false); ckSave(); const a = AREAS.hospital; bgm('dawn31'); scene.background = new THREE.Color(0x8A98A8); hemi.intensity = 0.65;
   const { vo } = ward31(a, { down: true }); P.pos.set(-4.8, 0, 3.6); P.facing = Math.PI; P.st = { sit: true }; vo.pos.set(-5.5, 0, -0.6); vo.facing = 0;
   cine(-1.6, 2.4, 1.6, -4.8, 0.9, 3.6); await card('蒼生メディカルセンター　第三病棟', '午前五時十分', 1400);
   await narr('廊下の長椅子で、窓の色が、変わっていくのを、見ていた。……黒から、紺へ。紺から、灰へ。');
@@ -16263,7 +16276,7 @@ function hosp31Items() { const a = AREAS.hospital; if (!a.built) { a.build(a); a
   for (const [k, x, z, l] of ZQ31) addItem(a, { id: 'h31' + k, x, z, r: 1.2, label: l, col: 0xE3B428, avail: () => on() && !got31(k), on: () => evMorning31(k) });
   addItem(a, { id: 'h31out', x: 9.4, z: 0.2, r: 1.4, label: '病棟を出る', col: 0xC8323C, once: false, avail: () => on() && got31('wt'), on: () => evMorning31('out') }); }
 function obj31() { setObj(got31('wt') ? '病棟を出る（右の出口）' : '三〇七号室の、渉と話す'); }
-async function goMorning31() { G.mode = 'cine'; S.flags.c31st = 'morning'; setObj(''); hosp31Items(); kuzeOn26(false); await goArea('hospital', [2.0, 0.4], -Math.PI / 2); await fade(false); ckSave(); const a = AREAS.hospital; bgm('ward'); scene.background = new THREE.Color(0xDCE6EC); hemi.intensity = 0.85;
+async function goMorning31() { G.mode = 'cine'; S.flags.c31st = 'morning'; setObj(''); hosp31Items(); kuze31(); await goArea('hospital', [2.0, 0.4], -Math.PI / 2); await fade(false); ckSave(); const a = AREAS.hospital; bgm('ward'); scene.background = new THREE.Color(0xDCE6EC); hemi.intensity = 0.85;
   const { wt, vo } = ward31(a, { sit: true }); vo.pos.set(4.6, 0, 2.6); vo.facing = Math.PI; wt.y = 0.55;
   if ((S.flags.c31z || []).length) { obj31(); playOn(); return; }
   cine(4, 3.4, 4.4, 0, 1.0, 0); await card('蒼生メディカルセンター　第三病棟', '翌日　午後二時', 1400);
@@ -16293,7 +16306,7 @@ async function evMorning31(k) { const a = AREAS.hospital, wt = a.wt; G.mode = 'c
   obj31(); playOn(); }
 
 // ---- 数日後の夜：断偽の報せのあとで ----
-async function goNight31() { G.mode = 'cine'; S.flags.c31st = 'night'; setObj(''); kuzeOn26(false); await goArea('hospital', [-4.8, 3.6], Math.PI); await fade(false); ckSave(); const a = AREAS.hospital; bgm(''); scene.background = new THREE.Color(0x10161C); hemi.intensity = 0.45;
+async function goNight31() { G.mode = 'cine'; S.flags.c31st = 'night'; setObj(''); kuze31(); await goArea('hospital', [-4.8, 3.6], Math.PI); await fade(false); ckSave(); const a = AREAS.hospital; bgm(''); scene.background = new THREE.Color(0x10161C); hemi.intensity = 0.45;
   const { vo } = ward31(a, { down: true }); vo.hidden = true; P.pos.set(-4.8, 0, 3.6); P.facing = Math.PI; P.st = { sit: true };
   cine(-1.6, 2.4, 1.6, -4.8, 0.9, 3.6); await card('蒼生メディカルセンター　第三病棟', '数日後の夜　午後十一時半　――　「繭」の事件の夜', 1600);
   news22('【速報】白翼保護財団の施設で　天使属十名が死亡', '新生文鳥勢力「断偽文鳥門」の犯行か　雌の異種族を狙った殺害は、確認できるだけで四十七件');
@@ -16320,6 +16333,85 @@ async function goNight31() { G.mode = 'cine'; S.flags.c31st = 'night'; setObj(''
   fc22(P, 2.2, 0, 0.3); await say('kuze', '（……断偽は、止める）');
   await say('kuze', '（竜の、ためじゃない。……渉の、ためだ）');
   cine(-1.6, 2.4, 1.6, -4.8, 0.9, 3.6); await narr('そう、自分に、言い聞かせた。……何度も。');
+  await fade(true); await goHub31(); }
+
+// ---- 同じ夜、北の外れ：ハーピーの夜間便が、襲われる ----
+function hub31(a, cine) { if (!a.built) { a.build(a); a.built = true; } for (const n of a.npcs) n.hidden = true; if (cine) $('hud').hidden = true;
+  if (!a.win31) { a.win31 = plane(7, 2.6, canvasTex(420, 156, (c, w, h) => { c.fillStyle = '#0A1426'; c.fillRect(0, 0, w, h); c.fillStyle = '#F4ECD8'; c.beginPath(); c.arc(w * 0.78, h * 0.3, 14, 0, 7); c.fill(); c.fillStyle = '#04060A'; c.beginPath(); c.moveTo(0, h); c.lineTo(w * 0.2, h * 0.55); c.lineTo(w * 0.42, h * 0.7); c.lineTo(w * 0.62, h * 0.42); c.lineTo(w, h * 0.8); c.lineTo(w, h); c.fill(); c.strokeStyle = '#2A3448'; c.lineWidth = 6; for (let x = 0; x <= w; x += 70) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } c.strokeStyle = '#8A9AB8'; c.lineWidth = 2; c.beginPath(); c.moveTo(w * 0.55, 0); c.lineTo(w * 0.5, h * 0.4); c.lineTo(w * 0.6, h * 0.62); c.moveTo(w * 0.5, h * 0.4); c.lineTo(w * 0.38, h * 0.5); c.stroke(); }), 7.8, 6.4, -6.42, a.g, { fog: false }); }
+  a.win31.visible = S.chapter === 31; scene.background = new THREE.Color(0x0A0C12); hemi.intensity = 0.42; $('place').textContent = '春日井　千路ロジスティクス　春日井ハブ　夜間の荷受け場'; }
+const hpLK31 = i => Object.assign({}, i % 2 ? LK.harpy2 : LK.harpy, { top: 0x2A3A4A, bc: 0x2A3A4A, hair: [0xC88A40, 0x8A9AB8, 0xE0B060][i % 3], wingCol: [0xC88A40, 0x8A9AB8, 0xE0B060][i % 3] });
+async function goHub31() { G.mode = 'cine'; S.flags.c31st = 'hub'; setObj(''); kuze31(); if (PB.on) pbStop(); await goCine30('hub19', [0, 999], 0); const a = AREAS.hub19; hub31(a, true); await fade(false); ckSave(); bgm('');
+  const H = [0, 1, 2].map(i => put31(a, ['hp31', 'hp31b', 'hp31c'][i], () => makeChar(hpLK31(i)), [4.4, 6.2, 7.8][i], [2.8, 3.6, 2.6][i], [Math.PI / 2, -Math.PI * 0.6, -Math.PI / 2][i]));
+  cine(10.6, 3.4, 8.2, 6.0, 1.0, 2.4); await card('千路ロジスティクス　春日井ハブ', '同じ夜　午前零時二十分　――　春日井の、北の外れ', 1800);
+  await narr('同じ頃。……夜間便の、荷受け場で。ハーピーの運び手たちが、最後の荷を、下ろしていた。');
+  fc30(H[0], 2.6, 0, 0.4); await say('hp31', 'ラスト一便、おつかれー！　……ねえ、ニュース、見た？　天使の、施設の。');
+  fc30(H[1], 2.6, 0, -0.4); await say('hp31b', '見た見た。……こわいよね。でも、天使って、名古屋の、ずっと、向こうでしょ。');
+  await say('hp31b', 'うちら、運ぶだけだし。……関係、ないって。');
+  sfx('glitch'); G.shake = 0.15; cine(10.6, 2.4, 8.2, 6.0, 3.4, 0.4); await narr('天井の、照明が、ひとつずつ、落ちていった。……梁の上に、黒い影が、並んでいた。');
+  const M = [0, 1, 2, 3].map(i => { const n = put31(a, 'dmon31' + i, () => member30(i, true), [2.4, 9.4, 10.4, 3.8][i], [1.2, 0.8, 3.4, 0.1][i], Math.atan2(6 - [2.4, 9.4, 10.4, 3.8][i], 3 - [1.2, 0.8, 3.4, 0.1][i])); n.y = 6.0; n.hidden = true; return n; });
+  const za = put31(a, 'zange', () => zange30(), 6.4, 0.3, 0); za.y = 6.0; za.hidden = true;
+  await say('chorus30', '……偽りを、断てェ……。偽りを、断てェ……。');
+  for (const n of [...M, za]) { n.hidden = false; n.y = 0; fxRing(n.pos.x, 0.05, n.pos.z, 0x9A9AA4, 1.6); } sfx('wind'); G.shake = 0.4; bgm('dangi30');
+  H.forEach(n => { n.facing = Math.atan2(6.4 - n.pos.x, 0.3 - n.pos.z); }); cine(6.2, 3.0, 8.8, 6.4, 1.2, 1.0); await narr('文鳥たちが、音もなく、床に、降りた。……黒い戦装束。胸に、断つ、の紋。');
+  fc30(H[2], 2.4, 0, 0.4); await say('hp31c', '……文鳥？　え、配達の、ひと……？');
+  fc30(za, 3.0, 0.2, 0.4); await say('zange', '翼を、持つ、メス。……空を、飛ぶことで、地に、触れぬ、ことで。救われた、気でいる。');
+  await say('zange', '偽りだ。……数えよ。四十八件目。');
+  const m0 = M[1]; await walk31(m0, 7.0, 2.8, 3.0); m0.facing = Math.atan2(H[1].pos.x - m0.pos.x, H[1].pos.z - m0.pos.z); sfx('slash'); fxFlash(H[1].pos.x, 1.2, H[1].pos.z, 0xC83A4A, 1.4, 0.2); H[1].st = { down: true }; G.shake = 0.5;
+  cine(4.2, 1.8, 5.8, 6.4, 0.5, 3.4); await narr('羽が、散った。……ひとりが、床に、崩れた。');
+  fc30(H[0], 2.2, 0, 0.5); await say('hp31', 'やめて……！　この子、なにも、してない……！', { cls: 'shout24' });
+  fc30(za, 3.0, 0.2, 0.4); await say('zange', '何も、していない。……そうだ。メスで、あること。それだけで、足りる。');
+  H[0].facing = Math.atan2(m0.pos.x - H[0].pos.x, m0.pos.z - H[0].pos.z); await walk31(m0, 5.6, 2.2, 2.4); m0.st = { punch: true }; await z22(240);
+  sfx('slash'); fxFlash(5.2, 1.4, 2.4, 0xF4F8FF, 2.4, 0.25); G.shake = 0.6; m0.st = {}; m0.pos.set(7.6, 0, 1.2); m0.st = { down: true };
+  const cs = put31(a, 'cassia', () => cassiaModel(true), 5.2, 2.2, Math.atan2(6.4 - 5.2, 0.3 - 2.2)); fxRing(5.2, 0.05, 2.2, 0xA8D8F0, 2.2); bgm('');
+  cine(3.0, 1.8, 6.0, 5.2, 1.2, 2.2); await narr('白い外套が、刃の前に、立っていた。……黒い、刀。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '……そこまで。');
+  fc30(za, 3.0, 0.2, 0.4); await say('zange', '……人の、形を、した。……メスが、もう一羽。');
+  await say('zange', '汝は、なぜ、メスを、守る。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '守るのに、理由は、要らない。');
+  await say('cassia', '……メスかどうかで、人を、数えない。あなたたちとは、そこが、違う。');
+  cs.facing = Math.atan2(H[0].pos.x - cs.pos.x, H[0].pos.z - cs.pos.z); fc30(cs, 2.2, 0, -0.6); await say('cassia', '飛んで。……その子を、抱えて。上は、まだ、空いてる。');
+  fc30(H[0], 2.2, 0, 0.5); await say('hp31', '……う、うん……！');
+  for (const n of H) n.hidden = true; fxRing(6.2, 3.0, 3.2, 0xE0A040, 2.0); sfx('wind'); cine(6.0, 2.0, 8.6, 6.0, 4.6, 1.0); await narr('羽音が、天井の、割れた窓へ、抜けていった。');
+  cs.facing = Math.atan2(6.4 - cs.pos.x, 0.3 - cs.pos.z); fc30(za, 3.0, 0.2, 0.4); await say('zange', '……よい。翼は、また、数えれば、いい。');
+  await say('zange', '先に。……この、メスを、断つ。');
+  await fade(true); await goFight31(); }
+
+async function goFight31() { G.mode = 'cine'; S.flags.c31st = 'fight'; setObj(''); if (PB.on) pbStop(); kuze31(); await goArea('hub19', [5.0, 3.6], Math.PI); const a = AREAS.hub19; hub31(a); playAsCassia31(true); await fade(false); ckSave();
+  P.pos.set(5.0, 0, 3.6); P.facing = Math.PI; P.st = {}; const za = put31(a, 'zange', () => zange30(), 6.4, 0.4, 0); za.hidden = true;
+  const W0 = [[2.8, 0.8], [5.0, 0.6], [8.4, 0.9], [9.8, 2.8]], mem = i => put31(a, 'dmon31' + i, () => member30(i, true), W0[i][0], 0.0 + W0[i][1], 0);
+  const W1 = [0, 1, 2, 3].map(mem);
+  cine(5.0, 7.6, 11.0, 6.0, 0.8, 1.6); await card('戦闘　――　夜間の荷受け場', '断偽の刃は、振り抜いたあとに、隙ができる。……隙に、斬れ', 2400); setObj('断偽の門下を、退けろ');
+  const foe = (n, hp, mv) => pbFoe(n, { hp, moves: mv, keep: 2.6, speed: 2.0, reach: 7, hate: { P: 3 } });
+  pbStart({ anchor: W1[1], allies: [], hp: 7, failKey: 'c31hub', music: 'raid30', tip: '斬る（Space）、かわす（K／X）。袈裟の一太刀・跳び込みは、振り抜いたあとに隙ができる',
+    waves: [{ name: '断偽の門下', foes: () => { W1.forEach((n, i) => { n.hidden = false; n.st = {}; n.pos.set(W0[i][0], 0, W0[i][1]); }); za.hidden = true; return W1.map((n, i) => foe(n, 5, i % 2 ? ['tobi31', 'kiri31'] : ['kiri31'])); } },
+      { name: 'ザ・ンゲ', tip: '唱和の輪は、外へ広がる。……離れて、かわせ', foes: () => { za.hidden = false; za.st = {}; za.pos.set(6.4, 0, 0.4); const b = put31(a, 'dmon31b', () => member30(4, true), 3.0, 1.6, 0), c = put31(a, 'dmon31c', () => member30(1, true), 9.4, 1.8, 0); return [foe(za, 14, ['kyou31', 'kiri31', 'tobi31']), foe(b, 4, ['kiri31']), foe(c, 4, ['tobi31'])]; } }],
+    reset: () => { P.pos.set(5.0, 0, 3.6); P.st = {}; }, onFail: async () => { await narr('……膝を、ついた。刀を、杖にして、立つ。……まだ、終わってない。'); },
+    onWave: async i => { if (i === 1) { za.hidden = false; za.pos.set(6.4, 0, 0.4); za.facing = Math.atan2(P.pos.x - 6.4, P.pos.z - 0.4); fc30(za, 3.0, 0.2, 0.4); await say('zange', '……よい、刃だ。迷いが、ない。……だが、汝の、刃は、殺さぬ、刃だ。'); await say('zange', '殺さぬ、刃で。……断偽は、止まらぬ。'); } },
+    onClear: async () => { await goHubEnd31(); } });
+  $('abMeN').textContent = 'カシア'; }
+
+async function goHubEnd31() { G.mode = 'cine'; S.flags.c31st = 'hubEnd'; setObj(''); if (PB.on) pbStop(); kuze31(); await goCine30('hub19', [0, 999], 0); const a = AREAS.hub19; hub31(a, true); await fade(false); ckSave(); bgm('dangi30');
+  const za = put31(a, 'zange', () => zange30(), 6.4, 0.5, 0.15, { kneel: true }); const cs = put31(a, 'cassia', () => cassiaModel(true), 5.8, 3.0, Math.atan2(6.4 - 5.8, 0.5 - 3.0));
+  [0, 1, 2, 3].forEach(i => put31(a, 'dmon31' + i, () => member30(i, true), [2.6, 3.8, 8.8, 9.8][i], [0.8, 2.0, 1.4, 3.2][i], 0, { down: true }));
+  cine(7.4, 3.6, 8.8, 6.0, 0.8, 1.4); await narr('門下の文鳥たちは、床に、伏していた。……誰も、死んでは、いなかった。');
+  fc30(za, 3.0, 0.2, 0.4); await say('zange', '……殺さぬのか。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '殺さない。……あなたたちと、同じに、ならない。');
+  fc30(za, 3.0, 0.2, 0.4); await say('zange', 'それも、偽りだ。……汝は、まだ、斬られて、いないから、言える。');
+  await say('zange', '教主が、お見えに、なれば。……汝も、斬られる。メスで、ある、かぎり。');
+  await say('zange', '天使も、狐も、運命も。……あの方の、刃の前では、ただの、メスだ。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '……その人が、来る前に。片づける。');
+  za.st = {}; for (const n of Object.values(a.e31)) if (/^dmon31/.test(n.key)) { n.st = {}; } await say('chorus30', '……偽りを、断てェ……。');
+  sfx('wind'); for (const n of Object.values(a.e31)) if (/^dmon31|^zange$/.test(n.key) && !n.hidden) { fxRing(n.pos.x, 0.05, n.pos.z, 0x9A9AA4, 1.4); n.hidden = true; }
+  cine(7.4, 3.6, 8.8, 6.0, 0.8, 1.4); await narr('唱和だけを、残して。……文鳥たちは、梁の上の、暗がりへ、消えた。'); bgm('');
+  sfx('vib'); fc30(cs, 2.2, 0, 0.6); await say('cassia', '……カ・エレさん。四十八件目。……未遂。ひとり、怪我。生きてる。');
+  await say('ktel31', 'うん。……よく、間に合ったね。');
+  await say('ktel31', '教主は。……来てた？');
+  await say('cassia', '来てない。……「お見えに、なれば」って、言ってた。');
+  await say('ktel31', 'そう。……じゃあ、まだ、間に合う。');
+  await say('ktel31', 'カシア。……次は、ひとりで、行かないで。あの人の、前では。きみも、メスだから。');
+  fc30(cs, 2.4, 0, 0.5); await say('cassia', '……了解。');
+  cs.facing = Math.atan2(7.8 - cs.pos.x, -6.4 - cs.pos.z); cine(6.4, 1.4, 6.8, 7.8, 5.0, -6.4); await narr('割れた窓の、向こう。……北の、弥勒山の方角から、風が、吹いていた。');
+  await narr('教主は。……まだ、来ていない。');
   await fade(true); await card('第十章　序　同意', '完', 3200); await fade(false); setMeta({ ch31Clear: true, ch31: packS(), ch31Done: [...DONE] }); showReport31(); }
 
 function showReport31() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); news22off(); fear20(0); bgm('dawn31');
@@ -16331,14 +16423,17 @@ function showReport31() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>夜明け</td><td>「成功です。渉さんの中に、少しだけ、私の細胞がいます。でも、渉さんは、渉さんです」「患者さんですから。誰の持ち物でもなく」。……電話がくると「はぁい♡　ゆり姉」。あの竜にも、帰る家がある。</td></tr>' +
     '<tr><td>渉</td><td>「俺たち、ずっと、異種族に助けられて、生きてきたんだね」「兄さんの本当の仕事、聞かないよ。でも、無理しないで」。</td></tr>' +
     '<tr><td>レウネ</td><td>「翠絡の地図に、新しく点がひとつ。三〇七号室」「留保にも、言わないでしょ。保留、ってやつ？」。久世は、黒岩に言わないと決めた。言えば、渉は手札になる。</td></tr>' +
-    '<tr><td>断偽の夜</td><td>雌の異種族を殺す集団。渉の命をつなぐのは、竜の細胞。「お前が守るのは、竜か、弟か」「……両方だ」。ヴォル「あなたの『職場』の方々は、あの文鳥たちを、どうご覧に？」「私の家族に何かあったら、外のことでも、争いますから」。</td></tr></table>' +
+    '<tr><td>断偽の夜</td><td>雌の異種族を殺す集団。渉の命をつなぐのは、竜の細胞。「お前が守るのは、竜か、弟か」「……両方だ」。ヴォル「あなたの『職場』の方々は、あの文鳥たちを、どうご覧に？」「私の家族に何かあったら、外のことでも、争いますから」。</td></tr>' +
+    '<tr><td>同じ夜、北の外れ</td><td>千路ロジスティクスの夜間の荷受け場。ハーピーの運び手たちを、ザ・ンゲの率いる断偽の門下が襲う。「メスであること。それだけで、足りる」。ひとりが斬られたところへ、カシアが割って入る。「メスかどうかで、人を、数えない」。門下を、殺さずに退ける。……「教主が、お見えになれば。汝も、斬られる」。教主は、まだ、来ていない。</td></tr></table>' +
     '<p class="close">断偽は、止める。竜のためじゃない。……渉のためだ。そう、何度も、言い聞かせた。</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn31">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn31').addEventListener('click', () => location.reload()); }
 async function startCh31() { const m = meta(); if (m.ch30) unpackS(m.ch30); else if (m.ch29) unpackS(m.ch29); DONE = new Set(m.ch30Done || m.ch29Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter31(); }
 
 // 続きから：場面の始まりから
-RESUME[31] = { call: goCall31, wait: goWait31, morning: goMorning31, night: goNight31 };
+RESUME[31] = { call: goCall31, wait: goWait31, morning: goMorning31, night: goNight31, hub: goHub31, fight: goFight31, hubEnd: goHubEnd31 };
+// 荷受け場の戦い
+{ const a = AREAS.hub19, t0 = a.tick; a.tick = function (x, dt) { if (t0) t0.call(this, x, dt); if (S.chapter === 31 && AB.on) { abTick(x, dt); pbTick(x, dt); } }; }
 AREAS.hospital.restore = (r0 => function (a) { if (r0) r0.call(this, a); if (S.chapter === 31) hosp31Items(); })(AREAS.hospital.restore);
 // 第十章 Intro の報告から、序へ
 { const r0 = showReport30; showReport30 = function () { r0(); const row = $('titleBtn30') && $('titleBtn30').parentNode; if (row && !$('ch31Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch31Go'; b.textContent = '第十章　序　同意 へ'; row.insertBefore(b, row.firstChild); $('titleBtn30').className = 'ghost'; b.addEventListener('click', () => run(chapter31)); } }; }
@@ -16686,6 +16781,6 @@ function talkSkip(on) { G.skip = on; G.skipTalk = on; const b = $('talkSkip'); b
   if (on) { clearInterval(typer); typing = false; $('dlg').hidden = true; nameCard(null); const f = dlgDone; dlgDone = null; if (f) f(); } }
 $('talkSkip').addEventListener('click', () => talkSkip(!G.skipTalk));
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); $('talkSkip').hidden = !(talk && (G.skipTalk || !$('dlg').hidden)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, showReport31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, showReport31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
