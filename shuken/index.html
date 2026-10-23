@@ -17914,9 +17914,9 @@ function tcoPose34(m, dt) { if (!m || !m.tent) return; const t = T.now; m.sp = m
 // ---- 本山の境内（下編：門下が増えて広げられた境内と、建て直された大きな本堂） ----
 makeArea('sohon34', { place: '弥勒山の奥　断偽文鳥門　本山　広げられた境内', bounds: [-16, 16, -8.4, 9.0], spawn: [0.6, 7.8], spawnFace: Math.PI, cam: [0, 10, 11], music: '', bg: 0x070508, fog: [26, 84], light: 0.42, sun: 0.2,
   build(a) { const g = a.g;
-    const gr = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), new THREE.MeshLambertMaterial({ map: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#8A867E'; c.fillRect(0, 0, w, h); for (let i = 0; i < 1800; i++) { c.fillStyle = ['#7A766E', '#9A968C', '#6E6A62'][i % 3]; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); } }) })); gr.rotation.x = -Math.PI / 2; g.add(gr);
+    const gr = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshLambertMaterial({ map: canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#8A867E'; c.fillRect(0, 0, w, h); for (let i = 0; i < 1800; i++) { c.fillStyle = ['#7A766E', '#9A968C', '#6E6A62'][i % 3]; c.fillRect(Math.random() * w, Math.random() * h, 2, 2); } }) })); gr.rotation.x = -Math.PI / 2; g.add(gr);
     // 石畳の参道
-    for (let i = 0; i < 16; i++) block(2.6, 0.06, 1.1, 0x9A968E, 0, 0.03, 11.2 - i * 1.3, g);
+    for (let i = 0; i < 23; i++) block(2.6, 0.06, 1.1, 0x9A968E, 0, 0.03, 20.0 - i * 1.3, g);
     // 本堂：大きく建て直された基壇と身舎、三重の黒い屋根
     block(19, 1.2, 7.4, 0x3A2E26, 0, 0.6, -13.4, g); block(16.4, 5.0, 5.6, 0x4A3A2E, 0, 3.7, -13.6, g);
     block(20.4, 0.5, 9.0, 0x16161A, 0, 6.45, -13.4, g); block(15.6, 0.5, 6.8, 0x16161A, 0, 7.0, -13.4, g); block(9.6, 0.6, 4.0, 0x16161A, 0, 7.6, -13.4, g);
@@ -17936,9 +17936,9 @@ makeArea('sohon34', { place: '弥勒山の奥　断偽文鳥門　本山　広�
     // 塀
     for (const sx of [-1, 1]) block(0.4, 2.2, 26, 0x3A3430, sx * 17.6, 1.1, -0.6, g); block(36, 2.2, 0.4, 0x3A3430, 0, 1.1, -17.4, g);
     // 山門（手前、高い梁）
-    for (const sx of [-1, 1]) block(0.5, 6.4, 0.5, 0x3A2A22, sx * 4.4, 3.2, 12.8, g); block(10, 0.5, 0.9, 0x24242A, 0, 6.6, 12.8, g); block(9.2, 0.3, 0.6, 0x3A2A22, 0, 6.1, 12.8, g);
+    for (const sx of [-1, 1]) block(0.5, 6.4, 0.5, 0x3A2A22, sx * 4.4, 3.2, 21.6, g); block(10, 0.5, 0.9, 0x24242A, 0, 6.6, 21.6, g); block(9.2, 0.3, 0.6, 0x3A2A22, 0, 6.1, 21.6, g);
     // 杉の林
-    for (let i = 0; i < 80; i++) { let x = rand(-40, 40), z = rand(-36, 30); if (Math.abs(x) < 19 && z > -19 && z < 14) continue; const h = rand(8, 14); part(cyl(0.2, 0.3, h * 0.4, 6), 0x2A1E16, x, h * 0.2, z, g, { outline: false }); part(G_('cedar34', () => new THREE.ConeGeometry(1.4, 1, 7)), [0x10201A, 0x142818, 0x0C1A14][i % 3], x, h * 0.62, z, g, { outline: false, s: [1.3, h * 0.8, 1.3] }); }
+    for (let i = 0; i < 80; i++) { let x = rand(-40, 40), z = rand(-36, 30); if (Math.abs(x) < 19 && z > -19 && z < 24) continue; const h = rand(8, 14); part(cyl(0.2, 0.3, h * 0.4, 6), 0x2A1E16, x, h * 0.2, z, g, { outline: false }); part(G_('cedar34', () => new THREE.ConeGeometry(1.4, 1, 7)), [0x10201A, 0x142818, 0x0C1A14][i % 3], x, h * 0.62, z, g, { outline: false, s: [1.3, h * 0.8, 1.3] }); }
     // 山の裾の火（紅鱗）
     a.wall = glowSprite(0xFF3A1A, 60, 0.4); a.wall.position.set(0, 6, 46); g.add(a.wall); },
   tick(a, dt) { const t = T.now; a.fires.forEach((f, i) => { f.material.opacity = 0.7 + Math.sin(t * 9 + i * 3) * 0.15; }); a.hallGlow.material.opacity = 0.36 + Math.sin(t * 2.2) * 0.08;
@@ -18196,7 +18196,7 @@ async function goSummit34() { G.mode = 'cine'; S.flags.c34st = 'summit'; setObj(
   fc30(E.mu, 2.4, 0.2, -0.3); await say('mujou', '……黒浄の加護が。……消えた。');
   // 教主
   mz.hidden = false; mz.pos.set(0, 0, -9.8); mz.facing = 0; const w = walk31(mz, 0, -6.6, 1.0); const yf = fxAdd(new THREE.Group(), 4.0, () => { mz.y = Math.max(0, Math.min(1.2, (-8.6 - mz.pos.z) * 0.72)); }); void yf;
-  cine(4.0, 2.8, -1.6, 0, 2.2, -8.4); sfx('bell34'); await narr('本堂の階段を、ひとりの文鳥が下りてきた。'); await w; mz.y = 0;
+  cine(5.2, 3.0, -3.0, 0, 2.2, -8.0); sfx('bell34'); await narr('本堂の階段を、ひとりの文鳥が下りてきた。'); await w; mz.y = 0;
   fc30(mz, 3.6, 0.8, 0.0); await say('mesu', '……よい波だ。');
   await say('mesu', '竜が三頭。……問おう。真か、偽りか。');
   fc22(yu, 2.4, 0, -0.3); await say('yuria', 'ザイナ返して。……今すぐ。');
@@ -18217,7 +18217,7 @@ async function goKuu34() { G.mode = 'cine'; S.flags.c34st = 'kuu'; const a = ARE
   await z22(400); sfx('zan30'); G.shake = 1.6; await new Promise(res => fxAdd(new THREE.Group(), 0.9, u => { arm.rotation.y = -u * TAU * 1.05; mz.facing = u * TAU * 1.05; if (u >= 1) res(); }));
   fxRing(mz.pos.x, 0.6, mz.pos.z, 80, 0xFFFFFF, 1.2); kuu34(true); for (const n of Object.values(al)) { n.st = { down: true }; fxFlash(n.pos.x, 1.0, n.pos.z, 0xFF2A2A, 2.2, 0.8); } al.yu.st = { kneel: true }; a.g.remove(arm); mz.facing = 0;
   await z22(3200); kuu34(false); await z22(600);
-  cine(0, 5.6, 12.4, 0, 0.6, 4.4); await narr('斬られていた。……竜も竜兵も狐も。一太刀で。');
+  cine(0, 5.2, 11.4, 0, 0.6, 4.0); await narr('斬られていた。……竜も竜兵も狐も。一太刀で。');
   await narr('皆、深く裂かれていた。……生きているのが不思議なほどに。');
   fc22(al.yu, 2.6, 0.2, -0.3); await narr('立ち上がれたのは、ユリアだけだった。'); al.yu.st = {};
   await say('yuria', '……はは。……マジ、か。');
@@ -18275,7 +18275,7 @@ async function goBulk34() { G.mode = 'cine'; S.flags.c34st = 'bulk'; setObj('');
   // クロ・バルク：弟と教主のあいだに、教主を向いて降りる
   const kb = put31(a, 'kuro', () => kuroBulk(), 1.0, 3.2, Math.PI), fk = put31(a, 'fukkin', () => fukkinBird(), -2.2, 3.0, Math.PI), hk = put31(a, 'haikin', () => haikinBird(), 4.0, 2.8, Math.PI); CAST.kuro = kb.model; CAST.fukkin = fk.model; CAST.haikin = hk.model;
   for (const n of [kb, fk, hk]) { n.hidden = false; n.st = {}; n.y = 16; n.goal = null; face34(n, mz); } kb.pos.set(1.0, 0, 3.2); fk.pos.set(-2.2, 0, 3.0); hk.pos.set(4.0, 0, 2.8);
-  fxAdd(new THREE.Group(), 0.7, u => { for (const n of [kb, fk, hk]) n.y = 16 * (1 - u * u); }); await z22(720); for (const n of [kb, fk, hk]) n.y = 0;
+  let landed = false; fxAdd(new THREE.Group(), 0.7, u => { if (!landed) for (const n of [kb, fk, hk]) n.y = 16 * (1 - u * u); }); await z22(720); landed = true; for (const n of [kb, fk, hk]) n.y = 0;
   sfx('roar32'); G.shake = 1.6; fxRing(1.0, 0.3, 3.2, 9, 0xFFFFFF, 0.8); boom(1.0, 0.4, 3.2, 0xFFE0A0, true);
   bgm('hope34'); camSnap = true; cine(kb.pos.x - 3.2, 2.6, kb.pos.z - 1.6, kb.pos.x, 2.3, kb.pos.z); await say('kuro', 'ブンチョオオオオオオオオオオッッッ！！！！！！', { cls: 'shout24' });
   await say('kuro', '弟の声がァァァ……聞こえたァァァァ！！！！');
@@ -18304,9 +18304,9 @@ async function goTco34() { G.mode = 'cine'; S.flags.c34st = 'tco'; setObj(''); c
   const st = glowSprite(0xFF9A2A, 4, 0.95); st.position.set(0, 44, -10); a.g.add(st); await new Promise(res => fxAdd(new THREE.Group(), 0.8, u => { st.position.set(0.4 * u, 44 * (1 - u), -10 + 9.0 * u); if (u >= 1) res(); })); a.g.remove(st);
   // 着地：クロ・バルクは手前へ、教主は奥へ弾かれる
   tc.hidden = false; tc.pos.set(0.4, 0, -1.0); tc.st = { kneel: true }; tc.facing = Math.atan2(0.6 - 0.4, 6.0 + 1.0); G.shake = 2.0; sfx('stake34'); boom(0.4, 0.4, -1.0, 0xFF9A2A, true); fxRing(0.4, 0.3, -1.0, 18, 0xFF9A2A, 1.2);
-  kb.st = { reel: true }; kb.pos.set(3.6, 0, 3.4); face34(kb, tc); mz.pos.set(0, 0, -3.8); if (fk && !fk.hidden) { fk.pos.set(-3.0, 0, 3.6); face34(fk, tc); } if (hk && !hk.hidden) { hk.pos.set(5.6, 0, 2.6); face34(hk, tc); }
+  kb.st = { reel: true }; kb.pos.set(3.6, 0, 3.4); face34(kb, tc); mz.pos.set(0, 0, -3.8); if (fk && !fk.hidden) { fk.pos.set(-5.2, 0, 3.0); face34(fk, tc); } if (hk && !hk.hidden) { hk.pos.set(5.6, 0, 2.6); face34(hk, tc); }
   for (const k of ['murase', 'ishii', 'takane']) { const n = E34(a, k); if (n) { n.st = {}; face34(n, tc); } } P.st = {}; face34(P, tc); if (po) face34(po, tc);
-  cine(-3.6, 1.8, 3.6, 0.4, 2.0, -1.0); await narr('教主とクロ・バルクのあいだに。……何かが、膝をついていた。');
+  cine(-2.6, 1.8, 4.6, 0.4, 2.0, -1.0); await narr('教主とクロ・バルクのあいだに。……何かが、膝をついていた。');
   tc.st = {}; tc.model.spread = 1; await z22(900); sfx('tco34');
   const tcCam = () => cine(-2.2, 2.6, 5.2, 0.4, 2.8, -1.0);
   tcCam(); nameCard({ s: 'B.U.N　特別査定枠　一桁相当　――　逆一桁', b: 'B.U.N T.C.O', e: 'T.C.O', col: '#F2A020', p: '白い猛禽の頭。白と黒と金の装甲。金の鉤爪。\n背には、橙色の機械の腕が六本。穿つ、断つ、撃つ、縛る、喰う、返す。\n胸の奥の炉が、何かを燃やしている。' }); await z22(3000); nameCard(null);
@@ -18316,7 +18316,7 @@ async function goTco34() { G.mode = 'cine'; S.flags.c34st = 'tco'; setObj(''); c
   await say('tco', 'いじったばっかの身体の、慣らしだ。……ちょうどいいのが、そろってるじゃねえか。');
   await say('tco', '……メスどもが、這いつくばってやがる。');
   await say('tco', '俺の前に立つなら、覚悟しろッ！！　叩き潰してやる！！');
-  mz.st = {}; cine(mz.pos.x - 4.2, 2.6, mz.pos.z + 0.4, mz.pos.x, 2.0, mz.pos.z); await say('mesu', '……ほう。……面白い。');
+  mz.st = {}; mz.pos.set(-3.0, 0, -3.4); face34(mz, tc); cine(mz.pos.x - 3.2, 2.4, mz.pos.z + 2.8, mz.pos.x, 2.0, mz.pos.z); await narr('教主が、ゆらりと立ち上がった。'); await say('mesu', '……ほう。……面白い。');
   if (po) cine(po.pos.x + 2.2, 1.3, po.pos.z + 0.8, po.pos.x, 0.8, po.pos.z); await say('ponpu', '……あの腕。……橙色……。');
   await say('kuze', '（……なんだ、こいつは）');
   cine(-1.6, 3.0, 6.8, 0.4, 3.2, -1.0); await narr('六本の腕が、ゆっくりと持ち上がった。……それぞれの先で、違う色の光が灯った。');
