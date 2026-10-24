@@ -18443,7 +18443,7 @@ async function goShojin35() { G.mode = 'cine'; S.flags.c35st = 'shojin'; setObj(
   kb.st = {}; const w = walk31(kb, 1.4, 0.8, 2.4); await w; kb.st = { punch: true }; sfx('hit'); G.shake = 0.6; await z22(240); kb.st = {};
   tcoArm35({ n: tc }, 0x30C0FF, kb.pos.x, kb.pos.z); sfx('slash'); tcoArm35({ n: tc }, 0xFF2A2A, kb.pos.x, kb.pos.z); fxFlash(kb.pos.x, 1.6, kb.pos.z, 0xFF2A2A, 2.6, 0.5); G.shake = 1.2; kb.st = { kneel: true };
   cine(4.4, 2.2, 3.4, 1.0, 1.4, 0.4); await narr('青い錐が拳を受け止め赤い刃が胸の筋を走った。……クロ・バルクが膝をついた。');
-  await say('tco', '逃がすかッ！！　次だ！！　次ィ！！　ブンチョオオオオオ！！！', { cls: 'shout24' });
+  cine(-3.4, 2.8, 4.0, 0.4, 3.0, -1.0); await say('tco', '逃がすかッ！！　次だ！！　次ィ！！　ブンチョオオオオオ！！！', { cls: 'shout24' });
   po.st = {}; const w2 = walk31(po, kb.pos.x - 0.6, kb.pos.z + 1.0, 2.0); cine(kb.pos.x + 2.6, 1.6, kb.pos.z + 3.0, kb.pos.x - 0.3, 0.9, kb.pos.z + 0.6); await w2; face34(po, tc);
   await say('ponpu', '兄貴……！　兄貴ィ……！');
   await say('kuro', '……下がれェ……ポ・ンプ……。……弟にはァ……触らせん……ッ。');
@@ -18584,8 +18584,9 @@ async function goMama35() { G.mode = 'cine'; S.flags.c35st = 'mama'; setObj('');
   const glow = glowSprite(0xFFE0F0, 6, 0); glow.position.set(0.6, 1.4, 9.6); a.g.add(glow); fxAdd(new THREE.Group(), 1.6, u => { glow.material.opacity = 0.5 * u; });
   cine(0.6, 2.0, 13.4, 0.6, 1.4, 8.0); await narr('音が消えた。……篝火の爆ぜる音も。橙の炉の唸りも。');
   await narr('山門のほうから、エプロンの上に上着を羽織った竜が、ゆっくり歩いてきた。');
-  const w = walk31(fu, 0.6, 5.4, 1.1); fc22(fu, 2.6, 0.2, 0.3); await say('furuuru', '……迎えに来たよ。');
-  await w; face34(fu, tc); glow.position.set(fu.pos.x, 1.4, fu.pos.z);
+  fc22(fu, 2.6, 0.2, 0.3); await say('furuuru', '……迎えに来たよ。');
+  const w = walk31(fu, 0.6, 5.4, 1.1); cine(3.0, 2.4, 9.6, 0.6, 1.4, 6.0);
+  await w; face34(fu, tc); glow.position.set(fu.pos.x, 1.4, fu.pos.z); fc22(fu, 2.6, 0.2, 0.3);
   await say('furuuru', 'その腕。……うちの子たちに向けないで。');
   face34(tc, fu); cine(-2.2, 2.6, 5.2, 0.4, 2.8, -1.0); await say('tco', 'なんだ、テメェ……！　メスが……！！');
   await say('tco', '喰ってやる……！！');
@@ -18603,8 +18604,8 @@ async function goMama35() { G.mode = 'cine'; S.flags.c35st = 'mama'; setObj('');
   fc22(fu, 2.6, 0.2, 0.3); await say('furuuru', '……かわいそうな子。');
   // 教主は
   mo.facing = Math.atan2(17 - mo.pos.x, -26 - mo.pos.z); cine(-6.0, 3.0, 9.0, 17, 2.4, -26); await narr('モイは山の裾の火の壁を見ていた。');
-  await say('moi', '……火が止まってる。');
-  await narr('火の壁の一か所だけ。炎が絵のように止まっていた。……その隙間を黒い法衣の列が抜けていった。');
+  fc22(mo, 2.2, 0, 0.3); await say('moi', '……火が止まってる。');
+  cine(-6.0, 3.0, 9.0, 17, 2.4, -26); await narr('火の壁の一か所だけ。炎が絵のように止まっていた。……その隙間を黒い法衣の列が抜けていった。');
   for (const k of ['gedatsu', 'mujou', 'zange']) { const n = E34(a, k); if (n) n.hidden = true; } mz.hidden = true;
   cine(-4.0, 3.0, 2.0, -3.0, 1.2, -3.4); await narr('階段の下に教主の姿は、もうなかった。');
   fc22(mo, 2.2, 0, 0.3); await say('moi', '……カシア。教主がいない。');
@@ -18652,10 +18653,10 @@ async function goFumoto35() { G.mode = 'cine'; S.flags.c35st = 'fumoto'; setObj(
   fc22(vo, 2.4, 0, 0.3); await say('vol', '帰ってきました。……ママが迎えに行きました。');
   cine(-9.0, 1.6, 1.6, -10.0, 0.6, -0.4); await say('yuria', '……ママ、来ちゃったんだ。');
   await say('yuria', '……よかったぁ。……ほんと、よかったぁ……。');
-  cine(-5.0, 1.8, 1.8, -5.0, 0.6, -0.4); await say('rin', '網、張っとったからな。……浅う済んだんや。');
-  await say('miria', '……ざぁこ。……ありがと、燐。');
+  cine(rn.pos.x + 1.8, 1.8, 0.0, rn.pos.x, 0.6, -1.0); await say('rin', '網、張っとったからな。……浅う済んだんや。');
+  cine(mi.pos.x + 1.8, 1.8, 0.0, mi.pos.x, 0.6, -1.0); await say('miria', '……ざぁこ。……ありがと、燐。');
   // クロ・バルク
-  cine(8.0, 2.2, 2.8, 6.0, 0.8, -0.2); await say('fukkin', '兄貴を……竜の医者が……。');
+  fc30(fk, 2.6, 0.2, 0.3); await say('fukkin', '兄貴を……竜の医者が……。');
   fc22(vo, 2.4, 0, 0.3); vo.pos.set(6.0, 0, 1.4); face34(vo, kb); fc22(vo, 2.4, 0, 0.3); await say('vol', '患者です。');
   cine(8.0, 2.2, 2.8, 6.0, 0.8, -0.2); await say('kuro', '……弟がァ……世話にィ……なっているゥ……。');
   await say('ponpu', '兄貴、声、ちっちゃいっす。……初めて聞いたっす。');
@@ -18668,9 +18669,9 @@ async function goFumoto35() { G.mode = 'cine'; S.flags.c35st = 'fumoto'; setObj(
   const hel = new THREE.Group(); ts.model.arms[0].add(hel); part(box(0.4, 0.46, 0.2), 0xF8F8F8, 0, -0.62, 0.18, hel); part(box(0.3, 0.1, 0.03), 0x1A1A2A, 0, -0.56, 0.29, hel, { outline: false });
   const wg = [walk31(gk, 0.8, 1.6, 1.2), walk31(ts, 1.2, 2.4, 1.2)]; cine(4.0, 2.4, 4.6, 0.6, 1.0, 0.6); await Promise.all(wg); face34(gk, za); face34(ts, za);
   fc22(ts, 2.2, 0, -0.3); await say('tsuyoshi', 'ザイナさん。……磨いて、おきました！');
-  cine(1.6, 1.8, 1.8, -0.1, 0.6, -0.4); await say('zaina', '……あ。……おっかさんの面。');
+  cine(za.pos.x + 1.8, 1.8, 0.0, za.pos.x, 0.6, -1.0); await say('zaina', '……あ。……おっかさんの面。');
   fc22(gk, 2.4, 0, 0.3); await say('goka', 'おかえり。……鬼は借りを返した。');
-  cine(1.6, 1.8, 1.8, -0.1, 0.6, -0.4); await say('zaina', '……返しすぎ。');
+  cine(za.pos.x + 1.8, 1.8, 0.0, za.pos.x, 0.6, -1.0); await say('zaina', '……返しすぎ。');
   ts.model.arms[0].remove(hel);
   // カ・エレの三人
   fc22(tn, 1.9, -0.3, 0.3); await narr('ツナは膝を抱えて、泣いていた。');
@@ -18686,7 +18687,7 @@ async function goFumoto35() { G.mode = 'cine'; S.flags.c35st = 'fumoto'; setObj(
   fc22(P, 2.2, 0, -0.4); await say('kuze', '……作戦、でした。');
   fc22(vo, 2.4, 0, 0.3); await say('vol', '……そういうことにしておきます。');
   fc22(P, 2.2, 0, -0.4); await saku('……竜の姉は鼻がきく。');
-  cine(0, 6.0, 13.0, 0, 6.0, -30); await narr('山の上の火がゆっくり消えていった。');
+  cine(0, 3.0, 12.0, 0, 8.0, -17); await narr('山の上の火がゆっくり消えていった。');
   await fade(true); await goKaere35(); }
 
 // ---- 盤の上 ----
@@ -18760,7 +18761,7 @@ async function goLab35() { G.mode = 'cine'; S.flags.c35st = 'lab'; setObj(''); k
   await say('voice35', '名前は捨てたのでは。');
   G.shake = 0.6; await say('tco', '捨てたッ！！', { cls: 'shout24' });
   cine(0, 1.6, 3.4, 0, 1.4, -1.0); await narr('……返事はなかった。暗い部屋で六本の腕だけが小さく震えていた。');
-  await say('tco', '……こっちを見ろよ。');
+  cine(0, 2.6, 4.4, 0, 2.6, -1.0); await say('tco', '……こっちを見ろよ。');
   await fade(true); await goHome35(); }
 { const a = AREAS.lab35, t0 = a.tick; a.tick = function (x, dt) { if (t0) t0.call(this, x, dt); if (x.tcoN && !x.tcoN.hidden) { tcoPose34(x.tcoN.model, dt); for (const k of x.tcoN.model.tent) k.r.rotation.x = 0.6; } }; }
 
