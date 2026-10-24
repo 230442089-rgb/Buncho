@@ -18886,7 +18886,7 @@ makeArea('kojo36', { noPlayer: true, place: '――　北の山の奥　崩れ�
     // 割れた空
     a.red = glowSprite(0xFF2A1A, 70, 0.55); a.red.position.set(-34, 18, -44); g.add(a.red); a.gold = glowSprite(0xFFC040, 70, 0.55); a.gold.position.set(34, 18, -44); g.add(a.gold);
     // 宙に浮く岩
-    a.float = []; for (let i = 0; i < 28; i++) { const b = part(box(rand(0.2, 0.7), rand(0.2, 0.6), rand(0.2, 0.7)), 0x2A2224, rand(-7, 7), rand(0, 5), rand(-4, 5), g); b.v = rand(0.15, 0.5); b.r = rand(-1, 1); a.float.push(b); } },
+    a.float = []; for (let i = 0; i < 28; i++) { const b = part(box(rand(0.2, 0.7), rand(0.2, 0.6), rand(0.2, 0.7)), 0x2A2224, rand(-9, 9), rand(0, 5), rand(-7, -1.8), g); b.v = rand(0.15, 0.5); b.r = rand(-1, 1); a.float.push(b); } },
   tick(a, dt) { for (const b of a.float) { b.position.y += b.v * dt; b.rotation.y += b.r * dt; b.rotation.x += b.r * 0.6 * dt; if (b.position.y > 8) b.position.y = 0; }
     if (a.bolt36 && Math.random() < dt * 6) { const x = rand(-4, -0.4), z = rand(-1.5, 1.5); fxBeam(new THREE.Vector3(x, rand(3, 6), z), new THREE.Vector3(x + rand(-0.8, 0.8), 0.2, z + rand(-0.8, 0.8)), 0xFF2A1A, 0.08, 0.18); }
     if (a.e31 && a.e31.tco && !a.e31.tco.hidden) tcoPose34(a.e31.tco.model, dt); }
@@ -18942,14 +18942,14 @@ async function goTachiiri36() { G.mode = 'cine'; S.flags.c36st = 'tachiiri'; set
   await say('dlv31', '……竜の会社の下請けで橋だって、架けてるんです。');
   // 若い文鳥が走る
   fc30(hn, 2.0, 0, 0.3); await narr('若い文鳥が怖さに負けて、走り出した。');
-  const w = walk31(hn, 4.4, 2.2, 3.0); fc22(g2, 2.4, 0, -0.3); await say('ryuhei34', '動くな！');
+  const w = walk31(hn, 4.4, 2.2, 3.0); cine(g2.pos.x + 1.2, 2.2, g2.pos.z - 2.6, g2.pos.x, 1.6, g2.pos.z); await say('ryuhei34', '動くな！');
   await w; g2.goal = null; g2.pos.set(3.6, 0, 2.8); face34(g2, hn); g2.st = { punch: true }; await z22(200);
   dl.goal = null; dl.pos.set(4.0, 0, 2.4); face34(dl, g2); cine(6.4, 2.2, 5.6, 3.8, 1.2, 2.4); await say('dlv31', 'やめてください……！　まだ、子供なんです……！');
   sfx('hit'); G.shake = 0.6; g2.st = { punch: true }; let flown = false; fxAdd(new THREE.Group(), 0.35, u => { if (!flown) dl.pos.set(4.0 + u * 2.4, 0, 2.4 - u * 7.2); }); await z22(400); flown = true; dl.pos.set(6.4, 0, -4.8); g2.st = {}; dl.st = { down: true }; fxFlash(6.4, 0.8, -5.2, 0xFFFFFF, 1.2, 0.2);
   cine(4.0, 2.6, -0.6, 6.4, 0.4, -4.8); await narr('竜の腕はただ払っただけだった。……それだけで文鳥の体は、壁まで飛んだ。');
   await narr('配達員は起き上がらなかった。');
-  fc22(g2, 2.4, 0, -0.3); await say('ryuhei34', '……払った、だけ……。払った、だけなのに……。');
-  ho.goal = null; ho.pos.set(5.4, 0, -3.8); ho.st = { kneel: true }; face34(ho, dl); cine(3.6, 1.8, -1.6, 6.0, 0.6, -4.4); await narr('ホ・マレが配達員のそばに膝をついた。');
+  cine(g2.pos.x - 1.6, 2.2, g2.pos.z + 2.2, g2.pos.x, 1.6, g2.pos.z); await say('ryuhei34', '……払った、だけ……。払った、だけなのに……。');
+  ho.goal = null; ho.pos.set(5.4, 0, -3.8); ho.st = { kneel: true }; face34(ho, dl); cine(ho.pos.x - 1.2, 1.6, ho.pos.z + 2.2, ho.pos.x + 0.4, 0.8, ho.pos.z - 0.4); await narr('ホ・マレが配達員のそばに膝をついた。');
   await say('homare', '……文鳥として。……強く、あれ。……か。');
   await say('homare', '……強く、あれなかった者は。……どこへ行けばいい。');
   fc22(ko, 2.4, 0, 0.3); await say('kouri36', '……事故です。紅鱗は事故として、記録します。');
@@ -18990,7 +18990,7 @@ async function goSenro36() { G.mode = 'cine'; S.flags.c36st = 'senro'; setObj(''
   fc30(kj, 2.6, 0.3, 0.3); await say('konjo', '死んだ文鳥の分っス！！　空を飛ぶメスどもに地べたを教えてやるっス！！', { cls: 'shout24' });
   for (let i = 0; i < 4; i++) { sfx('hit'); fxFlash(rand(-4, 2), rand(1, 3), rand(-2, 3), 0xFFE0A0, 1.2, 0.25); await z22(140); } G.shake = 0.6;
   cine(-0.4, 1.8, 2.6, -2.2, 0.8, 1.0); await narr('中継所の灯りがひとつずつ割られていった。');
-  await say('hp31', 'やめて……！　羽は……羽だけは……！');
+  fc22(h1, 2.0, -0.3, 0.3); await say('hp31', 'やめて……！　羽は……羽だけは……！');
   sfx('wind'); mi.hidden = false; const w = walk31(mi, -5.4, 2.4, 3.6); cine(-6.6, 2.0, 5.4, -5.4, 1.2, 2.4); await w;
   await narr('ミリアが着いた。……何も言わなかった。');
   fc30(kj, 2.6, 0.3, 0.3); await say('konjo', '竜が来たっス！！　散れェ！！');
@@ -19114,7 +19114,7 @@ async function goReveal36() { G.mode = 'cine'; S.flags.c36st = 'reveal'; setObj(
   cine(0, 2.6, 5.4, 0, 2.2, -1.0); await fade(false); await card('――　どこかの整備室', '同じ朝', 1400);
   await say('voice35', 'おはようございます。……ずいぶん静かに怒っていらっしゃいますね。');
   fc30(tc, 3.4, 0.6, 0.2); await say('tco', '……テメェ。いい加減、顔、見せろ。');
-  sr.hidden = false; const w = walk31(sr, 1.6, 1.0, 0.9); cine(3.4, 1.8, 3.6, 2.2, 1.2, 1.4); await narr('暗がりから一羽の文鳥が歩み出た。……丸い体に穏やかな目。腰に一振りの太刀。'); await w; face34(sr, tc);
+  sr.hidden = false; const w = walk31(sr, 1.6, 1.0, 0.9); cine(4.6, 1.5, 4.4, 2.2, 0.9, 1.6); await narr('暗がりから一羽の文鳥が歩み出た。……丸い体に穏やかな目。腰に一振りの太刀。'); await w; face34(sr, tc);
   fc30(sr, 2.6, 0.3, 0.3); nameCard({ s: 'B.U.N　No.4　辻society', b: 'シ・ロブン', e: 'SHI-ROBUN', col: '#FF8A50', p: '「文火の太刀」。かつては一振りで街区を焼いた剣。\n今は「だいぶ丸くなった」と本人は言う。\n言葉は丁寧で中身は傍若無人。' }); await z22(2600); nameCard(null);
   await say('shirobun', '私です。……しーらないと言いましたっけ。');
   await say('shirobun', 'さあ。言ったかもしれませんねぇ。');
@@ -19164,8 +19164,8 @@ async function goAkushu36() { G.mode = 'cine'; S.flags.c36st = 'akushu'; setObj(
   cine(1.6, 2.8, 6.0, 1.3, 2.6, 0.0); await say('tco', '……ブンチョオオオオ……。');
   mz.st = { point: true }; tc.st = { point: true }; tc.model.spread = 1; a.bolt36 = true; sfx('tco34'); sfx('bell34'); G.shake = 1.2;
   fxFlash(0.1, 2.2, 0.2, 0xFFFFFF, 3.4, 0.8); for (let i = 0; i < 3; i++) setTimeout(() => { fxRing(tc.pos.x, 0.4, tc.pos.z, 6 + i * 3, 0xFFC040, 1.2); fxRing(mz.pos.x, 0.4, mz.pos.z, 6 + i * 3, 0xFF2A1A, 1.2); }, i * 300);
-  cine(1.2, 0.9, 4.2, 0.0, 2.6, 0.0); await narr('赤い雷と橙色の光が。……ひとつの握手の上でぶつかり合っていた。');
-  cine(-2.0, 1.2, 5.2, 0.2, 2.4, 0.0); await narr('砕けた岩がふたりのまわりで宙に浮いていった。');
+  cine(1.6, 1.0, 5.6, 0.0, 2.4, 0.0); await narr('赤い雷と橙色の光が。……ひとつの握手の上でぶつかり合っていた。');
+  cine(-2.4, 1.2, 6.6, 0.2, 2.4, 0.0); await narr('砕けた岩がふたりのまわりで宙に浮いていった。');
   cine(0, 6.0, 16.0, 0, 3.0, -4.0); await narr('春日井の誰もまだそれを知らなかった。');
   a.bolt36 = false; await fade(true); await card('10.5章　幕間1　箍', '完', 3200); await fade(false); setMeta({ ch36Clear: true, ch36: packS(), ch36Done: [...DONE] }); showReport36(); }
 
