@@ -20210,11 +20210,11 @@ async function goBaiyo39() { G.mode = 'cine'; S.flags.c39st = 'baiyo'; setObj(''
   cine(6.0, 3.0, 6.4, 0, 1.4, -1.0); await fade(false); await card('第十一章 中編　紅塵', '蒼生メディカルセンター　地下二階　午前四時', 2000);
   await narr('案内図には「設備室」としか書かれていない部屋だった。');
   cine(-1.0, 1.8, 3.6, -1.0, 1.6, 0); await narr('青い水槽が並んでいた。中で、指の先ほどの小さなものがゆっくり脈を打っていた。');
-  fc22(vo, 2.4, 0, 0.3); await say('vol', 'おはようございます。……まだ夜でしたねぇ。');
+  fc22(vo, 2.4, 0, 0.3); await say('vol', 'おはようございます。あ、まだ夜でしたねぇ。');
   await say('vol', 'ザイナが杭を打たれたのも、アセラが斬られたのも、病院の窓が割られたのも。もとをたどると、誰かが怒ったところから始まってるんですよねぇ。');
   await say('vol', 'ママが「次は箍を外す」って言ったのも、そうです。');
   await say('vol', 'だから、ほんの少しだけ、怒りが手前で止まるようにします。消すわけじゃありません。殴る前に手が止まるくらい。');
-  await say('vol', '人間にも、鳥さんにも、ほかの種族の子たちにも。……うちの家族には、もちろん入れませんよぉ。');
+  await say('vol', '人間にも、鳥さんにも、ほかの種族の子たちにも。うちの家族には、もちろん入れませんよぉ。');
   await say('vol', 'ゆり姉が、もう泣かなくて済むように。');
   sfx('mist36'); cine(0, 4.6, 8.4, -1.0, 1.4, -1.0); await narr('水槽の蓋が、一斉に開いた。');
   const motes = []; for (let i = 0; i < 40; i++) { const t = a.tanks[i % a.tanks.length], s = glowSprite(0x6AC8FF, 0.3, 0.9); s.position.set(t.position.x, 2.2, t.position.z); a.g.add(s); motes.push(s); const tx = rand(-8, 8), tz = rand(-6, -5.6); fxAdd(s, 3.2, u => { s.position.x += (tx - s.position.x) * 0.02; s.position.y = 2.2 + u * 1.4; s.position.z += (tz - s.position.z) * 0.02; s.scale.setScalar(0.3 * (1 - u * 0.8)); s.material.opacity = 0.9 * (1 - u); }); }
@@ -20266,7 +20266,7 @@ async function goKouan39() { G.mode = 'cine'; S.flags.c39st = 'kouan'; setObj(''
   await narr('公安課は、いつになく静かだった。電話の声も、キーボードの音も、どこか穏やかだった。');
   fc22(kc, 2.2, 0, -0.4); await say('kacho37', '轟か。有給の最後の日に、どうした。');
   fc22(td, 2.6, 0.75, 0.4); await say('todo', '（読み上げ音声）机の私物を取りに来ました。');
-  fc22(kc, 2.2, 0, -0.4); await say('kacho37', 'そうか。……この前は怒鳴って悪かったな。乾のことも、もういい。');
+  fc22(kc, 2.2, 0, -0.4); await say('kacho37', 'そうか。この前は怒鳴って悪かったな。乾のことも、もういい。');
   fc22(td, 2.6, 0.75, 0.4); await say('todo', '（読み上げ音声）……課長？');
   fc22(kc, 2.2, 0, -0.4); await say('kacho37', '不思議なんだ。昨日の夜から、何にも腹が立たない。そうしたら、黙っているのが急に面倒になってな。');
   await say('kacho37', '俺は信喵から、一年半、金をもらっていた。乾が港へ行ったことも、俺が向こうに知らせた。');
@@ -20284,51 +20284,51 @@ async function goRyouri39() { G.mode = 'cine'; S.flags.c39st = 'ryouri'; setObj(
   cine(0, 2.8, 5.4, 0, 1.0, -0.6); await fade(false); await card('大須　台湾料理「紅塵」　二階', '同じ日　午後零時半', 1400);
   await narr('二階は昼から貸切になっていた。丸い卓の向こうで、銀色の髪の男が箸を動かしていた。');
   cine(1.2, 1.5, -0.6, 0, 1.4, -2.0); await narr('茶虎の猫の面を、頭の横にずらしてかぶっていた。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', 'あ、乾さん。どうぞどうぞ、座ってください。冷めないうちに。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'あ、乾さん。どうぞどうぞ、座ってください。冷めないうちに。');
   nameCard({ s: '信喵　頭（とう）', b: '红尘飞', e: 'ホン・チェンフェイ', col: '#F06A4A', p: '信喵の本当の頭。表の顔は、大陸で人気の食べ歩き配信者。\n人に丁寧で、身内には口が悪く、気に入らないものには早口で問い詰める。' });
-  await say('hcf39', 'はじめまして、红尘飞です。……あ、これ飲んでみてください。台湾でいちばん売れてる冬瓜茶。缶の絵がちょっと古くさいんですけど、それで逆に人気が出たんですよ。');
+  await say('hcf39', 'はじめまして、红尘飞です。あ、これ飲んでみてください。台湾でいちばん売れてる冬瓜茶。缶の絵がちょっと古くさいんですけど、それで逆に人気が出たんですよ。');
   nameCard(null); fc22(iu, 2.2, 0, 0.3); await say('inui', '……代表は、蘇さんだと聞いていたが。');
-  fc22(su, 2.0, -0.1, 0.3); await say('su37', 'わたしは窓口です。決めるのは、この人です。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', '蘇さんは真面目なんですよ。窓口でも、ちゃんと全部やってくれる。……小黒、乾さんにお茶。');
-  fc22(xi, 2.0, -0.1, -0.3); await say('xiao38', '自分で入れなよ、頭。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', '君ね、そういうとこだぞ。昼まで寝て切り抜き動画ばっかり見てるよりは、お茶くらい入れたほうがいいだろ。');
-  fc22(xi, 2.0, -0.1, -0.3); await say('xiao38', 'はーい。');
+  fc22(su, 2.2, 0.05, 0.3); await say('su37', 'わたしは窓口です。決めるのは、この人です。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '蘇さんは真面目なんですよ。窓口でも、ちゃんと全部やってくれる。小黒、乾さんにお茶。');
+  fc22(xi, 2.2, 0.05, -0.3); await say('xiao38', '自分で入れなよ、頭。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '君ね、そういうとこだぞ。昼まで寝て切り抜き動画ばっかり見てるよりは、お茶くらい入れたほうがいいだろ。');
+  fc22(xi, 2.2, 0.05, -0.3); await say('xiao38', 'はーい。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '……本題を聞こう。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', 'そうですね。日本にも「杞憂」って言葉、ありますよね。杞の国の人が、空が落ちてこないか心配して、ご飯も喉を通らなかったって話。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'そうですね。日本にも「杞憂」って言葉、ありますよね。杞の国の人が、空が落ちてこないか心配して、ご飯も喉を通らなかったって話。');
   await say('hcf39', 'うちはね、あれを本気でやってる集まりなんです。笑われても、ずっと空の心配をしてる係。');
-  fc22(iu, 2.2, 0, 0.3); await say('inui', '空は落ちてきたのか。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', '落ちてきた町が、ひとつあります。');
-  bgm(''); await say('hcf39', '向こうの、ある町です。人口は八十万。三年前から、喧嘩がひとつも起きていません。泥棒も、離婚も、デモもゼロ。');
+  fc22(iu, 2.2, 0, 0.3); await say('inui', 'それと今度のことと、どう関係がある。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '向こうに、心配してたことが本当に起きた町があるんです。');
+  bgm(''); await say('hcf39', '人口は八十万。三年前から、喧嘩がひとつも起きていません。泥棒も、離婚も、デモもゼロ。');
   await say('hcf39', '町の人に何を聞いても、みんな「特に困ってない」って、にこにこ答えるんですよ。自分の子どもがいなくなっても、同じ顔で。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '……誰がやった。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', 'それがまだ分からないんです。分かってるのは、その町の人たちの耳の奥に、青いものがいたってことだけで。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'それがまだ分からないんです。分かってるのは、その町の人たちの耳の奥に、青いものがいたってことだけで。');
   sfx('vib'); fc22(iu, 2.2, 0, 0.3); await phoneMsg('登録していない番号', '轟です。\n課長が、自分から全部話しました。録音してあります。\n署の中で、怒っている人がひとりもいません。\n課長の耳の奥に、青いものが見えました。', '12:38');
   await narr('乾は画面を伏せた。顔には出さなかった。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', '……どうかしました？');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '……どうかしました？');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '昔の同僚からだ。署の人間が、今朝からやけに穏やからしい。');
-  fc22(xi, 2.0, -0.1, -0.3); await say('xiao38', '頭、これ見て。');
+  fc22(xi, 2.2, 0.05, -0.3); await say('xiao38', '頭、これ見て。');
   await phoneMsg('トレンド', '#優しい春日井　8.2万件\n#喧嘩ゼロの朝　3.1万件\n#なんか腹が立たない　1.7万件', '12:40');
-  fc22(hc, 1.8, -0.1, 0.3); bgm('vb39'); await say('hcf39', 'ちょっと待って。なんでこの一時間で八万件も出てるんだ？　投稿してるアカウント、半分が今月作られたやつじゃないか。', { cls: 'shout24' });
+  fc22(hc, 2.2, 0.2, 0.3); bgm('vb39'); await say('hcf39', 'ちょっと待って。なんでこの一時間で八万件も出てるんだ？　投稿してるアカウント、半分が今月作られたやつじゃないか。', { cls: 'shout24' });
   await say('hcf39', 'しかも位置情報が、ほとんど同じ病院のまわりに固まってる。病院の中から「優しい朝でした」って八万回つぶやく理由って、なんなんだよ？　これ、誰が誰のために回してる話なんだ？');
-  fc22(su, 2.0, -0.1, 0.3); await say('su37', '……頭、声が大きいです。');
-  fc22(hc, 2.0, -0.1, 0.3); bgm('hcf39'); await say('hcf39', 'ごめん。……でも、向こうの町と同じだ。');
+  fc22(su, 2.2, 0.05, 0.3); await say('su37', '……頭、声が大きいです。');
+  fc22(hc, 2.4, 0.2, 0.3); bgm('hcf39'); await say('hcf39', 'ごめん。でも、向こうの町と同じだ。');
   cine(3.2, 2.0, -0.6, 4.6, 1.9, -2.8); await say('kutsu37', 'Zaczęło się.');
-  fc22(su, 2.0, -0.1, 0.3); await say('su37', '「始まった」と言っています。');
+  fc22(su, 2.2, 0.05, 0.3); await say('su37', '「始まった」と言っています。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'ひとつ聞いていいか。あんたらの面は、何のためだ。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', '顔を読まれないためです。この国の見守りロボットも、翠絡の地図も、顔と心拍で人の機嫌を測ってますよね。うちの国にも、同じ仕組みがあるんです。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '顔を読まれないためです。この国の見守りロボットも、翠絡の地図も、顔と心拍で人の機嫌を測ってますよね。うちの国にも、同じ仕組みがあるんです。');
   await say('hcf39', '面をかぶってると、数字が出ません。ふざけた猫の顔なのは……まあ、半分は趣味です。');
   await say('hcf39', 'それと、あの杭。偽物でしたね。');
   fc22(iu, 2.2, 0, 0.3); await narr('乾は黙っていた。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', 'いいんですよ。うちが欲しいのは、杭そのものより、あれを作れる人のほうなので。杭を写せる人がいるなら、青いのを止める道具も作れるかもしれない。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'いいんですよ。うちが欲しいのは、杭そのものより、あれを作れる人のほうなので。杭を写せる人がいるなら、青いのを止める道具も作れるかもしれない。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'あんたらの目的は、結局なんなんだ。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', 'この店の名前のとおりです。「紅塵」って、俗世って意味なんですよ。欲とか、怒りとか、見栄とか、そういうのでごちゃごちゃしてる人間の世の中。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'この店の名前のとおりです。「紅塵」って、俗世って意味なんですよ。欲とか、怒りとか、見栄とか、そういうのでごちゃごちゃしてる人間の世の中。');
   await say('hcf39', 'それが、ちゃんとごちゃごちゃしたまま残っててほしい。今のところ、言えるのはそこまでです。');
   await say('hcf39', '乾さん。今夜、蒼生の地下に入ってもらえますか。小黒をつけます。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '竜の病院に、元刑事と猫で忍びこむのか。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', '元刑事と、歌のうまい猫です。小黒の歌は、カメラを止められるんですよ。');
-  fc22(xi, 2.0, -0.1, -0.3); await say('xiao38', 'ほんとは歌じゃなくて周波数なんだけどね。歌ってたほうがかわいいでしょ。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '小黒は役に立ちますよ。あの子が歌うと、カメラが止まるんです。');
+  fc22(xi, 2.2, 0.05, -0.3); await say('xiao38', 'ほんとは歌じゃなくて周波数なんだけどね。歌ってたほうがかわいいでしょ。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '……分かった。');
-  fc22(hc, 2.0, -0.1, 0.3); await say('hcf39', 'よかった。あ、帰りにこれ持ってってください。胡椒餅です。冷めてもおいしいので。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'よかった。あ、帰りにこれ持ってってください。胡椒餅です。冷めてもおいしいので。');
   for (const n of [hc, su, xi, iu, ku]) n.hidden = true; await fade(true); await goSennyu39(); }
 // ================= 第十一章 中編　紅塵（後半）：潜入、分かれる眷属、白衣の竜、高架下、食卓 =================
 // ---- 潜入 ----
@@ -20369,13 +20369,13 @@ async function goKenzoku39() { G.mode = 'cine'; S.flags.c39st = 'kenzoku'; setOb
 // ---- 白衣の竜 ----
 async function goVol39() { G.mode = 'cine'; S.flags.c39st = 'vol'; setObj(''); if (VB.on) vbStop(); playAsInui39(true); await goCine30('culture39', [0, 999], 0); const a = AREAS.culture39; for (const n of a.npcs) n.hidden = true; ckSave(); bgm('');
   a.mother.k.visible = false; a.mother.gl.material.opacity = 0.05; for (const t of a.tanks) t.k.visible = false;
-  const iu = put31(a, 'inui', () => makeChar(Object.assign({}, LK.inui, { pin: 0 })), 2.6, 1.6, Math.PI * 0.75), xi = put31(a, 'xiao38', () => xiaoModel38(), 3.8, 2.6, Math.PI * 0.75), vo = put31(a, 'vol', () => makeChar(FAMLK.vol), 8.2, 5.8, -Math.PI * 0.75);
+  const iu = put31(a, 'inui', () => makeChar(Object.assign({}, LK.inui, { pin: 0 })), 2.6, 1.6, Math.PI * 0.75), xi = put31(a, 'xiao38', () => xiaoModel38(), 1.8, 2.9, Math.PI * 0.75), vo = put31(a, 'vol', () => makeChar(FAMLK.vol), 8.2, 5.8, -Math.PI * 0.75);
   for (const n of [iu, xi, vo]) { n.hidden = false; n.st = {}; n.goal = null; } CAST.inui = iu.model; CAST.xiao38 = xi.model; CAST.vol = vo.model;
   cine(-2.0, 2.8, 5.6, 2.6, 1.4, 1.6); await fade(false); await narr('割れた槽から、青い水が床に広がっていた。');
-  sfx('door'); const w = walk31(vo, 5.4, 3.6, 0.9); cine(2.0, 2.2, 0.0, 6.0, 1.6, 4.4); await narr('扉が開いた。白衣の竜が、急ぐ様子もなく入ってきた。'); await w; face34(vo, iu); face34(iu, vo); face34(xi, vo);
+  sfx('door'); const w = walk31(vo, 5.4, 3.6, 0.9); cine(4.2, 2.2, 0.4, 6.4, 1.5, 4.6); await narr('扉が開いた。白衣の竜が、急ぐ様子もなく入ってきた。'); await w; face34(vo, iu); face34(iu, vo); face34(xi, vo);
   fc22(vo, 2.4, 0.2, 0.3); await say('vol', '夜分にようこそ。ここは関係者以外、立ち入り禁止なんですけどねぇ。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '外神竜の、ヴォル先生か。');
-  fc22(vo, 2.4, 0.2, 0.3); await say('vol', 'はい。渉さんの主治医の。……乾さん、でしたっけ。久世さんのお知り合いの。');
+  fc22(vo, 2.4, 0.2, 0.3); await say('vol', 'はい。渉さんの主治医の。そちらは乾さん、でしたっけ。久世さんのお知り合いの。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '街じゅうの人間の頭に、何を入れた。');
   fc22(vo, 2.4, 0.2, 0.3); await say('vol', '入れたなんて、人聞きが悪いですよぉ。怒りがほんの少し手前で止まるようにしただけです。');
   await say('vol', '今朝から、春日井で喧嘩はひとつも起きていません。救急の搬送も半分になりました。いいことじゃないですか。');
@@ -20388,14 +20388,15 @@ async function goVol39() { G.mode = 'cine'; S.flags.c39st = 'vol'; setObj(''); i
   fc22(vo, 2.4, 0.2, 0.3); await say('vol', '……どちらさまですかぁ？');
   await say('hcf39', '（電話）通りすがりの、食べ歩き配信者です。');
   fc22(xi, 2.0, 0, 0.3); await say('xiao38', '頭、ちょっと……！');
-  fc22(vo, 2.4, 0.2, 0.3); await say('vol', 'おもしろい方ですねぇ。……でも、浄水場のほうは、もう流し終わってますよぉ。');
+  fc22(vo, 2.4, 0.2, 0.3); await say('vol', 'おもしろい方ですねぇ。でも、浄水場のほうは、もう流し終わってますよぉ。');
   await say('vol', 'わたしはね、ゆり姉が泣かなければ、それでいいんです。ママが箍を外さなくて済めば、もっといい。');
-  await say('vol', '乾さん。あなたは、ずっと何かに腹を立てている人ですね。……少し、楽にしてあげましょうか。');
+  await say('vol', '乾さん。あなたは、ずっと何かに腹を立てている人ですね。少し、楽にしてあげましょうか。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '結構だ。頭の中まで誰かにいじられるのは、ごめんだ。');
-  fc22(vo, 2.4, 0.2, 0.3); await say('vol', 'そうですか。……ここは病院ですから、患者さんでない方には何もしませんよぉ。今日のところは、お帰りください。');
-  xi.model.sing37 = true; sfx('hum39'); const w2 = [walk31(iu, 8.0, 5.6, 1.0), walk31(xi, 8.4, 6.0, 1.0)]; cine(2.0, 2.2, 0.0, 6.0, 1.6, 4.4); await narr('小黒が小さく歌いながら、乾のうしろについて扉を出ていった。');
-  fc22(vo, 2.2, 0.2, 0.3); await say('vol', '……その歌、あまり好きじゃないです。');
-  await narr('ヴォルの笑顔が、ほんの一瞬だけ固まった。'); await Promise.all(w2); xi.model.sing37 = false;
+  fc22(vo, 2.4, 0.2, 0.3); await say('vol', 'そうですか。ここは病院ですから、患者さんでない方には何もしませんよぉ。今日のところは、お帰りください。');
+  xi.model.sing37 = true; sfx('hum39'); const w2 = [walk31(iu, 8.0, 5.6, 1.0), walk31(xi, 8.4, 6.0, 1.0)]; cine(4.2, 2.2, 0.4, 6.4, 1.5, 4.6); await narr('小黒が小さく歌いながら、乾のうしろについて扉を出ていった。');
+  await Promise.all(w2); xi.model.sing37 = false; iu.hidden = true; xi.hidden = true;
+  cine(4.3, 1.9, 1.7, 5.4, 1.65, 3.6); await say('vol', '……その歌、あまり好きじゃないです。');
+  await narr('閉まった扉の前で、ヴォルの笑顔が、ほんの一瞬だけ固まった。');
   for (const n of [iu, xi, vo]) n.hidden = true; await fade(true); await goKasen39(); }
 
 // ---- 高架下：乾と轟 ----
@@ -20420,9 +20421,9 @@ async function goKasen39() { G.mode = 'cine'; S.flags.c39st = 'kasen'; setObj(''
   fc22(iu, 2.2, 0, 0.3); await say('inui', '信喵の連中に、面をもらった。今のところは、たぶん大丈夫だ。');
   cine(0, 1.8, 4.0, 0, 2.2, 1.2); await narr('轟はしばらく黙っていた。それから、タブレットを使わずに口を開いた。');
   sfx('voice37'); G.shake = 0.35; for (let i = 0; i < 8; i++) { const s = glowSprite(0xC8B8A0, 0.25, 0.7); s.position.set(rand(-3, 3), 4.2, rand(-1, 2)); a.g.add(s); fxAdd(s, 1.2, u => { s.position.y = 4.2 - u * 4; s.material.opacity = 0.7 * (1 - u); }); }
-  await say('todo', '……乾さん。');
-  await narr('ささやいただけの地声で、高架の継ぎ目から砂がこぼれた。');
-  fc22(td, 2.6, 0.75, 0.3); await say('todo', '（読み上げ音声）失礼しました。……いつか、戻ってきてください。');
+  fc22(td, 2.6, 0.75, 0.3); await say('todo', '……乾さん。');
+  cine(0, 2.6, 6.4, 0, 2.0, 1.0); await narr('ささやいただけの地声で、高架の継ぎ目から砂がこぼれた。');
+  fc22(td, 2.6, 0.75, 0.3); await say('todo', '（読み上げ音声）失礼しました。いつか、戻ってきてください。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'そのうちな。それまで、あの机は空けといてくれ。');
   sfx('vib'); await phoneMsg('红尘飞', '今日はありがとうございました。胡椒餅、食べました？\n明日、向こうの町のことをもう少し話します。\n\nそれと、外神竜のお母さんには気をつけてください。\nあの家で、いちばん怒らせちゃいけない人なので。', '03:12');
   for (const n of [iu, td]) n.hidden = true; await fade(true); await goShokutaku39(); }
@@ -20432,18 +20433,18 @@ async function goShokutaku39() { G.mode = 'cine'; S.flags.c39st = 'shokutaku'; s
   for (const k in F) { F[k].hidden = ['asela', 'edel'].includes(k); F[k].st = { sit: true }; F[k].lookAt = null; F[k].pos.set(F[k].pos0x ?? (F[k].pos0x = F[k].pos.x), 0, F[k].pos0z ?? (F[k].pos0z = F[k].pos.z)); } for (const k in F) CAST[k] = F[k].model; scene.background = new THREE.Color(0x2A3040); hemi.intensity = 0.62;
   if (a.tv24) { a.tv24.visible = false; a.tvGl24.visible = false; } const fu = F.furuuru, yu = F.yuria, vo = F.vol; fu.st = {};
   cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await fade(false); await card('春日井　外神竜一族　主家', '同じ日　夜', 1400);
-  fc22(yu, 2.2, 0, -0.3); await say('yuria', 'ねえ、今日の街、なんかみんな優しくなかった？　陽盾の見回り、通報ゼロだったんだけど。');
-  fc22(F.miria, 2.2, 0, -0.3); await say('miria', '千路もだよ。辻の鳥が、ハーピーの荷物拾ってくれたんだって。意味わかんない。');
-  fc22(F.rin, 2.2, 0, 0.3); await say('rin', '燐の網にも、怒鳴り声がひとつも引っかからへんかった。こんな日、はじめてや。');
-  fc22(F.terues, 2.2, 0, 0.3); await say('terues', 'て、天環の救急要請も、ふだんの半分……。');
-  fc22(yu, 2.2, 0, -0.3); await say('yuria', 'えー、いいじゃん。毎日こんなだったらいいのに。');
-  fc22(vo, 2.2, 0, -0.3); await say('vol', 'よかったですねぇ、ゆり姉♡');
-  fc22(F.reune, 2.2, 0, 0.3); await say('reune', 'ねえヴォル。蒼生の地下の網さ、今朝から私の地図に映らないんだけど。');
-  fc22(vo, 2.2, 0, -0.3); await say('vol', 'あら、工事中なんですよぉ。配管の。');
-  fc22(F.reune, 2.2, 0, 0.3); await say('reune', 'ふーん。');
-  fc22(fu, 2.4, 0, 0.3); await narr('フルルは鍋をかき混ぜる手を止めて、しばらくヴォルの顔を見ていた。');
+  fc22(yu, 2.4, 0.3, -0.3); await say('yuria', 'ねえ、今日の街、なんかみんな優しくなかった？　陽盾の見回り、通報ゼロだったんだけど。');
+  fc22(F.miria, 2.4, 0.3, -0.3); await say('miria', '千路もだよ。辻の鳥が、ハーピーの荷物拾ってくれたんだって。意味わかんない。');
+  fc22(F.rin, 2.4, 0.3, 0.3); await say('rin', '燐の網にも、怒鳴り声がひとつも引っかからへんかった。こんな日、はじめてや。');
+  fc22(F.terues, 2.4, 0.3, 0.3); await say('terues', 'て、天環の救急要請も、ふだんの半分……。');
+  fc22(yu, 2.4, 0.3, -0.3); await say('yuria', 'えー、いいじゃん。毎日こんなだったらいいのに。');
+  fc22(vo, 2.4, 0.3, -0.3); await say('vol', 'よかったですねぇ、ゆり姉♡');
+  fc22(F.reune, 2.4, 0.3, 0.3); await say('reune', 'ねえヴォル。蒼生の地下の網さ、今朝から私の地図に映らないんだけど。');
+  fc22(vo, 2.4, 0.3, -0.3); await say('vol', 'あら、工事中なんですよぉ。配管の。');
+  fc22(F.reune, 2.4, 0.3, 0.3); await say('reune', 'ふーん。');
+  fc22(fu, 2.6, 0.35, 0.3); await narr('フルルは鍋をかき混ぜる手を止めて、しばらくヴォルの顔を見ていた。');
   await say('furuuru', '……ヴォルちゃん。おかわりは？');
-  fc22(vo, 2.2, 0, -0.3); await say('vol', 'いただきますぅ。');
+  fc22(vo, 2.4, 0.3, -0.3); await say('vol', 'いただきますぅ。');
   cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await narr('フルルは、それ以上何も聞かなかった。');
   await fade(true); await card('第十一章 中編　紅塵', '完', 3200); await fade(false); setMeta({ ch39Clear: true, ch39: packS(), ch39Done: [...DONE] }); showReport39(); }
 
