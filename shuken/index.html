@@ -19397,8 +19397,8 @@ async function goSouko37() { G.mode = 'cine'; S.flags.c37st = 'souko'; setObj(''
   await say('su37', 'あれを作った鳥がいます。片脚の鳥です。');
   fc22(iu, 2.2, 0, 0.4); await narr('乾は少しのあいだ、黙っていた。');
   await say('inui', '……なんでそれを俺に話す。');
-  cine(0, 1.5, 1.4, 0, 1.3, -1.4); await say('su37', 'わたしたちも、あなたと同じことを心配しているからです。');
-  await say('su37', '異種族を傷つけられる刃物が、この国でできてしまった。わたしたちはそれを放っておけません。乾警部も同じことを調べて、そのたびに握りつぶされてきた。');
+  cine(0, 1.5, 1.4, 0, 1.3, -1.4); await say('su37', 'あなたと、知りたいことが同じだからです。');
+  await say('su37', '異種族を傷つけられる刃物が、この国でできてしまった。それがどこにあって、誰が作れるのか。わたしたちは知っておきたいのです。乾警部も同じことを調べて、そのたびに握りつぶされてきた。');
   await say('su37', '違いますか。');
   fc22(iu, 2.2, 0, 0.4); await say('inui', '…………。');
   await say('inui', '……鷺沼の件も、画廊の搬入口の件も、全部握りつぶされた。');
@@ -20090,6 +20090,16 @@ makeArea('kitchen39', { noPlayer: true, place: '大須　台湾料理「紅塵�
     for (const [x, z] of [[-3.6, -2.6], [0, -2.6], [3.6, -2.6], [-3.6, 2.6], [3.6, 2.6]]) { block(0.02, 0.6, 0.02, 0x2A1A14, x, 2.9, z, g); const l = part(sph(0.28, 12, 10), 0xE8302A, x, 2.5, z, g, { s: [1, 1.2, 1] }); l.material.emissive = new THREE.Color(0x8A1A10); const gl = glowSprite(0xFF6A4A, 1.6, 0.5); gl.position.set(x, 2.5, z); g.add(gl); }
     plane(4.0, 1.4, canvasTex(256, 90, (c, w, h) => { c.fillStyle = '#140A14'; c.fillRect(0, 0, w, h); [['#FF4A6A', '萬松寺'], ['#4AC8FF', '大須'], ['#FFC040', '赤門']].forEach(([col, t], i) => { c.fillStyle = col; c.font = `900 22px ${GOTHIC}`; c.fillText(t, 14 + i * 80, 40 + (i % 2) * 28); }); }), 2.4, 1.8, -4.28, g);
     plane(1.4, 2.0, signTex(140, 200, [{ t: '紅', size: 90, f: MINCHO, w: 140 }, { t: '塵', size: 90, f: MINCHO, w: 140 }], { bg: '#C8302A', fg: '#F4E0B0' }), -3.2, 1.9, -4.28, g);
+    // 帳場の上の写真：額に黒いひとふさのある白い猫。港の面と同じ顔
+    a.photo = plane(0.9, 1.0, canvasTex(180, 200, (c, w, h) => { c.fillStyle = '#B8862A'; c.fillRect(0, 0, w, h); c.fillStyle = '#E8B8BC'; c.fillRect(10, 10, w - 20, h - 20); c.fillStyle = 'rgba(150,80,96,0.22)'; for (let x = 16; x < w - 12; x += 13) c.fillRect(x, 10, 4, h - 20);
+      c.fillStyle = '#F6F4F0'; c.beginPath(); c.ellipse(90, 190, 74, 46, 0, Math.PI, TAU); c.fill();
+      c.beginPath(); c.moveTo(36, 74); c.lineTo(44, 22); c.lineTo(80, 50); c.fill(); c.beginPath(); c.moveTo(144, 74); c.lineTo(138, 20); c.lineTo(100, 50); c.fill();
+      c.beginPath(); c.ellipse(90, 100, 60, 56, 0, 0, TAU); c.fill();
+      c.fillStyle = '#1A1A1C'; c.beginPath(); c.moveTo(94, 50); c.quadraticCurveTo(118, 42, 138, 20); c.lineTo(146, 66); c.quadraticCurveTo(122, 60, 98, 62); c.closePath(); c.fill();
+      c.fillStyle = '#F0C4C4'; c.beginPath(); c.moveTo(46, 66); c.lineTo(48, 34); c.lineTo(70, 52); c.fill();
+      for (const x of [66, 114]) { c.fillStyle = '#8A6A3A'; c.beginPath(); c.arc(x, 98, 14, 0, TAU); c.fill(); c.fillStyle = '#121212'; c.beginPath(); c.arc(x, 98, 11.5, 0, TAU); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(x - 4, 93, 3.2, 0, TAU); c.fill(); }
+      c.fillStyle = '#E8A0A8'; c.beginPath(); c.moveTo(83, 120); c.lineTo(97, 120); c.lineTo(90, 128); c.fill(); c.strokeStyle = '#B88A8A'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(90, 128); c.lineTo(90, 133); c.moveTo(83, 136); c.quadraticCurveTo(90, 132, 97, 136); c.stroke(); }), -1.6, 2.25, -4.27, g);
+    block(1.1, 0.06, 0.3, 0x4A2A1A, -1.6, 1.62, -4.2, g); part(cyl(0.07, 0.06, 0.1, 10), 0x6A9A5A, -1.85, 1.70, -4.16, g); a.incense = glowSprite(0xFFB060, 0.35, 0); a.incense.position.set(-1.35, 1.8, -4.14); g.add(a.incense);
     // 水槽
     block(1.4, 0.9, 0.6, 0x2A1A14, 5.4, 0.45, -3.6, g); const aq = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.8, 0.5), new THREE.MeshBasicMaterial({ color: 0x4A9AC8, transparent: true, opacity: 0.35 })); aq.position.set(5.4, 1.3, -3.6); g.add(aq); },
   tick(a, dt) { if (a.lazy) { a.lazy.rotation.y += dt * 0.15; a.dishes.rotation.y += dt * 0.15; } if (a.e31) for (const k in a.e31) { const n = a.e31[k]; if (n && !n.hidden) nekoLip37(n.model, k); } }
@@ -20295,13 +20305,13 @@ async function goRyouri39() { G.mode = 'cine'; S.flags.c39st = 'ryouri'; setObj(
   fc22(xi, 2.2, 0.05, -0.3); await say('xiao38', 'はーい。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '……本題を聞こう。');
   fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'そうですね。日本にも「杞憂」って言葉、ありますよね。杞の国の人が、空が落ちてこないか心配して、ご飯も喉を通らなかったって話。');
-  await say('hcf39', 'うちはね、あれを本気でやってる集まりなんです。笑われても、ずっと空の心配をしてる係。');
+  await say('hcf39', 'みんな笑いますけど、うちはああいう心配を本気でする集まりなんです。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'それと今度のことと、どう関係がある。');
-  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '向こうに、心配してたことが本当に起きた町があるんです。');
-  bgm(''); await say('hcf39', '人口は八十万。三年前から、喧嘩がひとつも起きていません。泥棒も、離婚も、デモもゼロ。');
-  await say('hcf39', '町の人に何を聞いても、みんな「特に困ってない」って、にこにこ答えるんですよ。自分の子どもがいなくなっても、同じ顔で。');
-  fc22(iu, 2.2, 0, 0.3); await say('inui', '……誰がやった。');
-  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'それがまだ分からないんです。分かってるのは、その町の人たちの耳の奥に、青いものがいたってことだけで。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '今朝から、春日井の猫が一匹も喧嘩をしてないんです。');
+  bgm(''); await say('hcf39', '野良も飼い猫も、縄張りの境目で鉢合わせしても、目をそらしてすれ違うだけ。猫がですよ？　普通はありえません。');
+  await say('hcf39', 'うちには、猫の様子を見て回る者がいまして。一匹つかまえて耳の中をのぞいたら、奥に青いものがいたそうです。');
+  fc22(iu, 2.2, 0, 0.3); await say('inui', '……猫の喧嘩なんか、誰が数えてるんだ。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'うちです。猫のことなら、この街で一番くわしいので。たぶん、猫だけじゃ済みませんよ。');
   sfx('vib'); fc22(iu, 2.2, 0, 0.3); await phoneMsg('登録していない番号', '轟です。\n課長が、自分から全部話しました。録音してあります。\n署の中で、怒っている人がひとりもいません。\n課長の耳の奥に、青いものが見えました。', '12:38');
   await narr('乾は画面を伏せた。顔には出さなかった。');
   fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '……どうかしました？');
@@ -20311,19 +20321,24 @@ async function goRyouri39() { G.mode = 'cine'; S.flags.c39st = 'ryouri'; setObj(
   fc22(hc, 2.2, 0.2, 0.3); bgm('vb39'); await say('hcf39', 'ちょっと待って。なんでこの一時間で八万件も出てるんだ？　投稿してるアカウント、半分が今月作られたやつじゃないか。', { cls: 'shout24' });
   await say('hcf39', 'しかも位置情報が、ほとんど同じ病院のまわりに固まってる。病院の中から「優しい朝でした」って八万回つぶやく理由って、なんなんだよ？　これ、誰が誰のために回してる話なんだ？');
   fc22(su, 2.2, 0.05, 0.3); await say('su37', '……頭、声が大きいです。');
-  fc22(hc, 2.4, 0.2, 0.3); bgm('hcf39'); await say('hcf39', 'ごめん。でも、向こうの町と同じだ。');
+  fc22(hc, 2.4, 0.2, 0.3); bgm('hcf39'); await say('hcf39', 'ごめん。でも、猫と同じだ。もう人にも入ってる。');
   cine(3.2, 2.0, -0.6, 4.6, 1.9, -2.8); await say('kutsu37', 'Zaczęło się.');
   fc22(su, 2.2, 0.05, 0.3); await say('su37', '「始まった」と言っています。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'ひとつ聞いていいか。あんたらの面は、何のためだ。');
   fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '顔を読まれないためです。この国の見守りロボットも、翠絡の地図も、顔と心拍で人の機嫌を測ってますよね。うちの国にも、同じ仕組みがあるんです。');
-  await say('hcf39', '面をかぶってると、数字が出ません。ふざけた猫の顔なのは……まあ、半分は趣味です。');
+  await say('hcf39', '面をかぶってると、数字が出ません。');
   await say('hcf39', 'それと、あの杭。偽物でしたね。');
   fc22(iu, 2.2, 0, 0.3); await narr('乾は黙っていた。');
   fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'いいんですよ。うちが欲しいのは、杭そのものより、あれを作れる人のほうなので。杭を写せる人がいるなら、青いのを止める道具も作れるかもしれない。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'あんたらの目的は、結局なんなんだ。');
-  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'この店の名前のとおりです。「紅塵」って、俗世って意味なんですよ。欲とか、怒りとか、見栄とか、そういうのでごちゃごちゃしてる人間の世の中。');
-  await say('hcf39', 'それが、ちゃんとごちゃごちゃしたまま残っててほしい。今のところ、言えるのはそこまでです。');
-  await say('hcf39', '乾さん。今夜、蒼生の地下に入ってもらえますか。小黒をつけます。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '竜の家に、この国を丸ごと握られたくないんです。');
+  await say('hcf39', 'この店の名前、「紅塵」って俗世って意味なんですよ。欲とか怒りとか見栄とか、人間のごちゃごちゃしたところ。そこまで竜の気分しだいで決まるようになったら、もう誰も竜に逆らえません。');
+  await say('hcf39', '本当のところは、もう少しお互いを知ってからにしましょう。決めるのは僕じゃないので。');
+  cine(-1.0, 1.7, -1.6, -1.6, 2.2, -4.27); await narr('乾は、帳場の上の写真に目をやった。白い猫だった。額に黒いひとふさがあって、目がまるい。港で見た白い面と、同じ顔だった。');
+  fc22(iu, 2.2, 0, 0.3); await say('inui', 'あの写真の猫は。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'うちの一番えらい方です。');
+  fc22(su, 2.2, 0.05, 0.3); await narr('蘇が、写真に向かって小さく頭を下げた。');
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'さて、乾さん。今夜、蒼生の地下に入ってもらえますか。小黒をつけます。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', '竜の病院に、元刑事と猫で忍びこむのか。');
   fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '小黒は役に立ちますよ。あの子が歌うと、カメラが止まるんです。');
   fc22(xi, 2.2, 0.05, -0.3); await say('xiao38', 'ほんとは歌じゃなくて周波数なんだけどね。歌ってたほうがかわいいでしょ。');
@@ -20425,7 +20440,7 @@ async function goKasen39() { G.mode = 'cine'; S.flags.c39st = 'kasen'; setObj(''
   cine(0, 2.6, 6.4, 0, 2.0, 1.0); await narr('ささやいただけの地声で、高架の継ぎ目から砂がこぼれた。');
   fc22(td, 2.6, 0.75, 0.3); await say('todo', '（読み上げ音声）失礼しました。いつか、戻ってきてください。');
   fc22(iu, 2.2, 0, 0.3); await say('inui', 'そのうちな。それまで、あの机は空けといてくれ。');
-  sfx('vib'); await phoneMsg('红尘飞', '今日はありがとうございました。胡椒餅、食べました？\n明日、向こうの町のことをもう少し話します。\n\nそれと、外神竜のお母さんには気をつけてください。\nあの家で、いちばん怒らせちゃいけない人なので。', '03:12');
+  sfx('vib'); await phoneMsg('红尘飞', '今日はありがとうございました。胡椒餅、食べました？\n明日、向こうの町のことをもう少し話します。\n\nそれと、外神竜のお母さんには気をつけてください。\nあの家で、いちばん怒らせちゃいけない人です。\nうちは昔、一度痛い目にあってるので。', '03:12');
   for (const n of [iu, td]) n.hidden = true; await fade(true); await goShokutaku39(); }
 
 // ---- 主家の食卓 ----
@@ -20446,25 +20461,40 @@ async function goShokutaku39() { G.mode = 'cine'; S.flags.c39st = 'shokutaku'; s
   await say('furuuru', '……ヴォルちゃん。おかわりは？');
   fc22(vo, 2.4, 0.3, -0.3); await say('vol', 'いただきますぅ。');
   cine(0.5, 3.4, 5.6, 0, 0.8, -0.8); await narr('フルルは、それ以上何も聞かなかった。');
-  await fade(true); await card('第十一章 中編　紅塵', '完', 3200); await fade(false); setMeta({ ch39Clear: true, ch39: packS(), ch39Done: [...DONE] }); showReport39(); }
+  await fade(true); await goShashin39(); }
+
+// ---- 閉店後の紅塵：写真の前で ----
+async function goShashin39() { G.mode = 'cine'; S.flags.c39st = 'shashin'; setObj(''); kuze39(); await goCine30('kitchen39', [0, 999], 0); const a = AREAS.kitchen39; for (const n of a.npcs) n.hidden = true; ckSave(); bgm('');
+  scene.background = new THREE.Color(0x100808); hemi.intensity = 0.32; a.incense.material.opacity = 0.9;
+  const hc = put31(a, 'hcf39', () => hcfModel39(), -1.6, -2.2, Math.PI); hc.hidden = false; hc.st = {}; hc.goal = null; CAST.hcf39 = hc.model;
+  cine(0.6, 2.0, 0.2, -1.6, 1.9, -4.2); await fade(false); await card('大須　台湾料理「紅塵」', '同じ夜　閉店後', 1400);
+  await narr('二階の灯りは、帳場の上の写真の前だけ点いていた。红尘飞は、冬瓜茶をひと缶、写真の前の棚に置いた。');
+  cine(-1.15, 1.8, -4.25, -1.6, 1.5, -2.2); await say('hcf39', 'まつもとたける様。');
+  await say('hcf39', '竜の家の白衣の子が、勝手に動きはじめました。春日井の猫が、今朝から一匹も喧嘩をしていません。');
+  await say('hcf39', 'はい、急ぎません。竜も、あとから来た人たちも、しばらくは自分たちのことで手一杯でしょうから。');
+  await say('hcf39', 'もう少しです。前と同じところまで、お戻りいただけるように。');
+  cine(-0.3, 2.3, -1.4, -1.6, 2.25, -4.27); await narr('写真の白い猫は、まるい目でまっすぐこちらを見ていた。');
+  await narr('どこかで、猫が一度だけ低く鳴いた。');
+  hc.hidden = true; await fade(true); await card('第十一章 中編　紅塵', '完', 3200); await fade(false); setMeta({ ch39Clear: true, ch39: packS(), ch39Done: [...DONE] }); showReport39(); }
 
 function showReport39() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); news22off(); fear20(0); kuu34(false); bigCue39(null); nerve39(false); bgm('hcf39');
-  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>紅</span><span>青</span></div><h2>第十一章 中編　紅塵</h2><div class="meta">蒼生 地下二階　／　千路の春日井ハブ　／　国道19号　／　警察庁 中部分室　／　大須 台湾料理「紅塵」　／　庄内川の高架下　／　主家</div><table>' +
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>紅</span><span>青</span></div><h2>第十一章 中編　紅塵</h2><div class="meta">蒼生 地下二階　／　千路の春日井ハブ　／　国道19号　／　警察庁 中部分室　／　大須 台湾料理「紅塵」　／　庄内川の高架下　／　主家　／　閉店後の紅塵</div><table>' +
     '<tr><td>培養室</td><td>蒼生の地下二階。青い水槽の中で、指の先ほどのものが脈を打っていた。ヴォル「怒りがほんの少し手前で止まるようにします。殴る前に手が止まるくらい」「うちの家族には、もちろん入れませんよぉ」「ゆり姉が、もう泣かなくて済むように」。眷属は分かれて、目に見えないほど小さくなり、吹き出し口へ消えた。</td></tr>' +
     '<tr><td>朝の街</td><td>千路のハブで、辻の文鳥の振り上げた羽が途中で止まった。「なんで俺たち、こいつを殴ろうとしてたんだっけ」。国道19号では、同盟の翔の演説が途中で止まった。「腹が立たないんだよ。昨日まで、あんなに立ってたのに」。青い糸は耳の奥から入って、怒りが生まれるあたりの手前でほどけた。</td></tr>' +
     '<tr><td>課長</td><td>公安課の課長は、天気の話のような声で言った。「俺は信喵から、一年半、金をもらっていた」「どうしてあんなに必死だったのか、もう思い出せない」。耳の奥で、青い糸が光った。轟は録音し、登録していない番号に知らせた。</td></tr>' +
-    '<tr><td>红尘飞</td><td>大須の台湾料理店「紅塵」。信喵の本当の頭、红尘飞。表の顔は食べ歩き配信者。「日本にも杞憂って言葉、ありますよね」「うちはあれを本気でやってる集まりなんです」。向こうには、三年前から喧嘩がひとつも起きていない人口八十万の町がある。町の人の耳の奥には、青いものがいた。</td></tr>' +
-    '<tr><td>面と杭</td><td>面は、顔と心拍で機嫌を測る仕組みから、顔を隠すため。「ふざけた猫の顔なのは、半分は趣味です」。杭は偽物と知っていた。「欲しいのは、杭より、あれを作れる人のほう」。目的は店の名前のとおり。「欲とか怒りとか見栄でごちゃごちゃしてる人間の世の中が、ごちゃごちゃしたまま残っててほしい」。</td></tr>' +
+    '<tr><td>红尘飞</td><td>大須の台湾料理店「紅塵」。信喵の本当の頭、红尘飞。表の顔は食べ歩き配信者。「日本にも杞憂って言葉、ありますよね」。今朝から、春日井の猫が一匹も喧嘩をしていない。つかまえた猫の耳の奥には、青いものがいた。乾「猫の喧嘩なんか、誰が数えてるんだ」。红尘飞「うちです」「たぶん、猫だけじゃ済みませんよ」。</td></tr>' +
+    '<tr><td>面と写真</td><td>面は、顔と心拍で機嫌を測る仕組みから、顔を隠すため。杭は偽物と知っていた。「欲しいのは、杭より、あれを作れる人のほう」。目的を聞かれて「竜の家に、この国を丸ごと握られたくないんです」「決めるのは僕じゃないので」。帳場の上には、額に黒いひとふさのある白い猫の写真。港で見た白い面と同じ顔だった。「うちの一番えらい方です」。</td></tr>' +
     '<tr><td>潜入</td><td>蒼生の地下二階。天井のカメラは、配管の中で小黒が歌っている間だけ止まる。三つの端末から記録を抜き、看護ロボは見つかった瞬間に叩いて黙らせた。最後の記録で警報が鳴り、奥の扉まで走った。</td></tr>' +
     '<tr><td>分かれる眷属</td><td>ライトで照らして白く固めてから叩く。固まる前に叩くと、分かれて増える。小黒の歌で、まわりの眷属が止まる。部屋の真ん中の母体の槽を三度割った。</td></tr>' +
     '<tr><td>白衣の竜</td><td>ヴォル「今朝から、春日井で喧嘩はひとつも起きていません。いいことじゃないですか」「頼まれるのを待っていたら、また誰かが溶かされますから」。電話の红尘飞「なんでこの病院の配管が、浄水場の取水口までつながってるんですか？」「仕入れ先の住所、ただの月極駐車場なんですけど？」「通りすがりの、食べ歩き配信者です」。ヴォル「浄水場のほうは、もう流し終わってますよぉ」。小黒の歌に、ヴォルの笑顔が一瞬だけ固まった。</td></tr>' +
     '<tr><td>高架下</td><td>轟「署で、あれが入っていないのは、わたしだけでした」「鬼は体温が高いので、入ったそばから焼けて死にます」。乾「便利な体だな」。轟はささやくように地声で呼んだ。「……乾さん」。高架の継ぎ目から砂がこぼれた。乾「それまで、あの机は空けといてくれ」。红尘飞から「外神竜のお母さんには気をつけてください」。</td></tr>' +
-    '<tr><td>食卓</td><td>ユリア「今日の街、なんかみんな優しくなかった？」。ヴォル「よかったですねぇ、ゆり姉」。レウネ「蒼生の地下の網、私の地図に映らないんだけど」。ヴォル「工事中なんですよぉ」。フルルは鍋をかき混ぜる手を止めて、しばらくヴォルの顔を見ていた。それ以上は何も聞かなかった。</td></tr></table>' +
+    '<tr><td>食卓</td><td>ユリア「今日の街、なんかみんな優しくなかった？」。ヴォル「よかったですねぇ、ゆり姉」。レウネ「蒼生の地下の網、私の地図に映らないんだけど」。ヴォル「工事中なんですよぉ」。フルルは鍋をかき混ぜる手を止めて、しばらくヴォルの顔を見ていた。それ以上は何も聞かなかった。</td></tr>' +
+    '<tr><td>閉店後</td><td>灯りは写真の前だけ。红尘飞は冬瓜茶をひと缶、棚に置いた。「まつもとたける様」「竜も、あとから来た人たちも、しばらくは自分たちのことで手一杯でしょうから」「もう少しです。前と同じところまで、お戻りいただけるように」。どこかで、猫が一度だけ低く鳴いた。</td></tr></table>' +
     '<p class="close">――　第十一章 後編へ</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn39">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn39').addEventListener('click', () => location.reload()); }
 async function startCh39() { const m = meta(); if (m.ch38) unpackS(m.ch38); else if (m.ch37) unpackS(m.ch37); DONE = new Set(m.ch38Done || m.ch37Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter39(); }
-RESUME[39] = { baiyo: goBaiyo39, asa: goAsa39, kouan: goKouan39, ryouri: goRyouri39, sennyu: goSennyu39, kenzoku: goKenzoku39, vol: goVol39, kasen: goKasen39, shokutaku: goShokutaku39 };
+RESUME[39] = { baiyo: goBaiyo39, asa: goAsa39, kouan: goKouan39, ryouri: goRyouri39, sennyu: goSennyu39, kenzoku: goKenzoku39, vol: goVol39, kasen: goKasen39, shokutaku: goShokutaku39, shashin: goShashin39 };
 { const r0 = showReport38; showReport38 = function () { r0(); const row = $('titleBtn38') && $('titleBtn38').parentNode; if (row && !$('ch39Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch39Go'; b.textContent = '第十一章 中編　紅塵 へ'; row.insertBefore(b, row.firstChild); $('titleBtn38').className = 'ghost'; b.addEventListener('click', () => run(chapter39)); } }; }
 
 // ================= 第一章の台本 =================
@@ -20818,6 +20848,6 @@ $('moveSkip').addEventListener('click', () => { G.ffwd = true; });
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); if (G.mode !== 'cine') G.ffwd = false;
   const mv = talk && $('dlg').hidden && $('choices').hidden && movingNow(); $('moveSkip').hidden = !mv || !!G.ffwd || !!G.skipTalk; const show = talk && (G.skipTalk || !$('dlg').hidden || mv);
   $('talkSkip').hidden = !(show && (!G.skipTalk || G.skipScene)); $('talkSkipAll').hidden = !(show && (!G.skipTalk || !G.skipScene)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, chapter32, goRise32, goFight32, goStar32, goAsela32, goShuke32, goHq32, goKaere32, goVol32, goMoves32, goOni32, goEdel32, goTako32, tcoBird34, tcoPose34, stake34, chapter37, chapter39, goBaiyo39, goAsa39, goKouan39, goRyouri39, goSennyu39, goKenzoku39, goVol39, goKasen39, goShokutaku39, showReport39, startCh39, VB, S39, vbStart, vbStop, sneak39Reset, hcfModel39, kenzoku39, chapter38, goKyaku38, goNeko38, goKojo38, goSora38, goUraguchi38, goNamae38, goAto38, goLab38, goKaeri38, xiaoModel38, showReport38, goFuto37, goSouko37, goMado37, goNamae37, goKaere37, goOkujo37, nekoMask37, nekoAgent37, suModel37, kutsuModel37, showReport37, chapter36, goUwasa36, goTachiiri36, goMure36, goSenro36, goKazoku36, goByoin36, goVol36, goGaku36, goReveal36, goYoake36, goAkushu36, showReport36, mzArmor36, peNouBird, peNouPose36, chapter35, goShojin35, goHondo35, evHondo35, goTrio35, goDuel35, goMama35, goOkaeri35, goFumoto35, goKaere35, goRyuho35, goLab35, goHome35, goIori35, goMorning35, showReport35, chapter34, goTorture34, goHome34, goCouncil34, goKaere34, goRyuho34, goAssault34, goCassia34, goCassiaEnd34, goSummit34, goKuu34, goRescue34, goBulk34, goTco34, showReport34, kuu34, bulkBird, mesuZeroBird, chapter33, goHq33, goWork33, goTown33, evTown33, goDomei33, goMate33, goNorth33, goYama33, showReport33, showReport32, ZDB, zdAttack32, zdDash32, zdSkill32, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, chapter32, goRise32, goFight32, goStar32, goAsela32, goShuke32, goHq32, goKaere32, goVol32, goMoves32, goOni32, goEdel32, goTako32, tcoBird34, tcoPose34, stake34, chapter37, chapter39, goBaiyo39, goAsa39, goKouan39, goRyouri39, goSennyu39, goKenzoku39, goVol39, goKasen39, goShokutaku39, goShashin39, showReport39, startCh39, VB, S39, vbStart, vbStop, sneak39Reset, hcfModel39, kenzoku39, chapter38, goKyaku38, goNeko38, goKojo38, goSora38, goUraguchi38, goNamae38, goAto38, goLab38, goKaeri38, xiaoModel38, showReport38, goFuto37, goSouko37, goMado37, goNamae37, goKaere37, goOkujo37, nekoMask37, nekoAgent37, suModel37, kutsuModel37, showReport37, chapter36, goUwasa36, goTachiiri36, goMure36, goSenro36, goKazoku36, goByoin36, goVol36, goGaku36, goReveal36, goYoake36, goAkushu36, showReport36, mzArmor36, peNouBird, peNouPose36, chapter35, goShojin35, goHondo35, evHondo35, goTrio35, goDuel35, goMama35, goOkaeri35, goFumoto35, goKaere35, goRyuho35, goLab35, goHome35, goIori35, goMorning35, showReport35, chapter34, goTorture34, goHome34, goCouncil34, goKaere34, goRyuho34, goAssault34, goCassia34, goCassiaEnd34, goSummit34, goKuu34, goRescue34, goBulk34, goTco34, showReport34, kuu34, bulkBird, mesuZeroBird, chapter33, goHq33, goWork33, goTown33, evTown33, goDomei33, goMate33, goNorth33, goYama33, showReport33, showReport32, ZDB, zdAttack32, zdDash32, zdSkill32, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
