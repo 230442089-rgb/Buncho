@@ -21782,6 +21782,439 @@ function showReport41() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
 async function startCh41() { const m = meta(); if (m.ch40) unpackS(m.ch40); else if (m.ch39) unpackS(m.ch39); DONE = new Set(m.ch40Done || m.ch39Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter41(); }
 RESUME[41] = { ena: goEna41, mid: goSeto41, seto: goSeto41, gate: goSeto41, lose: goInui41, inui: goInui41, hokai: goHokai41, houshi: goHoushi41, chanyu: goChanyu41, back: goTcoBack41, end: goTcoBack41, rider: goRider41 };
 { const r0 = showReport40; showReport40 = function () { r0(); const cl = document.querySelector('#reportDoc .close'); if (cl) cl.textContent = '――　第十一章 終へ'; const row = $('titleBtn40') && $('titleBtn40').parentNode; if (row && !$('ch41Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'go'; b.id = 'ch41Go'; b.textContent = '第十一章　終　魂心 へ'; row.insertBefore(b, row.firstChild); $('titleBtn40').className = 'ghost'; b.addEventListener('click', () => run(chapter41)); } }; }
+// ================= カ・エレの戦闘モーション（研究者態）：星墓戦闘試作から移植。第十一章 結で使う =================
+// 使い方
+//   keBind45(n, { foes: () => [相手の npc...], onHit: (t, dmg, key, o) => {} })　カ・エレの npc（kaereBird）に、短剣・ライフル・背中のコアを付けて戦闘の動きにする
+//   await keDo45('edge', t)　技を出して、終わるまで待つ。技の名前は KE_MOVES45（edge arm spike combo rifle frame fold ent warp mani guard barr ult）
+//   keMoveTo45(x, z, face)　裂け目をくぐって移動する／keShot45(from)　相手の弾（位相安定で返せる）／keUnbind45()　武器をしまって、ふだんの姿に戻す
+//   当たりは onHit に渡すだけで、体力は持たない。相手の押し出し・引き寄せ・固定・潰れ・絡合の鎖は、見た目だけここで動かす
+const KE = { n: null, foes: () => [], onHit: null, talk: true, pops: true, armed: true, gen: 0, q: [], act: null, J: null, hide: 0, emerge: 0, dive: 0, warpHit: 0, warpBody: 0, rise: 0, guard: 0, over: 0,
+  ana: new Set(), ult: null, barr: null, buls: [], tg: new Map(), shots: [], beams: [], lastSpd: 0, px: null, pz: null, entSeq: 0, test: null };
+const KE_T45 = [
+  { k: 'edge', n: '折刃', col: 0x9FA8FF }, { k: 'arm', n: '可変腕', col: 0x7A8BFF }, { k: 'spike', n: '錨', col: 0xB59CFF }, { k: 'rifle', n: '位相断', col: 0x6FA8FF }, { k: 'frame', n: '不可能幾何', col: 0xC9B8FF },
+  { k: 'fold', n: '折り畳み', col: 0x8A70FF }, { k: 'ent', n: '絡合', col: 0xA0E0FF }, { k: 'warp', n: '歪曲軌道', col: 0x7AD8FF }, { k: 'mani', n: '実体化', col: 0xE0D0FF }, { k: 'barr', n: '歪曲弾幕', col: 0xC08CFF }];
+const KE_BY45 = Object.fromEntries(KE_T45.map(t => [t.k, t]));
+const KE_VO45 = {
+  ready: ['……揃った。十の経路、すべて観測済みだ', '解析完了。……あとは、解くだけだね'], ult: ['――全位相、同期', '干渉経路、全展開。……少しだけ、付き合ってもらうよ'], fin: ['……解は、ひとつだ', '証明終了。……美しい解だったね'],
+  edge: ['折るよ', '――そこ', '短く、済ませよう'], arm: ['届かせる', '腕は、ここにもある'], spike: ['固定', '座標、確定'], rifle: ['位相を断つ', '――貫通'], frame: ['ありえない形を、少しだけ', '構造を、押し付けるよ'], fold: ['距離を、畳む', '近づいてもらおう'],
+  ent: ['君たちは今、ひとつの系だ', '絡合、成立'], barr: ['歪みを、撃ち込むよ', '軌道は、全部曲げておいた', '避けても、曲がる'], warp: ['通らせてもらうね', '軌道を、曲げる'], mani: ['実体化', '形にするよ'],
+  guard: ['……位相、反転', 'その向きは、返すよ'], over: ['演算負荷……少し、冷やさないと'] };
+const _ke = new THREE.Vector3(), _keUp = new THREE.Vector3(0, 1, 0), _keDir = new THREE.Vector3();
+const keMat = (c, op = 0.8) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide });
+const keAdd = (o, life, upd) => fxAdd(o, life, u => { if (upd) upd(null, u); });
+function keLater(fn, ms) { KE.q.push({ t: (ms || 0) / 1000, fn, g: KE.gen }); }
+function keQTick(dt) { if (!KE.q.length) return; for (const q of KE.q) q.t -= dt; const due = KE.q.filter(q => q.t <= 0); if (!due.length) return; KE.q = KE.q.filter(q => q.t > 0); for (const q of due) if (q.g === KE.gen) { try { q.fn(); } catch (e) { console.error(e); } } }
+const keSay = k => { if (KE.talk && KE_VO45[k] && Math.random() < 0.85) bark41(pick(KE_VO45[k]), '#CFC6FF', 'カ・エレ'); };
+const keSnd = (k, ...a) => { try { if (SFX[k]) SFX[k](...a); } catch (e) { /* 鳴らせないときは黙る */ } };
+function kePop(p, y, text, cls = '') { if (!KE.pops) return; let c = $('kePops'); if (!c) { c = document.createElement('div'); c.id = 'kePops'; Object.assign(c.style, { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 33, overflow: 'hidden' }); document.body.appendChild(c); }
+  const v = new THREE.Vector3(p.x, y + (p.y || 0), p.z).project(camera); if (v.z > 1) return; const e = document.createElement('div'), big = cls === 'kult' || cls === 'kqed';
+  Object.assign(e.style, { position: 'absolute', left: ((v.x + 1) / 2 * innerWidth + rand(-14, 14)) + 'px', top: ((1 - v.y) / 2 * innerHeight) + 'px', transform: 'translate(-50%,-50%)', font: `900 ${cls === 'kqed' ? 38 : big ? 20 : 14}px ${GOTHIC}`, color: big ? '#FFFFFF' : '#CFC6FF',
+    webkitTextStroke: (cls === 'kqed' ? 6 : 3) + 'px #2A1E80', paintOrder: 'stroke fill', whiteSpace: 'nowrap', letterSpacing: big ? '3px' : '1px', transition: 'transform .9s ease-out, opacity .9s ease-out' });
+  e.textContent = text; c.appendChild(e); requestAnimationFrame(() => { e.style.transform = 'translate(-50%,-160%)'; e.style.opacity = '0'; }); setTimeout(() => e.remove(), 950); }
+function keSplit() { let d = $('keSplit'); if (!d) { d = document.createElement('div'); d.id = 'keSplit'; Object.assign(d.style, { position: 'fixed', left: '-10%', right: '-10%', top: '50%', height: '6px', background: '#fff', boxShadow: '0 0 24px 8px rgba(160,140,255,.9), 0 0 60px 20px rgba(255,255,255,.5)', pointerEvents: 'none', zIndex: 34, opacity: 0 }); document.body.appendChild(d); }
+  d.style.transition = 'none'; d.style.opacity = 1; d.style.transform = 'rotate(-14deg) scaleX(0)'; void d.offsetWidth; d.style.transition = 'transform .16s cubic-bezier(.2,.9,.2,1), opacity .7s ease-out .2s, height .7s'; d.style.transform = 'rotate(-14deg) scaleX(1)'; d.style.opacity = 0; }
+function keScreenWarp(lite) { const cv = renderer.domElement; cv.style.transition = (lite ? 'transform .05s' : 'transform .07s') + ' ease-out';
+  (lite ? [[0, 'scale(1.06) skew(4deg,-3deg) rotate(-1.5deg)'], [70, 'scale(0.96) skew(-3deg,3deg) rotate(1deg)'], [150, '']] : [[0, 'scale(1.05) skew(3deg,-2deg)'], [80, 'scale(0.95) skew(-4deg,2deg) rotate(-1.2deg)'], [170, 'scale(1.09) skew(2deg,3deg) rotate(.8deg)'], [280, 'scale(0.98) skew(-1deg,0deg)'], [400, '']]).forEach(([ms, v]) => setTimeout(() => { cv.style.transform = v; }, ms)); }
+
+// ---- 相手（npc）との距離と向き ----
+const keAlive = () => (KE.foes() || []).filter(d => d && d.pos && !d.hidden);
+const keDist = d => Math.hypot(d.pos.x - KE.n.pos.x, d.pos.z - KE.n.pos.z);
+function keNearest(r) { let b = null, bd = r; for (const d of keAlive()) { const x = keDist(d); if (x < bd) { bd = x; b = d; } } return b; }
+const keFace = d => { if (d) KE.n.facing = Math.atan2(d.pos.x - KE.n.pos.x, d.pos.z - KE.n.pos.z); };
+function keInFront(d, dot) { const n = KE.n, dx = d.pos.x - n.pos.x, dz = d.pos.z - n.pos.z, L = Math.hypot(dx, dz) || 1; return L < 0.9 || (dx * Math.sin(n.facing) + dz * Math.cos(n.facing)) / L > dot; }
+function kePt(d, dist, ang) { const n = KE.n, a = Math.atan2(n.pos.x - d.pos.x, n.pos.z - d.pos.z) + (ang || 0); return { x: d.pos.x + Math.sin(a) * dist, z: d.pos.z + Math.cos(a) * dist }; }
+const keSide = (d, s, dist = 1.3) => kePt(d, dist, s * Math.PI / 2);
+const keBack = dist => ({ x: KE.n.pos.x - Math.sin(KE.n.facing) * dist, z: KE.n.pos.z - Math.cos(KE.n.facing) * dist });
+const keInArea = (x, z) => !A || (x > A.bounds[0] + 0.3 && x < A.bounds[1] - 0.3 && z > A.bounds[2] + 0.3 && z < A.bounds[3] - 0.3);
+function keAct(kind, dur) { KE.act = { kind, t: 0, dur }; }
+function keJump(o) { const to = o.to ? { x: o.to.x, z: o.to.z } : null; if (to) { const v = new THREE.Vector3(to.x, 0, to.z); resolve(v, 0.38); to.x = v.x; to.z = v.z; } KE.J = { t: 0, dur: o.dur, h: o.h || 1, flip: o.flip || 0, spin: o.spin || 0, from: { x: KE.n.pos.x, z: KE.n.pos.z }, to }; if (o.h > 0.9) keSnd('keJump'); }
+
+// ---- 相手の反応（見た目だけ）と当たり ----
+function keTg(d) { let s = KE.tg.get(d); if (!s) { s = { kv: new THREE.Vector3(), pullT: 0, pullX: 0, pullZ: 0, bindT: 0, entT: 0, entOrd: 0, crushT: 0, sliceT: 0, ring: null, halo: null }; KE.tg.set(d, s); } return s; }
+function keHit(d, base, key, o = {}) {
+  if (!d || !d.pos) return 0; const s = keTg(d), crit = Math.random() < (o.crit ?? 0.12), dmg = Math.round(base * (crit ? 1.5 : 1) * rand(0.94, 1.06));
+  if (o.bind) s.bindT = Math.max(s.bindT, o.bind);
+  if (o.push) { const fx = o.from ? o.from.x : KE.n.pos.x, fz = o.from ? o.from.z : KE.n.pos.z, dx = d.pos.x - fx, dz = d.pos.z - fz, L = Math.hypot(dx, dz) || 1; s.kv.set(dx / L * o.push, 0, dz / L * o.push); }
+  if (!o.quiet) { keBurst(_ke.copy(d.pos).setY(1.3 + (d.y || 0)), crit ? 5 : 3, KE_BY45[key] ? KE_BY45[key].col : 0x9A8CFF, 3); keSnd('keHit'); }
+  if (KE.onHit) { try { KE.onHit(d, dmg, key, Object.assign({ crit }, o)); } catch (e) { console.error(e); } }
+  if (s.entT > 0 && !o.shared) { for (const e of keAlive()) { const se = KE.tg.get(e); if (e !== d && se && se.entT > 0) { if (!o.quiet) keEntPulse(d.pos, e.pos); keHit(e, base * 0.5, 'ent', { shared: true, crit: 0, quiet: o.quiet }); } } }
+  return dmg; }
+function keTgTick(dt) {
+  for (const [d, s] of KE.tg) { if (!d.pos) continue; const moving = s.kv.lengthSq() > 0.0004 || s.pullT > 0;
+    d.pos.addScaledVector(s.kv, dt); s.kv.multiplyScalar(Math.exp(-6 * dt));
+    if (s.pullT > 0) { s.pullT -= dt; const k = Math.min(1, dt * 9); d.pos.x += (s.pullX - d.pos.x) * k; d.pos.z += (s.pullZ - d.pos.z) * k; }
+    if (moving && A) resolve(d.pos, 0.5);
+    s.bindT = Math.max(0, s.bindT - dt); s.entT = Math.max(0, s.entT - dt); s.crushT = Math.max(0, s.crushT - dt); s.sliceT = Math.max(0, s.sliceT - dt);
+    if (s.bindT > 0 && !s.ring && A) { s.ring = new THREE.Mesh(G_('kebind', () => new THREE.TorusGeometry(0.78, 0.045, 6, 24)), keMat(0xB59CFF, 0.85)); s.ring.rotation.x = Math.PI / 2; A.g.add(s.ring); }
+    if (s.ring) { s.ring.visible = s.bindT > 0 && !d.hidden; s.ring.position.set(d.pos.x, 1.1 + (d.y || 0), d.pos.z); s.ring.rotation.z += dt * 3; }
+    if (s.entT > 0 && !s.halo && A) { s.halo = new THREE.Mesh(G_('kehalo', () => new THREE.RingGeometry(0.42, 0.56, 6)), keMat(0x8FE4FF, 0.9)); s.halo.rotation.x = -Math.PI / 2; A.g.add(s.halo); }
+    if (s.halo) { s.halo.visible = s.entT > 0 && !d.hidden; s.halo.position.set(d.pos.x, 3.0 + (d.y || 0), d.pos.z); s.halo.rotation.z += dt * 2; }
+    const R = d.model && d.model.root; if (R && (s.crushT > 0 || s.sliceT > 0 || R.scale.y !== 1 || R.rotation.z)) { const k = s.crushT / 0.7; R.scale.set(1 + k * 0.45, 1 - k * 0.5, 1 + k * 0.45); R.rotation.z = s.sliceT > 0 ? s.sliceT * 0.35 + Math.sin(s.sliceT * 30) * 0.05 : 0; } }
+  // 絡合でつながった相手を、光の鎖で結ぶ
+  const list = keAlive().filter(d => KE.tg.has(d) && KE.tg.get(d).entT > 0).sort((a, b) => KE.tg.get(a).entOrd - KE.tg.get(b).entOrd); let i = 0;
+  for (; i < list.length - 1; i++) { if (!KE.beams[i] && A) { const g = new THREE.Group(), m = new THREE.Mesh(cyl(1, 1, 1, 8), keMat(0x8FE4FF, 0.55)), c = new THREE.Mesh(cyl(1, 1, 1, 6), keMat(0xFFFFFF, 0.9)); g.add(m); g.add(c); A.g.add(g); KE.beams[i] = { g, m, c }; }
+    const b = KE.beams[i], a = list[i].pos, z = list[i + 1].pos, dx = z.x - a.x, dz = z.z - a.z, L = Math.hypot(dx, dz) || 0.01; b.g.visible = true; b.g.position.set((a.x + z.x) / 2, 1.6, (a.z + z.z) / 2); _keDir.set(dx / L, 0, dz / L); b.g.quaternion.setFromUnitVectors(_keUp, _keDir);
+    const w = 0.07 + Math.sin(T.now * 14) * 0.02; b.m.scale.set(w, L, w); b.c.scale.set(w * 0.35, L, w * 0.35); b.m.material.opacity = 0.45 + Math.sin(T.now * 10) * 0.2; }
+  for (; i < KE.beams.length; i++) if (KE.beams[i]) KE.beams[i].g.visible = false; }
+function keAnalyze(key) { if (KE.ult || KE.ana.has(key)) return; KE.ana.add(key); kePop(KE.n.pos, 3.1, '解析：' + KE_BY45[key].n, 'kana');
+  if (KE.ana.size === KE_T45.length) { keSnd('keReady'); cutin41('解析完了　――《全位相収束》', '#CFC6FF', 1100); keSay('ready'); } }
+
+// ---- 効果 ----
+function keBurst(p, n, col, spd = 5, up = 0.7) { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(G_('ketet', () => new THREE.TetrahedronGeometry(0.16, 0)), keMat(col, 0.9)), life = rand(0.35, 0.8), v = new THREE.Vector3(rand(-1, 1) * spd, rand(0.2, 1) * spd * up, rand(-1, 1) * spd), s = new THREE.Vector3(rand(-9, 9), rand(-9, 9), rand(-9, 9)), x0 = p.x, y0 = p.y, z0 = p.z; m.scale.setScalar(rand(0.6, 1.6)); m.position.set(x0, y0, z0);
+  keAdd(m, life, (f, u) => { const t = u * life; m.position.set(x0 + v.x * t, Math.max(0, y0 + v.y * t - 3.5 * t * t), z0 + v.z * t); m.rotation.set(s.x * t, s.y * t, s.z * t); m.material.opacity = Math.min(0.9, (1 - u) * 1.6); }); } }
+function keRing(x, z, r0, r1, col, life, y = 0.08, seg = 6) { const m = new THREE.Mesh(new THREE.RingGeometry(0.88, 1, seg), keMat(col)); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z);
+  return keAdd(m, life, (f, u) => { m.scale.setScalar(r0 + (r1 - r0) * u); m.material.opacity = 0.85 * (1 - u); m.rotation.z += 0.03; }); }
+function keArc(col, big, rev) { const n = KE.n, m = new THREE.Mesh(new THREE.RingGeometry(0.9, 3.3, 26, 1, -Math.PI / 2 - 1.15, 2.3), keMat(col, 0.7)), grp = new THREE.Group(); m.rotation.x = -Math.PI / 2; grp.add(m);
+  grp.position.set(n.pos.x, 0.9, n.pos.z); grp.rotation.y = n.facing; if (rev) grp.rotation.z = Math.PI; if (big) grp.scale.setScalar(1.25); return keAdd(grp, 0.18, (f, u) => { m.material.opacity = 0.75 * (1 - u); grp.scale.multiplyScalar(1.01); }); }
+function keBeam(a, b, col, w, life, y = 1.3) { const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 0.01, grp = new THREE.Group(); grp.position.set((a.x + b.x) / 2, y, (a.z + b.z) / 2); grp.rotation.y = Math.atan2(dx, dz);
+  const m = new THREE.Mesh(cyl(1, 1, 1, 10), keMat(col, 0.75)); m.rotation.x = Math.PI / 2; m.scale.set(w, L, w); grp.add(m); const c = new THREE.Mesh(cyl(1, 1, 1, 8), keMat(0xFFFFFF, 0.95)); c.rotation.x = Math.PI / 2; c.scale.set(w * 0.35, L, w * 0.35); grp.add(c);
+  return keAdd(grp, life, (f, u) => { const k = 1 - u; m.scale.x = m.scale.z = w * (0.3 + k); c.scale.x = c.scale.z = w * 0.35 * k; m.material.opacity = 0.75 * k; c.material.opacity = 0.95 * k; }); }
+function keAfter(x, z) { const s = glowSprite(0x8A7CFF, 1); s.scale.set(1.0, 2.4, 1); s.position.set(x, 1.1, z); return keAdd(s, 0.45, (f, u) => { s.material.opacity = 0.7 * (1 - u); }); }
+function keArmFx(x, z, face, len) { const grp = new THREE.Group(); grp.position.set(x, 1.15, z); grp.rotation.y = face;
+  const portal = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.62, 6), keMat(0xB8A8FF, 0.9)); grp.add(portal); const armM = new THREE.Mesh(cyl(0.18, 0.24, 1, 10), keMat(0x8A7CFF, 0.55)); armM.rotation.x = Math.PI / 2; grp.add(armM); const fist = new THREE.Mesh(box(0.55, 0.5, 0.5), keMat(0xD0C8FF, 0.7)); grp.add(fist);
+  return keAdd(grp, 0.42, (f, u) => { const e = u < 0.4 ? u / 0.4 : 1 - (u - 0.4) / 0.6, L = Math.max(0.05, len * e); armM.scale.set(1, L, 1); armM.position.z = L / 2; fist.position.z = L + 0.2; const op = 1 - Math.max(0, u - 0.6) / 0.4; armM.material.opacity = 0.55 * op; fist.material.opacity = 0.7 * op; portal.material.opacity = 0.9 * op; portal.rotation.z += 0.2; }); }
+function keSpikeFx(from, d, onHit) { const m = new THREE.Mesh(G_('kespk', () => { const c = new THREE.ConeGeometry(0.08, 0.6, 4); c.rotateX(Math.PI / 2); return c; }), keMat(0xD0C0FF, 1)); m.position.set(from.x, 1.3, from.z); let done = false;
+  return keAdd(m, 0.22, (f, u) => { const tx = d.pos.x, tz = d.pos.z; m.position.set(from.x + (tx - from.x) * u, 1.3, from.z + (tz - from.z) * u); m.rotation.y = Math.atan2(tx - from.x, tz - from.z); if (u > 0.95 && !done) { done = true; onHit(); } }); }
+function keEntPulse(a, b) { const s = glowSprite(0xFFFFFF, 0.9); keAdd(s, 0.18, (f, u) => { s.position.set(a.x + (b.x - a.x) * u, 1.6, a.z + (b.z - a.z) * u); }); }
+// 歪曲軌道：曲がった光の軌跡と、出入口の門
+function keWarpTrail(a, b) { const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1, side = Math.random() < 0.5 ? -1 : 1;
+  const cx = mx - dz / L * side * Math.min(3.5, L * 0.6), cz = mz + dx / L * side * Math.min(3.5, L * 0.6);
+  for (let i = 0; i <= 16; i++) { const u = i / 16, x = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * cx + u * u * b.x, z = (1 - u) * (1 - u) * a.z + 2 * (1 - u) * u * cz + u * u * b.z, y = 1.1 + Math.sin(u * Math.PI) * 1.6;
+    const s = glowSprite(i % 3 ? 0x7AD8FF : 0xFFFFFF, i % 3 ? 0.55 : 0.8); s.position.set(x, y, z); const dl = u * 0.15; keAdd(s, 0.55 + dl, (f, uu) => { const t = uu * (0.55 + dl); s.material.opacity = t < dl ? 0 : 0.95 * (1 - (t - dl) / 0.55); }); }
+  for (const p of [a, b]) { const g = new THREE.Group(); g.position.set(p.x, 1.2, p.z); g.rotation.y = Math.atan2(dx, dz); const r1 = new THREE.Mesh(new THREE.RingGeometry(0.75, 1.0, 6), keMat(0x7AD8FF, 0.9)), r2 = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.5, 6), keMat(0xFFFFFF, 0.9)); g.add(r1); g.add(r2);
+    keAdd(g, 0.5, (f, u) => { const k = u < 0.25 ? u / 0.25 : 1; g.scale.set(k, k * 1.5, k); r1.rotation.z += 0.15; r2.rotation.z -= 0.25; r1.material.opacity = r2.material.opacity = 0.9 * (1 - Math.max(0, u - 0.4) / 0.6); }); } }
+// 次元の裂け目：縦に開いて、閉じる
+function keRift(x, z, face, life = 0.36, delay = 0, sc = 1, y = null) { const g = new THREE.Group(); g.position.set(x, y === null ? 1.25 * sc : y, z); g.rotation.y = face + Math.PI / 2;
+  const glow = new THREE.Mesh(box(1.1, 2.9, 0.02), keMat(0x6A5CFF, 0.55)), core = new THREE.Mesh(box(0.14, 2.7, 0.03), keMat(0xFFFFFF, 1)), edge = new THREE.Mesh(box(0.5, 2.8, 0.025), keMat(0xB8A8FF, 0.8)); g.add(glow); g.add(core); g.add(edge); g.scale.set(0, sc, sc); const tot = life + delay;
+  return keAdd(g, tot, (f, u) => { const t = u * tot - delay; if (t < 0) { g.scale.x = 0; return; } const k = t / life, open = k < 0.3 ? k / 0.3 : k > 0.7 ? Math.max(0, (1 - k) / 0.3) : 1;
+    g.scale.set(open * sc, sc * (0.85 + 0.15 * open), sc); core.scale.x = 1 + Math.sin(t * 60) * 0.3; glow.material.opacity = 0.55 * open; edge.material.opacity = 0.8 * open; }); }
+// 裂け目へ入り、別の裂け目から出る（hide 秒だけ姿が消える）
+function keRiftTo(to, after, o = {}) { const n = KE.n, v = new THREE.Vector3(to.x, 0, to.z); resolve(v, 0.38); const hide = o.hide || 0.1, face = Math.atan2(v.x - n.pos.x, v.z - n.pos.z);
+  keRift(n.pos.x, n.pos.z, face, 0.34); keSnd('keRiftIn'); keBurst(_ke.copy(n.pos).setY(1.2), 5, 0x9A8CFF, 2.5); KE.hide = hide + 0.03; KE.dive = 0.05; keRift(v.x, v.z, face + Math.PI, 0.34, Math.max(0, hide - 0.08));
+  if (o.trail) keWarpTrail({ x: n.pos.x, z: n.pos.z }, v);
+  keLater(() => { n.pos.set(v.x, 0, v.z); KE.hide = 0; KE.emerge = 0.16; keSnd('keRiftOut'); keBurst(_ke.copy(n.pos).setY(1.2), 6, 0xDDE4FF, 3); if (o.face !== undefined) n.facing = o.face; if (after) after(); }, hide * 1000); }
+// 直線の斬撃跡と、遅れて来る「ズレ」
+function keSlashLine(a, b, life = 0.8) { const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 0.1, g = new THREE.Group(); g.position.set((a.x + b.x) / 2, 1.2, (a.z + b.z) / 2); g.rotation.y = Math.atan2(dx, dz);
+  const w = new THREE.Mesh(box(1, 0.02, L + 2), keMat(0xFFFFFF, 1)), v = new THREE.Mesh(box(1, 0.015, L + 3), keMat(0x7A6BFF, 0.7)), h = new THREE.Mesh(box(0.03, 1.6, L + 2), keMat(0xDDE4FF, 0.6)); g.add(v); g.add(w); g.add(h);
+  return keAdd(g, life, (f, u) => { const k = u < 0.12 ? u / 0.12 : 1 - (u - 0.12) / 0.88; w.scale.x = 0.25 * k + 0.02; v.scale.x = 1.4 * k + 0.05; h.scale.y = k; w.material.opacity = k; v.material.opacity = 0.7 * k; h.material.opacity = 0.6 * k; }); }
+function keZureLine(a, b) { const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 0.1; for (const s of [-1, 1]) { const g = new THREE.Group(); g.position.set((a.x + b.x) / 2, 1.2, (a.z + b.z) / 2); g.rotation.y = Math.atan2(dx, dz);
+  const m = new THREE.Mesh(box(0.06, 0.06, L + 2), keMat(s > 0 ? 0xB8A8FF : 0x8FE4FF, 1)); g.add(m); keAdd(g, 0.7, (f, u) => { m.position.x = s * u * 0.6; m.position.y = s * u * 0.25; m.material.opacity = 1 - u; }); }
+  for (let i = 0; i <= 10; i++) keBurst(_ke.set(a.x + dx * i / 10, 1.2, a.z + dz * i / 10), 2, 0xB8A8FF, 3); }
+// 次元のズレで作る刃（奥義の最後）
+function keBladeFx(charge, swingAt, swingDur, dash) { const n = KE.n, grp = new THREE.Group(), layers = [], cols = [0x7A6BFF, 0xFFFFFF, 0x8FE4FF, 0xB8A8FF, 0xFFFFFF, 0x6A5CFF];
+  for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(box(0.5 - i * 0.04, 0.03, 1), keMat(cols[i], i % 2 ? 0.7 : 0.45)); grp.add(m); layers.push(m); }
+  const edgeL = new THREE.Mesh(box(0.06, 0.06, 1), keMat(0xFFFFFF, 1)); grp.add(edgeL); const tipG = glowSprite(0xDDE4FF, 1.6); grp.add(tipG); const life = swingAt + swingDur + 0.45;
+  keAdd(grp, life, (f, u) => { const t = u * life, grow = Math.min(1, t / charge), L = 0.5 + 9.5 * grow * grow; grp.position.set(n.pos.x, 1.35 + n.model.root.position.y * 0.6, n.pos.z);
+    layers.forEach((m, i) => { const j = t < swingAt ? (Math.sin(t * 38 + i * 1.7) * 0.09 * (1 + grow)) : (i - 2.5) * 0.12 * Math.max(0, 1 - (t - swingAt) / swingDur); m.scale.z = L * (1 - i * 0.03); m.position.set(j + (i - 2.5) * 0.035, (i - 2.5) * 0.02, 0.5 + m.scale.z / 2 + Math.sin(t * 23 + i) * 0.05 * grow); m.rotation.z = (i - 2.5) * 0.05 * (t < swingAt ? 1 : 0); });
+    edgeL.scale.z = L; edgeL.position.set(0.24, 0, 0.5 + L / 2); tipG.position.set(0, 0, 0.5 + L); tipG.scale.setScalar(1 + grow * 2 + Math.sin(t * 30) * 0.3);
+    if (t < swingAt) grp.rotation.set(-1.25 + Math.sin(t * 3) * 0.05, n.facing + 1.6, 0); else { const s = Math.min(1, (t - swingAt) / swingDur), e = 1 - Math.pow(1 - s, 3); grp.rotation.set(-0.08, dash ? n.facing + 1.2 + e * 1.75 : n.facing + 1.6 - e * 4.6, 0); }
+    const op = t > swingAt + swingDur ? Math.max(0, 1 - (t - swingAt - swingDur) / 0.45) : 1; layers.forEach((m, i) => { m.material.opacity = (i % 2 ? 0.7 : 0.45) * op; }); edgeL.material.opacity = op; tipG.material.opacity = op; }); }
+// 歪曲弾幕：背後一面の裂け目から、揺らぎながら飛ぶ歪み
+const KE_BMAT45 = [0xB89CFF, 0xFFFFFF, 0x8FE4FF, 0x9A70FF].map(c => keMat(c, 0.95));
+function keBarrStart(dur, n, rate) { const N = KE.n, em = []; for (let i = 0; i < n; i++) { const a = N.facing + Math.PI + (i / (n - 1) - 0.5) * 3.6, r = 2.3 + Math.random() * 0.7, x = N.pos.x + Math.sin(a) * r, z = N.pos.z + Math.cos(a) * r, y = 0.7 + (i % 4) * 0.62 + Math.random() * 0.3;
+  keRift(x, z, a, dur + 0.35, i * 0.012, 0.42, y); em.push({ x, y, z, ft: 0.08 + Math.random() * rate }); } KE.barr = { t: dur, rate, em, sndT: 0 }; }
+function keSpawnB(x, y, z, h, homing) { if (KE.buls.length > 420 || !A) return; const m = new THREE.Mesh(G_('kebul', () => new THREE.BoxGeometry(0.08, 0.08, 0.8)), KE_BMAT45[KE.buls.length % 4]); A.g.add(m);
+  KE.buls.push({ m, x, y, z, y0: y, h, t: 0, life: rand(0.8, 1.05), spd: rand(26, 34), ph: rand(0, TAU), w: rand(12, 22) * (Math.random() < 0.5 ? -1 : 1), amp: rand(1.5, 3.2), tg: homing ? keNearest(30) : null }); }
+function keBulTick(dt) { const N = KE.n;
+  if (KE.barr) { const B = KE.barr; B.t -= dt; for (const e of B.em) { e.ft -= dt; while (e.ft <= 0) { e.ft += B.rate; keSpawnB(e.x, e.y, e.z, N.facing + rand(-0.8, 0.8), Math.random() < 0.2); } } B.sndT -= dt; if (B.sndT <= 0) { B.sndT = 0.045; keSnd('keBul'); } if (B.t <= 0) KE.barr = null; }
+  const alive = keAlive();
+  for (let i = KE.buls.length - 1; i >= 0; i--) { const b = KE.buls[i]; b.t += dt; b.life -= dt; let dead = b.life <= 0;
+    if (!dead) { if (b.tg && b.tg.pos) { const want = Math.atan2(b.tg.pos.x - b.x, b.tg.pos.z - b.z); let df = want - b.h; while (df > Math.PI) df -= TAU; while (df < -Math.PI) df += TAU; b.h += Math.max(-1, Math.min(1, df)) * Math.min(1, dt * 6); }
+      b.h += Math.sin(b.t * b.w + b.ph) * b.amp * dt; b.x += Math.sin(b.h) * b.spd * dt; b.z += Math.cos(b.h) * b.spd * dt; b.y = b.y0 + (1.3 - b.y0) * Math.min(1, b.t * 1.6) + Math.sin(b.t * 9 + b.ph) * 0.22;
+      if (!keInArea(b.x, b.z)) { dead = true; if (Math.random() < 0.2) keBurst(_ke.set(b.x, b.y, b.z), 2, 0xA070FF, 2); }
+      else for (const d of alive) if (Math.abs(d.pos.x - b.x) < 0.7 && Math.abs(d.pos.z - b.z) < 0.7) { keHit(d, 9, 'barr', { quiet: true, crit: 0.06 }); if (Math.random() < 0.25) keBurst(_ke.set(b.x, b.y, b.z), 2, 0xC08CFF, 3); dead = true; break; }
+      b.m.position.set(b.x, b.y, b.z); b.m.rotation.y = b.h; }
+    if (dead) { if (b.m.parent) b.m.parent.remove(b.m); KE.buls.splice(i, 1); } } }
+// 折り畳み：空間がぐしゃりと潰れる
+function keCrumple(cx, cz, R, tot = 1.0, imp = 0.3) { const grp = new THREE.Group(); grp.position.set(cx, 1.2, cz); const tris = [], tiles = [], tri = G_('ketri', () => new THREE.CircleGeometry(1, 3));
+  for (let i = 0; i < 52; i++) { const m = new THREE.Mesh(tri, keMat(i % 3 ? 0x8A70FF : 0xF0ECFF, 0.5)), th = rand(0, TAU), ph = Math.acos(rand(-0.35, 1)), d = new THREE.Vector3(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th));
+    m.userData = { d, r0: R * rand(0.8, 1.1), sp: new THREE.Vector3(rand(-14, 14), rand(-14, 14), rand(-14, 14)), s: rand(0.7, 1.7) }; m.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); grp.add(m); tris.push(m); }
+  for (let ring = 1; ring <= 3; ring++) for (let k = 0; k < ring * 8; k++) { const a = k / (ring * 8) * TAU + ring, r = ring * 1.45, m = new THREE.Mesh(tri, keMat(ring % 2 ? 0xB8A8FF : 0x6A5CFF, 0.6)); m.userData = { a, r, s: rand(0.5, 0.9) }; grp.add(m); tiles.push(m); }
+  return keAdd(grp, tot, (f, u) => { const t = u * tot, e = Math.max(0, Math.min(1, (t - imp) / 0.2));
+    for (const m of tris) { const D = m.userData; if (t < imp) { const k = t / imp, r = D.r0 * (1 + Math.sin(t * 40 + D.s) * 0.03); m.position.copy(D.d).multiplyScalar(r); m.scale.setScalar(D.s * k); m.material.opacity = 0.5 * k; }
+      else { const r = D.r0 * Math.pow(1 - e, 2.2) + 0.15; m.position.copy(D.d).multiplyScalar(r); m.rotation.x += D.sp.x * 0.016; m.rotation.y += D.sp.y * 0.016; m.rotation.z += D.sp.z * 0.016; m.scale.setScalar(D.s * (1 - e * 0.75)); m.material.opacity = t > imp + 0.25 ? Math.max(0, 0.85 - (t - imp - 0.25) * 5) : 0.85; } }
+    for (const m of tiles) { const D = m.userData, k = Math.min(1, t / 0.15), r = D.r * (1 - e * 0.75); m.position.set(Math.cos(D.a) * r, -1.13 + Math.sin(e * Math.PI) * 0.9 * (D.r / 4.4), Math.sin(D.a) * r);
+      m.rotation.set(-Math.PI / 2 + e * 1.3 * Math.cos(D.a * 3), e * 2.4, D.a + e * 3); m.scale.setScalar(D.s * k * (1 - e * 0.4)); m.material.opacity = t > imp + 0.3 ? Math.max(0, 0.6 - (t - imp - 0.3) * 3) : 0.6 * k; } }); }
+// 不可能幾何：ありえない立体が、歪みながら出ては消える
+function keImpShape(kind, x, y, z, size, life, final, drop) { const grp = new THREE.Group(); grp.position.set(x, y, z); const lm = c => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: 1 });
+  if (kind === 0) { for (let k = 0; k < 3; k++) { const a = k / 3 * TAU, bar = new THREE.Mesh(box(0.2, 0.2, 1.15), keMat(k === 0 ? 0xE8E2FF : k === 1 ? 0xB8A8FF : 0x8A7CFF, 0.85)); bar.position.set(Math.cos(a + 1.05) * 0.33, Math.sin(a + 1.05) * 0.33, 0); bar.rotation.set(k * 0.6 - 0.6, 0, a); grp.add(bar); } }
+  else if (kind === 1) { grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)), lm(0xE8E2FF))); const bar = new THREE.Mesh(box(0.1, 0.1, 1.5), keMat(0x9A8CFF, 0.9)); bar.rotation.set(0.62, 0.78, 0); grp.add(bar); const bar2 = new THREE.Mesh(box(0.1, 1.0, 0.1), keMat(0xB8A8FF, 0.9)); bar2.position.set(0.5, 0, -0.5); bar2.rotation.z = 0.4; grp.add(bar2); }
+  else { grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.1, 1.1, 1.1)), lm(0xE8E2FF))); grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.55, 0.55, 0.55)), lm(0x9A8CFF)));
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) { const b = new THREE.Mesh(box(0.035, 0.035, 0.48), keMat(0xC9B8FF, 0.9)); b.position.set(sx * 0.41, sy * 0.41, sz * 0.41); b.lookAt(sx * 2, sy * 2, sz * 2); grp.add(b); } }
+  const lens = new THREE.Mesh(sph(1, 16, 12), keMat(0x7A6BFF, 0.16)); grp.add(lens); const gl = glowSprite(0xB8A8FF, 2); grp.add(gl); const y0 = y, ph = rand(0, TAU);
+  return keAdd(grp, life, (f, u) => { const t = u * life, app = Math.min(1, u / 0.22), out = final ? 1 : Math.max(0, Math.min(1, (u - 0.72) / 0.28)), s = size * (app < 1 ? app * (1.3 - 0.3 * app) : 1);
+    grp.scale.set(s * (1 + Math.sin(t * 31 + ph) * 0.28) * (1 - out), s * (1 + Math.sin(t * 23 + ph) * 0.3) * (1 + out * 0.6), s * (1 + Math.sin(t * 37) * 0.25)); grp.rotation.x += 0.09 + Math.sin(t * 9) * 0.05; grp.rotation.y += 0.13; grp.rotation.z = Math.sin(t * 13 + ph) * 0.6;
+    lens.scale.setScalar(1.4 + Math.sin(t * 18) * 0.25 + u * 0.8); lens.material.opacity = 0.16 * (1 - u); gl.material.opacity = 0.6 * (1 - out);
+    if (final && drop) { const k = Math.max(0, (u - 0.45) / 0.18); grp.position.y = y0 - Math.min(1, k) * (y0 - 0.9); if (u > 0.7) grp.scale.multiplyScalar(Math.max(0.01, 1 - (u - 0.7) / 0.3)); } }); }
+function keLens(x, y, z, r, col = 0x9A8CFF) { const m = new THREE.Mesh(sph(1, 16, 12), keMat(col, 0.22)); m.position.set(x, y, z); const ring = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 32), keMat(0xE8E2FF, 0.7)); ring.position.set(x, y, z); ring.quaternion.copy(camera.quaternion);
+  keAdd(ring, 0.35, (f, u) => { ring.scale.setScalar(r * (0.5 + u * 1.4)); ring.material.opacity = 0.7 * (1 - u); }); return keAdd(m, 0.35, (f, u) => { m.scale.setScalar(r * (0.6 + u)); m.material.opacity = 0.22 * (1 - u); }); }
+function keDistortBurst(x, z, size, kind, dmg) { keImpShape(kind, x, 1.4, z, size * 1.5, 0.36, false); keImpShape((kind + 1) % 3, x, 1.4, z, size * 0.9, 0.3, false); keLens(x, 1.3, z, size * 2.6); keLens(x, 1.3, z, size * 1.4, 0xE8E2FF);
+  keRing(x, z, 0.4, size * 2.4, 0xC9B8FF, 0.35, 0.08, 6); keBurst(_ke.set(x, 1.3, z), 14, 0xC9B8FF, 7, 1); keScreenWarp(true); keSnd('keFrameBlink', kind); G.shake = Math.max(G.shake || 0, 0.35);
+  for (const d of keAlive()) if (Math.hypot(d.pos.x - x, d.pos.z - z) < size * 2.9) keHit(d, dmg, 'frame', { push: 2.5, from: { x, z } }); }
+function keFrameSeq(c, hops, gap, onEnd) { const n = KE.n, pts = [], a0 = rand(0, TAU); for (let i = 0; i < hops; i++) { const a = a0 + i * (TAU / hops) * 1.37 + rand(-0.4, 0.4), r = rand(2.6, 4.2), v = new THREE.Vector3(c.x + Math.sin(a) * r, 0, c.z + Math.cos(a) * r); resolve(v, 0.38); pts.push(v); }
+  const hop = i => { if (i >= hops) { if (onEnd) onEnd(); return; } KE.warpHit = 0.12; keSnd('keRiftIn');
+    keLater(() => { keLens(n.pos.x, 1.3, n.pos.z, 1.3); keBurst(_ke.copy(n.pos).setY(1.3), 6, 0x9A8CFF, 3); KE.hide = 0.07; KE.dive = 0;
+      keLater(() => { n.pos.set(pts[i].x, 0, pts[i].z); KE.hide = 0; KE.emerge = 0.12; n.facing = Math.atan2(c.x - n.pos.x, c.z - n.pos.z); KE.J = { t: 0, dur: 0.22, h: rand(0.3, 1.4), flip: 0, spin: Math.random() < 0.5 ? 1 : -1, from: null, to: null };
+        keDistortBurst(n.pos.x, n.pos.z, 1.2 + i * 0.12, i % 3, 48); keLater(() => hop(i + 1), gap); }, 70); }, 90); };
+  hop(0); }
+function keFrameFinal(c) { const n = KE.n, v = new THREE.Vector3(c.x + rand(-1, 1), 0, c.z + rand(-1, 1)); resolve(v, 0.38); KE.warpHit = 0.12; KE.hide = 0.07;
+  keLater(() => { n.pos.copy(v); KE.hide = 0; KE.emerge = 0.12; KE.J = { t: 0, dur: 0.42, h: 3.4, flip: 1, spin: 0, from: null, to: null }; keImpShape(2, c.x, 4.6, c.z, 2.2, 0.55, true, true); keLens(c.x, 4.6, c.z, 3.4); keSnd('keFrameBlink', 3);
+    keLater(() => { keSnd('keSlam'); G.shake = Math.max(G.shake || 0, 0.65); keRing(c.x, c.z, 0.5, 4.2, 0xE0D8FF, 0.45); keLens(c.x, 1, c.z, 4); keScreenWarp(true); keBurst(_ke.set(c.x, 0.8, c.z), 22, 0xC9B8FF, 8);
+      for (const d of keAlive()) { const r = Math.hypot(d.pos.x - c.x, d.pos.z - c.z); if (r < 3.4) keHit(d, r < 1.5 ? 175 : 120, 'frame', { knock: 3, from: c, push: 3 }); } }, 360); }, 80); }
+// 実体化：鉱物の結晶が、重なり合い連なって噴き出す
+const KE_CRY45 = [0xE8E2FF, 0xB8A8FF, 0x9A8CFF, 0xFFFFFF, 0xC8B8FF, 0x8FE4FF].map(c => keMat(c, 0.86));
+function keCluster(x, z, s, delay, dmg) { const grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = rand(0, TAU); const n = 4 + Math.floor(Math.random() * 4), pr0 = G_('keprism', () => new THREE.CylinderGeometry(1, 1, 1, 6)), tp0 = G_('ketip', () => new THREE.ConeGeometry(1, 1, 6));
+  for (let i = 0; i < n; i++) { const sp = new THREE.Group(), r = rand(0.07, 0.17) * s, h = rand(0.7, 2.4) * s * (i === 0 ? 1.35 : 1), mat = KE_CRY45[(Math.random() * KE_CRY45.length) | 0];
+    const pr = new THREE.Mesh(pr0, mat); pr.scale.set(r, h, r); pr.position.y = h / 2; sp.add(pr); const tp = new THREE.Mesh(tp0, mat); tp.scale.set(r, h * 0.38, r); tp.position.y = h + h * 0.19; sp.add(tp);
+    const a = rand(0, TAU), tilt = i === 0 ? rand(0, 0.2) : rand(0.25, 0.8); sp.rotation.set(Math.cos(a) * tilt, 0, Math.sin(a) * tilt); sp.position.set(Math.cos(a) * rand(0, 0.25) * s, 0, Math.sin(a) * rand(0, 0.25) * s); grp.add(sp); }
+  grp.scale.set(1, 0.001, 1); let fired = false; const life = delay + 0.7;
+  return keAdd(grp, life, (f, u) => { const t = u * life - delay; if (t < 0) { grp.scale.y = 0.001; return; }
+    if (!fired) { fired = true; keBurst(_ke.set(x, 0.3, z), 3, 0xD8CCFF, 4, 1.2); keSnd('keCryTick'); if (dmg) for (const d of keAlive()) if (Math.hypot(d.pos.x - x, d.pos.z - z) < 1.3 * s) keHit(d, dmg, 'mani', { quiet: true, bind: 0.5, crit: 0.08 }); }
+    const e = Math.min(1, t / 0.055), sh = t > 0.5 ? Math.max(0.001, 1 - (t - 0.5) / 0.2) : 1; grp.scale.set(sh, Math.max(0.001, (e < 1 ? e * 1.15 : 1.15 - Math.min(0.15, (t - 0.055) * 2)) * sh), sh); }); }
+function keCrystalStorm(from, dirs, len, step, dt0, s, dmg) { let maxD = 0; dirs.forEach((a, li) => { for (let k = 1; k * step <= len; k++) { const d = k * step, x = from.x + Math.sin(a) * d + rand(-0.25, 0.25), z = from.z + Math.cos(a) * d + rand(-0.25, 0.25), dl = k * dt0 + li * 0.008;
+  if (!keInArea(x, z)) break; keCluster(x, z, s * (0.85 + k / (len / step) * 0.5), dl, dmg); maxD = Math.max(maxD, dl); } }); return maxD; }
+// 絡合：貫く線、加速する光、一気に発散
+function keEntFx(list, dur) { const n = KE.n, grp = new THREE.Group(), lines = [], hand = { x: n.pos.x + Math.sin(n.facing) * 0.6, y: 1.6, z: n.pos.z + Math.cos(n.facing) * 0.6 };
+  const mk = (a, b, ext1, ext2, delay) => { const dx = b.x - a.x, dz = b.z - a.z, dy = b.y - a.y, L = Math.hypot(dx, dy, dz) || 0.1, ux = dx / L, uy = dy / L, uz = dz / L, A_ = { x: a.x - ux * ext1, y: a.y - uy * ext1, z: a.z - uz * ext1 }, LL = L + ext1 + ext2;
+    const g = new THREE.Group(), core = new THREE.Mesh(cyl(1, 1, 1, 6), keMat(0xFFFFFF, 1)), glow = new THREE.Mesh(cyl(1, 1, 1, 8), keMat(0x8FE4FF, 0.5)); g.add(glow); g.add(core); grp.add(g); _keDir.set(ux, uy, uz); g.quaternion.setFromUnitVectors(_keUp, _keDir); lines.push({ g, core, glow, A: A_, LL, ux, uy, uz, delay }); };
+  list.forEach((d, i) => { mk(hand, { x: d.pos.x, y: 1.4, z: d.pos.z }, 0, 4, i * 0.04); if (i) mk({ x: list[i - 1].pos.x, y: 1.4, z: list[i - 1].pos.z }, { x: d.pos.x, y: 1.4, z: d.pos.z }, 2.5, 2.5, 0.12 + i * 0.04); });
+  if (list.length > 2) mk({ x: list[list.length - 1].pos.x, y: 1.4, z: list[list.length - 1].pos.z }, { x: list[0].pos.x, y: 1.4, z: list[0].pos.z }, 2.5, 2.5, 0.3);
+  const c = list.reduce((a, d) => ({ x: a.x + d.pos.x / list.length, z: a.z + d.pos.z / list.length }), { x: 0, z: 0 }); let frags = null; const ps = []; for (let i = 0; i < 60; i++) { const s = glowSprite(i % 2 ? 0xFFFFFF : 0x8FE4FF, 0.55); s.visible = false; grp.add(s); ps.push(s); } const tot = dur + 0.6;
+  keAdd(grp, tot, (f, u) => { const t = u * tot;
+    if (t < dur) { const acc = Math.pow(t / dur, 2.2); lines.forEach((l, li) => { const k = Math.max(0, Math.min(1, (t - l.delay) / 0.12)), len = l.LL * k, w = 0.035 + acc * 0.13 + Math.sin(t * 50 + li) * 0.01;
+        l.g.position.set(l.A.x + l.ux * len / 2, l.A.y + l.uy * len / 2, l.A.z + l.uz * len / 2); l.core.scale.set(w * 0.4, Math.max(0.01, len), w * 0.4); l.glow.scale.set(w, Math.max(0.01, len), w); l.glow.material.opacity = 0.35 + acc * 0.5; });
+      const v = 3 + 60 * acc; ps.forEach((s, i) => { const l = lines[i % lines.length]; if (t < l.delay + 0.12) { s.visible = false; return; } const p = ((t * v + i * 1.7) % l.LL); s.visible = true; s.position.set(l.A.x + l.ux * p, l.A.y + l.uy * p, l.A.z + l.uz * p); s.scale.setScalar(0.35 + acc * 0.6); }); }
+    else { if (!frags) { frags = []; for (const l of lines) { l.g.visible = false; for (let k = 0; k < 9; k++) { const p = (k + 0.5) / 9 * l.LL, x = l.A.x + l.ux * p, y = l.A.y + l.uy * p, z = l.A.z + l.uz * p, m = new THREE.Mesh(box(0.07, l.LL / 9 * 0.8, 0.07), keMat(k % 2 ? 0xFFFFFF : 0x8FE4FF, 1)); m.position.set(x, y, z); m.quaternion.copy(l.g.quaternion); grp.add(m); const dx = x - c.x, dz = z - c.z, dl = Math.hypot(dx, dz) || 1; frags.push({ m, vx: dx / dl * rand(10, 22), vy: rand(-2, 8), vz: dz / dl * rand(10, 22), sp: rand(-20, 20) }); } } ps.forEach(s => { s.visible = false; }); }
+      const k = (t - dur) / 0.6; for (const fr of frags) { fr.m.position.x += fr.vx * 0.016; fr.m.position.y += fr.vy * 0.016; fr.m.position.z += fr.vz * 0.016; fr.m.rotation.x += fr.sp * 0.016; fr.m.material.opacity = Math.max(0, 1 - k); } } }); return c; }
+// ================= カ・エレの戦闘モーション（研究者態）：音・技・奥義・姿勢 =================
+// ---- 音（圧縮バスで、低音と歪みを効かせる） ----
+let keBus45 = null;
+function keBus() { if (!AC) return null; if (!keBus45 || keBus45.ac !== AC) { const comp = AC.createDynamicsCompressor(); try { comp.threshold.value = -18; comp.knee.value = 4; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.25; } catch (e) { /* 非対応 */ }
+    const shelf = AC.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 140; shelf.gain.value = 6; const out = AC.createGain(); out.gain.value = 1.2; const inp = AC.createGain(); inp.connect(shelf); shelf.connect(comp); comp.connect(out); out.connect(master);
+    if (AC.createConvolver) { const cv = AC.createConvolver(), len = (AC.sampleRate * 2.0) | 0, ir = AC.createBuffer(2, len, AC.sampleRate); for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3.2); } cv.buffer = ir; const wet = AC.createGain(); wet.gain.value = 0.28; inp.connect(cv); cv.connect(wet); wet.connect(comp); }
+    keBus45 = { ac: AC, inp }; } return keBus45.inp; }
+function keTone(f, dur, type = 'sine', vol = 0.05, f2 = 0, delay = 0) { if (!AC || !sound) return; const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(keBus()); o.start(t); o.stop(t + dur + 0.03); }
+const keNB = {};
+function keNbuf(dur) { const k = Math.ceil(dur * 10); if (!keNB[k] || keNB[k].ac !== AC) { const len = Math.max(1, (AC.sampleRate * k / 10) | 0), b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; keNB[k] = { ac: AC, b }; } return keNB[k].b; }
+function keNoise(dur, vol, f1, f2, type = 'bandpass', q = 1, delay = 0) { if (!AC || !sound) return; const t = AC.currentTime + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = keNbuf(dur); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.02, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(f); f.connect(g); g.connect(keBus()); s.start(t); s.stop(t + dur + 0.03); }
+const keSub = (f1, f2, dur, vol, delay = 0) => keTone(f1, dur, 'sine', vol, f2, delay);
+let keCurve45 = null;
+function keCrunch(dur, vol, f, delay = 0) { if (!AC || !sound || !AC.createWaveShaper) return; const t = AC.currentTime + delay, s = AC.createBufferSource(), w = AC.createWaveShaper(), f1 = AC.createBiquadFilter(), g = AC.createGain();
+  if (!keCurve45) { keCurve45 = new Float32Array(1024); for (let i = 0; i < 1024; i++) keCurve45[i] = Math.tanh((i / 512 - 1) * 6); } s.buffer = keNbuf(dur); w.curve = keCurve45; f1.type = 'lowpass'; f1.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(w); w.connect(f1); f1.connect(g); g.connect(keBus()); s.start(t); s.stop(t + dur + 0.03); }
+let keHitT45 = 0, keCryT45 = 0, keBulT45 = 0;
+Object.assign(SFX, {
+  keSlash: () => { keNoise(0.22, 0.6, 3500, 500, 'bandpass', 1.2); keTone(110, 0.25, 'sawtooth', 0.08, 55); keSub(90, 38, 0.35, 0.55); keTone(660, 0.6, 'triangle', 0.03, 650, 0.02); keCrunch(0.12, 0.25, 1200); },
+  keArm: () => { keNoise(0.12, 0.3, 300, 2000, 'bandpass', 2); keSub(70, 26, 0.7, 1.0, 0.06); keCrunch(0.3, 0.55, 600, 0.06); keNoise(0.5, 0.45, 900, 90, 'lowpass', 1, 0.06); keTone(55, 0.5, 'sawtooth', 0.07, 32, 0.06); },
+  keThrow: () => { keNoise(0.22, 0.45, 800, 3500, 'bandpass', 2.5); keTone(220, 0.25, 'sawtooth', 0.05, 520); keSub(80, 50, 0.2, 0.3); },
+  keCharge: () => { keTone(70, 0.45, 'sawtooth', 0.08, 300); keNoise(0.4, 0.35, 150, 2500, 'bandpass', 3); keSub(45, 60, 0.45, 0.3); },
+  keBeam: () => { keTone(880, 0.45, 'sawtooth', 0.06, 70); keNoise(0.6, 0.6, 2500, 150, 'bandpass', 0.9); keSub(65, 22, 0.9, 0.9); keCrunch(0.35, 0.45, 900); },
+  keFrame: () => { keTone(165, 0.6, 'triangle', 0.06, 330); keTone(208, 0.6, 'triangle', 0.05, 415); keTone(247, 0.6, 'triangle', 0.05, 494); keNoise(0.6, 0.25, 120, 1500, 'bandpass', 4); keSub(50, 60, 0.6, 0.3); },
+  keSlam: () => { keSub(62, 20, 1.3, 1.25); keCrunch(0.6, 0.7, 500); keNoise(1.0, 0.6, 900, 70, 'lowpass', 1); keTone(41, 1.0, 'sawtooth', 0.08, 25); },
+  keFold: () => { keTone(70, 0.6, 'sine', 0.22, 420); keTone(420, 0.6, 'sine', 0.06, 70); keNoise(0.6, 0.45, 150, 2500, 'bandpass', 4); keSub(48, 24, 0.9, 0.8, 0.45); },
+  keEnt: () => { [659, 830, 988, 1318].forEach((f, k) => keTone(f, 1.1, 'triangle', 0.035, f * 1.003, k * 0.04)); keTone(55, 1.0, 'sawtooth', 0.07, 56); keSub(55, 55, 0.9, 0.35); },
+  keEntPulse: () => { keTone(880, 0.18, 'sine', 0.035, 1320); },
+  keWarp: () => { keNoise(0.25, 0.6, 200, 3500, 'bandpass', 2.5); keTone(90, 0.22, 'sawtooth', 0.08, 700); keSub(110, 34, 0.35, 0.8, 0.2); },
+  keMani: () => { [1046, 1318, 1568, 2093].forEach((f, k) => keTone(f, 0.5, 'triangle', 0.035, f, k * 0.03)); keSub(80, 28, 0.8, 0.9); keCrunch(0.4, 0.5, 1500); keNoise(0.6, 0.35, 2000, 200, 'lowpass'); },
+  keGuard: () => { keTone(880, 0.35, 'triangle', 0.08, 880); keTone(1320, 0.45, 'sine', 0.04, 1320, 0.02); keSub(120, 60, 0.25, 0.5); },
+  keReflect: () => { keTone(1320, 0.3, 'square', 0.04, 2000); keSub(140, 40, 0.3, 0.7); keCrunch(0.15, 0.3, 1500); },
+  keShot: () => { keTone(180, 0.2, 'square', 0.035, 110); },
+  keHit: () => { if (performance.now() - keHitT45 < 50) return; keHitT45 = performance.now(); keSub(120, 42, 0.18, 0.5); keNoise(0.1, 0.35, 1600, 400, 'bandpass', 1.2); },
+  keReady: () => { [60, 64, 67, 72, 76].forEach((m, k) => keTone(261.6 * Math.pow(2, (m - 60) / 12), 0.7, 'triangle', 0.06, 0, k * 0.08)); keSub(65, 65, 0.8, 0.4); keNoise(0.8, 0.2, 800, 6000, 'bandpass', 6); },
+  keUltStart: () => { keSub(48, 30, 2.0, 1.0); keNoise(1.4, 0.5, 80, 3500, 'bandpass', 2); keTone(110, 1.4, 'sawtooth', 0.07, 440); keCrunch(0.8, 0.45, 400); },
+  keBladeCharge: () => { keNoise(1.2, 0.5, 60, 5000, 'bandpass', 2.5); keTone(49, 1.2, 'sawtooth', 0.1, 196); keTone(880, 1.2, 'sine', 0.035, 1760); keTone(884, 1.2, 'sine', 0.03, 1768); keSub(36, 36, 1.2, 0.5); },
+  keBigSlash: () => { keNoise(0.7, 1.1, 4500, 120, 'bandpass', 0.7); keSub(85, 18, 2.4, 1.4); keCrunch(0.9, 0.85, 450); keTone(523, 3.0, 'triangle', 0.06, 520, 0.1); keTone(784, 3.0, 'triangle', 0.045, 780, 0.1); keTone(41, 1.6, 'sawtooth', 0.1, 22); },
+  keZure: () => { keNoise(0.5, 0.6, 5000, 1500, 'highpass', 1); [1568, 1760, 2093].forEach((f, k) => keTone(f, 0.4, 'triangle', 0.035, f * 0.98, k * 0.03)); keSub(70, 30, 0.6, 0.8); },
+  keJump: () => { keNoise(0.2, 0.3, 300, 1500, 'bandpass', 2); keSub(70, 50, 0.15, 0.2); },
+  keRiftIn: () => { keNoise(0.2, 0.55, 2600, 180, 'bandpass', 2.2); keSub(95, 30, 0.3, 0.6); keTone(330, 0.15, 'sawtooth', 0.03, 90); },
+  keRiftOut: () => { keNoise(0.16, 0.5, 250, 3500, 'bandpass', 2.2); keTone(120, 0.14, 'sawtooth', 0.05, 520); keSub(80, 40, 0.2, 0.45); },
+  keBarr: () => { keTone(65, 1.3, 'sawtooth', 0.08, 130); keNoise(1.3, 0.45, 100, 1800, 'bandpass', 1.5); keSub(40, 40, 1.3, 0.6); [262, 330, 392].forEach(f => keTone(f, 0.5, 'sawtooth', 0.02, f * 1.5)); },
+  keCrumple: () => { keCrunch(0.7, 0.8, 900); keCrunch(0.5, 0.6, 2400, 0.05); keSub(70, 22, 1.1, 1.2); keNoise(0.6, 0.6, 3000, 120, 'bandpass', 1.5); for (let k = 0; k < 6; k++) keNoise(0.06, 0.4, rand(1500, 4000), rand(400, 900), 'bandpass', 3, k * 0.04); },
+  keFrameBlink: s => { s = s || 0; keTone(110 * (1 + s * 0.25), 0.3, 'sawtooth', 0.07, 55); keNoise(0.18, 0.4, 2400, 200, 'bandpass', 3); keTone(660 + s * 110, 0.25, 'triangle', 0.035, 330); keSub(90, 40, 0.3, 0.6); },
+  keEntRise: d => { d = d || 0.9; keTone(110, d, 'sawtooth', 0.06, 1760); keTone(220, d, 'square', 0.02, 2640); keNoise(d, 0.4, 200, 8000, 'bandpass', 3); keSub(50, 90, d, 0.4); },
+  keEntBurst: () => { keSub(90, 24, 1.2, 1.2); keCrunch(0.5, 0.6, 1800); keNoise(0.8, 0.7, 6000, 300, 'bandpass', 0.8); [1318, 1661, 1975].forEach((f, k) => keTone(f, 1.2, 'triangle', 0.04, f * 0.5, k * 0.02)); },
+  keCryTick: () => { if (performance.now() - keCryT45 < 30) return; keCryT45 = performance.now(); keTone(rand(1400, 2600), 0.12, 'triangle', 0.025, rand(700, 1200)); keNoise(0.06, 0.25, 4000, 1500, 'bandpass', 2); keSub(110, 50, 0.1, 0.25); },
+  keBul: () => { if (performance.now() - keBulT45 < 40) return; keBulT45 = performance.now(); keSub(140, 60, 0.07, 0.25); keNoise(0.05, 0.22, 1800, 900, 'bandpass', 1.5); keTone(rand(300, 420), 0.06, 'square', 0.015, 160); },
+});
+
+// ================= 技（それぞれ、だいたいの所要秒を返す） =================
+function keEdge(t) { t = t || keNearest(8); keFace(t); keSnd('keSlash');
+  const strike = () => { keFace(t); keAct('edge', 0.18); keArc(0xB8C0FF, true); for (const d of keAlive()) if (keDist(d) < 3.6 && keInFront(d, -0.15)) keHit(d, 34, 'edge', { bleed: 1 }); };
+  if (t && keDist(t) > 3.0) keRiftTo(keSide(t, Math.random() < 0.5 ? 1 : -1, 2.5), strike, { hide: 0.09 }); else strike();
+  keAnalyze('edge'); keSay('edge'); return 0.6; }
+function keArm(t) { t = t || keNearest(8); keFace(t); keAct('arm', 0.32); keSnd('keArm'); const n = KE.n, fx = Math.sin(n.facing), fz = Math.cos(n.facing);
+  keRift(n.pos.x + fx * 0.8, n.pos.z + fz * 0.8, n.facing, 0.3, 0, 0.5);
+  if (t && keDist(t) > 2.5) { const q = kePt(t, 3.0, (Math.random() < 0.5 ? 1 : -1) * 0.9), fa = Math.atan2(t.pos.x - q.x, t.pos.z - q.z); keRift(q.x, q.z, fa, 0.42, 0.04, 0.7); keArmFx(q.x, q.z, fa, 3.0);
+    keLater(() => { keHit(t, 62, 'arm', { push: 5, knock: 2, from: q }); for (const d of keAlive()) if (d !== t && Math.hypot(d.pos.x - t.pos.x, d.pos.z - t.pos.z) < 1.6) keHit(d, 40, 'arm', { push: 4, from: q }); }, 110); }
+  else { keArmFx(n.pos.x + fx * 0.4, n.pos.z + fz * 0.4, n.facing, 3.6); keLater(() => { for (const d of keAlive()) if (keDist(d) < 4.4 && keInFront(d, 0.45)) keHit(d, 58, 'arm', { push: 6, knock: 2 }); }, 90); }
+  keAnalyze('arm'); keSay('arm'); return 0.6; }
+function keSpike(t) { const tt = t || keNearest(14); keSnd('keThrow');
+  keRiftTo(keBack(3.2), () => { keFace(tt); keAct('spike', 0.3); keJump({ dur: 0.36, h: 1.4, flip: -1 }); if (tt) keSpikeFx(KE.n.pos.clone(), tt, () => { keHit(tt, 44, 'spike', { bind: 1.6 }); keRing(tt.pos.x, tt.pos.z, 0.4, 1.4, 0xB59CFF, 0.35, 1.0, 24); }); }, { hide: 0.08 });
+  keAnalyze('spike'); keSay('spike'); return 0.8; }
+function keCombo(t) { keEdge(t); keLater(() => keArm(t), 520); keLater(() => keSpike(t), 1050); return 1.9; }
+function keRifle(t) { t = t || keNearest(18); keFace(t); keAct('rifle', 0.42); keSnd('keCharge');
+  keLater(() => { const n = KE.n, fx = Math.sin(n.facing), fz = Math.cos(n.facing), a = { x: n.pos.x + fx * 0.6, z: n.pos.z + fz * 0.6 }, b = { x: n.pos.x + fx * 18, z: n.pos.z + fz * 18 };
+    keBeam(a, b, 0x6FA8FF, 0.34, 0.28); keSnd('keBeam'); G.shake = Math.max(G.shake || 0, 0.22); keJump({ to: keBack(1.8), dur: 0.22, h: 0.3 });
+    for (const d of keAlive()) { const dx = d.pos.x - n.pos.x, dz = d.pos.z - n.pos.z, along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx); if (along > 0 && along < 18 && side < 1.1) keHit(d, 118, 'rifle', { push: 2 }); } }, 200);
+  keAnalyze('rifle'); keSay('rifle'); return 0.9; }
+function keFrame(t) { t = t || keNearest(15); keFace(t); keAct('frame', 1.3); keSnd('keFrame'); const n = KE.n, c = t ? { x: t.pos.x, z: t.pos.z } : { x: n.pos.x + Math.sin(n.facing) * 5, z: n.pos.z + Math.cos(n.facing) * 5 };
+  keFrameSeq(c, 4, 110, () => keFrameFinal(t ? { x: t.pos.x, z: t.pos.z } : c)); keAnalyze('frame'); keSay('frame'); return 2.2; }
+function keFold(t) { keAct('fold', 0.55); keSnd('keFold'); keJump({ dur: 0.45, h: 1.0, spin: 2 }); const n = KE.n; t = t || keNearest(9); const cx = t ? t.pos.x : n.pos.x + Math.sin(n.facing) * 3.4, cz = t ? t.pos.z : n.pos.z + Math.cos(n.facing) * 3.4;
+  keCrumple(cx, cz, 5.5); keScreenWarp(); keRing(cx, cz, 9, 0.5, 0x8A70FF, 0.5, 0.08, 6);
+  for (const d of keAlive()) { const r = Math.hypot(d.pos.x - cx, d.pos.z - cz); if (r < 9) { const s = keTg(d); s.pullT = 0.42; s.pullX = cx + (d.pos.x - cx) / (r || 1) * 0.9; s.pullZ = cz + (d.pos.z - cz) / (r || 1) * 0.9; } }
+  keLater(() => { keSnd('keCrumple'); G.shake = Math.max(G.shake || 0, 0.6); const gw = glowSprite(0xFFFFFF, 4); gw.position.set(cx, 1.2, cz); keAdd(gw, 0.3, (f, u) => { gw.scale.setScalar(4 * (1 - u) + 0.5); gw.material.opacity = 1 - u; }); keBurst(_ke.set(cx, 1.2, cz), 22, 0xB8A8FF, 8, 1);
+    for (const d of keAlive()) if (Math.hypot(d.pos.x - cx, d.pos.z - cz) < 2.6) { keHit(d, 78, 'fold', { bind: 1.2 }); keTg(d).crushT = 0.7; } }, 500);
+  keAnalyze('fold'); keSay('fold'); return 1.4; }
+function keEnt(list) { list = Array.isArray(list) ? list : keAlive().filter(d => keDist(d) < 13).sort((a, b) => keDist(a) - keDist(b)).slice(0, 5); if (!list.length) return 0.2;
+  keAct('ent', 1.0); keSnd('keEnt'); keSnd('keEntRise', 0.95); keJump({ dur: 0.5, h: 1.2, spin: 1 }); KE.entSeq++; list.forEach((d, i) => { const s = keTg(d); s.entT = 7; s.entOrd = KE.entSeq * 10 + i; });
+  for (const d of list) keHit(d, 18, 'ent', { shared: true }); keEntFx(list, 0.95);
+  keLater(() => { keSnd('keEntBurst'); G.shake = Math.max(G.shake || 0, 0.5); flash40('#A0E0FF', 0.45, 160); for (const d of list) { keHit(d, 74, 'ent', { shared: true, crit: 0.2 }); keRing(d.pos.x, d.pos.z, 0.3, 2.6, 0x8FE4FF, 0.4, 1.3, 20); keBurst(_ke.copy(d.pos).setY(1.4), 10, 0x8FE4FF, 7); } }, 950);
+  kePop(KE.n.pos, 2.9, '絡合 ×' + list.length, 'kana'); keAnalyze('ent'); keSay('ent'); return 1.8; }
+function keWarp(t) { t = t || keNearest(12); keSnd('keWarp'); kePop(KE.n.pos, 3.0, '歪曲軌道', 'kana'); const n = KE.n;
+  if (!t) { keRiftTo({ x: n.pos.x + Math.sin(n.facing) * 7, z: n.pos.z + Math.cos(n.facing) * 7 }, null, { hide: 0.1, trail: true }); keAnalyze('warp'); return 0.6; }
+  const dmg = [36, 36, 64], hop = i => { if (i >= 3) return;
+    keRiftTo(kePt(t, 2.7, [Math.PI / 2, -Math.PI / 2, Math.PI][i]), () => { keFace(t); keAct('edge', 0.14); keArc(i === 2 ? 0x7AD8FF : 0xB8E8FF, i === 2); keHit(t, dmg[i], 'warp', { crit: i === 2 ? 0.35 : 0.15 }); if (i === 2) keJump({ dur: 0.3, h: 1.2, flip: 1 }); keLater(() => hop(i + 1), 60); }, { hide: 0.07, trail: i === 0 }); };
+  hop(0); keAnalyze('warp'); keSay('warp'); return 1.2; }
+function keMani(t) { t = t || keNearest(13); keFace(t); keAct('mani', 0.5); keSnd('keJump'); keJump({ dur: 0.32, h: 1.9, flip: 1 });
+  keLater(() => { keSnd('keMani'); G.shake = Math.max(G.shake || 0, 0.4); const o = { x: KE.n.pos.x, z: KE.n.pos.z };
+    for (let k = 0; k < 7; k++) { const a = k / 7 * TAU; keCluster(o.x + Math.cos(a) * 1.3, o.z + Math.sin(a) * 1.3, 0.9, k * 0.012, 22); }
+    const f = KE.n.facing, end = keCrystalStorm(o, [f - 0.32, f, f + 0.32], 10, 0.62, 0.024, 1.0, 20);
+    keLater(() => { const tt = t && !t.hidden ? t : keNearest(12); if (!tt) return; keSnd('keMani'); for (let k = 0; k < 9; k++) { const a = k / 9 * TAU; keCluster(tt.pos.x + Math.cos(a) * 1.5, tt.pos.z + Math.sin(a) * 1.5, 1.35, k * 0.015, 26); } keCluster(tt.pos.x, tt.pos.z, 1.8, 0.14, 40);
+      for (const e of keAlive()) if (e !== tt && keDist(e) < 12) for (let k = 0; k < 3; k++) keCluster(e.pos.x + rand(-0.8, 0.8), e.pos.z + rand(-0.8, 0.8), 1.1, 0.05 + k * 0.03, 18); }, end * 1000 * 0.6); }, 300);
+  keAnalyze('mani'); keSay('mani'); return 1.9; }
+function keGuard() { KE.guard = 0.5; keAct('guard', 0.45); keSnd('keGuard'); keJump({ to: keBack(0.5), dur: 0.18, h: 0.25 }); keRing(KE.n.pos.x, KE.n.pos.z, 0.6, 1.8, 0xA0E0FF, 0.45, 1.1, 6); kePop(KE.n.pos, 2.8, '位相安定', 'kana'); return 0.6; }
+function keBarrage(t) { t = t || keNearest(20); keFace(t); keAct('barr', 1.4); KE.rise = 1.35; keSnd('keBarr'); keBarrStart(1.25, 14, 0.05); kePop(KE.n.pos, 3.0, '歪曲弾幕', 'kana'); keAnalyze('barr'); keSay('barr'); return 1.8; }
+// 相手の弾：位相安定の間に届けば、向きを反転して撃ち返す
+function keShot45(from, col = 0xFF6A5A) { if (!A || !from || !from.pos) return; const n = KE.n, dx = n.pos.x - from.pos.x, dz = n.pos.z - from.pos.z, L = Math.hypot(dx, dz) || 1, m = new THREE.Mesh(sph(0.2, 10, 8), keMat(col, 0.95)); m.position.set(from.pos.x, 1.55, from.pos.z); A.g.add(m);
+  KE.shots.push({ m, vx: dx / L * 7, vz: dz / L * 7, life: 3, ref: false, from }); keSnd('keShot'); }
+function keShotTick(dt) { const n = KE.n; for (let i = KE.shots.length - 1; i >= 0; i--) { const s = KE.shots[i]; s.life -= dt; s.m.position.x += s.vx * dt; s.m.position.z += s.vz * dt; let dead = s.life <= 0; const sd = Math.hypot(s.m.position.x - n.pos.x, s.m.position.z - n.pos.z);
+  if (!dead && !s.ref && (sd < 0.8 || (KE.guard > 0 && sd < 1.6))) { if (KE.guard > 0) { s.ref = true; s.vx *= -1.8; s.vz *= -1.8; s.life = 1.2; s.m.material.color.setHex(0xA0E0FF); keSnd('keReflect'); kePop(n.pos, 2.6, '反転', 'kana'); keSay('guard'); } else { dead = true; flash40('#FF8A8A', 0.3, 120); } }
+  if (!dead && s.ref) for (const d of keAlive()) if (Math.hypot(d.pos.x - s.m.position.x, d.pos.z - s.m.position.z) < 0.8) { keHit(d, 140, 'rifle', { crit: 0.5, push: 2 }); dead = true; break; }
+  if (dead) { if (s.m.parent) s.m.parent.remove(s.m); KE.shots.splice(i, 1); } } }
+// 裂け目をくぐって移動する（台本用）
+function keMoveTo45(x, z, face) { if (!KE.n) return 0; keRiftTo({ x, z }, null, { hide: 0.12, face }); return 0.4; }
+
+// ================= 奥義《全位相収束》：全手段を連続行使して、最後に一閃 =================
+const KE_ULT45 = ['rifle2', 'spike', 'frame', 'edge', 'arm2', 'warp', 'barr', 'fold', 'ent', 'mani', 'flurry', 'blade'];
+function keUlt(main) { main = main || keNearest(16); if (!main) return 0.2; KE.ult = { step: -1, t: 0, next: 0.9, main, reuse: 0 }; KE.ana.clear();
+  cutin41('《全位相収束》', '#CFC6FF', 1300); keSay('ult'); keSnd('keUltStart'); G.shake = 0.4; keRing(KE.n.pos.x, KE.n.pos.z, 1, 14, 0x7A6BFF, 0.9, 0.1, 6); keRing(KE.n.pos.x, KE.n.pos.z, 1, 10, 0xDDE4FF, 0.7, 1.4, 6);
+  renderer.domElement.style.filter = 'saturate(.55) contrast(1.15) brightness(.85) hue-rotate(-12deg)'; return 8.2; }
+function keUltTarget(first) { const U = KE.ult, all = keAlive().filter(d => keDist(d) < 16 || d === U.main); if (first && !U.main.hidden) return U.main; return all.length ? pick(all) : null; }
+function keBlinkTo(d, side) { const n = KE.n, a0 = { x: n.pos.x, z: n.pos.z }, a = rand(0, TAU) + (side || 0), rr = rand(2.3, 3.1), to = new THREE.Vector3(d.pos.x + Math.sin(a) * rr, 0, d.pos.z + Math.cos(a) * rr); resolve(to, 0.38); const face = Math.atan2(to.x - a0.x, to.z - a0.z);
+  keRift(a0.x, a0.z, face, 0.26); keRift(to.x, to.z, face + Math.PI, 0.28); keSnd('keRiftIn'); n.pos.set(to.x, 0, to.z); keFace(d); KE.hide = 0.045; KE.emerge = 0.16;
+  const r = Math.random(); KE.J = { t: 0, dur: 0.2, h: 0.5 + Math.random() * 0.8, flip: r < 0.3 ? 1 : r < 0.45 ? -1 : 0, spin: r >= 0.6 ? (Math.random() < 0.5 ? 1 : -1) : 0, from: null, to: null }; keBurst(_ke.copy(n.pos).setY(1.1), 4, 0xDDE4FF, 2.5); }
+function keUltStep(s) { const U = KE.ult, n = KE.n, key = KE_ULT45[s], d = keUltTarget(s === 0); if (!d && key !== 'blade') return 0.04;
+  const lbl = { rifle2: '位相断・双', spike: '錨', frame: '不可能幾何', edge: '折刃', arm2: '可変腕・双', fold: '折り畳み', ent: '絡合', mani: '実体化', warp: '歪曲軌道', barr: '歪曲弾幕', flurry: '折刃・連', blade: '次元断層・一閃' }[key];
+  if (key !== 'flurry' || U.reuse === 0) kePop(n.pos, 3.3, lbl, 'kult');
+  if (key === 'rifle2') { keBlinkTo(d); keAct('rifle', 0.3); keSnd('keBeam'); for (let k = 0; k < 2; k++) keLater(() => { if (!KE.ult) return; keBeam(n.pos, d.pos, 0x6FA8FF, 0.22, 0.18); keHit(d, 70, 'rifle'); }, k * 90); return 0.26; }
+  if (key === 'spike') { keBlinkTo(d); keAct('spike', 0.24); keSnd('keThrow'); keSpikeFx(n.pos.clone(), d, () => keHit(d, 60, 'spike', { bind: 4 })); return 0.22; }
+  if (key === 'frame') { keAct('frame', 0.5); const c = { x: d.pos.x, z: d.pos.z }; keFrameSeq(c, 2, 70, () => { if (KE.ult) keFrameFinal({ x: d.pos.x, z: d.pos.z }); }); return 0.85; }
+  if (key === 'edge') { keBlinkTo(d); keAct('edge', 0.16); keSnd('keSlash'); keArc(0xB8C0FF, true); keHit(d, 78, 'edge'); return 0.17; }
+  if (key === 'arm2') { keBlinkTo(d); keAct('arm', 0.26); keSnd('keArm'); for (const off of [-0.5, 0.5]) keArmFx(n.pos.x + Math.sin(n.facing + Math.PI / 2) * off, n.pos.z + Math.cos(n.facing + Math.PI / 2) * off, n.facing, 2.2); keLater(() => { if (!KE.ult) return; keHit(d, 64, 'arm', { knock: 2 }); keHit(d, 64, 'arm', { knock: 2 }); }, 80); return 0.25; }
+  if (key === 'warp') { const a0 = { x: n.pos.x, z: n.pos.z }; keBlinkTo(d, Math.PI / 2); keWarpTrail(a0, n.pos); keSnd('keWarp'); keAct('edge', 0.14); keArc(0x7AD8FF, true); keHit(d, 40, 'warp');
+    keLater(() => { if (!KE.ult) return; keBlinkTo(d, -Math.PI / 2); keAct('edge', 0.14); keArc(0xB8E8FF, true); keHit(d, 40, 'warp'); keLater(() => { if (!KE.ult) return; keBlinkTo(d, Math.PI); keAct('edge', 0.14); keArc(0x7AD8FF, true); keHit(d, 60, 'warp', { crit: 0.3 }); }, 90); }, 90); return 0.32; }
+  if (key === 'fold') { keAct('fold', 0.3); keSnd('keFold'); const cx = d.pos.x, cz = d.pos.z; keCrumple(cx, cz, 6, 0.6, 0.12); keScreenWarp(); for (const e of keAlive()) { const r = Math.hypot(e.pos.x - cx, e.pos.z - cz); if (r < 12 && r > 0.1) { const se = keTg(e); se.pullT = 0.2; se.pullX = cx + (e.pos.x - cx) / r * 1.2; se.pullZ = cz + (e.pos.z - cz) / r * 1.2; } }
+    keLater(() => { if (!KE.ult) return; keSnd('keCrumple'); for (const e of keAlive()) if (Math.hypot(e.pos.x - cx, e.pos.z - cz) < 3) { keHit(e, 60, 'fold', { bind: 3 }); keTg(e).crushT = 0.6; } }, 220); keBlinkTo(d); KE.J.spin = 2; return 0.3; }
+  if (key === 'ent') { keAct('ent', 0.3); keSnd('keEnt'); keSnd('keEntRise', 0.5); KE.entSeq++; const l = keAlive().filter(e => Math.hypot(e.pos.x - d.pos.x, e.pos.z - d.pos.z) < 11).slice(0, 6); l.forEach((e, i) => { const se = keTg(e); se.entT = 6; se.entOrd = KE.entSeq * 10 + i; }); keEntFx(l, 0.5); keHit(d, 50, 'ent');
+    keLater(() => { if (!KE.ult) return; keSnd('keEntBurst'); for (const e of l) keHit(e, 70, 'ent', { shared: true }); }, 500); return 0.28; }
+  if (key === 'mani') { keBlinkTo(d); keAct('mani', 0.3); keSnd('keMani'); const o = { x: n.pos.x, z: n.pos.z }, f = Math.atan2(d.pos.x - o.x, d.pos.z - o.z); keCrystalStorm(o, [f - 0.4, f, f + 0.4], 7, 0.6, 0.018, 1.0, 22); for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; keCluster(d.pos.x + Math.cos(a) * 1.5, d.pos.z + Math.sin(a) * 1.5, 1.4, 0.12 + k * 0.012, 30); } keCluster(d.pos.x, d.pos.z, 2.0, 0.2, 50); return 0.42; }
+  if (key === 'flurry') { keBlinkTo(d); keAct('edge', 0.08); keSnd('keSlash'); keArc(U.reuse % 2 ? 0x9FA8FF : 0xDDE4FF, false, U.reuse % 2); keHit(d, 46, 'edge', { crit: 0.25 }); U.reuse++; if (U.reuse < 7) return 0.065; U.reuse = 0; return 0.2; }
+  if (key === 'barr') { keBlinkTo(d); keAct('barr', 0.6); keSnd('keBarr'); keBarrStart(0.55, 10, 0.05); return 0.55; }
+  if (key === 'blade') { const m = U.main.hidden ? (d || U.main) : U.main, grp = keAlive().filter(e => Math.hypot(e.pos.x - m.pos.x, e.pos.z - m.pos.z) < 8), gl = grp.length || 1;
+    const c = grp.reduce((a, e) => ({ x: a.x + e.pos.x / gl, z: a.z + e.pos.z / gl }), { x: 0, z: 0 }); if (!grp.length) { c.x = m.pos.x; c.z = m.pos.z; }
+    // 集団の手前へ、裂け目から出て構える
+    let ux = n.pos.x - c.x, uz = n.pos.z - c.z, ul = Math.hypot(ux, uz) || 1; ux /= ul; uz /= ul; const sv = new THREE.Vector3(c.x + ux * 7.5, 0, c.z + uz * 7.5); resolve(sv, 0.38);
+    keRift(n.pos.x, n.pos.z, 0, 0.3); keRift(sv.x, sv.z, Math.atan2(c.x - sv.x, c.z - sv.z), 0.4); keSnd('keRiftIn'); n.pos.set(sv.x, 0, sv.z); KE.hide = 0.06; KE.emerge = 0.2; n.facing = Math.atan2(c.x - n.pos.x, c.z - n.pos.z); keAct('blade', 1.4); KE.rise = 0;
+    const charge = 1.0, swingAt = 1.05, swingDur = 0.16; keBladeFx(charge, swingAt, swingDur, true); keSnd('keBladeCharge'); keSay('fin'); renderer.domElement.style.filter = 'saturate(.35) contrast(1.25) brightness(.7) hue-rotate(-15deg)'; KE.rumble = 1.0;
+    keLater(() => { if (!KE.ult) return;
+      // 一直線に、一瞬で突き抜ける
+      const fx = Math.sin(n.facing), fz = Math.cos(n.facing), from = { x: n.pos.x, z: n.pos.z }; let far = 0; for (const e of keAlive()) { const along = (e.pos.x - from.x) * fx + (e.pos.z - from.z) * fz, side = Math.abs((e.pos.x - from.x) * fz - (e.pos.z - from.z) * fx); if (side < 3 && along > far) far = along; }
+      let L = Math.max(10, far + 3.5); for (let q = 0.5; q <= L; q += 0.5) if (!keInArea(from.x + fx * q, from.z + fz * q)) { L = q - 0.8; break; } const to = { x: from.x + fx * L, z: from.z + fz * L };
+      for (let i = 0; i < 6; i++) keAfter(from.x + fx * L * i / 6, from.z + fz * L * i / 6);
+      keJump({ to, dur: 0.09, h: 0.1 }); keAct('dashcut', 1.2); keSlashLine(from, to, 0.9); keSnd('keBigSlash'); keSplit(); G.shake = 1.1; KE.rumble = 0; flash40('#FFFFFF', 0.9, 200);
+      keLater(() => { if (!KE.ult) return; renderer.domElement.style.filter = 'saturate(.6) contrast(1.2) brightness(1.15)';
+        const hit = []; for (const e of keAlive()) { const ex = e.pos.x - from.x, ez = e.pos.z - from.z, along = ex * fx + ez * fz, side = Math.abs(ex * fz - ez * fx); if ((along > -1 && along < L + 1 && side < 2.8) || e === m) { hit.push(e); keHit(e, e === m ? 1400 : 650, 'edge', { crit: 0.4, knock: 5, shared: true }); keBurst(_ke.copy(e.pos).setY(1.4), 10, 0xFFFFFF, 6); } }
+        kePop(n.pos, 3.6, '一閃', 'kqed');
+        keLater(() => { keSnd('keZure'); keZureLine(from, to); for (const e of hit) { keTg(e).sliceT = 0.9; keHit(e, 320, 'fold', { crit: 0, shared: true }); kePop(e.pos, 3.0, 'ズレ', 'kana'); } }, 700);
+        keLater(() => kePop(m.pos, 3.4, 'Q.E.D.', 'kqed'), 1150); }, 90); }, swingAt * 1000);
+    return 2.9; }
+  return 0.15; }
+function keUltTick(dt) { const U = KE.ult; if (!U) return; U.t += dt; U.next -= dt; if (U.next > 0) return; if (!U.reuse) U.step++; if (U.step >= KE_ULT45.length) return keUltEnd(); U.next = Math.abs(keUltStep(U.step)); }
+function keUltEnd() { KE.ult = null; KE.rise = 0; KE.over = 7; renderer.domElement.style.filter = ''; kePop(KE.n.pos, 3.2, '演算負荷――冷却中', 'kana'); keLater(() => keSay('over'), 600); }
+
+// ================= 体：武器を付け、技の姿勢をとらせる =================
+function keArmModel45(m) { if (m.keEdge) return; const VI = 0x7A6BFF, DG = 0x2E2D36, GL = { emis: 0x6A5CFF, outline: false };
+  // 次元短剣《Folded Edge》：折れ曲がった二枚刃
+  const edge = new THREE.Group(); edge.position.set(0, -0.66, 0.06); edge.rotation.x = Math.PI / 2; m.arms[1].add(edge); part(box(0.04, 0.05, 0.18), DG, 0, 0, 0.02, edge, { outline: false });
+  const blade = () => { const c = new THREE.ConeGeometry(0.05, 0.5, 4); c.rotateX(Math.PI / 2); return c; };
+  part(G_('keblade', blade), 0xB8C0FF, 0.03, 0.02, 0.33, edge, { emis: 0x6A60FF, outline: false }).rotation.y = 0.28; part(G_('keblade', blade), 0x8A90FF, -0.03, -0.02, 0.3, edge, { emis: 0x5A50FF, outline: false }).rotation.y = -0.22;
+  // 次元干渉ライフル《Phase Breaker》
+  const rifle = new THREE.Group(); rifle.position.set(-0.08, -0.66, 0.1); rifle.rotation.x = Math.PI / 2; m.arms[1].add(rifle);
+  part(box(0.12, 0.16, 0.8), 0xDADAE2, 0, 0, 0.1, rifle, { ol: 1.05 }); part(box(0.13, 0.05, 0.6), DG, 0, 0.09, 0.08, rifle, { outline: false }); part(cyl(0.035, 0.035, 0.5, 8), DG, 0, 0.02, 0.72, rifle, { rx: Math.PI / 2, outline: false });
+  for (let k = 0; k < 3; k++) part(G_('kecoil', () => new THREE.TorusGeometry(0.06, 0.012, 6, 12)), VI, 0, 0.02, 0.56 + k * 0.1, rifle, GL); part(box(0.04, 0.04, 0.3), VI, 0.065, 0, 0.1, rifle, GL);
+  // 背中の次元干渉コアユニット《Entanglement Core》
+  const back = new THREE.Group(); back.position.set(0, 1.25, -0.46); m.torso.add(back); part(cyl(0.15, 0.15, 0.06, 6), 0x24232C, 0, 0, 0, back, { rx: Math.PI / 2, ol: 1.06 });
+  const core = part(G_('kecore', () => new THREE.OctahedronGeometry(0.09, 0)), 0x9A8CFF, 0, 0, -0.04, back, GL), cg = glowSprite(VI, 0.6, 0.6); cg.position.set(0, 0, -0.08); back.add(cg);
+  const aura = glowSprite(0x7A6BFF, 2.8, 0.4); aura.position.y = 1.4; aura.visible = false; m.root.add(aura); edge.visible = false; rifle.visible = false;
+  Object.assign(m, { keEdge: edge, keRifle: rifle, keBack: back, keCore: core, keCoreGlow: cg, keAura: aura, keS: m.g.scale.x }); }
+function keBind45(n, o = {}) { keArmModel45(n.model); KE.n = n; n.model.ke45 = true; KE.foes = o.foes || (() => []); KE.onHit = o.onHit || null; KE.armed = o.armed !== false; KE.talk = o.talk !== false; KE.pops = o.pops !== false; n.goal = null; n.lookAt = null; keReset45(); return n; }
+function keReset45() { KE.gen++; KE.q = []; KE.act = null; KE.J = null; KE.hide = KE.emerge = KE.dive = KE.warpHit = KE.warpBody = KE.rise = KE.guard = KE.over = 0; KE.ult = null; KE.barr = null; KE.rumble = 0;
+  for (const b of KE.buls) if (b.m.parent) b.m.parent.remove(b.m); KE.buls = []; for (const s of KE.shots) if (s.m.parent) s.m.parent.remove(s.m); KE.shots = [];
+  for (const [d, s] of KE.tg) { if (s.ring && s.ring.parent) s.ring.parent.remove(s.ring); if (s.halo && s.halo.parent) s.halo.parent.remove(s.halo); const R = d.model && d.model.root; if (R) { R.scale.set(1, 1, 1); R.rotation.z = 0; } } KE.tg.clear();
+  for (const b of KE.beams) if (b && b.g.parent) b.g.parent.remove(b.g); KE.beams = []; const cv = renderer.domElement; cv.style.filter = ''; cv.style.transform = ''; }
+function keUnbind45() { const n = KE.n; keReset45(); if (n) { const m = n.model; m.ke45 = false; m.keEdge.visible = m.keRifle.visible = m.keAura.visible = false; m.g.scale.setScalar(m.keS); m.g.rotation.set(0, 0, 0); m.g.position.z = 0; } KE.n = null; KE.foes = () => []; KE.onHit = null; KE.test = null; }
+// 毎フレーム：時間を進める（npcTick の前）と、姿勢を上書きする（npcTick の後）
+function keTick45(dt) { const n = KE.n; keQTick(dt); KE.guard = Math.max(0, KE.guard - dt); KE.over = Math.max(0, KE.over - dt); KE.rise = Math.max(0, KE.rise - dt);
+  if (KE.act) { KE.act.t += dt; if (KE.act.t >= KE.act.dur) KE.act = null; }
+  keUltTick(dt); keBulTick(dt); keShotTick(dt); KE.hide = Math.max(0, KE.hide - dt); KE.emerge = Math.max(0, KE.emerge - dt); KE.dive = Math.max(0, KE.dive - dt);
+  if (KE.J) { const J = KE.J; J.t += dt; const u = Math.min(1, J.t / J.dur); if (J.to) { const e = 1 - Math.pow(1 - u, 2); n.pos.x = J.from.x + (J.to.x - J.from.x) * e; n.pos.z = J.from.z + (J.to.z - J.from.z) * e; } if (u >= 1) { if (J.to) resolve(n.pos, 0.38); KE.J = null; } }
+  if (KE.rumble > 0) { KE.rumble -= dt; G.shake = Math.max(G.shake || 0, 0.12); } keTgTick(dt); if (KE.test) keTestCam45(dt); }
+function keVisual45(dt) { const n = KE.n, m = n.model, A_ = KE.act, u = A_ ? Math.min(1, A_.t / A_.dur) : 0, t = T.now, S0 = m.keS;
+  if (dt > 0) { const sp = Math.hypot(n.pos.x - (KE.px ?? n.pos.x), n.pos.z - (KE.pz ?? n.pos.z)) / dt; KE.lastSpd = KE.lastSpd * 0.8 + Math.min(20, sp) * 0.2; KE.px = n.pos.x; KE.pz = n.pos.z; }
+  m.keCoreGlow.material.opacity = 0.6 + Math.sin(t * 5) * 0.2 + (KE.ana.size >= KE_T45.length ? 0.3 : 0); m.keCore.rotation.y += dt * (KE.ult ? 12 : 2);
+  m.keEdge.visible = KE.armed && (!A_ || ['edge', 'spike', 'guard'].includes(A_.kind) || !!KE.ult); m.keRifle.visible = KE.armed && !!A_ && A_.kind === 'rifle'; if (m.keRifle.visible) m.keEdge.visible = false;
+  if (A_) { const [L, R] = m.arms;
+    if (A_.kind === 'edge') { R.rotation.x = -2.2 + u * 2.8; R.rotation.z = -0.6 + u * 0.9; L.rotation.x = -0.4; m.g.rotation.y = (0.5 - u) * 0.6; }
+    if (A_.kind === 'arm') { L.rotation.x = -1.6; L.rotation.z = 0.15; R.rotation.x = -0.3; }
+    if (A_.kind === 'spike') { R.rotation.x = u < 0.4 ? -2.6 : -2.6 + (u - 0.4) * 4.5; L.rotation.x = -0.6; }
+    if (A_.kind === 'rifle') { R.rotation.x = -1.5; R.rotation.z = 0.25; L.rotation.x = -1.45; L.rotation.z = -0.55; }
+    if (A_.kind === 'frame') { R.rotation.x = -2.9; R.rotation.z = -0.2; L.rotation.x = -0.3; }
+    if (A_.kind === 'fold') { L.rotation.x = -1.5; R.rotation.x = -1.5; L.rotation.z = 0.5 - u * 0.6; R.rotation.z = -0.5 + u * 0.6; }
+    if (A_.kind === 'ent') { L.rotation.x = -1.2; R.rotation.x = -1.2; L.rotation.z = 1.0; R.rotation.z = -1.0; }
+    if (A_.kind === 'mani') { R.rotation.x = -0.6; L.rotation.x = -0.6; m.root.position.y -= Math.sin(u * Math.PI) * 0.25; }
+    if (A_.kind === 'barr') { L.rotation.x = -2.2; R.rotation.x = -2.2; L.rotation.z = 0.9; R.rotation.z = -0.9; }
+    if (A_.kind === 'dashcut') { R.rotation.x = -1.4; R.rotation.z = 1.3; L.rotation.x = 0.4; m.g.rotation.y = -0.6; }
+    if (A_.kind === 'blade') { R.rotation.x = -2.9; R.rotation.z = -0.5; L.rotation.x = -1.2; L.rotation.z = 0.6; }
+    if (A_.kind === 'guard') { L.rotation.x = -1.7; L.rotation.z = 0.3; R.rotation.x = -1.0; } } else m.g.rotation.y = 0;
+  m.g.position.z = 0; m.g.rotation.x = 0; m.g.rotation.z = 0;
+  if (KE.J) { const J = KE.J, uu = Math.min(1, J.t / J.dur), C0 = 1.2; m.root.position.y += Math.sin(uu * Math.PI) * J.h; if (J.flip) { const th = J.flip * uu * TAU; m.g.rotation.x = th; m.g.position.y += C0 - C0 * Math.cos(th); m.g.position.z = -C0 * Math.sin(th); } if (J.spin) m.root.rotation.y += J.spin * uu * TAU; }
+  if (KE.rise > 0) m.root.position.y += Math.min(1, KE.rise / 0.4) * 1.6;
+  if (KE.ult) m.root.position.y += 0.25 + Math.sin(t * 6) * 0.08;
+  m.g.scale.setScalar(S0); m.root.visible = !n.hidden && !(KE.hide > 0 && KE.dive <= 0);
+  if (KE.dive > 0) { const k = 1 - KE.dive / 0.05; m.g.scale.set(S0 * (1 - k * 0.85), S0 * (1 + k * 0.4), S0 * (1 - k * 0.85)); }
+  else if (KE.emerge > 0) { const k = KE.emerge / 0.16; m.g.scale.set(S0 * (1 - k * 0.8), S0 * (1 + k * 0.5), S0 * (1 - k * 0.8)); }
+  KE.warpHit = Math.max(0, KE.warpHit - dt); if (KE.warpHit > 0) { const k = KE.warpHit / 0.12; m.g.scale.x *= 1 + Math.sin(t * 61) * 0.7 * k; m.g.scale.y *= 1 - 0.45 * k + Math.sin(t * 47) * 0.2 * k; m.g.scale.z *= 1 + Math.sin(t * 53 + 1) * 0.7 * k; m.g.rotation.z += Math.sin(t * 41) * 0.6 * k; m.g.rotation.y += k * 1.2; }
+  KE.warpBody = Math.max(0, KE.warpBody - dt); if (KE.warpBody > 0) { const k = Math.min(1, KE.warpBody * 1.4); m.g.scale.x *= 1 + Math.sin(t * 37) * 0.32 * k; m.g.scale.y *= 1 + Math.sin(t * 29 + 1) * 0.26 * k; m.g.scale.z *= 1 + Math.sin(t * 43 + 2) * 0.32 * k; m.g.rotation.z += Math.sin(t * 23) * 0.3 * k; m.g.rotation.x += Math.sin(t * 17) * 0.18 * k; if (Math.sin(t * 57) > 0.93) m.root.visible = false; }
+  m.keAura.visible = (KE.ana.size >= KE_T45.length || !!KE.ult) && m.root.visible; if (m.keAura.visible) m.keAura.material.opacity = 0.35 + Math.sin(t * 6) * 0.15; }
+{ const t0 = npcTick; npcTick = function (n, dt) { const me = n === KE.n && n.model.ke45; if (me) keTick45(dt); t0(n, dt); if (me) keVisual45(dt); }; }
+// 台本から：技を出して、終わるまで待つ
+const KE_MOVES45 = { edge: keEdge, arm: keArm, spike: keSpike, combo: keCombo, rifle: keRifle, frame: keFrame, fold: keFold, ent: keEnt, warp: keWarp, mani: keMani, guard: keGuard, barr: keBarrage, ult: keUlt };
+async function keDo45(name, ...a) { const f = KE_MOVES45[name]; if (!f || !KE.n) return; const d = f(...a) || 0.5, t0 = T.now; while ((T.now - t0 < d || KE.ult) && !G.skip) await new Promise(r => requestAnimationFrame(r)); }
+
+// ================= 確認用：恵那の結界中継所で、メス・ゼロと文鳥兵を相手に、全部の技を順に出す =================
+// タイトル画面でページの末尾に #kaere を付けて開くと、これが始まる（本編からは呼ばない）
+function keTestCam45(dt) { const T_ = KE.test; T_.th += dt * 0.14; const c = T_.c, r = 12.5, th = Math.sin(T_.th) * 1.05; cine(c.x + Math.sin(th) * r, 5.2, c.z + Math.cos(th) * r, c.x, 1.3, c.z); }
+async function keTest45() { G.mode = 'cine'; S.chapter = 41; $('title').hidden = true; setObj(''); await goCine30('hensho40', [0, 999], 0); const a = AREAS.hensho40; hideAll40(a); night40(0x0A0C18, 0.55); a.heatOn = false; bgm('');
+  const ka = Q41(a, 'kaere', () => kaereBird(), 3.0, 2.8, -Math.PI / 2), mz = Q41(a, 'mesu', () => mzArmor36(mesuZeroBird()), -3.2, 2.8, Math.PI / 2); mz.model.nk.visible = false; mzOver30(mz.model, true);
+  const tr = [[-5.6, 0.2], [-6.0, 5.4], [-1.4, 5.8], [-0.8, -0.2]].map(([x, z], i) => Q41(a, 'keT45x' + i, () => bunTrooper40(i), x, z, Math.PI / 2));
+  keBind45(ka, { foes: () => [mz, ...tr] }); KE.test = { th: 0.9, c: { x: -0.6, z: 2.8 } }; await fade(false);
+  const L = [['combo', '連撃（折刃→可変腕→錨）'], ['rifle', '位相断'], ['frame', '不可能幾何'], ['fold', '折り畳み'], ['ent', '絡合'], ['warp', '歪曲軌道'], ['mani', '実体化'], ['barr', '歪曲弾幕'], ['guard', '位相安定'], ['ult', '全位相収束']];
+  for (let loop = 0; loop < 99 && KE.test; loop++) for (const [k, nm] of L) { if (!KE.test) break; cutin41(nm, '#CFC6FF', 900); await z22(500);
+    if (k === 'guard') { keShot45(mz); await z22(420); await keDo45('guard'); await z22(900); } else await keDo45(k, mz);
+    await z22(900); if (Math.hypot(ka.pos.x - 3.0, ka.pos.z - 2.8) > 0.8) { keMoveTo45(3.0, 2.8, -Math.PI / 2); await z22(500); } ka.facing = -Math.PI / 2;
+    for (const [n, x, z] of [[mz, -3.2, 2.8], ...tr.map((n, i) => [n, ...[[-5.6, 0.2], [-6.0, 5.4], [-1.4, 5.8], [-0.8, -0.2]][i]])]) { n.pos.set(x, 0, z); n.facing = Math.PI / 2; } } }
+setTimeout(() => { try { if (location.hash === '#kaere') { audioOn(); run(keTest45); } } catch (e) { console.error(e); } }, 900);
 
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
@@ -22134,6 +22567,6 @@ $('moveSkip').addEventListener('click', () => { G.ffwd = true; });
 setInterval(() => { const talk = G.mode === 'cine' && $('skipBtn').hidden && $('report').hidden && $('title').hidden; if (G.skipTalk && (!talk || !$('choices').hidden)) talkSkip(false); if (G.mode !== 'cine') G.ffwd = false;
   const mv = talk && $('dlg').hidden && $('choices').hidden && movingNow(); $('moveSkip').hidden = !mv || !!G.ffwd || !!G.skipTalk; const show = talk && (G.skipTalk || !$('dlg').hidden || mv);
   $('talkSkip').hidden = !(show && (!G.skipTalk || G.skipScene)); $('talkSkipAll').hidden = !(show && (!G.skipTalk || !G.skipScene)); }, 120);
-window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, chapter32, goRise32, goFight32, goStar32, goAsela32, goShuke32, goHq32, goKaere32, goVol32, goMoves32, goOni32, goEdel32, goTako32, tcoBird34, tcoPose34, stake34, chapter37, chapter40, goEntaku40, goShugeki40, goKaere40, goBun40, chapter41, goEna41, tcoBattle41, goTcoMid41, goSeto41, goNekoGate41, goKoshiLose41, goInui41, goHokai41, goHoushi41, goChanyu41, goTcoBack41, goTcoEnd41, goRider41, showReport41, startCh41, TC41, S41, koshiModel41, hcfRider41, goSouryoku40, goIzoku40, goShimai40, goKessen40, goRyuho40, goNeko40, goSagasu40, goHannou40, goEna40, showReport40, startCh40, creamOrochi40, shinaTempest40, ANIM40, chapter39, goBaiyo39, goAsa39, goKouan39, goRyouri39, goSennyu39, goKenzoku39, goVol39, goKasen39, goShokutaku39, goShashin39, goGunzei39, showReport39, startCh39, VB, S39, vbStart, vbStop, sneak39Reset, hcfModel39, kenzoku39, chapter38, goKyaku38, goNeko38, goKojo38, goSora38, goUraguchi38, goNamae38, goAto38, goLab38, goKaeri38, xiaoModel38, showReport38, goFuto37, goSouko37, goMado37, goNamae37, goKaere37, goOkujo37, nekoMask37, nekoAgent37, suModel37, kutsuModel37, showReport37, chapter36, goUwasa36, goTachiiri36, goMure36, goSenro36, goKazoku36, goByoin36, goVol36, goGaku36, goReveal36, goYoake36, goAkushu36, showReport36, mzArmor36, peNouBird, peNouPose36, chapter35, goShojin35, goHondo35, evHondo35, goTrio35, goDuel35, goMama35, goOkaeri35, goFumoto35, goKaere35, goRyuho35, goLab35, goHome35, goIori35, goMorning35, showReport35, chapter34, goTorture34, goHome34, goCouncil34, goKaere34, goRyuho34, goAssault34, goCassia34, goCassiaEnd34, goSummit34, goKuu34, goRescue34, goBulk34, goTco34, showReport34, kuu34, bulkBird, mesuZeroBird, chapter33, goHq33, goWork33, goTown33, evTown33, goDomei33, goMate33, goNorth33, goYama33, showReport33, showReport32, ZDB, zdAttack32, zdDash32, zdSkill32, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, chapter32, goRise32, goFight32, goStar32, goAsela32, goShuke32, goHq32, goKaere32, goVol32, goMoves32, goOni32, goEdel32, goTako32, tcoBird34, tcoPose34, stake34, chapter37, chapter40, goEntaku40, goShugeki40, goKaere40, goBun40, KE, keBind45, keUnbind45, keDo45, keMoveTo45, keShot45, keTest45, chapter41, goEna41, tcoBattle41, goTcoMid41, goSeto41, goNekoGate41, goKoshiLose41, goInui41, goHokai41, goHoushi41, goChanyu41, goTcoBack41, goTcoEnd41, goRider41, showReport41, startCh41, TC41, S41, koshiModel41, hcfRider41, goSouryoku40, goIzoku40, goShimai40, goKessen40, goRyuho40, goNeko40, goSagasu40, goHannou40, goEna40, showReport40, startCh40, creamOrochi40, shinaTempest40, ANIM40, chapter39, goBaiyo39, goAsa39, goKouan39, goRyouri39, goSennyu39, goKenzoku39, goVol39, goKasen39, goShokutaku39, goShashin39, goGunzei39, showReport39, startCh39, VB, S39, vbStart, vbStop, sneak39Reset, hcfModel39, kenzoku39, chapter38, goKyaku38, goNeko38, goKojo38, goSora38, goUraguchi38, goNamae38, goAto38, goLab38, goKaeri38, xiaoModel38, showReport38, goFuto37, goSouko37, goMado37, goNamae37, goKaere37, goOkujo37, nekoMask37, nekoAgent37, suModel37, kutsuModel37, showReport37, chapter36, goUwasa36, goTachiiri36, goMure36, goSenro36, goKazoku36, goByoin36, goVol36, goGaku36, goReveal36, goYoake36, goAkushu36, showReport36, mzArmor36, peNouBird, peNouPose36, chapter35, goShojin35, goHondo35, evHondo35, goTrio35, goDuel35, goMama35, goOkaeri35, goFumoto35, goKaere35, goRyuho35, goLab35, goHome35, goIori35, goMorning35, showReport35, chapter34, goTorture34, goHome34, goCouncil34, goKaere34, goRyuho34, goAssault34, goCassia34, goCassiaEnd34, goSummit34, goKuu34, goRescue34, goBulk34, goTco34, showReport34, kuu34, bulkBird, mesuZeroBird, chapter33, goHq33, goWork33, goTown33, evTown33, goDomei33, goMate33, goNorth33, goYama33, showReport33, showReport32, ZDB, zdAttack32, zdDash32, zdSkill32, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
