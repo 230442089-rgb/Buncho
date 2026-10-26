@@ -1,0 +1,1427 @@
+<title>カ・エレ鑑賞</title>
+<meta name="description" content="B.U.N society Rank No.2 カ・エレの戦闘モーションを、星墓戦闘試作から抜き出して一つずつ見せるページ。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* 舞台を広く取り、技の目録は右（スマホでは下）に「解析記録」として並べる。夜の訓練場、裂け目の紫。 */
+:root {
+  --bg: #14121F;       /* 夜の訓練場 */
+  --panel: #1B1828;    /* 記録の紙面 */
+  --line: #332E4A;     /* 罫線 */
+  --ink: #EEEAFB;      /* 本文 */
+  --mute: #A29CC0;     /* 注記 */
+  --vi: #7A6BFF;       /* 裂け目の紫 */
+  --vil: #B8A8FF;      /* 光る縁 */
+  --amber: #FFB070;    /* 猛禽態の拳 */
+  --bone: #F6F3EE;     /* 白いほほ */
+  --display: "Dela Gothic One", "Hiragino Kaku Gothic StdN", "Yu Gothic", sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --panelW: 380px;
+  --panelH: 46%;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--body); }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--vil); outline-offset: 2px; }
+
+#view { position: fixed; left: 0; right: 0; top: 0; bottom: var(--panelH); overflow: hidden; touch-action: none; }
+#stage, #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+@media (min-width: 900px) { #view { right: var(--panelW); bottom: 0; } }
+
+.top { position: absolute; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.nameplate { min-width: 0; }
+.eyebrow { margin: 0; font-size: 11px; font-weight: 900; letter-spacing: .16em; color: var(--vil); }
+.nameplate h1 { margin: 2px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(26px, 6vw, 38px); line-height: 1.05; color: var(--bone); text-shadow: 0 2px 0 #000, 0 0 18px rgba(122,107,255,.5); }
+.form { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--mute); }
+.form b { color: var(--vil); }
+.ghost { border: 1.5px solid var(--line); background: rgba(20,18,31,.72); border-radius: 10px; padding: 7px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.ghost:hover { border-color: var(--vil); }
+
+.cams { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 24px); }
+.cams button { border: 1px solid var(--line); background: rgba(20,18,31,.72); border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 700; color: var(--mute); }
+.cams button[aria-pressed="true"] { color: var(--ink); border-color: var(--vil); }
+
+#skill { position: absolute; left: 50%; top: 22%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; opacity: 0; transition: opacity .18s; width: max-content; max-width: 92%; }
+#skill.on { opacity: 1; }
+#skill b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(22px, 5.4vw, 36px); color: #F0ECFF; letter-spacing: .08em; -webkit-text-stroke: 1px #2A1E80; text-shadow: 0 0 14px rgba(122,107,255,.95), 0 3px 0 #000; }
+#skill i { display: block; font-style: normal; font-size: 12px; font-weight: 900; letter-spacing: .3em; color: var(--vil); margin-top: 4px; text-shadow: 0 1px 2px #000; }
+#skill.ult b { font-size: clamp(20px, 5vw, 40px); color: #fff; padding: 6px 18px; background: rgba(14,10,36,.86); border: 2px solid var(--vi); box-shadow: 0 0 24px rgba(122,107,255,.7); }
+#skill.full b { color: #FFF0E0; -webkit-text-stroke: 1px #6A2A10; text-shadow: 0 0 14px rgba(255,140,90,.9), 0 3px 0 #000; }
+#skill.full i { color: var(--amber); }
+
+#banner { position: absolute; left: 50%; top: 62%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; font-family: var(--display); font-size: clamp(15px, 4.2vw, 21px); letter-spacing: .14em; color: #CFC6FF; background: #1E1A3A; border: 2px solid var(--vi); padding: 4px 14px; white-space: nowrap; max-width: 94%; }
+#banner.on { animation: ban 1.7s ease-out; }
+@keyframes ban { 0% { opacity: 0; scale: 1.4; } 12% { opacity: 1; scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+#sub { position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%); width: max-content; max-width: min(92%, 560px); background: rgba(16,14,28,.86); border-bottom: 3px solid var(--vi); padding: 7px 14px; font-size: 14px; font-weight: 700; line-height: 1.55; text-align: center; pointer-events: none; }
+#sub b { color: var(--vil); margin-right: 6px; }
+@media (max-width: 600px) { #sub { font-size: 12.5px; bottom: 46px; padding: 5px 10px; } }
+
+#pops { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.pop { position: absolute; transform: translate(-50%, -50%); font-family: var(--display); font-size: 16px; color: #E8E4FF; -webkit-text-stroke: 4px #2A2060; paint-order: stroke fill; white-space: nowrap; animation: rise .9s ease-out forwards; font-variant-numeric: tabular-nums; }
+.pop.crit { font-size: 22px; color: #FFE08A; -webkit-text-stroke: 5px #3A2060; }
+.pop.kana { font-family: var(--body); font-weight: 900; font-size: 14px; color: #CFC6FF; -webkit-text-stroke: 3px #1E1A3A; }
+.pop.kult { font-size: 20px; color: #fff; -webkit-text-stroke: 5px #3A2EA0; letter-spacing: 2px; }
+.pop.kqed { font-size: 40px; color: #fff; -webkit-text-stroke: 7px #2A1E80; letter-spacing: 6px; }
+.pop.agap { font-size: 18px; color: #FFE08A; -webkit-text-stroke: 4px #6A4A10; }
+.pop.info { font-family: var(--body); font-weight: 900; font-size: 13px; color: #fff; -webkit-text-stroke: 3px #3A3650; }
+@keyframes rise { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 0 -60px; } }
+
+#flash, #kSplit { position: fixed; inset: 0; pointer-events: none; }
+#flash { box-shadow: inset 0 0 120px 40px rgba(122,107,255,.6); opacity: 0; transition: opacity .2s; }
+#kSplit { z-index: 29; opacity: 0; }
+#kSplit::before { content: ""; position: absolute; left: -10%; right: -10%; top: 50%; height: 6px; background: #fff; box-shadow: 0 0 24px 8px rgba(160,140,255,.9), 0 0 60px 20px rgba(255,255,255,.5); transform: rotate(-14deg) scaleX(0); }
+#kSplit.on { animation: ksplit .9s ease-out; }
+#kSplit.on::before { animation: ksl .9s cubic-bezier(.2,.9,.2,1); }
+@keyframes ksplit { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ksl { 0% { transform: rotate(-14deg) scaleX(0); } 18% { transform: rotate(-14deg) scaleX(1); } 100% { transform: rotate(-14deg) scaleX(1); height: 2px; } }
+
+/* 解析記録（パネル） */
+#panel { position: fixed; left: 0; right: 0; bottom: 0; height: var(--panelH); background: var(--panel); border-top: 2px solid var(--vi); display: flex; flex-direction: column; min-height: 0; }
+@media (min-width: 900px) { #panel { left: auto; top: 0; width: var(--panelW); height: auto; border-top: 0; border-left: 2px solid var(--vi); } }
+.info { padding: 12px 16px 10px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.info .row1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.chip { font-size: 10.5px; font-weight: 900; letter-spacing: .12em; padding: 2px 7px; border-radius: 4px; background: var(--line); color: var(--ink); }
+.chip.full { background: #6A2A10; color: #FFE0C8; }
+.chip.ult { background: var(--vi); color: #fff; }
+.info h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.25; text-wrap: balance; }
+.info .read { font-size: 11.5px; color: var(--mute); letter-spacing: .14em; font-weight: 700; }
+.info p { margin: 2px 0 0; font-size: 13px; line-height: 1.65; }
+.info .line { color: var(--vil); font-weight: 700; }
+.info .meta { font-size: 11.5px; color: var(--mute); font-weight: 700; }
+.ctrl { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.tg { border: 1.5px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 11px; font-size: 12.5px; font-weight: 700; color: var(--mute); }
+.tg[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tg.play { border-color: var(--vi); color: var(--ink); }
+.tg.play[aria-pressed="true"] { background: var(--vi); color: #fff; border-color: var(--vi); }
+.list { overflow-y: auto; padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px)); min-height: 0; flex: 1; }
+.list h3 { margin: 12px 0 6px; font-size: 11px; font-weight: 900; letter-spacing: .2em; color: var(--mute); }
+.techs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+@media (min-width: 900px) { .techs { grid-template-columns: 1fr; } }
+.tech { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 8px; text-align: left; border: 1.5px solid var(--line); background: rgba(255,255,255,.02); border-radius: 8px; padding: 7px 10px; min-width: 0; }
+.tech:hover { border-color: var(--vil); }
+.tech .n { font-weight: 900; font-size: 13.5px; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.tech .r { grid-column: 1; font-size: 10.5px; color: var(--mute); letter-spacing: .08em; }
+.tech kbd { grid-row: 1 / span 2; grid-column: 2; font-family: var(--body); font-size: 11px; font-weight: 900; min-width: 22px; text-align: center; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; color: var(--mute); }
+.tech.on { background: var(--vi); border-color: var(--vi); color: #fff; }
+.tech.full.on { background: #A84A30; border-color: #A84A30; }
+.tech.on .r, .tech.on kbd { color: #E8E4FF; border-color: #CFC6FF; }
+.tech.ultb .n { font-family: var(--display); font-weight: 400; }
+.hint { font-size: 11px; color: var(--mute); line-height: 1.6; margin: 14px 0 0; }
+
+/* 設定 */
+#prof { position: fixed; inset: 0; z-index: 40; background: rgba(6,4,14,.78); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#prof .sheet { background: var(--panel); border: 2px solid var(--vi); border-radius: 12px; width: 100%; max-width: 640px; max-height: 100%; overflow-y: auto; padding: 18px; display: grid; gap: 12px; }
+#prof h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; }
+#prof table { border-collapse: collapse; width: 100%; font-size: 13px; line-height: 1.65; }
+#prof td { border-top: 1px solid var(--line); padding: 6px 4px; vertical-align: top; }
+#prof td:first-child { white-space: nowrap; font-weight: 900; color: var(--vil); padding-right: 12px; }
+#prof blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--vi); background: rgba(255,255,255,.03); font-size: 13px; line-height: 1.7; }
+#prof blockquote cite { display: block; font-style: normal; font-size: 11px; color: var(--mute); margin-top: 4px; }
+.sheetHead { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+[hidden] { display: none !important; }
+#err { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .pop { animation-duration: .01s; } #kSplit.on, #kSplit.on::before, #banner.on { animation-duration: .01s; } }
+</style>
+
+<div id="view">
+  <div id="stage"></div>
+  <div id="pops"></div>
+  <div id="skill"><b></b><i></i></div>
+  <div id="banner"></div>
+  <div id="sub" hidden></div>
+  <div class="top">
+    <div class="nameplate">
+      <p class="eyebrow">KA-ERE_02_Q2 ・ B.U.N society Rank No.2</p>
+      <h1>カ・エレ</h1>
+      <div class="form">形態：<b id="formName">研究者態</b></div>
+    </div>
+    <button type="button" class="ghost" id="profBtn">設定を読む</button>
+  </div>
+  <div class="cams" id="cams">
+    <button type="button" data-cam="front" aria-pressed="false">正面</button>
+    <button type="button" data-cam="side" aria-pressed="true">斜め</button>
+    <button type="button" data-cam="top" aria-pressed="false">俯瞰</button>
+    <button type="button" data-cam="close" aria-pressed="false">寄り</button>
+  </div>
+</div>
+<div id="flash"></div><div id="kSplit"></div>
+
+<aside id="panel" aria-label="技の一覧">
+  <div class="info" id="info"></div>
+  <div class="ctrl">
+    <button type="button" class="tg play" id="tAll" aria-pressed="false">▶ ぜんぶ続けて</button>
+    <button type="button" class="tg" id="tSlow" aria-pressed="false">スロー</button>
+    <button type="button" class="tg" id="tRot" aria-pressed="true">自動回転</button>
+    <button type="button" class="tg" id="tDummy" aria-pressed="true">木偶</button>
+    <button type="button" class="tg" id="tTalk" aria-pressed="true">セリフ</button>
+    <button type="button" class="tg" id="tSound" aria-pressed="false">音</button>
+  </div>
+  <div class="list" id="list"></div>
+</aside>
+
+<div id="prof" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="profT">
+    <div class="sheetHead"><h2 id="profT">カ・エレ</h2><button type="button" class="ghost" id="profClose">閉じる</button></div>
+    <table>
+      <tr><td>名前</td><td>カ・エレ（Ka-Ere）／コード KA-ERE_02_Q2／クリアランス Q-2</td></tr>
+      <tr><td>種族・身体</td><td>シナモン文鳥の男性。178cm・72kg。誕生日不明</td></tr>
+      <tr><td>所属・地位</td><td>B.U.N society Rank No.2。タカハラsociety 実践No.1。個人事務所／直属実働班を主宰（カシア・ツナが所属）</td></tr>
+      <tr><td>職能</td><td>機動研究者／総合技術士。適性は次元干渉・戦術応用・創造工学</td></tr>
+      <tr><td>口調</td><td>一人称「ぼく」。相手は「君」。穏やかで丁寧、言葉は短く正確。戦闘中ほど静かになり、まれに微笑む</td></tr>
+      <tr><td>信条</td><td>「解析してから、解く」。結果は、過程の理解と再現性を伴ってはじめて価値があると考える</td></tr>
+      <tr><td>能力</td><td>高次元干渉。次元干渉ポテンシャルの抽出 → 多次元位相同期 → 非ユークリッド折り畳み → 空間絡合 → 次元干渉・実体化、の順に段階を踏む。移動と攻撃は非線形軌道（ワープド・トラジェクトリ）で行う</td></tr>
+      <tr><td>装備</td><td>次元干渉コアユニット《Entanglement Core》、次元折り畳みインターフェース《Non-Euclidean Layer》、可変次元アーム《Dimensional Arm》、幾何構成デバイス《Impossible Frame》、位相安定化モジュール《Phase Stabilizer》、メビウスハーネス、多次元アンカー</td></tr>
+      <tr><td>武装</td><td>次元干渉ライフル《Phase Breaker》（位相を破断する貫通射）、次元短剣《Folded Edge》（折り畳んだ刃で距離ごと斬る）、次元投擲体《Anchor Spike》（座標に固定・拘束）</td></tr>
+      <tr><td>戦い方</td><td>序盤は小技で相手の構造を観測し、十の干渉経路がすべて揃った瞬間に、全手段を一気に連続行使して「解」を叩き込む。奥義《全位相収束》</td></tr>
+      <tr><td>全力</td><td>全力・猛禽態。コートも銃も短剣もコアも捨て、鍛えた体と文鳥の本能だけで戦う。殴り続けると心を圧縮した次元光輪《望》が拳と足に宿る。奥義《崩界・千撃》</td></tr>
+      <tr><td>制約</td><td>未解析の相手には最適解を出せない。全経路の同時行使は演算負荷が大きく、直後は干渉の再構築が遅れる。位相安定化を怠ると自分の座標も揺らぐ</td></tr>
+      <tr><td>人間関係</td><td>カシア：直属の弟子。答えを丸ごと渡さず「何を見てそう判断したか」を問う。ツナ：基礎から教えている。チャ・ニュユー（No.5）：記録の受け渡し</td></tr>
+    </table>
+    <blockquote>――解析を始めよう。君たちの構造を、ひとつずつ教えてもらうよ<cite>戦闘開始のときの言葉</cite></blockquote>
+    <blockquote>……ここからは、計算は要らない<cite>全力・猛禽態に入るときの言葉</cite></blockquote>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => { 'use strict';
+const $ = id => document.getElementById(id);
+if (!window.THREE) { document.body.insertAdjacentHTML('beforeend', '<div id="err">3Dの部品を読み込めませんでした。通信を確かめて、もう一度開いてください。</div>'); return; }
+const TAU = Math.PI * 2, rand = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.random() * a.length | 0];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S = { slow: false, rot: true, dummy: true, talk: true, sound: false, all: false };
+
+// ================= レンダラ =================
+const BG = 0x1E1B2E;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+$('stage').appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(BG); scene.fog = new THREE.Fog(BG, 34, 90);
+const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 260);
+function resize() { const v = $('view'), w = v.clientWidth || 1, h = v.clientHeight || 1; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x3A3456, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(10, 30, 14); scene.add(sun);
+const rim = new THREE.DirectionalLight(0x7A6BFF, 0.55); rim.position.set(-6, 8, -14); scene.add(rim);
+
+const gradTex = new THREE.DataTexture(new Uint8Array([125, 195, 255]), 3, 1, THREE.LuminanceFormat);
+gradTex.minFilter = gradTex.magFilter = THREE.NearestFilter; gradTex.needsUpdate = true;
+const matCache = {};
+function toon(hex, emis) { const k = hex + '|' + (emis || 0); if (!matCache[k]) { const m = new THREE.MeshToonMaterial({ color: hex, gradientMap: gradTex }); if (emis) m.emissive = new THREE.Color(emis); m.userData.keep = true; matCache[k] = m; } return matCache[k]; }
+const outlineMat = new THREE.MeshBasicMaterial({ color: 0x0C0A16, side: THREE.BackSide }); outlineMat.userData.keep = true;
+const geoCache = {};
+const G_ = (k, f) => geoCache[k] || (geoCache[k] = (() => { const g = f(); g.userData.keep = true; return g; })());
+const sph = (r, a = 14, b = 10) => G_('s' + r + '_' + a + '_' + b, () => new THREE.SphereGeometry(r, a, b));
+const cyl = (t, b, h, s = 12) => G_('c' + t + '_' + b + '_' + h + '_' + s, () => new THREE.CylinderGeometry(t, b, h, s));
+const box = (x, y, z) => G_('b' + x + '_' + y + '_' + z, () => new THREE.BoxGeometry(x, y, z));
+function part(geo, hex, x, y, z, parent, o = {}) {
+  const m = new THREE.Mesh(geo, o.mat || toon(hex, o.emis)); m.position.set(x, y, z);
+  if (o.rx) m.rotation.x = o.rx; if (o.ry) m.rotation.y = o.ry; if (o.rz) m.rotation.z = o.rz;
+  if (o.s) m.scale.set(o.s[0], o.s[1], o.s[2]);
+  parent.add(m);
+  if (o.outline !== false) { const ol = new THREE.Mesh(geo, outlineMat); ol.scale.setScalar(o.ol || 1.08); m.add(ol); }
+  return m;
+}
+const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false }); shadowMat.userData.keep = true;
+function blob(parent, r) { const m = new THREE.Mesh(G_('blob' + r, () => new THREE.CircleGeometry(r, 20)), shadowMat); m.rotation.x = -Math.PI / 2; m.position.y = 0.02; parent.add(m); return m; }
+function canvasTex(w, h, draw) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); return new THREE.CanvasTexture(cv); }
+const glowTex = canvasTex(64, 64, (c) => { const g = c.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, 64, 64); });
+const glowSprite = (col, sc) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.setScalar(sc); return s; };
+
+// ================= 訓練場 =================
+const ARENA_R = 14.6;
+{ const fl = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshLambertMaterial({ color: 0x3A3550 })); fl.rotation.x = -Math.PI / 2; scene.add(fl);
+  const grid = canvasTex(512, 512, (c, w, h) => { c.strokeStyle = 'rgba(184,168,255,.55)'; c.lineWidth = 2; for (let i = 0; i <= 8; i++) { const p = i * w / 8; c.beginPath(); c.moveTo(p, 0); c.lineTo(p, h); c.stroke(); c.beginPath(); c.moveTo(0, p); c.lineTo(w, p); c.stroke(); } });
+  const gm = new THREE.Mesh(new THREE.CircleGeometry(ARENA_R, 64), new THREE.MeshBasicMaterial({ map: grid, transparent: true, opacity: 0.16, depthWrite: false })); gm.rotation.x = -Math.PI / 2; gm.position.y = 0.01; grid.wrapS = grid.wrapT = THREE.RepeatWrapping; grid.repeat.set(3.6, 3.6); scene.add(gm);
+  for (const r of [6, ARENA_R]) { const rg = new THREE.Mesh(new THREE.RingGeometry(r - 0.06, r, 96), new THREE.MeshBasicMaterial({ color: 0x5A4AC8, transparent: true, opacity: 0.5, depthWrite: false })); rg.rotation.x = -Math.PI / 2; rg.position.y = 0.012; scene.add(rg); }
+  for (let i = 0; i < 24; i++) { const a = i / 24 * TAU; part(box(0.5, 1.2, 0.5), 0x2A2640, Math.sin(a) * (ARENA_R + 0.5), 0.6, Math.cos(a) * (ARENA_R + 0.5), scene, { ry: a }); if (i % 2 === 0) { const s = glowSprite(0x7A6BFF, 0.8); s.position.set(Math.sin(a) * (ARENA_R + 0.5), 1.4, Math.cos(a) * (ARENA_R + 0.5)); s.material.opacity = 0.6; scene.add(s); } } }
+
+// ================= 星墓戦闘試作との接続 =================
+// 試作のコードをそのまま動かすための、最小限の置き換え。
+const NO = { outline: false };
+const _t = new THREE.Vector3();
+const G = { time: 0, shake: 0, mode: 'kae', state: 'play', pc: 'kae', foe: 'dummy', kArena: 'b2', hudKey: '', kDown: false,
+  kcd: { combo: 0, rifle: 0, frame: 0, fold: 0, ent: 0, warp: 0, mani: 0, barr: 0, guard: 0 }, fcd: {}, kAna: new Set(), kOver: 0, kStep: 0, kComboStepT: -9, kCombo: 0, kComboT: 0, kMaxCombo: 0, kTotal: 0, kLog: [],
+  kEntSeq: 0, kUltUses: 0, kUlt: null, fUlt: null, fDive: null, fMove: null, kBarr: null, kRage: 0, kMang: 0, kFullCd: 0, slowT: 0, kRumble: 0, kShots: [] };
+const P = { pos: new THREE.Vector3(0, 0, 0), facing: 0, area: 'b2', kLock: 0, invuln: 0, kGuard: 0, kFull: 0, sanity: 100, kAct: null, kJ: null, kHide: 0, kEmerge: 0, kDive: 0, kRise: 0, fY: 0 };
+const AREAS = { b2: { solid: [0] } };
+const W = 1, cellOf = () => [0, 0];
+function resolve(A, v) { const L = Math.hypot(v.x, v.z); if (L > ARENA_R - 0.5) { v.x *= (ARENA_R - 0.5) / L; v.z *= (ARENA_R - 0.5) / L; } return v; }
+const kInside = (x, z) => Math.hypot(x, z) < ARENA_R - 0.4;
+const lerpAngle = (a, b, k) => { const d = ((b - a + Math.PI) % TAU + TAU) % TAU - Math.PI; return a + d * k; };
+function segD(px, pz, ax, az, bx, bz) { const vx = bx - ax, vz = bz - az, L2 = vx * vx + vz * vz || 1; let t = ((px - ax) * vx + (pz - az) * vz) / L2; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - (ax + vx * t), pz - (az + vz * t)); }
+let camYaw = 0, me = null, AC = null, muted = true;
+const sfx = {};
+const kPageUI = () => {};
+const kBoss = () => null;
+function audioOn() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } } if (AC && AC.state === 'suspended') AC.resume(); }
+// 木偶
+const KD = [];
+const kAll = () => KD;
+const kAlive = () => S.dummy ? KD.filter(d => !d.dead) : [];
+const kDist = d => Math.hypot(d.pos.x - P.pos.x, d.pos.z - P.pos.z);
+function kNearest(r, filt) { let b = null, bd = r; for (const d of kAlive()) { if (filt && !filt(d)) continue; const x = kDist(d); if (x < bd) { bd = x; b = d; } } return b; }
+const kFace = d => { if (d) P.facing = Math.atan2(d.pos.x - P.pos.x, d.pos.z - P.pos.z); };
+function kAnalyze(k) { G.kAna.add(k); }
+// 文字
+const _v = new THREE.Vector3();
+function popAt(x, y, z, text, cls = '') { _v.set(x, y, z).project(camera); if (_v.z > 1) return; const v = $('view'), e = document.createElement('div'); e.className = 'pop ' + cls; e.textContent = text;
+  e.style.left = ((_v.x + 1) / 2 * v.clientWidth + rand(-18, 18)) + 'px'; e.style.top = ((1 - _v.y) / 2 * v.clientHeight) + 'px'; $('pops').appendChild(e); setTimeout(() => e.remove(), 950); }
+function popText(pos, y, text, cls = '') { popAt(pos.x, y + (pos.y || 0), pos.z, text, cls.replace('kdmg', '').trim()); }
+let subT = 0, skillT = 0;
+function say(_, text, dur = 2.2) { if (!S.talk || !text) return; const el = $('sub'); el.innerHTML = '<b>カ・エレ</b>「' + text + '」'; el.hidden = false; subT = dur; }
+function banner(text) { const el = $('banner'); el.textContent = text; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); }
+function aGather(x, z, y, r, life, col = 0xB8A8FF) { for (let i = 0; i < 16; i++) { const s = glowSprite(col, 0.5), a = rand(0, TAU), rr = rand(r * 0.6, r), hy = rand(0.3, 4); s.position.set(x + Math.sin(a) * rr, hy, z + Math.cos(a) * rr); const sx = s.position.x, sz = s.position.z, dl = rand(0, life * 0.4);
+  kAdd(s, life, (f, u) => { const k = Math.max(0, (u * life - dl) / (life - dl)), e = k * k; s.position.set(sx + (x - sx) * e, hy + (y - hy) * e, sz + (z - sz) * e); s.material.opacity = 0.9 * Math.min(1, k * 3); }); } }
+function fUltTick() {}
+
+// ================= 星墓戦闘試作より：カ・エレ =================
+const KAE_T = [
+  { k: 'edge', n: '折刃', full: '次元短剣《Folded Edge》', col: 0x9FA8FF },
+  { k: 'arm', n: '可変腕', full: '可変次元アーム《Dimensional Arm》', col: 0x7A8BFF },
+  { k: 'spike', n: '錨', full: '次元投擲体《Anchor Spike》', col: 0xB59CFF },
+  { k: 'rifle', n: '位相断', full: '次元干渉ライフル《Phase Breaker》', col: 0x6FA8FF },
+  { k: 'frame', n: '不可能幾何', full: '幾何構成デバイス《Impossible Frame》', col: 0xC9B8FF },
+  { k: 'fold', n: '折り畳み', full: '非ユークリッド折り畳み', col: 0x8A70FF },
+  { k: 'ent', n: '絡合', full: '空間絡合《エンタングルメント》', col: 0xA0E0FF },
+  { k: 'warp', n: '歪曲軌道', full: 'ワープド・トラジェクトリ', col: 0x7AD8FF },
+  { k: 'mani', n: '実体化', full: '次元干渉・実体化', col: 0xE0D0FF },
+  { k: 'barr', n: '歪曲弾幕', full: '次元歪曲弾幕', col: 0xC08CFF },
+];
+const KAE_BY = Object.fromEntries(KAE_T.map(t => [t.k, t]));
+const KAE_CD = { rifle: 2.2, frame: 3.8, fold: 4.8, ent: 5.5, warp: 2.6, mani: 4.0, barr: 4.2 };
+const KAE_VO = {
+  start: '――解析を始めよう。君たちの構造を、ひとつずつ教えてもらうよ',
+  ready: ['……揃った。十の経路、すべて観測済みだ', '解析完了。……あとは、解くだけだね'],
+  ult: ['――全位相、同期', '干渉経路、全展開。……少しだけ、付き合ってもらうよ'],
+  fin: ['……解は、ひとつだ', '証明終了。……美しい解だったね'],
+  edge: ['折るよ', '――そこ', '短く、済ませよう'], arm: ['届かせる', '腕は、ここにもある'], spike: ['固定', '座標、確定'],
+  rifle: ['位相を断つ', '――貫通'], frame: ['ありえない形を、少しだけ', '構造を、押し付けるよ'], fold: ['距離を、畳む', '近づいてもらおう'],
+  ent: ['君たちは今、ひとつの系だ', '絡合、成立'], barr: ['歪みを、撃ち込むよ', '軌道は、全部曲げておいた', '避けても、曲がる'], warp: ['通らせてもらうね', '軌道を、曲げる'], mani: ['実体化', '形にするよ'],
+  guard: ['……位相、反転', 'その向きは、返すよ'], hurt: ['……っ。計算外だね', 'なるほど、いい角度だ'], over: ['演算負荷……少し、冷やさないと'],
+};
+const kQ = [];
+function kLater(fn, ms) { kQ.push({ t: (ms || 0) / 1000, fn }); }
+function kQTick(dt) { for (const q of kQ) q.t -= dt; const due = kQ.filter(q => q.t <= 0); if (!due.length) return; for (const q of due) kQ.splice(kQ.indexOf(q), 1); for (const q of due) { try { q.fn(); } catch (e) { console.error(e); } } }
+const KAE_SAY = (k, d = 1.2) => { if (G.pc !== 'kae') return; if (Math.random() < 0.85) say(P, pick(KAE_VO[k]), d); };
+function makeKaEleP() {
+  const root = new THREE.Group(); scene.add(root); root.visible = false; const g = new THREE.Group(); g.scale.setScalar(1.12); root.add(g);
+  const BK = 0x1A1920, DG = 0x2E2D36, GR = 0x6B6A76, COAT = 0xEDEDF2, CP = 0xD6D6DE, VI = 0x7A6BFF, GL = { emis: 0x6A5CFF, outline: false };
+  const legs = [], arms = [];
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.13, 0.82, 0); g.add(pv);
+    part(cyl(0.095, 0.085, 0.5, 10), BK, 0, -0.22, 0, pv);
+    part(box(0.15, 0.08, 0.17), DG, 0, -0.12, 0.03, pv, NO);
+    part(cyl(0.11, 0.12, 0.3, 10), DG, 0, -0.56, 0, pv, { ol: 1.06 });
+    part(box(0.03, 0.18, 0.02), VI, sx * 0.07, -0.55, 0.11, pv, GL);
+    part(box(0.2, 0.12, 0.34), 0x111015, 0, -0.76, 0.05, pv, { ol: 1.08 });
+    part(box(0.21, 0.03, 0.2), GR, 0, -0.66, 0.05, pv, NO); legs.push(pv); }
+  // 胴：黒いインナーと戦術ベルト
+  part(cyl(0.21, 0.24, 0.58, 14), BK, 0, 1.12, 0, g);
+  part(cyl(0.25, 0.25, 0.08, 14), DG, 0, 0.86, 0, g, NO);
+  part(box(0.12, 0.07, 0.05), GR, 0, 0.86, 0.25, g, NO);
+  for (const [x, z] of [[-0.18, 0.17], [0.18, 0.17], [-0.24, -0.02], [0.24, -0.02]]) part(box(0.09, 0.12, 0.07), DG, x, 0.8, z, g, NO);
+  part(box(0.08, 0.2, 0.06), DG, 0.2, 0.62, 0.12, g, NO); part(box(0.02, 0.12, 0.02), VI, 0.2, 0.62, 0.16, g, GL);
+  // ハーネス（胸のX字ストラップ）
+  for (const sx of [-1, 1]) { const st = part(box(0.045, 0.66, 0.03), DG, sx * 0.08, 1.16, 0.22, g, NO); st.rotation.z = sx * 0.42; }
+  part(cyl(0.06, 0.06, 0.03, 6), GR, 0, 1.18, 0.24, g, { outline: false, rx: Math.PI / 2 }); part(box(0.05, 0.05, 0.02), VI, 0, 1.18, 0.26, g, GL);
+  // 白いロングコート（背・脇・前の開いた身頃・裾）
+  const coat = new THREE.Group(); coat.position.set(0, 1.42, 0); g.add(coat);
+  const tail = new THREE.Group(); tail.position.set(0, 0, 0); coat.add(tail);
+  part(box(0.64, 1.3, 0.06), COAT, 0, -0.63, -0.26, tail, { ol: 1.03 });
+  part(box(0.5, 0.04, 0.065), GR, 0, -1.2, -0.26, tail, NO); part(box(0.5, 0.025, 0.065), DG, 0, -1.12, -0.26, tail, NO);
+  part(box(0.03, 1.1, 0.065), CP, -0.12, -0.6, -0.27, tail, NO); part(box(0.03, 1.1, 0.065), CP, 0.12, -0.6, -0.27, tail, NO);
+  for (const sx of [-1, 1]) {
+    part(box(0.07, 1.22, 0.46), COAT, sx * 0.31, -0.6, -0.02, tail, { ol: 1.03 });
+    const fp = part(box(0.2, 1.2, 0.05), COAT, sx * 0.24, -0.6, 0.21, tail, { ol: 1.03 }); fp.rotation.y = sx * 0.5;
+    part(box(0.03, 1.15, 0.05), CP, sx * 0.17, -0.6, 0.25, tail, { outline: false, ry: sx * 0.5 });
+    part(box(0.16, 0.035, 0.055), GR, sx * 0.25, -1.17, 0.2, tail, { outline: false, ry: sx * 0.5 });
+  }
+  // 高い襟と肩
+  for (const sx of [-1, 1]) { const c = part(box(0.06, 0.32, 0.28), COAT, sx * 0.18, 0.12, 0.02, coat, { ol: 1.05 }); c.rotation.z = -sx * 0.28; c.rotation.y = sx * 0.25;
+    part(sph(0.13, 10, 8), COAT, sx * 0.31, 0.02, 0, coat, { s: [1.1, 0.75, 1], ol: 1.04 }); part(box(0.2, 0.04, 0.22), GR, sx * 0.32, 0.09, 0, coat, NO); }
+  part(cyl(0.2, 0.25, 0.22, 12), COAT, 0, 0.02, 0, coat, { ol: 1.04 });
+  // 背面：次元干渉コアユニットとメビウスハーネス
+  const back = new THREE.Group(); back.position.set(0, 1.18, -0.31); g.add(back);
+  part(cyl(0.17, 0.17, 0.06, 6), 0x24232C, 0, 0, 0, back, { rx: Math.PI / 2, ol: 1.06 });
+  const core = part(G_('kocta', () => new THREE.OctahedronGeometry(0.1, 0)), 0x9A8CFF, 0, 0, -0.04, back, { emis: 0x6A5CFF, outline: false });
+  const coreGlow = glowSprite(VI, 0.7); coreGlow.position.set(0, 0, -0.08); back.add(coreGlow);
+  for (const sx of [-1, 1]) { const st = part(box(0.04, 0.7, 0.03), DG, sx * 0.13, 0.05, 0.02, back, NO); st.rotation.z = sx * 0.55; }
+  // 腕：コートの袖、灰色のバンド、黒い手袋
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.33, 1.38, 0); g.add(pv);
+    part(cyl(0.09, 0.085, 0.36, 10), COAT, 0, -0.17, 0, pv, { ol: 1.04 });
+    part(cyl(0.095, 0.09, 0.06, 10), GR, 0, -0.33, 0, pv, NO);
+    part(cyl(0.075, 0.07, 0.16, 8), BK, 0, -0.43, 0, pv);
+    part(box(0.02, 0.1, 0.02), VI, sx * 0.07, -0.43, 0.02, pv, GL);
+    part(sph(0.075, 8, 6), BK, 0, -0.55, 0.02, pv); part(box(0.1, 0.1, 0.06), BK, 0, -0.6, 0.06, pv, NO);
+    arms.push(pv); }
+  // 次元短剣《Folded Edge》：折れ曲がった二枚刃
+  const edge = new THREE.Group(); edge.position.set(0, -0.62, 0.06); edge.rotation.x = Math.PI / 2; arms[1].add(edge);
+  part(box(0.04, 0.05, 0.18), DG, 0, 0, 0.02, edge, NO);
+  const b1 = part(G_('kblade', () => { const c = new THREE.ConeGeometry(0.05, 0.5, 4); c.rotateX(Math.PI / 2); return c; }), 0xB8C0FF, 0.03, 0.02, 0.33, edge, { emis: 0x6A60FF, outline: false }); b1.rotation.y = 0.28;
+  const b2 = part(G_('kblade', () => null), 0x8A90FF, -0.03, -0.02, 0.3, edge, { emis: 0x5A50FF, outline: false }); b2.rotation.y = -0.22;
+  // 次元干渉ライフル《Phase Breaker》
+  const rifle = new THREE.Group(); rifle.position.set(-0.08, -0.62, 0.1); rifle.rotation.x = Math.PI / 2; arms[1].add(rifle);
+  part(box(0.12, 0.16, 0.8), 0xDADAE2, 0, 0, 0.1, rifle, { ol: 1.05 }); part(box(0.13, 0.05, 0.6), DG, 0, 0.09, 0.08, rifle, NO);
+  part(cyl(0.035, 0.035, 0.5, 8), DG, 0, 0.02, 0.72, rifle, { rx: Math.PI / 2, outline: false });
+  for (let k = 0; k < 3; k++) part(G_('kcoil', () => new THREE.TorusGeometry(0.06, 0.012, 6, 12)), VI, 0, 0.02, 0.56 + k * 0.1, rifle, GL);
+  part(box(0.04, 0.04, 0.3), VI, 0.065, 0.0, 0.1, rifle, GL); rifle.visible = false;
+  blob(root, 0.55);
+  return { root, g, legs, arms, head: makeJavaHead(g, 1.76, 0.03), coat, tail, core, coreGlow, edge, rifle };
+}
+// ---- 効果 ----
+const kShards = []; const shardMat = c => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide });
+const shardGeo = new THREE.TetrahedronGeometry(0.16, 0);
+for (let i = 0; i < 70; i++) { const m = new THREE.Mesh(shardGeo, shardMat(0x9A8CFF)); m.visible = false; scene.add(m); kShards.push({ m, v: new THREE.Vector3(), s: new THREE.Vector3(), life: 0, max: 1 }); }
+function kBurst(pos, n, col, spd = 5, up = 0.7) { for (let i = 0; i < n; i++) { const p = kShards.find(q => q.life <= 0); if (!p) return; p.life = p.max = rand(0.35, 0.8); p.m.visible = true; p.m.position.copy(pos); p.m.material.color.setHex(col); p.v.set(rand(-1, 1) * spd, rand(0.2, 1) * spd * up, rand(-1, 1) * spd); p.s.set(rand(-9, 9), rand(-9, 9), rand(-9, 9)); p.m.scale.setScalar(rand(0.6, 1.6)); } }
+const kFx = [];
+function kAdd(o, life, upd) { scene.add(o); kFx.push({ o, life, max: life, upd }); return o; }
+function kMat(c, op = 0.8) { return new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide }); }
+function kRing(x, z, r0, r1, col, life, y = 0.08, seg = 6) { const m = new THREE.Mesh(new THREE.RingGeometry(0.88, 1, seg), kMat(col)); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z);
+  return kAdd(m, life, (f, u) => { m.scale.setScalar(r0 + (r1 - r0) * u); m.material.opacity = 0.85 * (1 - u); m.rotation.z += 0.03; }); }
+function kArc(col, big, rev) { const m = new THREE.Mesh(new THREE.RingGeometry(0.9, 3.3, 26, 1, -Math.PI / 2 - 1.15, 2.3), kMat(col, 0.7)); const grp = new THREE.Group(); m.rotation.x = -Math.PI / 2; grp.add(m);
+  grp.position.set(P.pos.x, 0.9, P.pos.z); grp.rotation.y = P.facing; if (rev) grp.rotation.z = Math.PI; if (big) grp.scale.setScalar(1.25); return kAdd(grp, 0.18, (f, u) => { m.material.opacity = 0.75 * (1 - u); grp.scale.multiplyScalar(1.01); }); }
+function kBeam(a, b, col, w, life, y = 1.3) { const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 0.01; const grp = new THREE.Group(); grp.position.set((a.x + b.x) / 2, y, (a.z + b.z) / 2); grp.rotation.y = Math.atan2(dx, dz);
+  const m = new THREE.Mesh(cyl(1, 1, 1, 10), kMat(col, 0.75)); m.rotation.x = Math.PI / 2; m.scale.set(w, L, w); grp.add(m); const c = new THREE.Mesh(cyl(1, 1, 1, 8), kMat(0xFFFFFF, 0.95)); c.rotation.x = Math.PI / 2; c.scale.set(w * 0.35, L, w * 0.35); grp.add(c);
+  return kAdd(grp, life, (f, u) => { const k = 1 - u; m.scale.x = m.scale.z = w * (0.3 + k); c.scale.x = c.scale.z = w * 0.35 * k; m.material.opacity = 0.75 * k; c.material.opacity = 0.95 * k; }); }
+function kAfter(x, z) { const s = glowSprite(0x8A7CFF, 1); s.scale.set(1.0, 2.4, 1); s.position.set(x, 1.1, z); return kAdd(s, 0.45, (f, u) => { s.material.opacity = 0.7 * (1 - u); }); }
+function kFrameFx(x, z, delay) { const grp = new THREE.Group(); grp.position.set(x, 4.2, z);
+  const cube = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.6, 1.6, 1.6)), new THREE.LineBasicMaterial({ color: 0xE0D8FF, transparent: true, opacity: 1 })); grp.add(cube);
+  const inner = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.8, 0.8, 0.8)), new THREE.LineBasicMaterial({ color: 0x9A8CFF, transparent: true, opacity: 1 })); grp.add(inner);
+  for (let k = 0; k < 3; k++) { const bar = new THREE.Mesh(box(0.14, 0.14, 1.9), kMat(0xB8A8FF, 0.75)); const a = k / 3 * TAU; bar.position.set(Math.cos(a) * 0.55, Math.sin(a) * 0.55, 0); bar.rotation.set(0.5, a + 0.6, 0.3); grp.add(bar); }
+  return kAdd(grp, delay + 0.35, (f, u) => { const t = u * (delay + 0.35); grp.rotation.y += 0.12; grp.rotation.x += 0.07; inner.rotation.y -= 0.2;
+    grp.position.y = t < delay ? 4.2 - Math.sin(t / delay * Math.PI / 2) * 0.6 : Math.max(0.9, 3.6 - (t - delay) / 0.12 * 2.7); const op = u > 0.85 ? (1 - u) / 0.15 : 1; cube.material.opacity = inner.material.opacity = op; }); }
+function kArmFx(x, z, face, len) { const grp = new THREE.Group(); grp.position.set(x, 1.15, z); grp.rotation.y = face;
+  const portal = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.62, 6), kMat(0xB8A8FF, 0.9)); grp.add(portal);
+  const armM = new THREE.Mesh(cyl(0.18, 0.24, 1, 10), kMat(0x8A7CFF, 0.55)); armM.rotation.x = Math.PI / 2; grp.add(armM);
+  const fist = new THREE.Mesh(box(0.55, 0.5, 0.5), kMat(0xD0C8FF, 0.7)); grp.add(fist);
+  return kAdd(grp, 0.42, (f, u) => { const e = u < 0.4 ? u / 0.4 : 1 - (u - 0.4) / 0.6; const L = Math.max(0.05, len * e); armM.scale.set(1, L, 1); armM.position.z = L / 2; fist.position.z = L + 0.2; const op = 1 - Math.max(0, u - 0.6) / 0.4; armM.material.opacity = 0.55 * op; fist.material.opacity = 0.7 * op; portal.material.opacity = 0.9 * op; portal.rotation.z += 0.2; }); }
+function kCrystal(x, z, h, col) { const m = new THREE.Mesh(G_('kcry', () => new THREE.ConeGeometry(0.28, 1, 5)), kMat(col, 0.85)); m.position.set(x, 0, z); m.rotation.set(rand(-0.3, 0.3), rand(0, TAU), rand(-0.3, 0.3));
+  return kAdd(m, 0.9, (f, u) => { const e = u < 0.2 ? u / 0.2 : 1; m.scale.set(1, h * e, 1); m.position.y = h * e * 0.5; m.material.opacity = 0.85 * (u > 0.6 ? (1 - u) / 0.4 : 1); }); }
+function kSpikeFx(from, d, onHit) { const m = new THREE.Mesh(G_('kspk', () => { const c = new THREE.ConeGeometry(0.08, 0.6, 4); c.rotateX(Math.PI / 2); return c; }), kMat(0xD0C0FF, 1)); m.position.set(from.x, 1.3, from.z);
+  let done = false; return kAdd(m, 0.22, (f, u) => { const tx = d.pos.x, tz = d.pos.z; m.position.set(from.x + (tx - from.x) * u, 1.3, from.z + (tz - from.z) * u); m.rotation.y = Math.atan2(tx - from.x, tz - from.z); if (u > 0.95 && !done) { done = true; onHit(); } }); }
+const entLines = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xA0E0FF, transparent: true, opacity: 0.8 })); scene.add(entLines); entLines.visible = false;
+const kaeAura = glowSprite(0x7A6BFF, 2.8); scene.add(kaeAura); kaeAura.visible = false;
+// ---- 音（迫力重視：圧縮バス・低音・歪み・フィルタースイープ） ----
+let kBus = null;
+function kbus() {
+  if (!AC) return null;
+  if (!kBus) {
+    const comp = AC.createDynamicsCompressor(); try { comp.threshold.value = -18; comp.knee.value = 4; comp.ratio.value = 8; comp.attack.value = 0.003; comp.release.value = 0.25; } catch (e) { /* 非対応 */ }
+    const shelf = AC.createBiquadFilter(); shelf.type = 'lowshelf'; shelf.frequency.value = 140; shelf.gain.value = 7;
+    const out = AC.createGain(); out.gain.value = 1.25; const inp = AC.createGain(); inp.gain.value = 1;
+    inp.connect(shelf); shelf.connect(comp); comp.connect(out); out.connect(AC.destination);
+    if (AC.createConvolver) { const cv = AC.createConvolver(), len = (AC.sampleRate * 2.2) | 0, ir = AC.createBuffer(2, len, AC.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3.2); }
+      cv.buffer = ir; const wet = AC.createGain(); wet.gain.value = 0.3; inp.connect(cv); cv.connect(wet); wet.connect(comp); }
+    kBus = inp; }
+  return kBus;
+}
+function kTone(f, dur, type = 'sine', vol = 0.05, f2 = 0, delay = 0) {
+  if (!AC || muted) return; const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(kbus()); o.start(t); o.stop(t + dur + 0.03);
+}
+const kNoiseBuf = {};
+function kNbuf(dur) { const k = Math.ceil(dur * 10); if (!kNoiseBuf[k]) { const len = Math.max(1, (AC.sampleRate * k / 10) | 0), b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; kNoiseBuf[k] = b; } return kNoiseBuf[k]; }
+function kNoise(dur, vol, f1, f2, type = 'bandpass', q = 1, delay = 0) {
+  if (!AC || muted) return; const t = AC.currentTime + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = kNbuf(dur); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.02, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(kbus()); s.start(t); s.stop(t + dur + 0.03);
+}
+const kSub = (f1, f2, dur, vol, delay = 0) => kTone(f1, dur, 'sine', vol, f2, delay);
+let kCurve = null;
+function kCrunch(dur, vol, f, delay = 0) {
+  if (!AC || muted || !AC.createWaveShaper) return; const t = AC.currentTime + delay, s = AC.createBufferSource(), w = AC.createWaveShaper(), f1 = AC.createBiquadFilter(), g = AC.createGain();
+  if (!kCurve) { kCurve = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; kCurve[i] = Math.tanh(x * 6); } }
+  s.buffer = kNbuf(dur); w.curve = kCurve; f1.type = 'lowpass'; f1.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(w); w.connect(f1); f1.connect(g); g.connect(kbus()); s.start(t); s.stop(t + dur + 0.03);
+}
+let kHitSfxT = 0;
+Object.assign(sfx, {
+  kSlash: () => { kNoise(0.22, 0.6, 3500, 500, 'bandpass', 1.2); kTone(110, 0.25, 'sawtooth', 0.08, 55); kSub(90, 38, 0.35, 0.55); kTone(660, 0.6, 'triangle', 0.03, 650, 0.02); kCrunch(0.12, 0.25, 1200); },
+  kArm: () => { kNoise(0.12, 0.3, 300, 2000, 'bandpass', 2); kSub(70, 26, 0.7, 1.0, 0.06); kCrunch(0.3, 0.55, 600, 0.06); kNoise(0.5, 0.45, 900, 90, 'lowpass', 1, 0.06); kTone(55, 0.5, 'sawtooth', 0.07, 32, 0.06); },
+  kThrow: () => { kNoise(0.22, 0.45, 800, 3500, 'bandpass', 2.5); kTone(220, 0.25, 'sawtooth', 0.05, 520); kSub(80, 50, 0.2, 0.3); },
+  kCharge: () => { kTone(70, 0.45, 'sawtooth', 0.08, 300); kNoise(0.4, 0.35, 150, 2500, 'bandpass', 3); kSub(45, 60, 0.45, 0.3); },
+  kBeam: () => { kTone(880, 0.45, 'sawtooth', 0.06, 70); kNoise(0.6, 0.6, 2500, 150, 'bandpass', 0.9); kSub(65, 22, 0.9, 0.9); kCrunch(0.35, 0.45, 900); },
+  kFrame: () => { kTone(165, 0.6, 'triangle', 0.06, 330); kTone(208, 0.6, 'triangle', 0.05, 415); kTone(247, 0.6, 'triangle', 0.05, 494); kNoise(0.6, 0.25, 120, 1500, 'bandpass', 4); kSub(50, 60, 0.6, 0.3); },
+  kSlam: () => { kSub(62, 20, 1.3, 1.25); kCrunch(0.6, 0.7, 500); kNoise(1.0, 0.6, 900, 70, 'lowpass', 1); kTone(41, 1.0, 'sawtooth', 0.08, 25); },
+  kFold: () => { kTone(70, 0.6, 'sine', 0.22, 420); kTone(420, 0.6, 'sine', 0.06, 70); kNoise(0.6, 0.45, 150, 2500, 'bandpass', 4); kSub(48, 24, 0.9, 0.8, 0.45); },
+  kEnt: () => { [659, 830, 988, 1318].forEach((f, k) => kTone(f, 1.1, 'triangle', 0.035, f * 1.003, k * 0.04)); kTone(55, 1.0, 'sawtooth', 0.07, 56); kSub(55, 55, 0.9, 0.35); },
+  kEntPulse: () => { kTone(880, 0.18, 'sine', 0.035, 1320); },
+  kWarp: () => { kNoise(0.25, 0.6, 200, 3500, 'bandpass', 2.5); kTone(90, 0.22, 'sawtooth', 0.08, 700); kSub(110, 34, 0.35, 0.8, 0.2); },
+  kMani: () => { [1046, 1318, 1568, 2093].forEach((f, k) => kTone(f, 0.5, 'triangle', 0.035, f, k * 0.03)); kSub(80, 28, 0.8, 0.9); kCrunch(0.4, 0.5, 1500); kNoise(0.6, 0.35, 2000, 200, 'lowpass'); },
+  kGuard: () => { kTone(880, 0.35, 'triangle', 0.08, 880); kTone(1320, 0.45, 'sine', 0.04, 1320, 0.02); kSub(120, 60, 0.25, 0.5); },
+  kReflect: () => { kTone(1320, 0.3, 'square', 0.04, 2000); kSub(140, 40, 0.3, 0.7); kCrunch(0.15, 0.3, 1500); },
+  kShot: () => { kTone(180, 0.2, 'square', 0.035, 110); },
+  kHit: () => { if (performance.now() - kHitSfxT < 50) return; kHitSfxT = performance.now(); kSub(120, 42, 0.18, 0.5); kNoise(0.1, 0.35, 1600, 400, 'bandpass', 1.2); },
+  kReady: () => { [60, 64, 67, 72, 76].forEach((m, k) => kTone(261.6 * Math.pow(2, (m - 60) / 12), 0.7, 'triangle', 0.06, 0, k * 0.08)); kSub(65, 65, 0.8, 0.4); kNoise(0.8, 0.2, 800, 6000, 'bandpass', 6); },
+  kUltStart: () => { kSub(48, 30, 2.0, 1.0); kNoise(1.4, 0.5, 80, 3500, 'bandpass', 2); kTone(110, 1.4, 'sawtooth', 0.07, 440); kCrunch(0.8, 0.45, 400); },
+  kBladeCharge: () => { kNoise(1.2, 0.5, 60, 5000, 'bandpass', 2.5); kTone(49, 1.2, 'sawtooth', 0.1, 196); kTone(880, 1.2, 'sine', 0.035, 1760); kTone(884, 1.2, 'sine', 0.03, 1768); kSub(36, 36, 1.2, 0.5); },
+  kBigSlash: () => { kNoise(0.7, 1.1, 4500, 120, 'bandpass', 0.7); kSub(85, 18, 2.4, 1.4); kCrunch(0.9, 0.85, 450); kTone(523, 3.0, 'triangle', 0.06, 520, 0.1); kTone(784, 3.0, 'triangle', 0.045, 780, 0.1); kTone(41, 1.6, 'sawtooth', 0.1, 22); },
+  kZure: () => { kNoise(0.5, 0.6, 5000, 1500, 'highpass', 1); [1568, 1760, 2093].forEach((f, k) => kTone(f, 0.4, 'triangle', 0.035, f * 0.98, k * 0.03)); kSub(70, 30, 0.6, 0.8); },
+  kBreak: () => { kCrunch(0.7, 0.6, 900); kSub(90, 30, 0.7, 0.9); kNoise(0.8, 0.5, 1800, 120, 'lowpass', 1); },
+  kJump: () => { kNoise(0.2, 0.3, 300, 1500, 'bandpass', 2); kSub(70, 50, 0.15, 0.2); },
+  kRiftIn: () => { kNoise(0.2, 0.55, 2600, 180, 'bandpass', 2.2); kSub(95, 30, 0.3, 0.6); kTone(330, 0.15, 'sawtooth', 0.03, 90); },
+  kRiftOut: () => { kNoise(0.16, 0.5, 250, 3500, 'bandpass', 2.2); kTone(120, 0.14, 'sawtooth', 0.05, 520); kSub(80, 40, 0.2, 0.45); },
+  kBarr: () => { kTone(65, 1.3, 'sawtooth', 0.08, 130); kNoise(1.3, 0.45, 100, 1800, 'bandpass', 1.5); kSub(40, 40, 1.3, 0.6); [262, 330, 392].forEach(f => kTone(f, 0.5, 'sawtooth', 0.02, f * 1.5)); },
+  kCrumple: () => { kCrunch(0.7, 0.8, 900); kCrunch(0.5, 0.6, 2400, 0.05); kSub(70, 22, 1.1, 1.2); kNoise(0.6, 0.6, 3000, 120, 'bandpass', 1.5); for (let k = 0; k < 6; k++) kNoise(0.06, 0.4, rand(1500, 4000), rand(400, 900), 'bandpass', 3, k * 0.04); },
+  kFrameBlink: s => { kTone(110 * (1 + s * 0.25), 0.3, 'sawtooth', 0.07, 55); kNoise(0.18, 0.4, 2400, 200, 'bandpass', 3); kTone(660 + s * 110, 0.25, 'triangle', 0.035, 330); kSub(90, 40, 0.3, 0.6); },
+  kEntRise: d => { kTone(110, d, 'sawtooth', 0.06, 1760); kTone(220, d, 'square', 0.02, 2640); kNoise(d, 0.4, 200, 8000, 'bandpass', 3); kSub(50, 90, d, 0.4); },
+  kEntBurst: () => { kSub(90, 24, 1.2, 1.2); kCrunch(0.5, 0.6, 1800); kNoise(0.8, 0.7, 6000, 300, 'bandpass', 0.8); [1318, 1661, 1975].forEach((f, k) => kTone(f, 1.2, 'triangle', 0.04, f * 0.5, k * 0.02)); },
+  kCryTick: () => { if (performance.now() - (sfx._kc || 0) < 30) return; sfx._kc = performance.now(); kTone(rand(1400, 2600), 0.12, 'triangle', 0.025, rand(700, 1200)); kNoise(0.06, 0.25, 4000, 1500, 'bandpass', 2); kSub(110, 50, 0.1, 0.25); },
+  kBul: () => { if (performance.now() - (sfx._kb || 0) < 40) return; sfx._kb = performance.now(); kSub(140, 60, 0.07, 0.25); kNoise(0.05, 0.22, 1800, 900, 'bandpass', 1.5); kTone(rand(300, 420), 0.06, 'square', 0.015, 160); },
+});
+// ---- アクロバット（跳躍・宙返り・回転） ----
+function kJump(o) { const to = o.to ? { x: o.to.x, z: o.to.z } : null; if (to) { const A = AREAS[P.area], [ci, cj] = cellOf(to.x, to.z); if (A.solid[cj * W + ci]) { const v = new THREE.Vector3(to.x, 0, to.z); resolve(A, v, 0.38); to.x = v.x; to.z = v.z; } }
+  P.kJ = { t: 0, dur: o.dur, h: o.h || 1, flip: o.flip || 0, spin: o.spin || 0, from: { x: P.pos.x, z: P.pos.z }, to }; if (o.h > 0.9) sfx.kJump(); }
+function kPt(d, dist, ang) { const a = Math.atan2(P.pos.x - d.pos.x, P.pos.z - d.pos.z) + (ang || 0); return { x: d.pos.x + Math.sin(a) * dist, z: d.pos.z + Math.cos(a) * dist }; }
+function kBack(dist) { return { x: P.pos.x - Math.sin(P.facing) * dist, z: P.pos.z - Math.cos(P.facing) * dist }; }
+// 歪曲軌道：曲がった光の軌跡と、出入口の門
+function kWarpTrail(a, b) {
+  const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1, side = Math.random() < 0.5 ? -1 : 1;
+  const cx = mx - dz / L * side * Math.min(3.5, L * 0.6), cz = mz + dx / L * side * Math.min(3.5, L * 0.6);
+  for (let i = 0; i <= 16; i++) { const u = i / 16, x = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * cx + u * u * b.x, z = (1 - u) * (1 - u) * a.z + 2 * (1 - u) * u * cz + u * u * b.z, y = 1.1 + Math.sin(u * Math.PI) * 1.6;
+    const s = glowSprite(i % 3 ? 0x7AD8FF : 0xFFFFFF, i % 3 ? 0.55 : 0.8); s.position.set(x, y, z); const dl = u * 0.15; kAdd(s, 0.55 + dl, (f, uu) => { const t = uu * (0.55 + dl); s.material.opacity = t < dl ? 0 : 0.95 * (1 - (t - dl) / 0.55); }); }
+  for (const [p, face] of [[a, Math.atan2(dx, dz)], [b, Math.atan2(dx, dz)]]) { const g = new THREE.Group(); g.position.set(p.x, 1.2, p.z); g.rotation.y = face;
+    const r1 = new THREE.Mesh(new THREE.RingGeometry(0.75, 1.0, 6), kMat(0x7AD8FF, 0.9)); g.add(r1); const r2 = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.5, 6), kMat(0xFFFFFF, 0.9)); g.add(r2);
+    kAdd(g, 0.5, (f, u) => { const k = u < 0.25 ? u / 0.25 : 1; g.scale.set(k, k * 1.5, k); r1.rotation.z += 0.15; r2.rotation.z -= 0.25; r1.material.opacity = r2.material.opacity = 0.9 * (1 - Math.max(0, u - 0.4) / 0.6); }); }
+}
+// 絡合：太い光の鎖と、頭上の六角環
+const entBeams = []; for (let i = 0; i < 10; i++) { const g = new THREE.Group(); const m = new THREE.Mesh(cyl(1, 1, 1, 8), kMat(0x8FE4FF, 0.55)); const c = new THREE.Mesh(cyl(1, 1, 1, 6), kMat(0xFFFFFF, 0.9)); g.add(m); g.add(c); g.visible = false; scene.add(g); entBeams.push({ g, m, c }); }
+const _kUp = new THREE.Vector3(0, 1, 0), _kDir = new THREE.Vector3();
+function kLink(b, a, z, t) { const dx = z.x - a.x, dy = z.y - a.y, dz = z.z - a.z, L = Math.hypot(dx, dy, dz) || 0.01; b.g.visible = true; b.g.position.set((a.x + z.x) / 2, (a.y + z.y) / 2, (a.z + z.z) / 2); _kDir.set(dx / L, dy / L, dz / L); b.g.quaternion.setFromUnitVectors(_kUp, _kDir);
+  const w = 0.07 + Math.sin(t * 14) * 0.02; b.m.scale.set(w, L, w); b.c.scale.set(w * 0.35, L, w * 0.35); b.m.material.opacity = 0.45 + Math.sin(t * 10) * 0.2; }
+function kEntPulse(a, b) { const s = glowSprite(0xFFFFFF, 0.9); kAdd(s, 0.18, (f, u) => { s.position.set(a.x + (b.x - a.x) * u, 1.6, a.z + (b.z - a.z) * u); s.material.opacity = 1; }); }
+// 次元のズレで作る刃
+function kBladeFx(charge, swingAt, swingDur, dash) {
+  const grp = new THREE.Group(), layers = [], cols = [0x7A6BFF, 0xFFFFFF, 0x8FE4FF, 0xB8A8FF, 0xFFFFFF, 0x6A5CFF];
+  for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(box(0.5 - i * 0.04, 0.03, 1), kMat(cols[i], i % 2 ? 0.7 : 0.45)); grp.add(m); layers.push(m); }
+  const edgeL = new THREE.Mesh(box(0.06, 0.06, 1), kMat(0xFFFFFF, 1)); grp.add(edgeL); const tipG = glowSprite(0xDDE4FF, 1.6); grp.add(tipG);
+  const life = swingAt + swingDur + 0.45;
+  kAdd(grp, life, (f, u) => { const t = u * life, grow = Math.min(1, t / charge), L = 0.5 + 9.5 * grow * grow;
+    grp.position.set(P.pos.x, 1.35 + kaeModel.root.position.y * 0.6, P.pos.z);
+    layers.forEach((m, i) => { const j = t < swingAt ? (Math.sin(t * 38 + i * 1.7) * 0.09 * (1 + grow)) : (i - 2.5) * 0.12 * Math.max(0, 1 - (t - swingAt) / swingDur); m.scale.z = L * (1 - i * 0.03); m.position.set(j + (i - 2.5) * 0.035, (i - 2.5) * 0.02, 0.5 + m.scale.z / 2 + Math.sin(t * 23 + i) * 0.05 * grow); m.rotation.z = (i - 2.5) * 0.05 * (t < swingAt ? 1 : 0); });
+    edgeL.scale.z = L; edgeL.position.set(0.24, 0, 0.5 + L / 2); tipG.position.set(0, 0, 0.5 + L); tipG.scale.setScalar(1 + grow * 2 + Math.sin(t * 30) * 0.3);
+    if (t < swingAt) { grp.rotation.set(-1.25 + Math.sin(t * 3) * 0.05, P.facing + 1.6, 0); }
+    else { const s = Math.min(1, (t - swingAt) / swingDur), e = 1 - Math.pow(1 - s, 3); grp.rotation.set(-0.08, dash ? P.facing + 1.2 + e * 1.75 : P.facing + 1.6 - e * 4.6, 0); }
+    const op = t > swingAt + swingDur ? Math.max(0, 1 - (t - swingAt - swingDur) / 0.45) : 1; layers.forEach((m, i) => { m.material.opacity = (i % 2 ? 0.7 : 0.45) * op; }); edgeL.material.opacity = op; tipG.material.opacity = op; });
+}
+function kSweepArc(r) { const m = new THREE.Mesh(new THREE.RingGeometry(1.2, r, 64, 1, -Math.PI / 2 - 2.3, 4.6), kMat(0xDDE4FF, 0.85)); const m2 = new THREE.Mesh(new THREE.RingGeometry(r * 0.82, r * 1.02, 64, 1, -Math.PI / 2 - 2.3, 4.6), kMat(0x7A6BFF, 0.9));
+  const grp = new THREE.Group(); m.rotation.x = m2.rotation.x = -Math.PI / 2; grp.add(m); grp.add(m2); grp.position.set(P.pos.x, 1.1, P.pos.z); grp.rotation.y = P.facing;
+  return kAdd(grp, 0.6, (f, u) => { grp.scale.setScalar(0.92 + u * 0.12); m.material.opacity = 0.85 * (1 - u); m2.material.opacity = 0.9 * (1 - u); }); }
+function kSplitScreen() { const el = $('kSplit'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); }
+// ---- 次元の裂け目：入って、出る ----
+function kRift(x, z, face, life = 0.36, delay = 0, sc = 1, y = null) {
+  const g = new THREE.Group(); g.position.set(x, y === null ? 1.25 * sc : y, z); g.rotation.y = face + Math.PI / 2;
+  const glow = new THREE.Mesh(box(1.1, 2.9, 0.02), kMat(0x6A5CFF, 0.55)); g.add(glow);
+  const core = new THREE.Mesh(box(0.14, 2.7, 0.03), kMat(0xFFFFFF, 1)); g.add(core);
+  const edge = new THREE.Mesh(box(0.5, 2.8, 0.025), kMat(0xB8A8FF, 0.8)); g.add(edge); g.scale.set(0, sc, sc);
+  const tot = life + delay;
+  return kAdd(g, tot, (f, u) => { const t = u * tot - delay; if (t < 0) { g.scale.x = 0; return; } const k = t / life, open = k < 0.3 ? k / 0.3 : k > 0.7 ? Math.max(0, (1 - k) / 0.3) : 1;
+    g.scale.set(open * sc, sc * (0.85 + 0.15 * open), sc); core.scale.x = 1 + Math.sin(t * 60) * 0.3; glow.material.opacity = 0.55 * open; edge.material.opacity = 0.8 * open; });
+}
+// 裂け目へ入り、別の裂け目から出る（hide 秒だけ姿が消える）
+function kRiftTo(to, after, o = {}) {
+  const A = AREAS[P.area], v = new THREE.Vector3(to.x, 0, to.z); resolve(A, v, 0.38); const hide = o.hide || 0.1, face = Math.atan2(v.x - P.pos.x, v.z - P.pos.z);
+  kRift(P.pos.x, P.pos.z, face, 0.34); sfx.kRiftIn(); kBurst(_t.copy(P.pos).setY(1.2), 5, 0x9A8CFF, 2.5);
+  P.kHide = hide + 0.03; P.kDive = 0.05; kRift(v.x, v.z, face + Math.PI, 0.34, Math.max(0, hide - 0.08));
+  if (o.trail) kWarpTrail({ x: P.pos.x, z: P.pos.z }, v);
+  kLater(() => { if (G.mode !== 'kae') return; P.pos.set(v.x, 0, v.z); P.kHide = 0; P.kEmerge = 0.16; sfx.kRiftOut(); kBurst(_t.copy(P.pos).setY(1.2), 6, 0xDDE4FF, 3); if (after) after(); }, hide * 1000);
+}
+const kSide = (d, s, dist = 1.3) => kPt(d, dist, s * Math.PI / 2);
+// 直線の斬撃跡と、遅れて来る「ズレ」
+function kSlashLine(a, b, life = 0.8) { const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 0.1; const g = new THREE.Group(); g.position.set((a.x + b.x) / 2, 1.2, (a.z + b.z) / 2); g.rotation.y = Math.atan2(dx, dz);
+  const w = new THREE.Mesh(box(1, 0.02, L + 2), kMat(0xFFFFFF, 1)); const v = new THREE.Mesh(box(1, 0.015, L + 3), kMat(0x7A6BFF, 0.7)); const h = new THREE.Mesh(box(0.03, 1.6, L + 2), kMat(0xDDE4FF, 0.6)); g.add(v); g.add(w); g.add(h);
+  return kAdd(g, life, (f, u) => { const k = u < 0.12 ? u / 0.12 : 1 - (u - 0.12) / 0.88; w.scale.x = 0.25 * k + 0.02; v.scale.x = 1.4 * k + 0.05; h.scale.y = k; w.material.opacity = k; v.material.opacity = 0.7 * k; h.material.opacity = 0.6 * k; }); }
+function kZureLine(a, b) { const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 0.1; for (const s of [-1, 1]) { const g = new THREE.Group(); g.position.set((a.x + b.x) / 2, 1.2, (a.z + b.z) / 2); g.rotation.y = Math.atan2(dx, dz);
+  const m = new THREE.Mesh(box(0.06, 0.06, L + 2), kMat(s > 0 ? 0xB8A8FF : 0x8FE4FF, 1)); g.add(m); kAdd(g, 0.7, (f, u) => { m.position.x = s * u * 0.6; m.position.y = s * u * 0.25; m.material.opacity = 1 - u; }); }
+  for (let i = 0; i <= 10; i++) kBurst(_t.set(a.x + dx * i / 10, 1.2, a.z + dz * i / 10), 2, 0xB8A8FF, 3); }
+// ---- 次元歪曲弾幕：一面の裂け目から、凄まじい連射 ----
+const KB_POOL = [], kbGeo = new THREE.BoxGeometry(0.08, 0.08, 0.8), kbMats = [kMat(0xB89CFF, 0.95), kMat(0xFFFFFF, 0.95), kMat(0x8FE4FF, 0.9), kMat(0x9A70FF, 0.95)];
+for (let i = 0; i < 380; i++) { const m = new THREE.Mesh(kbGeo, kbMats[i % 4]); m.visible = false; scene.add(m); KB_POOL.push({ m, on: false }); }
+function kSpawnB(x, y, z, h, homing) { const b = KB_POOL.find(q => !q.on); if (!b) return; Object.assign(b, { on: true, x, y, z, y0: y, h, t: 0, life: rand(0.8, 1.05), spd: rand(26, 34), ph: rand(0, TAU), w: rand(12, 22) * (Math.random() < 0.5 ? -1 : 1), amp: rand(1.5, 3.2), tg: homing ? kNearest(30) : null }); b.m.visible = true; }
+function kBarrStart(dur, n, rate) {
+  const em = [];
+  for (let i = 0; i < n; i++) { const a = P.facing + Math.PI + (i / (n - 1) - 0.5) * 3.6, r = 2.3 + Math.random() * 0.7, x = P.pos.x + Math.sin(a) * r, z = P.pos.z + Math.cos(a) * r, y = 0.7 + (i % 4) * 0.62 + Math.random() * 0.3;
+    kRift(x, z, a, dur + 0.35, i * 0.012, 0.42, y); em.push({ x, y, z, ft: 0.08 + Math.random() * rate }); }
+  G.kBarr = { t: dur, rate, em, sndT: 0 };
+}
+function kBulTick(dt) {
+  if (G.kBarr) { const B = G.kBarr; B.t -= dt; for (const e of B.em) { e.ft -= dt; while (e.ft <= 0) { e.ft += B.rate; kSpawnB(e.x, e.y, e.z, P.facing + rand(-0.8, 0.8), Math.random() < 0.2); } } B.sndT -= dt; if (B.sndT <= 0) { B.sndT = 0.045; sfx.kBul(); } if (B.t <= 0) G.kBarr = null; }
+  const A = AREAS[P.area], alive = kAlive();
+  for (const b of KB_POOL) { if (!b.on) continue; b.t += dt; b.life -= dt; let dead = b.life <= 0 || P.area !== G.kArena;
+    if (!dead) {
+      if (b.tg && !b.tg.dead) { const want = Math.atan2(b.tg.pos.x - b.x, b.tg.pos.z - b.z); let df = want - b.h; while (df > Math.PI) df -= TAU; while (df < -Math.PI) df += TAU; b.h += Math.max(-1, Math.min(1, df)) * Math.min(1, dt * 6); }
+      b.h += Math.sin(b.t * b.w + b.ph) * b.amp * dt;
+      b.x += Math.sin(b.h) * b.spd * dt; b.z += Math.cos(b.h) * b.spd * dt; b.y = b.y0 + (1.3 - b.y0) * Math.min(1, b.t * 1.6) + Math.sin(b.t * 9 + b.ph) * 0.22;
+      const [ci, cj] = cellOf(b.x, b.z); if (A.solid[cj * W + ci]) { dead = true; if (Math.random() < 0.2) kBurst(_t.set(b.x, b.y, b.z), 2, 0xA070FF, 2); }
+      else for (const d of alive) if (Math.abs(d.pos.x - b.x) < 0.7 && Math.abs(d.pos.z - b.z) < 0.7) { kHit(d, 9, 'barr', { quiet: true, frag: 1.5, crit: 0.06 }); if (Math.random() < 0.25) kBurst(_t.set(b.x, b.y, b.z), 2, 0xC08CFF, 3); dead = true; break; }
+      b.m.position.set(b.x, b.y, b.z); b.m.rotation.y = b.h; }
+    if (dead) { b.on = false; b.m.visible = false; } }
+}
+// ---- 折り畳み：空間がグシャっと潰れる ----
+function kCrumple(cx, cz, R, tot = 1.0, imp = 0.3) {
+  const grp = new THREE.Group(); grp.position.set(cx, 1.2, cz); const tris = [], tiles = [];
+  for (let i = 0; i < 52; i++) { const m = new THREE.Mesh(G_('ktri', () => new THREE.CircleGeometry(1, 3)), kMat(i % 3 ? 0x8A70FF : 0xF0ECFF, 0.5)); const th = rand(0, TAU), ph = Math.acos(rand(-0.35, 1)), d = new THREE.Vector3(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th));
+    m.userData = { d, r0: R * rand(0.8, 1.1), sp: new THREE.Vector3(rand(-14, 14), rand(-14, 14), rand(-14, 14)), s: rand(0.7, 1.7) }; m.rotation.set(rand(0, TAU), rand(0, TAU), rand(0, TAU)); grp.add(m); tris.push(m); }
+  for (let ring = 1; ring <= 3; ring++) for (let k = 0; k < ring * 8; k++) { const a = k / (ring * 8) * TAU + ring, r = ring * 1.45, m = new THREE.Mesh(G_('ktri', () => null), kMat(ring % 2 ? 0xB8A8FF : 0x6A5CFF, 0.6)); m.userData = { a, r, s: rand(0.5, 0.9) }; grp.add(m); tiles.push(m); }
+  return kAdd(grp, tot, (f, u) => { const t = u * tot, e = Math.max(0, Math.min(1, (t - imp) / 0.2));
+    for (const m of tris) { const D = m.userData; if (t < imp) { const k = t / imp, r = D.r0 * (1 + Math.sin(t * 40 + D.s) * 0.03); m.position.copy(D.d).multiplyScalar(r); m.scale.setScalar(D.s * k); m.material.opacity = 0.5 * k; }
+      else { const r = D.r0 * Math.pow(1 - e, 2.2) + 0.15; m.position.copy(D.d).multiplyScalar(r); m.rotation.x += D.sp.x * 0.016; m.rotation.y += D.sp.y * 0.016; m.rotation.z += D.sp.z * 0.016; m.scale.setScalar(D.s * (1 - e * 0.75)); m.material.opacity = t > imp + 0.25 ? Math.max(0, 0.85 - (t - imp - 0.25) * 5) : 0.85; } }
+    for (const m of tiles) { const D = m.userData, k = Math.min(1, t / 0.15), r = D.r * (1 - e * 0.75); m.position.set(Math.cos(D.a) * r, -1.13 + Math.sin(e * Math.PI) * 0.9 * (D.r / 4.4), Math.sin(D.a) * r);
+      m.rotation.set(-Math.PI / 2 + e * 1.3 * Math.cos(D.a * 3), e * 2.4, D.a + e * 3); m.scale.setScalar(D.s * k * (1 - e * 0.4)); m.material.opacity = t > imp + 0.3 ? Math.max(0, 0.6 - (t - imp - 0.3) * 3) : 0.6 * k; } });
+}
+function kScreenWarp() { const cv = renderer.domElement; cv.style.transition = 'transform .07s ease-out';
+  [[0, 'scale(1.05) skew(3deg,-2deg)'], [80, 'scale(0.95) skew(-4deg,2deg) rotate(-1.2deg)'], [170, 'scale(1.09) skew(2deg,3deg) rotate(.8deg)'], [280, 'scale(0.98) skew(-1deg,0deg)'], [400, '']].forEach(([ms, v]) => kLater(() => { cv.style.transform = v; }, ms)); }
+// ---- 不可能幾何：ありえない立体が、歪みながら出ては消える ----
+function kImpShape(kind, x, y, z, size, life, final, drop) {
+  const grp = new THREE.Group(); grp.position.set(x, y, z); const lm = c => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: 1 });
+  if (kind === 0) { for (let k = 0; k < 3; k++) { const a = k / 3 * TAU, bar = new THREE.Mesh(box(0.2, 0.2, 1.15), kMat(k === 0 ? 0xE8E2FF : k === 1 ? 0xB8A8FF : 0x8A7CFF, 0.85)); bar.position.set(Math.cos(a + 1.05) * 0.33, Math.sin(a + 1.05) * 0.33, 0); bar.rotation.set(k * 0.6 - 0.6, 0, a); grp.add(bar); } }
+  else if (kind === 1) { const c = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)), lm(0xE8E2FF)); grp.add(c); const bar = new THREE.Mesh(box(0.1, 0.1, 1.5), kMat(0x9A8CFF, 0.9)); bar.rotation.set(0.62, 0.78, 0); grp.add(bar); const bar2 = new THREE.Mesh(box(0.1, 1.0, 0.1), kMat(0xB8A8FF, 0.9)); bar2.position.set(0.5, 0, -0.5); bar2.rotation.z = 0.4; grp.add(bar2); }
+  else { const c1 = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.1, 1.1, 1.1)), lm(0xE8E2FF)); const c2 = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.55, 0.55, 0.55)), lm(0x9A8CFF)); grp.add(c1); grp.add(c2);
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) { const b = new THREE.Mesh(box(0.035, 0.035, 0.48), kMat(0xC9B8FF, 0.9)); b.position.set(sx * 0.41, sy * 0.41, sz * 0.41); b.lookAt(sx * 2, sy * 2, sz * 2); grp.add(b); } }
+  const lens = new THREE.Mesh(sph(1, 16, 12), kMat(0x7A6BFF, 0.16)); grp.add(lens); const gl = glowSprite(0xB8A8FF, 2); grp.add(gl);
+  const y0 = y, ph = rand(0, TAU);
+  return kAdd(grp, life, (f, u) => { const t = u * life, app = Math.min(1, u / 0.22), out = final ? 1 : Math.max(0, Math.min(1, (u - 0.72) / 0.28)), s = size * (app < 1 ? app * (1.3 - 0.3 * app) : 1);
+    grp.scale.set(s * (1 + Math.sin(t * 31 + ph) * 0.28) * (1 - out), s * (1 + Math.sin(t * 23 + ph) * 0.3) * (1 + out * 0.6), s * (1 + Math.sin(t * 37) * 0.25));
+    grp.rotation.x += 0.09 + Math.sin(t * 9) * 0.05; grp.rotation.y += 0.13; grp.rotation.z = Math.sin(t * 13 + ph) * 0.6;
+    lens.scale.setScalar(1.4 + Math.sin(t * 18) * 0.25 + u * 0.8); lens.material.opacity = 0.16 * (1 - u); gl.material.opacity = 0.6 * (1 - out);
+    if (final && drop) { const k = Math.max(0, (u - 0.45) / 0.18); grp.position.y = y0 - Math.min(1, k) * (y0 - 0.9); if (u > 0.7) grp.scale.multiplyScalar(Math.max(0.01, 1 - (u - 0.7) / 0.3)); } });
+}
+function kLens(x, y, z, r, col = 0x9A8CFF) { const m = new THREE.Mesh(sph(1, 16, 12), kMat(col, 0.22)); m.position.set(x, y, z); const ring = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 32), kMat(0xE8E2FF, 0.7)); ring.position.set(x, y, z); ring.rotation.set(0, camYaw, 0); kAdd(ring, 0.35, (f, u) => { ring.scale.setScalar(r * (0.5 + u * 1.4)); ring.material.opacity = 0.7 * (1 - u); });
+  return kAdd(m, 0.35, (f, u) => { m.scale.setScalar(r * (0.6 + u)); m.material.opacity = 0.22 * (1 - u); }); }
+// ---- 絡合：貫く線、加速する光、一気に発散 ----
+function kEntFx(list, dur) {
+  const grp = new THREE.Group(); scene.add(grp); const lines = [], hand = { x: P.pos.x + Math.sin(P.facing) * 0.6, y: 1.6, z: P.pos.z + Math.cos(P.facing) * 0.6 };
+  const mk = (a, b, ext1, ext2, delay) => { const dx = b.x - a.x, dz = b.z - a.z, dy = b.y - a.y, L = Math.hypot(dx, dy, dz) || 0.1, ux = dx / L, uy = dy / L, uz = dz / L;
+    const A = { x: a.x - ux * ext1, y: a.y - uy * ext1, z: a.z - uz * ext1 }, B = { x: b.x + ux * ext2, y: b.y + uy * ext2, z: b.z + uz * ext2 }, LL = L + ext1 + ext2;
+    const g = new THREE.Group(), core = new THREE.Mesh(cyl(1, 1, 1, 6), kMat(0xFFFFFF, 1)), glow = new THREE.Mesh(cyl(1, 1, 1, 8), kMat(0x8FE4FF, 0.5)); g.add(glow); g.add(core); grp.add(g);
+    _kDir.set(ux, uy, uz); g.quaternion.setFromUnitVectors(_kUp, _kDir); lines.push({ g, core, glow, A, B, LL, ux, uy, uz, delay, pulses: [] }); };
+  list.forEach((d, i) => { mk(hand, { x: d.pos.x, y: 1.4, z: d.pos.z }, 0, 4, i * 0.04); if (i) mk({ x: list[i - 1].pos.x, y: 1.4, z: list[i - 1].pos.z }, { x: d.pos.x, y: 1.4, z: d.pos.z }, 2.5, 2.5, 0.12 + i * 0.04); });
+  if (list.length > 2) mk({ x: list[list.length - 1].pos.x, y: 1.4, z: list[list.length - 1].pos.z }, { x: list[0].pos.x, y: 1.4, z: list[0].pos.z }, 2.5, 2.5, 0.3);
+  const c = list.reduce((a, d) => ({ x: a.x + d.pos.x / list.length, z: a.z + d.pos.z / list.length }), { x: 0, z: 0 }); let frags = null;
+  const ps = []; for (let i = 0; i < 60; i++) { const s = glowSprite(i % 2 ? 0xFFFFFF : 0x8FE4FF, 0.55); s.visible = false; grp.add(s); ps.push(s); }
+  const tot = dur + 0.6;
+  kAdd(grp, tot, (f, u) => { const t = u * tot;
+    if (t < dur) { const acc = Math.pow(t / dur, 2.2);
+      lines.forEach((l, li) => { const k = Math.max(0, Math.min(1, (t - l.delay) / 0.12)), len = l.LL * k, w = 0.035 + acc * 0.13 + Math.sin(t * 50 + li) * 0.01;
+        l.g.position.set(l.A.x + l.ux * len / 2, l.A.y + l.uy * len / 2, l.A.z + l.uz * len / 2); l.core.scale.set(w * 0.4, Math.max(0.01, len), w * 0.4); l.glow.scale.set(w, Math.max(0.01, len), w); l.glow.material.opacity = 0.35 + acc * 0.5; });
+      const v = 3 + 60 * acc; ps.forEach((s, i) => { const l = lines[i % lines.length]; if (t < l.delay + 0.12) { s.visible = false; return; } const p = ((t * v + i * 1.7) % l.LL); s.visible = true; s.position.set(l.A.x + l.ux * p, l.A.y + l.uy * p, l.A.z + l.uz * p); s.scale.setScalar(0.35 + acc * 0.6); }); }
+    else { if (!frags) { frags = []; for (const l of lines) { l.g.visible = false; for (let k = 0; k < 9; k++) { const p = (k + 0.5) / 9 * l.LL, x = l.A.x + l.ux * p, y = l.A.y + l.uy * p, z = l.A.z + l.uz * p, m = new THREE.Mesh(box(0.07, l.LL / 9 * 0.8, 0.07), kMat(k % 2 ? 0xFFFFFF : 0x8FE4FF, 1)); m.position.set(x, y, z); m.quaternion.copy(l.g.quaternion); grp.add(m); const dx = x - c.x, dz = z - c.z, dl = Math.hypot(dx, dz) || 1; frags.push({ m, vx: dx / dl * rand(10, 22), vy: rand(-2, 8), vz: dz / dl * rand(10, 22), sp: rand(-20, 20) }); } } ps.forEach(s => { s.visible = false; }); }
+      const k = (t - dur) / 0.6; for (const fr of frags) { fr.m.position.x += fr.vx * 0.016; fr.m.position.y += fr.vy * 0.016; fr.m.position.z += fr.vz * 0.016; fr.m.rotation.x += fr.sp * 0.016; fr.m.material.opacity = Math.max(0, 1 - k); } } });
+  return c;
+}
+// ---- 不可能幾何：歪んで消え、別の場所に現れて空間を激しく歪ませる ----
+function kWarpLite() { const cv = renderer.domElement; cv.style.transition = 'transform .05s ease-out'; [[0, 'scale(1.06) skew(4deg,-3deg) rotate(-1.5deg)'], [70, 'scale(0.96) skew(-3deg,3deg) rotate(1deg)'], [150, '']].forEach(([ms, v]) => kLater(() => { cv.style.transform = v; }, ms)); }
+function kDistortBurst(x, z, size, kind, dmg) {
+  kImpShape(kind, x, 1.4, z, size * 1.5, 0.36, false); kImpShape((kind + 1) % 3, x, 1.4, z, size * 0.9, 0.3, false); kLens(x, 1.3, z, size * 2.6); kLens(x, 1.3, z, size * 1.4, 0xE8E2FF);
+  kRing(x, z, 0.4, size * 2.4, 0xC9B8FF, 0.35, 0.08, 6); kBurst(_t.set(x, 1.3, z), 14, 0xC9B8FF, 7, 1); kWarpLite(); sfx.kFrameBlink(kind); G.shake = Math.max(G.shake || 0, 0.35);
+  for (const d of kAlive()) { const r = Math.hypot(d.pos.x - x, d.pos.z - z); if (r < size * 2.9) kHit(d, dmg, 'frame', { frag: 2, push: 2.5, from: { x, z } }); }
+}
+function kFrameSeq(c, hops, gap, onEnd) {
+  const pts = []; const a0 = rand(0, TAU); for (let i = 0; i < hops; i++) { const a = a0 + i * (TAU / hops) * 1.37 + rand(-0.4, 0.4), r = rand(2.6, 4.2); pts.push({ x: c.x + Math.sin(a) * r, z: c.z + Math.cos(a) * r }); }
+  const hop = i => {
+    if (G.mode !== 'kae') return; if (i >= hops) { if (onEnd) onEnd(); return; }
+    P.kWarpHit = 0.12; sfx.kRiftIn();
+    kLater(() => { if (G.mode !== 'kae') return; kLens(P.pos.x, 1.3, P.pos.z, 1.3); kBurst(_t.copy(P.pos).setY(1.3), 6, 0x9A8CFF, 3); P.kHide = 0.07; P.kDive = 0;
+      kLater(() => { if (G.mode !== 'kae') return; const v = new THREE.Vector3(pts[i].x, 0, pts[i].z); resolve(AREAS[P.area], v, 0.38); P.pos.copy(v); P.kHide = 0; P.kEmerge = 0.12; P.facing = Math.atan2(c.x - P.pos.x, c.z - P.pos.z);
+        P.kJ = { t: 0, dur: 0.22, h: rand(0.3, 1.4), flip: 0, spin: Math.random() < 0.5 ? 1 : -1, from: null, to: null };
+        kDistortBurst(P.pos.x, P.pos.z, 1.2 + i * 0.12, i % 3, 48); kLater(() => hop(i + 1), gap); }, 70); }, 90);
+  };
+  hop(0);
+}
+function kFrameFinal(c) {
+  const v = new THREE.Vector3(c.x + rand(-1, 1), 0, c.z + rand(-1, 1)); resolve(AREAS[P.area], v, 0.38); P.kWarpHit = 0.12; P.kHide = 0.07;
+  kLater(() => { if (G.mode !== 'kae') return; P.pos.copy(v); P.kHide = 0; P.kEmerge = 0.12; P.kJ = { t: 0, dur: 0.42, h: 3.4, flip: 1, spin: 0, from: null, to: null };
+    kImpShape(2, c.x, 4.6, c.z, 2.2, 0.55, true, true); kLens(c.x, 4.6, c.z, 3.4); sfx.kFrameBlink(3);
+    kLater(() => { if (G.mode !== 'kae') return; sfx.kSlam(); G.shake = Math.max(G.shake || 0, 0.65); kRing(c.x, c.z, 0.5, 4.2, 0xE0D8FF, 0.45); kLens(c.x, 1, c.z, 4); kWarpLite(); kBurst(_t.set(c.x, 0.8, c.z), 22, 0xC9B8FF, 8);
+      for (const d of kAlive()) { const r = Math.hypot(d.pos.x - c.x, d.pos.z - c.z); if (r < 3.4) kHit(d, r < 1.5 ? 175 : 120, 'frame', { knock: 3, frag: 3, from: c, push: 3 }); } }, 360); }, 80);
+}
+// ---- 実体化：鉱物の結晶が、重なり合い連なって噴き出す ----
+const kCryMats = [0xE8E2FF, 0xB8A8FF, 0x9A8CFF, 0xFFFFFF, 0xC8B8FF, 0x8FE4FF].map(c => kMat(c, 0.86));
+const kPrism = new THREE.CylinderGeometry(1, 1, 1, 6), kTip = new THREE.ConeGeometry(1, 1, 6);
+function kCluster(x, z, s, delay, dmg) {
+  const grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = rand(0, TAU); const n = 4 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < n; i++) { const sp = new THREE.Group(), r = rand(0.07, 0.17) * s, h = rand(0.7, 2.4) * s * (i === 0 ? 1.35 : 1), mat = kCryMats[(Math.random() * kCryMats.length) | 0];
+    const pr = new THREE.Mesh(kPrism, mat); pr.scale.set(r, h, r); pr.position.y = h / 2; sp.add(pr); const tp = new THREE.Mesh(kTip, mat); tp.scale.set(r, h * 0.38, r); tp.position.y = h + h * 0.19; sp.add(tp);
+    const a = rand(0, TAU), tilt = i === 0 ? rand(0, 0.2) : rand(0.25, 0.8); sp.rotation.set(Math.cos(a) * tilt, 0, Math.sin(a) * tilt); sp.position.set(Math.cos(a) * rand(0, 0.25) * s, 0, Math.sin(a) * rand(0, 0.25) * s); grp.add(sp); }
+  grp.scale.set(1, 0.001, 1); let fired = false; const life = delay + 0.7;
+  return kAdd(grp, life, (f, u) => { const t = u * life - delay; if (t < 0) { grp.scale.y = 0.001; return; }
+    if (!fired) { fired = true; kBurst(_t.set(x, 0.3, z), 3, 0xD8CCFF, 4, 1.2); sfx.kCryTick(); if (dmg) for (const d of kAlive()) if (Math.hypot(d.pos.x - x, d.pos.z - z) < 1.3 * s) kHit(d, dmg, 'mani', { quiet: true, bind: 0.5, crit: 0.08 }); }
+    const e = Math.min(1, t / 0.055), sh = t > 0.5 ? Math.max(0.001, 1 - (t - 0.5) / 0.2) : 1; grp.scale.set(sh, Math.max(0.001, (e < 1 ? e * 1.15 : 1.15 - Math.min(0.15, (t - 0.055) * 2)) * sh), sh); });
+}
+function kCrystalStorm(from, dirs, len, step, dt0, s, dmg) {
+  let maxD = 0; dirs.forEach((a, li) => { for (let k = 1; k * step <= len; k++) { const d = k * step, x = from.x + Math.sin(a) * d + rand(-0.25, 0.25), z = from.z + Math.cos(a) * d + rand(-0.25, 0.25), dl = k * dt0 + li * 0.008;
+    const A = AREAS[P.area], [ci, cj] = cellOf(x, z); if (A.solid[cj * W + ci]) break; kCluster(x, z, s * (0.85 + k / (len / step) * 0.5), dl, dmg); maxD = Math.max(maxD, dl); } });
+  return maxD;
+}
+const kCan = () => G.state === 'play' && G.mode === 'kae' && !G.kUlt && !G.kDown && P.kLock <= 0 && !(P.kJ && P.kJ.to && P.kJ.t < P.kJ.dur * 0.6);
+const kCdMul = () => G.kOver > 0 ? 1.6 : 1;
+function kAct(kind, dur) { P.kAct = { kind, t: 0, dur }; }
+function kaeCombo() {
+  if (G.pc === 'tco') return tcqCombo(); if (G.pc === 'amn') return amnCombo(); if (G.pc === 'yur') return yurCombo(); if (G.pc === 'rur') return rurCombo(); if (G.pc === 'mz') return mzCombo();
+  if (P.kFull > 0) return fCombo();
+  if (!kCan() || G.kcd.combo > 0) return;
+  const step = G.time - G.kComboStepT < 0.85 ? (G.kStep + 1) % 3 : 0; G.kStep = step; G.kComboStepT = G.time;
+  const t = kNearest(8); kFace(t);
+  if (step === 0) { G.kcd.combo = 0.2; sfx.kSlash();
+    const strike = () => { kFace(t); kAct('edge', 0.18); kArc(0xB8C0FF, true); for (const d of kAlive()) if (kDist(d) < 3.6 && kInFront(d, -0.15)) kHit(d, 34, 'edge', { bleed: 1 }); };
+    if (t && kDist(t) > 3.0) { P.kLock = 0.14; kRiftTo(kSide(t, Math.random() < 0.5 ? 1 : -1, 2.5), strike, { hide: 0.09 }); } else strike();
+    kAnalyze('edge'); KAE_SAY('edge', 0.8); }
+  else if (step === 1) { G.kcd.combo = 0.24; kAct('arm', 0.32); sfx.kArm(); const fx = Math.sin(P.facing), fz = Math.cos(P.facing);
+    kRift(P.pos.x + fx * 0.8, P.pos.z + fz * 0.8, P.facing, 0.3, 0, 0.5);
+    if (t && kDist(t) > 2.5) { const q = kPt(t, 3.0, (Math.random() < 0.5 ? 1 : -1) * 0.9), fa = Math.atan2(t.pos.x - q.x, t.pos.z - q.z); kRift(q.x, q.z, fa, 0.42, 0.04, 0.7); kArmFx(q.x, q.z, fa, 3.0);
+      kLater(() => { if (G.mode !== 'kae' || t.dead) return; kHit(t, 62, 'arm', { push: 5, knock: 2, from: q }); for (const d of kAlive()) if (d !== t && Math.hypot(d.pos.x - t.pos.x, d.pos.z - t.pos.z) < 1.6) kHit(d, 40, 'arm', { push: 4, from: q }); }, 110); }
+    else { kArmFx(P.pos.x + fx * 0.4, P.pos.z + fz * 0.4, P.facing, 3.6); kLater(() => { if (G.mode !== 'kae') return; for (const d of kAlive()) if (kDist(d) < 4.4 && kInFront(d, 0.45)) kHit(d, 58, 'arm', { push: 6, knock: 2 }); }, 90); }
+    kAnalyze('arm'); KAE_SAY('arm', 0.8); }
+  else { G.kcd.combo = 0.34; sfx.kThrow(); const tt = kNearest(14); P.kLock = 0.14;
+    kRiftTo(kBack(3.2), () => { kFace(tt); kAct('spike', 0.3); kJump({ dur: 0.36, h: 1.4, flip: -1 }); if (tt) kSpikeFx(P.pos.clone(), tt, () => { kHit(tt, 44, 'spike', { bind: 1.6 }); kRing(tt.pos.x, tt.pos.z, 0.4, 1.4, 0xB59CFF, 0.35, 1.0, 24); }); }, { hide: 0.08 });
+    kAnalyze('spike'); KAE_SAY('spike', 0.8); }
+}
+function kInFront(d, dot) { const dx = d.pos.x - P.pos.x, dz = d.pos.z - P.pos.z, L = Math.hypot(dx, dz) || 1; return L < 0.9 || (dx * Math.sin(P.facing) + dz * Math.cos(P.facing)) / L > dot; }
+// ---- 技 ----
+function kaeRifle() {
+  if (!kCan() || G.kcd.rifle > 0) return; G.kcd.rifle = KAE_CD.rifle * kCdMul(); const t = kNearest(18); kFace(t); kAct('rifle', 0.42); P.kLock = 0.22; sfx.kCharge();
+  kLater(() => { if (G.mode !== 'kae' || G.state !== 'play') return; const fx = Math.sin(P.facing), fz = Math.cos(P.facing), a = { x: P.pos.x + fx * 0.6, z: P.pos.z + fz * 0.6 }, b = { x: P.pos.x + fx * 18, z: P.pos.z + fz * 18 };
+    kBeam(a, b, 0x6FA8FF, 0.34, 0.28); sfx.kBeam(); G.shake = Math.max(G.shake || 0, 0.22); kJump({ to: kBack(1.8), dur: 0.22, h: 0.3 });
+    for (const d of kAlive()) { const dx = d.pos.x - P.pos.x, dz = d.pos.z - P.pos.z, along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx); if (along > 0 && along < 18 && side < 1.1) kHit(d, 118, 'rifle', { frag: 6, push: 2 }); } }, 200);
+  kAnalyze('rifle'); KAE_SAY('rifle');
+}
+function kaeFrame() {
+  if (!kCan() || G.kcd.frame > 0) return; G.kcd.frame = KAE_CD.frame * kCdMul(); const t = kNearest(15); kFace(t); kAct('frame', 1.3); P.kLock = 1.25; P.invuln = Math.max(P.invuln, 1.3); sfx.kFrame();
+  const c = t ? { x: t.pos.x, z: t.pos.z } : { x: P.pos.x + Math.sin(P.facing) * 5, z: P.pos.z + Math.cos(P.facing) * 5 };
+  kFrameSeq(c, 4, 110, () => kFrameFinal(t && !t.dead ? { x: t.pos.x, z: t.pos.z } : c));
+  kAnalyze('frame'); KAE_SAY('frame');
+}
+function kaeFold() {
+  if (!kCan() || G.kcd.fold > 0) return; G.kcd.fold = KAE_CD.fold * kCdMul(); kAct('fold', 0.55); sfx.kFold(); kJump({ dur: 0.45, h: 1.0, spin: 2 }); P.kLock = 0.3;
+  const t = kNearest(9), cx = t ? t.pos.x : P.pos.x + Math.sin(P.facing) * 3.4, cz = t ? t.pos.z : P.pos.z + Math.cos(P.facing) * 3.4;
+  kCrumple(cx, cz, 5.5); kScreenWarp(); kRing(cx, cz, 9, 0.5, 0x8A70FF, 0.5, 0.08, 6);
+  for (const d of kAlive()) { const r = Math.hypot(d.pos.x - cx, d.pos.z - cz); if (r < 9) { d.pullT = 0.42; d.pullX = cx + (d.pos.x - cx) / (r || 1) * 0.9; d.pullZ = cz + (d.pos.z - cz) / (r || 1) * 0.9; } }
+  kLater(() => { if (G.mode !== 'kae') return; sfx.kCrumple(); G.shake = Math.max(G.shake || 0, 0.6); const gw = glowSprite(0xFFFFFF, 4); gw.position.set(cx, 1.2, cz); kAdd(gw, 0.3, (f, u) => { gw.scale.setScalar(4 * (1 - u) + 0.5); gw.material.opacity = 1 - u; });
+    kBurst(_t.set(cx, 1.2, cz), 22, 0xB8A8FF, 8, 1);
+    for (const d of kAlive()) if (Math.hypot(d.pos.x - cx, d.pos.z - cz) < 2.6) { kHit(d, 78, 'fold', { bind: 1.2, frag: 3 }); d.crushT = 0.7; } }, 500);
+  kAnalyze('fold'); KAE_SAY('fold');
+}
+function kaeEnt() {
+  if (!kCan() || G.kcd.ent > 0) return; const list = kAlive().filter(d => kDist(d) < 13).sort((a, b) => kDist(a) - kDist(b)).slice(0, 5);
+  if (!list.length) { popText(P.pos, 2.4, '対象なし', 'info'); return; } G.kcd.ent = KAE_CD.ent * kCdMul(); kAct('ent', 1.0); P.kLock = 0.45; sfx.kEnt(); sfx.kEntRise(0.95); kJump({ dur: 0.5, h: 1.2, spin: 1 });
+  G.kEntSeq = (G.kEntSeq || 0) + 1; list.forEach((d, i) => { d.entT = 7; d.entOrd = G.kEntSeq * 10 + i; });
+  for (const d of list) kHit(d, 18, 'ent', { shared: true });
+  kEntFx(list, 0.95);
+  kLater(() => { if (G.mode !== 'kae') return; sfx.kEntBurst(); G.shake = Math.max(G.shake || 0, 0.5); const fl = $('flash'); fl.style.opacity = 0.6; kLater(() => { fl.style.opacity = 0; }, 120);
+    for (const d of list) { if (d.dead) continue; kHit(d, 74, 'ent', { shared: true, crit: 0.2 }); kRing(d.pos.x, d.pos.z, 0.3, 2.6, 0x8FE4FF, 0.4, 1.3, 20); kBurst(_t.copy(d.pos).setY(1.4), 10, 0x8FE4FF, 7); } }, 950);
+  popText(P.pos, 2.9, '絡合 ×' + list.length, 'kana'); kAnalyze('ent'); KAE_SAY('ent');
+}
+function kaeWarp() {
+  if (!kCan() || G.kcd.warp > 0) return; G.kcd.warp = KAE_CD.warp * kCdMul(); const t = kNearest(12); sfx.kWarp(); popText(P.pos, 3.0, '歪曲軌道', 'kana');
+  P.invuln = Math.max(P.invuln, 0.9); P.kLock = 0.75;
+  if (!t) { kRiftTo({ x: P.pos.x + Math.sin(P.facing) * 7, z: P.pos.z + Math.cos(P.facing) * 7 }, null, { hide: 0.1, trail: true }); kAnalyze('warp'); return; }
+  const hops = [kSide(t, 1), kSide(t, -1), kPt(t, 1.3, Math.PI)], dmg = [36, 36, 64];
+  const hop = i => { if (i >= hops.length || G.mode !== 'kae' || t.dead) { P.kLock = 0; return; }
+    kRiftTo(kPt(t, 2.7, [Math.PI / 2, -Math.PI / 2, Math.PI][i]), () => { kFace(t); kAct('edge', 0.14); kArc(i === 2 ? 0x7AD8FF : 0xB8E8FF, i === 2); kHit(t, dmg[i], 'warp', { bleed: 1, crit: i === 2 ? 0.35 : 0.15 }); if (i === 2) kJump({ dur: 0.3, h: 1.2, flip: 1 }); kLater(() => hop(i + 1), 60); }, { hide: 0.07, trail: i === 0 }); };
+  hop(0); kAnalyze('warp'); KAE_SAY('warp');
+}
+function kaeMani() {
+  if (!kCan() || G.kcd.mani > 0) return; G.kcd.mani = KAE_CD.mani * kCdMul(); const t = kNearest(13); kFace(t); kAct('mani', 0.5); sfx.kJump(); P.kLock = 0.45; kJump({ dur: 0.32, h: 1.9, flip: 1 });
+  kLater(() => { if (G.mode !== 'kae') return; sfx.kMani(); G.shake = Math.max(G.shake || 0, 0.4); const o = { x: P.pos.x, z: P.pos.z };
+    for (let k = 0; k < 7; k++) { const a = k / 7 * TAU; kCluster(o.x + Math.cos(a) * 1.3, o.z + Math.sin(a) * 1.3, 0.9, k * 0.012, 22); }
+    const f = P.facing, end = kCrystalStorm(o, [f - 0.32, f, f + 0.32], 10, 0.62, 0.024, 1.0, 20);
+    kLater(() => { if (G.mode !== 'kae') return; const tt = t && !t.dead ? t : kNearest(12); if (!tt) return; sfx.kMani(); for (let k = 0; k < 9; k++) { const a = k / 9 * TAU; kCluster(tt.pos.x + Math.cos(a) * 1.5, tt.pos.z + Math.sin(a) * 1.5, 1.35, k * 0.015, 26); } kCluster(tt.pos.x, tt.pos.z, 1.8, 0.14, 40);
+      for (const e of kAlive()) if (e !== tt && kDist(e) < 12) for (let k = 0; k < 3; k++) kCluster(e.pos.x + rand(-0.8, 0.8), e.pos.z + rand(-0.8, 0.8), 1.1, 0.05 + k * 0.03, 18); }, end * 1000 * 0.6); }, 300);
+  kAnalyze('mani'); KAE_SAY('mani');
+}
+// ---- 位相安定（ガード／反射） ----
+function kaeGuard() {
+  if (G.pc === 'tco') return tcqGuard(); if (G.pc === 'amn') return amnGuard(); if (G.pc === 'yur') return yurGuard(); if (G.pc === 'rur') return rurGuard(); if (G.pc === 'mz') return mzGuardP();
+  if (P.kFull > 0) return fGuard();
+  if (G.state !== 'play' || G.mode !== 'kae' || G.kUlt || G.kcd.guard > 0) return; G.kcd.guard = 1.1; P.kGuard = 0.5; kAct('guard', 0.45); sfx.kGuard(); if (G.foe === 'amn' && G.aThr > 0) { G.aThr = 0; popText(P.pos, 3.2, '白糸 切断', 'athr'); } kJump({ to: kBack(0.5), dur: 0.18, h: 0.25 });
+  kRing(P.pos.x, P.pos.z, 0.6, 1.8, 0xA0E0FF, 0.45, 1.1, 6); popText(P.pos, 2.8, '位相安定', 'kana');
+}
+function kaeBarr() {
+  if (!kCan() || G.kcd.barr > 0) return; G.kcd.barr = KAE_CD.barr * kCdMul(); const t = kNearest(20); kFace(t); kAct('barr', 1.4); P.kLock = 1.15; P.kRise = 1.35; sfx.kBarr();
+  kBarrStart(1.25, 14, 0.05); popText(P.pos, 3.0, '歪曲弾幕', 'kana');
+  kAnalyze('barr'); KAE_SAY('barr');
+}
+// ---- 奥義：全位相収束（Furioso形式：全手段の連続行使） ----
+const KAE_ULT = ['rifle2', 'spike', 'frame', 'edge', 'arm2', 'warp', 'barr', 'fold', 'ent', 'mani', 'flurry', 'blade'];
+function kaeUlt() {
+  if (!kCan() || G.kAna.size < KAE_T.length) { if (G.state === 'play' && G.mode === 'kae' && !G.kUlt) popText(P.pos, 2.6, '解析 ' + G.kAna.size + '/' + KAE_T.length, 'info'); return; }
+  const main = kBoss() && !kBoss().dead && kDist(kBoss()) < 18 ? kBoss() : kNearest(16); if (!main) { popText(P.pos, 2.6, '対象なし', 'info'); return; }
+  G.kUlt = { step: -1, t: 0, next: 0.9, main, reuse: 0, uses: G.kUltUses }; G.kUltUses++; P.invuln = 99; G.kAna.clear(); G.hudKey = '';
+  banner('全位相収束', 'kae'); say(P, pick(KAE_VO.ult), 2); sfx.kUltStart(); G.shake = 0.4; kRing(P.pos.x, P.pos.z, 1, 14, 0x7A6BFF, 0.9, 0.1, 6); kRing(P.pos.x, P.pos.z, 1, 10, 0xDDE4FF, 0.7, 1.4, 6);
+  const cv = renderer.domElement; cv.style.filter = 'saturate(.55) contrast(1.15) brightness(.85) hue-rotate(-12deg)';
+}
+function kUltTarget(first) { const all = kAlive().filter(d => kDist(d) < 16 || d === G.kUlt.main); if (first && !G.kUlt.main.dead) return G.kUlt.main; return all.length ? pick(all) : null; }
+function kBlinkTo(d, side) { const a0 = { x: P.pos.x, z: P.pos.z }, a = rand(0, TAU) + (side || 0), rr = rand(2.3, 3.1), to = { x: d.pos.x + Math.sin(a) * rr, z: d.pos.z + Math.cos(a) * rr }, face = Math.atan2(to.x - a0.x, to.z - a0.z);
+  kRift(a0.x, a0.z, face, 0.26); kRift(to.x, to.z, face + Math.PI, 0.28); sfx.kRiftIn();
+  P.pos.set(to.x, 0, to.z); resolve(AREAS[P.area], P.pos, 0.38); kFace(d); P.kHide = 0.045; P.kEmerge = 0.16;
+  const r = Math.random(); P.kJ = { t: 0, dur: 0.2, h: 0.5 + Math.random() * 0.8, flip: r < 0.3 ? 1 : r < 0.45 ? -1 : 0, spin: r >= 0.6 ? (Math.random() < 0.5 ? 1 : -1) : 0, from: null, to: null };
+  kBurst(_t.copy(P.pos).setY(1.1), 4, 0xDDE4FF, 2.5); }
+function kUltStep(s) {
+  const U = G.kUlt, key = KAE_ULT[s], d = kUltTarget(s === 0); if (!d && key !== 'blade') return 0.04;
+  const lbl = { rifle2: '位相断・双', spike: '錨', frame: '不可能幾何', edge: '折刃', arm2: '可変腕・双', fold: '折り畳み', ent: '絡合', mani: '実体化', warp: '歪曲軌道', barr: '歪曲弾幕', flurry: '折刃・連', blade: '次元断層・一閃' }[key];
+  if (key !== 'flurry' || U.reuse === 0) popText(P.pos, 3.3, lbl, 'kult');
+  if (key === 'rifle2') { kBlinkTo(d); kAct('rifle', 0.3); sfx.kBeam(); for (let k = 0; k < 2; k++) kLater(() => { if (!G.kUlt) return; kBeam(P.pos, d.pos, 0x6FA8FF, 0.22, 0.18); kHit(d, 70, 'rifle', { frag: 8 }); }, k * 90); return 0.26; }
+  if (key === 'spike') { kBlinkTo(d); kAct('spike', 0.24); sfx.kThrow(); kSpikeFx(P.pos.clone(), d, () => kHit(d, 60, 'spike', { bind: 4 })); return 0.22; }
+  if (key === 'frame') { kAct('frame', 0.5); const c = { x: d.pos.x, z: d.pos.z }; kFrameSeq(c, 2, 70, () => { if (G.kUlt) kFrameFinal(d.dead ? c : { x: d.pos.x, z: d.pos.z }); }); return 0.85; }
+  if (key === 'edge') { kBlinkTo(d); kAct('edge', 0.16); sfx.kSlash(); kArc(0xB8C0FF, true); kHit(d, 78, 'edge', { bleed: 2 }); return 0.17; }
+  if (key === 'arm2') { kBlinkTo(d); kAct('arm', 0.26); sfx.kArm(); for (const off of [-0.5, 0.5]) kArmFx(P.pos.x + Math.sin(P.facing + Math.PI / 2) * off, P.pos.z + Math.cos(P.facing + Math.PI / 2) * off, P.facing, 2.2); kLater(() => { if (!G.kUlt) return; kHit(d, 64, 'arm', { knock: 2 }); kHit(d, 64, 'arm', { knock: 2 }); }, 80); return 0.25; }
+  if (key === 'warp') { const a0 = { x: P.pos.x, z: P.pos.z }; kBlinkTo(d, Math.PI / 2); kWarpTrail(a0, P.pos); sfx.kWarp(); kAct('edge', 0.14); kArc(0x7AD8FF, true); kHit(d, 40, 'warp', { bleed: 1 }); kLater(() => { if (!G.kUlt || d.dead) return; kBlinkTo(d, -Math.PI / 2); kAct('edge', 0.14); kArc(0xB8E8FF, true); kHit(d, 40, 'warp', { bleed: 1 }); kLater(() => { if (!G.kUlt || d.dead) return; kBlinkTo(d, Math.PI); kAct('edge', 0.14); kArc(0x7AD8FF, true); kHit(d, 60, 'warp', { bleed: 2, crit: 0.3 }); }, 90); }, 90); return 0.32; }
+  if (key === 'fold') { kAct('fold', 0.3); sfx.kFold(); const cx = d.pos.x, cz = d.pos.z; kCrumple(cx, cz, 6, 0.6, 0.12); kScreenWarp(); for (const e of kAlive()) { const r = Math.hypot(e.pos.x - cx, e.pos.z - cz); if (r < 12 && r > 0.1) { e.pullT = 0.2; e.pullX = cx + (e.pos.x - cx) / r * 1.2; e.pullZ = cz + (e.pos.z - cz) / r * 1.2; } } kLater(() => { if (!G.kUlt) return; sfx.kCrumple(); for (const e of kAlive()) if (Math.hypot(e.pos.x - cx, e.pos.z - cz) < 3) { kHit(e, 60, 'fold', { bind: 3 }); e.crushT = 0.6; } }, 220); kBlinkTo(d); P.kJ.spin = 2; return 0.3; }
+  if (key === 'ent') { kAct('ent', 0.3); sfx.kEnt(); sfx.kEntRise(0.5); G.kEntSeq = (G.kEntSeq || 0) + 1; const l = kAlive().filter(e => Math.hypot(e.pos.x - d.pos.x, e.pos.z - d.pos.z) < 11).slice(0, 6); l.forEach((e, i) => { e.entT = 6; e.entOrd = G.kEntSeq * 10 + i; }); kEntFx(l, 0.5); kHit(d, 50, 'ent'); kLater(() => { if (!G.kUlt) return; sfx.kEntBurst(); for (const e of l) if (!e.dead) kHit(e, 70, 'ent', { shared: true }); }, 500); return 0.28; }
+  if (key === 'mani') { kBlinkTo(d); kAct('mani', 0.3); sfx.kMani(); const o = { x: P.pos.x, z: P.pos.z }, f = Math.atan2(d.pos.x - o.x, d.pos.z - o.z); kCrystalStorm(o, [f - 0.4, f, f + 0.4], 7, 0.6, 0.018, 1.0, 22); for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; kCluster(d.pos.x + Math.cos(a) * 1.5, d.pos.z + Math.sin(a) * 1.5, 1.4, 0.12 + k * 0.012, 30); } kCluster(d.pos.x, d.pos.z, 2.0, 0.2, 50); return 0.42; }
+  if (key === 'flurry') { kBlinkTo(d); kAct('edge', 0.08); sfx.kSlash(); kArc(U.reuse % 2 ? 0x9FA8FF : 0xDDE4FF, false, U.reuse % 2); kHit(d, 46, 'edge', { bleed: 1, crit: 0.25 }); U.reuse++; if (U.reuse < 7) return 0.065; U.reuse = 0; return 0.2; }
+  if (key === 'barr') { kBlinkTo(d); kAct('barr', 0.6); sfx.kBarr(); kBarrStart(0.55, 10, 0.05); return 0.55; }
+  if (key === 'blade') {
+    const m = U.main.dead ? (d || U.main) : U.main, grp = kAlive().filter(e => Math.hypot(e.pos.x - m.pos.x, e.pos.z - m.pos.z) < 8);
+    const c = grp.reduce((a, e) => ({ x: a.x + e.pos.x / grp.length, z: a.z + e.pos.z / grp.length }), { x: 0, z: 0 });
+    // 集団の手前へ、裂け目から出て構える
+    let ux = P.pos.x - c.x, uz = P.pos.z - c.z, ul = Math.hypot(ux, uz) || 1; ux /= ul; uz /= ul;
+    const st = { x: c.x + ux * 7.5, z: c.z + uz * 7.5 }; const sv = new THREE.Vector3(st.x, 0, st.z); resolve(AREAS[P.area], sv, 0.38);
+    kRift(P.pos.x, P.pos.z, 0, 0.3); kRift(sv.x, sv.z, Math.atan2(c.x - sv.x, c.z - sv.z), 0.4); sfx.kRiftIn(); P.pos.set(sv.x, 0, sv.z); P.kHide = 0.06; P.kEmerge = 0.2;
+    P.facing = Math.atan2(c.x - P.pos.x, c.z - P.pos.z); kAct('blade', 1.4); P.kRise = 0;
+    const charge = 1.0, swingAt = 1.05, swingDur = 0.16;
+    kBladeFx(charge, swingAt, swingDur, true); sfx.kBladeCharge(); say(P, pick(KAE_VO.fin), 2.4); renderer.domElement.style.filter = 'saturate(.35) contrast(1.25) brightness(.7) hue-rotate(-15deg)'; G.kRumble = 1.0;
+    kLater(() => { if (!G.kUlt) return;
+      // 一直線に、一瞬で突き抜ける
+      const fx = Math.sin(P.facing), fz = Math.cos(P.facing), from = { x: P.pos.x, z: P.pos.z }, A = AREAS[P.area];
+      let far = 0; for (const e of kAlive()) { const along = (e.pos.x - from.x) * fx + (e.pos.z - from.z) * fz, side = Math.abs((e.pos.x - from.x) * fz - (e.pos.z - from.z) * fx); if (side < 3 && along > far) far = along; }
+      let L = Math.max(10, far + 3.5); for (let s = 0.5; s <= L; s += 0.5) { const [ci, cj] = cellOf(from.x + fx * s, from.z + fz * s); if (A.solid[cj * W + ci]) { L = s - 0.8; break; } }
+      const to = { x: from.x + fx * L, z: from.z + fz * L };
+      for (let i = 0; i < 6; i++) kAfter(from.x + fx * L * i / 6, from.z + fz * L * i / 6);
+      kJump({ to, dur: 0.09, h: 0.1 }); kAct('dashcut', 1.2); kSlashLine(from, to, 0.9); sfx.kBigSlash(); kSplitScreen(); G.shake = 1.1; G.kRumble = 0;
+      const fl = $('flash'); fl.style.opacity = 1; kLater(() => { fl.style.opacity = 0; }, 200);
+      kLater(() => { if (!G.kUlt) return; G.slowT = 0.6; renderer.domElement.style.filter = 'saturate(.6) contrast(1.2) brightness(1.15)';
+        const hit = []; for (const e of kAlive()) { const ex = e.pos.x - from.x, ez = e.pos.z - from.z, along = ex * fx + ez * fz, side = Math.abs(ex * fz - ez * fx); if ((along > -1 && along < L + 1 && side < 2.8) || e === m) { hit.push(e); kHit(e, e === m ? 1400 : 650, 'edge', { crit: 0.4, knock: 5, shared: true }); kBurst(_t.copy(e.pos).setY(1.4), 10, 0xFFFFFF, 6); } }
+        popText(P.pos, 3.6, '一閃', 'kqed');
+        kLater(() => { if (G.mode !== 'kae') return; sfx.kZure(); kZureLine(from, to); for (const e of hit) { e.sliceT = 0.9; if (!e.dead) kHit(e, 320, 'fold', { crit: 0, shared: true }); popText(e.pos, 3.0, 'ズレ', 'kana'); } }, 700);
+        kLater(() => { if (G.mode === 'kae') popText(m.pos, 3.4, 'Q.E.D.', 'kqed'); }, 1150); }, 90);
+    }, swingAt * 1000);
+    return 2.9; }
+  return 0.15;
+}
+function kUltTick(dt) {
+  const U = G.kUlt; if (!U) return; U.t += dt; U.next -= dt; if (U.next > 0) return;
+  if (!U.reuse) U.step++;
+  if (U.step >= KAE_ULT.length) return kUltEnd();
+  U.next = Math.abs(kUltStep(U.step));
+}
+function kUltEnd() {
+  G.kUlt = null; P.invuln = 0.6; P.kRise = 0; G.kOver = 7; G.hudKey = ''; renderer.domElement.style.filter = ''; banner('演算負荷――冷却中', 'kae'); kLater(() => { if (G.mode === 'kae' && G.state === 'play') say(P, pick(KAE_VO.over), 2); }, 600);
+}
+function kaeBodyVisual(dt, t) {
+  const m = kaeModel, A = P.kAct, u = A ? Math.min(1, A.t / A.dur) : 0;
+  if (dt > 0) { const sp = Math.hypot(P.pos.x - (P.kpx ?? P.pos.x), P.pos.z - (P.kpz ?? P.pos.z)) / dt; P.lastSpd = (P.lastSpd || 0) * 0.8 + Math.min(20, sp) * 0.2; P.kpx = P.pos.x; P.kpz = P.pos.z; }
+  m.coreGlow.material.opacity = 0.6 + Math.sin(t * 5) * 0.2 + (G.kAna.size >= KAE_T.length ? 0.3 : 0); m.core.rotation.y += dt * (G.kUlt ? 12 : 2);
+  m.tail.rotation.x = Math.min(0.55, (P.lastSpd || 0) * 0.05) + Math.sin(t * 2) * 0.02; m.edge.visible = !A || ['edge', 'spike', 'guard'].includes(A.kind) || !!G.kUlt; m.rifle.visible = !!A && A.kind === 'rifle'; if (m.rifle.visible) m.edge.visible = false;
+  if (A) { const [L, R] = m.arms;
+    if (A.kind === 'edge') { R.rotation.x = -2.2 + u * 2.8; R.rotation.z = -0.6 + u * 0.9; L.rotation.x = -0.4; m.g.rotation.y = (0.5 - u) * 0.6; }
+    if (A.kind === 'arm') { L.rotation.x = -1.6; L.rotation.z = 0.15; R.rotation.x = -0.3; }
+    if (A.kind === 'spike') { R.rotation.x = u < 0.4 ? -2.6 : -2.6 + (u - 0.4) * 4.5; L.rotation.x = -0.6; }
+    if (A.kind === 'rifle') { R.rotation.x = -1.5; R.rotation.z = 0.25; L.rotation.x = -1.45; L.rotation.z = -0.55; }
+    if (A.kind === 'frame') { R.rotation.x = -2.9; R.rotation.z = -0.2; L.rotation.x = -0.3; }
+    if (A.kind === 'fold') { L.rotation.x = -1.5; R.rotation.x = -1.5; L.rotation.z = 0.5 - u * 0.6; R.rotation.z = -0.5 + u * 0.6; }
+    if (A.kind === 'ent') { L.rotation.x = -1.2; R.rotation.x = -1.2; L.rotation.z = 1.0; R.rotation.z = -1.0; }
+    if (A.kind === 'mani') { R.rotation.x = -0.6; L.rotation.x = -0.6; m.root.position.y -= Math.sin(u * Math.PI) * 0.25; }
+    if (A.kind === 'barr') { L.rotation.x = -2.2; R.rotation.x = -2.2; L.rotation.z = 0.9; R.rotation.z = -0.9; }
+    if (A.kind === 'dashcut') { R.rotation.x = -1.4; R.rotation.z = 1.3; L.rotation.x = 0.4; m.g.rotation.y = -0.6; }
+    if (A.kind === 'blade') { R.rotation.x = -2.9; R.rotation.z = -0.5; L.rotation.x = -1.2; L.rotation.z = 0.6; }
+    if (A.kind === 'guard') { L.rotation.x = -1.7; L.rotation.z = 0.3; R.rotation.x = -1.0; }
+  } else m.g.rotation.y = 0;
+  m.g.position.z = 0; m.g.rotation.x = 0; m.g.rotation.z = 0;
+  if (P.kJ) { const J = P.kJ, uu = Math.min(1, J.t / J.dur), C0 = 1.1; m.root.position.y += Math.sin(uu * Math.PI) * J.h;
+    if (J.flip) { const th = J.flip * uu * TAU; m.g.rotation.x = th; m.g.position.y = C0 - C0 * Math.cos(th); m.g.position.z = -C0 * Math.sin(th); }
+    if (J.spin) m.root.rotation.y += J.spin * uu * TAU; }
+  if (P.kRise > 0) m.root.position.y += Math.min(1, P.kRise / 0.4) * 1.6;
+  if (G.kUlt) m.root.position.y += 0.25 + Math.sin(t * 6) * 0.08;
+  if (P.kWarpFx > 0) { const k = P.kWarpFx / 0.35; m.g.scale.set(1.12 * (1 - k * 0.6), 1.12 * (1 + k * 0.8), 1.12 * (1 - k * 0.6)); } else m.g.scale.setScalar(1.12);
+  m.root.visible = !(P.kHide > 0 && P.kDive <= 0);
+  if (P.kDive > 0) { const k = 1 - P.kDive / 0.05; m.g.scale.set(1.12 * (1 - k * 0.85), 1.12 * (1 + k * 0.4), 1.12 * (1 - k * 0.85)); }
+  else if (P.kEmerge > 0) { const k = P.kEmerge / 0.16; m.g.scale.set(1.12 * (1 - k * 0.8), 1.12 * (1 + k * 0.5), 1.12 * (1 - k * 0.8)); }
+  P.kWarpHit = Math.max(0, (P.kWarpHit || 0) - dt); if (P.kWarpHit > 0) { const k = P.kWarpHit / 0.12; m.g.scale.x *= 1 + Math.sin(t * 61) * 0.7 * k; m.g.scale.y *= 1 - 0.45 * k + Math.sin(t * 47) * 0.2 * k; m.g.scale.z *= 1 + Math.sin(t * 53 + 1) * 0.7 * k; m.g.rotation.z += Math.sin(t * 41) * 0.6 * k; m.g.rotation.y += k * 1.2; }
+  P.kWarpBody = Math.max(0, (P.kWarpBody || 0) - dt); if (P.kWarpBody > 0) { const k = Math.min(1, P.kWarpBody * 1.4); m.g.scale.x *= 1 + Math.sin(t * 37) * 0.32 * k; m.g.scale.y *= 1 + Math.sin(t * 29 + 1) * 0.26 * k; m.g.scale.z *= 1 + Math.sin(t * 43 + 2) * 0.32 * k; m.g.rotation.z += Math.sin(t * 23) * 0.3 * k; m.g.rotation.x += Math.sin(t * 17) * 0.18 * k; if (Math.sin(t * 57) > 0.93) m.root.visible = false; }
+  kaeAura.visible = (G.kAna.size >= KAE_T.length || !!G.kUlt) && m.root.visible; if (kaeAura.visible) { kaeAura.position.set(P.pos.x, 1.2 + m.root.position.y, P.pos.z); kaeAura.material.opacity = 0.35 + Math.sin(t * 6) * 0.15; }
+}
+const FULL_T = { fist: ['拳', 0xFFB070], wcut: ['断空', 0x8FD8FF], rap: ['猛禽連撃', 0xFF8A5A], wing: ['翼撃旋風', 0xE8D0B0], dive: ['急降下', 0xFF6A4A], fult: ['崩界・千撃', 0xFFFFFF] };
+for (const k in FULL_T) KAE_BY[k] = { k, n: FULL_T[k][0], col: FULL_T[k][1] };
+const FULL_VO = { on: '……ここからは、計算は要らない', end: '……戻ろう。ここからは、また解析だ', hit: ['遅い', 'まだだ', '――そこ', '砕けろ', '見えてる'], ult: '……逃がさない。そこに、縫い留める', fin: '……終わりだ', wcut: ['跳ぶ', '断つ'], rap: ['おおおっ！', '止まるな'], dive: ['落ちろ'], wing: ['吹き飛べ'] };
+const fSay = (k, d = 1.1) => { if (Math.random() < 0.85) say(P, Array.isArray(FULL_VO[k]) ? pick(FULL_VO[k]) : FULL_VO[k], d); };
+function makeJavaHead(parent, y, z, s = 1) {
+  const head = new THREE.Group(); head.position.set(0, y, z); head.scale.setScalar(s); parent.add(head);
+  const CAP = 0x8A5A3C, BASE = 0xB98A68, WH = 0xFBF7F1, BEAK = 0xEF7482, BEAK2 = 0xD65E6C, RING = 0xD8404E;
+  part(sph(0.29, 18, 14), BASE, 0, 0, 0, head, { s: [0.96, 1.0, 1.08], ol: 1.05 });
+  part(G_('jcap', () => new THREE.SphereGeometry(0.297, 18, 12, 0, TAU, 0, Math.PI * 0.42)), CAP, 0, 0.012, -0.004, head, { s: [0.96, 1, 1.08], outline: false });
+  part(G_('jnape', () => new THREE.SphereGeometry(0.296, 16, 10, Math.PI * 1.1, Math.PI * 0.8, Math.PI * 0.3, Math.PI * 0.45)), CAP, 0, 0, -0.01, head, { s: [0.96, 1, 1.08], outline: false });
+  for (const sx of [-1, 1]) part(sph(0.19, 14, 12), WH, sx * 0.135, -0.075, 0.08, head, { s: [0.72, 0.92, 1.08], outline: false });
+  part(box(0.12, 0.06, 0.12), CAP, 0, -0.2, 0.19, head, { outline: false, rx: 0.3 });
+  part(cyl(0.135, 0.12, 0.05, 14), 0xF59AA4, 0, -0.05, 0.27, head, { outline: false, rx: Math.PI / 2 });
+  part(G_('jbeak', () => { const c = new THREE.ConeGeometry(0.13, 0.36, 16); c.rotateX(Math.PI / 2); return c; }), BEAK, 0, -0.03, 0.43, head, { ol: 1.05 });
+  part(G_('jbeak2', () => { const c = new THREE.ConeGeometry(0.1, 0.26, 14); c.rotateX(Math.PI / 2); return c; }), BEAK2, 0, -0.09, 0.39, head, NO);
+  part(box(0.2, 0.012, 0.22), 0xB84858, 0, -0.065, 0.39, head, NO); part(sph(0.03, 8, 6), 0xFFD0D6, 0, 0.03, 0.5, head, { outline: false, s: [1, 0.6, 1.4] });
+  for (const sx of [-1, 1]) { const e = new THREE.Group(); e.position.set(sx * 0.19, 0.055, 0.15); e.rotation.y = sx * 0.85; head.add(e);
+    part(G_('jring2', () => new THREE.TorusGeometry(0.072, 0.027, 8, 20)), RING, 0, 0, 0, e, { outline: false }); part(sph(0.066, 12, 10), 0x1A0608, 0, 0, 0.012, e, { outline: false, s: [1, 1, 0.75] }); part(sph(0.03, 8, 6), 0x3A1018, 0, -0.012, 0.052, e, { outline: false, s: [1, 1, 0.4] });
+    part(sph(0.021, 8, 6), 0xFFFFFF, 0.024, 0.026, 0.06, e, NO); part(sph(0.009, 6, 4), 0xFFFFFF, -0.022, -0.02, 0.058, e, NO); }
+  return head;
+}
+// ---- モデル：上半身裸の筋肉質な文鳥（茶の羽毛、白い胸と腹）、黒い戦闘ズボン、装甲ブーツ。膝と肘に関節 ----
+function makeKaFull() {
+  const root = new THREE.Group(); scene.add(root); root.visible = false; const g = new THREE.Group(); g.scale.setScalar(1.08); root.add(g);
+  const TAN = 0xB98058, TAN2 = 0xA06A44, CREAM = 0xF3E8D8, BK = 0x18171E, DG = 0x2A2932, MT = 0x6A6A78, VI = 0x8A6BFF, GLV = { emis: 0x6A4CFF, outline: false }, NOL = { outline: false };
+  const legs = [], arms = [], knees = [], elbows = [], feet = [], fists = [];
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.145, 1.045, 0); g.add(pv);
+    part(cyl(0.128, 0.104, 0.5, 12), BK, 0, -0.24, 0, pv, { ol: 1.05 }); for (let k = 0; k < 2; k++) part(box(0.004, 0.4, 0.2), 0x26252E, sx * (0.07 + k * 0.025), -0.26, 0, pv, NOL);
+    part(box(0.085, 0.26, 0.15), DG, sx * 0.128, -0.22, 0.02, pv, { ol: 1.06 }); part(box(0.02, 0.2, 0.03), MT, sx * 0.172, -0.22, 0.05, pv, NOL);
+    for (const y of [-0.14, -0.32]) part(G_('fstrap', () => new THREE.TorusGeometry(0.128, 0.016, 6, 18)), 0x0F0E14, 0, y, 0, pv, { outline: false, rx: Math.PI / 2 });
+    part(G_('ftri', () => new THREE.ConeGeometry(0.03, 0.05, 3)), VI, sx * 0.128, -0.36, 0.1, pv, GLV);
+    const kn = new THREE.Group(); kn.position.set(0, -0.48, 0); pv.add(kn); part(sph(0.108, 10, 8), BK, 0, 0, 0.01, kn, NOL);
+    part(cyl(0.106, 0.096, 0.26, 12), BK, 0, -0.12, 0, kn, { ol: 1.05 });
+    part(box(0.21, 0.3, 0.26), 0x14131A, 0, -0.37, 0.02, kn, { ol: 1.05 }); part(box(0.23, 0.07, 0.4), 0x2E2D36, 0, -0.53, 0.06, kn, { ol: 1.04 }); part(box(0.2, 0.1, 0.16), 0x14131A, 0, -0.48, 0.18, kn, { ol: 1.05 });
+    for (const y of [-0.28, -0.38]) part(box(0.22, 0.03, 0.27), MT, 0, y, 0.02, kn, NOL);
+    part(G_('ftri2', () => new THREE.ConeGeometry(0.04, 0.06, 3)), VI, 0, -0.26, 0.16, kn, { emis: 0x7A5CFF, outline: false, rx: Math.PI / 2 }); part(G_('ftri2', () => null), VI, 0, -0.48, 0.27, kn, { emis: 0x7A5CFF, outline: false, rx: Math.PI / 2 });
+    const ft = new THREE.Group(); ft.position.set(0, -0.42, 0.05); kn.add(ft); feet.push(ft);
+    legs.push(pv); knees.push(kn); }
+  part(cyl(0.27, 0.27, 0.18, 16), BK, 0, 1.05, 0, g, { ol: 1.04 }); part(cyl(0.28, 0.28, 0.07, 16), 0x0F0E14, 0, 1.12, 0, g, NOL); part(box(0.14, 0.08, 0.04), MT, 0, 1.12, 0.27, g, NOL); part(box(0.04, 0.04, 0.045), VI, 0, 1.12, 0.28, g, GLV);
+  for (const sx of [-1, 1]) { part(box(0.045, 0.34, 0.02), 0x2E2D36, sx * 0.11, 0.93, 0.26, g, { outline: false, rz: sx * 0.05 }); part(box(0.05, 0.03, 0.025), MT, sx * 0.11, 0.85, 0.27, g, NOL); }
+  const torso = new THREE.Group(); g.add(torso);
+  part(cyl(0.22, 0.27, 0.32, 16), TAN, 0, 1.29, 0, torso, { ol: 1.04 });
+  part(sph(0.31, 18, 14), TAN, 0, 1.59, -0.01, torso, { s: [1.18, 0.86, 0.74], ol: 1.04 });
+  for (const sx of [-1, 1]) { part(sph(0.16, 14, 10), CREAM, sx * 0.12, 1.62, 0.13, torso, { s: [1.05, 0.78, 0.58], ol: 1.03 }); part(sph(0.1, 10, 8), TAN2, sx * 0.25, 1.49, 0.08, torso, { s: [0.7, 1.4, 0.6], outline: false }); }
+  part(box(0.19, 0.42, 0.06), CREAM, 0, 1.27, 0.19, torso, NOL);
+  for (let r = 0; r < 3; r++) for (const sx of [-1, 1]) part(box(0.082, 0.072, 0.05), CREAM, sx * 0.048, 1.16 + r * 0.095, 0.215, torso, { ol: 1.08 });
+  part(box(0.008, 0.3, 0.012), 0xD8C8B4, 0, 1.25, 0.245, torso, NOL);
+  for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) part(box(0.06, 0.025, 0.05), TAN2, sx * 0.21, 1.27 + k * 0.06, 0.14, torso, { outline: false, rz: sx * 0.5 });
+  for (const sx of [-1, 1]) { part(sph(0.135, 12, 10), TAN, sx * 0.37, 1.7, 0, torso, { ol: 1.05 }); part(sph(0.12, 10, 8), TAN, sx * 0.17, 1.81, -0.04, torso, { s: [1.2, 0.6, 1], outline: false }); }
+  part(cyl(0.14, 0.17, 0.2, 12), TAN, 0, 1.87, 0, torso, { ol: 1.04 }); part(box(0.16, 0.2, 0.06), CREAM, 0, 1.85, 0.12, torso, { outline: false, rx: -0.15 });
+  const tufts = [];
+  for (const sx of [-1, 1]) { const pv = new THREE.Group(); pv.position.set(sx * 0.41, 1.69, 0); torso.add(pv);
+    part(cyl(0.115, 0.095, 0.34, 12), TAN, 0, -0.17, 0, pv, { ol: 1.05 }); part(sph(0.1, 10, 8), TAN, 0, -0.16, 0.05, pv, { s: [1, 1.2, 0.9], outline: false });
+    const el = new THREE.Group(); el.position.set(0, -0.35, 0); pv.add(el); part(sph(0.09, 10, 8), TAN, 0, 0, 0, el, NOL);
+    part(cyl(0.095, 0.085, 0.26, 12), TAN, 0, -0.13, 0, el, { ol: 1.05 });
+    for (let k = 0; k < 3; k++) { const f = part(G_('ftuft', () => new THREE.ConeGeometry(0.035, 0.16, 4)), k % 2 ? TAN2 : TAN, sx * 0.08, -0.06 - k * 0.06, -0.05, el, NOL); f.rotation.set(0.9, 0, sx * 1.1); tufts.push(f); }
+    part(cyl(0.1, 0.095, 0.14, 12), BK, 0, -0.3, 0, el, { ol: 1.06 }); part(G_('fcuff', () => new THREE.TorusGeometry(0.1, 0.022, 6, 16)), MT, 0, -0.25, 0, el, { outline: false, rx: Math.PI / 2 }); part(G_('fcuff', () => null), MT, 0, -0.35, 0, el, { outline: false, rx: Math.PI / 2 });
+    part(box(0.025, 0.08, 0.02), VI, sx * 0.09, -0.3, 0.04, el, GLV);
+    part(box(0.15, 0.14, 0.15), BK, 0, -0.44, 0.01, el, { ol: 1.06 }); part(box(0.15, 0.04, 0.07), MT, 0, -0.4, 0.07, el, NOL); for (let k = 0; k < 4; k++) part(box(0.028, 0.03, 0.03), 0x3A3946, -0.055 + k * 0.037, -0.5, 0.08, el, NOL);
+    const fs = new THREE.Group(); fs.position.set(0, -0.44, 0.02); el.add(fs); fists.push(fs);
+    arms.push(pv); elbows.push(el); }
+  const head = makeJavaHead(torso, 2.12, 0.06, 0.9);
+  const crest = new THREE.Group(); crest.position.set(0, 0.24, -0.12); head.add(crest); const crestF = [];
+  for (let k = 0; k < 6; k++) { const f = part(G_('fcrest', () => new THREE.ConeGeometry(0.04, 0.26, 4)), k % 2 ? 0x7E4A2C : 0x9A5A36, (k - 2.5) * 0.04, 0, -k * 0.03, crest, NOL); crestF.push(f); }
+  const eyeGlow = []; for (const sx of [-1, 1]) { const s = glowSprite(0xFF4060, 0.2); s.position.set(sx * 0.22, 0.05, 0.17); s.material.opacity = 0; head.add(s); eyeGlow.push(s); }
+  // 望：次元光輪（拳と足に最大7つ）
+  const rings = [], hosts = [[elbows[1], -0.3], [elbows[0], -0.3], [knees[1], -0.3], [knees[0], -0.3], [elbows[1], -0.16], [elbows[0], -0.16], [knees[1], -0.16]];
+  hosts.forEach(([h, y], i) => { const r = new THREE.Group(); r.position.set(0, y, 0); h.add(r); const t1 = new THREE.Mesh(G_('fmang', () => new THREE.TorusGeometry(0.2, 0.022, 6, 32)), kMat(i % 2 ? 0xDDE4FF : 0xB89CFF, 0.95)); t1.rotation.x = Math.PI / 2; r.add(t1);
+    const t2 = new THREE.Mesh(G_('fmang2', () => new THREE.TorusGeometry(0.24, 0.008, 4, 32)), kMat(0xFFFFFF, 0.8)); t2.rotation.x = Math.PI / 2; r.add(t2); const gl = glowSprite(0x9A80FF, 0.32); r.add(gl); r.visible = false; rings.push({ r, t1, t2, gl, k: 0 }); });
+  const shin = new THREE.Mesh(sph(1, 16, 12), kMat(0xC9B8FF, 0.16)); shin.scale.set(0.75, 1.25, 0.7); shin.position.y = 1.15; shin.visible = false; root.add(shin);
+  const aura = glowSprite(0x8A6BFF, 2.6); aura.material.opacity = 0; root.add(aura); aura.position.y = 1.3;
+  blob(root, 0.6);
+  return { root, g, torso, legs, arms, knees, elbows, feet, fists, head, crest, crestF, tufts, eyeGlow, aura, rings, shin };
+}
+const FEA = []; { const geo = new THREE.PlaneGeometry(0.09, 0.26); for (let i = 0; i < 140; i++) { const m = new THREE.Mesh(geo, kMat(i % 3 ? 0xB98058 : 0xF6EEE2, 0.95)); m.visible = false; scene.add(m); FEA.push({ m, v: new THREE.Vector3(), s: new THREE.Vector3(), life: 0, max: 1 }); } }
+function fFeathers(x, y, z, n, spd = 5) { for (let i = 0; i < n; i++) { const p = FEA.find(q => q.life <= 0); if (!p) return; p.life = p.max = rand(0.6, 1.3); p.m.visible = true; p.m.position.set(x, y, z); p.v.set(rand(-1, 1) * spd, rand(0.2, 1.2) * spd * 0.7, rand(-1, 1) * spd); p.s.set(rand(-8, 8), rand(-8, 8), rand(-8, 8)); p.m.scale.setScalar(rand(0.7, 1.5)); } }
+function fFeaTick(dt) { for (const p of FEA) if (p.life > 0) { p.life -= dt; p.v.multiplyScalar(Math.exp(-2.2 * dt)); p.v.y -= 2.2 * dt; p.m.position.addScaledVector(p.v, dt); p.m.rotation.x += p.s.x * dt; p.m.rotation.y += p.s.y * dt; p.m.rotation.z += p.s.z * dt; p.m.material.opacity = Math.min(0.95, p.life / p.max * 2); if (p.life <= 0 || p.m.position.y < 0.02) { p.life = 0; p.m.visible = false; } } }
+// 空間のひび割れ：打点から光る亀裂が枝分かれして広がり、砕けて散る
+const fCrackGeo = new THREE.BoxGeometry(1, 1, 1), fVoidGeo = new THREE.CircleGeometry(1, 3);
+function fCrack(x, y, z, size = 1, life = 0.5) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.quaternion.copy(camera.quaternion); const segs = [], n = 4 + Math.round(size * 3);
+  for (let i = 0; i < n; i++) { let a = i / n * TAU + rand(-0.35, 0.35), px = 0, py = 0; const parts = 2 + (Math.random() * 2 | 0);
+    for (let k = 0; k < parts; k++) { const L = size * rand(0.16, 0.34) * (1 - k * 0.15); a += rand(-0.55, 0.55); const nx = px + Math.cos(a) * L, ny = py + Math.sin(a) * L;
+      const m = new THREE.Mesh(fCrackGeo, kMat(k ? 0xDDE4FF : 0xFFFFFF, 1)); m.position.set((px + nx) / 2, (py + ny) / 2, 0.01); m.rotation.z = a; m.scale.set(L, 0.035 * size * (1 - k * 0.25) + 0.012, 0.01); m.visible = false; g.add(m); segs.push({ m, d: k * 0.03 + rand(0, 0.02) });
+      if (Math.random() < 0.35) { const v = new THREE.Mesh(fVoidGeo, kMat(0x2A1A50, 0.8)); v.position.set(nx, ny, 0); v.rotation.z = rand(0, TAU); v.scale.setScalar(size * rand(0.04, 0.09)); v.visible = false; g.add(v); segs.push({ m: v, d: k * 0.03 + 0.03 }); }
+      px = nx; py = ny; } }
+  const glow = glowSprite(0x9A80FF, size * 1.4); g.add(glow); let shattered = false;
+  return kAdd(g, life, (f, u) => { const t = u * life; for (const q of segs) { q.m.visible = t >= q.d; if (q.m.material) q.m.material.opacity = u > 0.7 ? (1 - u) / 0.3 : 1; } glow.material.opacity = 0.8 * (1 - u);
+    if (!shattered && u > 0.7) { shattered = true; kBurst(_t.set(x, y, z), 4 + Math.round(size * 4), 0xB89CFF, 3 + size * 2, 0.6); } }); }
+const KANJI = ['', '一', '二', '三', '四', '五', '六', '七'];
+function fImpact(x, y, z, big) { const mg = G.kMang || 0, s = glowSprite(0xFFFFFF, big ? 2.2 : 1.2); s.position.set(x, y, z); kAdd(s, 0.16, (f, u) => { s.material.opacity = 1 - u; s.scale.setScalar((big ? 2.2 : 1.2) * (1 + u * 1.5)); });
+  fCrack(x, y, z, (big ? 1.5 : 0.8) + mg * 0.12, big ? 0.7 : 0.45);
+  if (mg > 0) { const r = new THREE.Mesh(G_('fmr', () => new THREE.TorusGeometry(1, 0.06, 6, 32)), kMat(0xC9B8FF, 0.9)); r.position.set(x, y, z); r.quaternion.copy(camera.quaternion); kAdd(r, 0.25, (f, u) => { r.scale.setScalar((0.3 + mg * 0.12) * (0.4 + u * 1.6)); r.material.opacity = 0.9 * (1 - u); }); }
+  kBurst(_t.set(x, y, z), big ? 8 : 4, 0xFFC090, big ? 6 : 4); if (big) fFeathers(x, y, z, 6, 6); }
+function fShock(x, z, r, big) { kRing(x, z, 0.3, r, 0xFFFFFF, 0.4, 0.1, 40); kRing(x, z, 0.3, r * 0.75, 0x8A6BFF, 0.5, 0.12, 6); kRing(x, z, 0.2, r * 1.2, 0xFF8A5A, 0.55, 0.14, 24); kBurst(_t.set(x, 0.6, z), big ? 20 : 10, 0xFFD0A0, big ? 9 : 6, 1.2); fFeathers(x, 0.8, z, big ? 14 : 6, big ? 9 : 6);
+  for (let k = 0; k < (big ? 10 : 5); k++) { const m = new THREE.Mesh(box(rand(0.15, 0.4), rand(0.08, 0.2), rand(0.15, 0.35)), kMat(pick([0xD8D6D2, 0xBFBDB8, 0xE8E4DE]), 1)), a = rand(0, TAU), sp = rand(3, 8), vy = rand(4, 9); kAdd(m, 0.9, (f, u) => { const t = u * 0.9; m.position.set(x + Math.sin(a) * sp * t, Math.max(0.05, vy * t - 9.8 * t * t), z + Math.cos(a) * sp * t); m.rotation.x += 0.3; m.rotation.z += 0.2; m.material.opacity = 1 - Math.max(0, u - 0.6) / 0.4; }); }
+  G.shake = Math.max(G.shake || 0, big ? 0.85 : 0.4); }
+// 床のひび（放射状の亀裂が広がる）
+function fFloorCrack(x, z, R) { for (let i = 0; i < 12; i++) { let a = i / 12 * TAU + rand(-0.2, 0.2), px = x, pz = z; for (let k = 0; k < 4; k++) { const L = R * rand(0.15, 0.3); a += rand(-0.4, 0.4); const nx = px + Math.sin(a) * L, nz = pz + Math.cos(a) * L, m = new THREE.Mesh(fCrackGeo, kMat(k % 2 ? 0x8A6BFF : 0xFFFFFF, 0.95)); m.position.set((px + nx) / 2, 0.05, (pz + nz) / 2); m.rotation.y = Math.atan2(nx - px, nz - pz); m.scale.set(0.06 * (1 - k * 0.2), 0.02, L); m.visible = false; const d = k * 0.05;
+  kAdd(m, 1.4, (f, u) => { const t = u * 1.4; m.visible = t > d; m.material.opacity = 0.95 * (1 - Math.max(0, u - 0.5) / 0.5); }); px = nx; pz = nz; } } }
+function fGhost(x, z) { const s = glowSprite(0xB89CFF, 1.1); s.scale.set(1.1, 2.6, 1); s.position.set(x, 1.3, z); kAdd(s, 0.32, (f, u) => { s.material.opacity = 0.55 * (1 - u); }); const s2 = glowSprite(0xFF9A6A, 0.6); s2.position.set(x, 2.1, z); kAdd(s2, 0.25, (f, u) => { s2.material.opacity = 0.6 * (1 - u); }); }
+// 血清W式の跳躍：空間を一直線に突き抜け、細い「裂け目」を残す
+const FCUTS = [];
+function fSlit(a, b, life = 1.2, y0 = 1.2, y1 = 1.2) { const dx = b.x - a.x, dz = b.z - a.z, dy = y1 - y0, L = Math.hypot(dx, dz, dy) || 0.1, g = new THREE.Group(); g.position.set((a.x + b.x) / 2, (y0 + y1) / 2, (a.z + b.z) / 2); _kDir.set(dx / L, dy / L, dz / L); g.quaternion.setFromUnitVectors(_kUp, _kDir);
+  const core = new THREE.Mesh(box(0.05, L + 1.5, 0.05), kMat(0xFFFFFF, 1)), glow = new THREE.Mesh(box(0.35, L + 2, 0.02), kMat(0x8FD8FF, 0.7)), vert = new THREE.Mesh(box(0.02, L + 1.5, 1.2), kMat(0xB89CFF, 0.5)); g.add(glow); g.add(vert); g.add(core);
+  const o = { a: { x: a.x, z: a.z }, b: { x: b.x, z: b.z }, g, open: 0 }; FCUTS.push(o);
+  kAdd(g, life, (f, u) => { const k = o.open > 0 ? Math.max(0, 1 - (G.time - o.open) / 0.45) : 1 - u * 0.4; core.scale.x = core.scale.z = o.open > 0 ? 1 + (1 - k) * 6 : 1; glow.scale.x = o.open > 0 ? 1 + (1 - k) * 8 : 0.6 + Math.sin(G.time * 40) * 0.2; core.material.opacity = k; glow.material.opacity = 0.7 * k; vert.material.opacity = 0.5 * k; vert.scale.z = o.open > 0 ? 1 + (1 - k) * 3 : 1; if (u >= 0.99) { const i = FCUTS.indexOf(o); if (i >= 0) FCUTS.splice(i, 1); } }); return o; }
+function fBlinkTo(to, o = {}) { const A = AREAS[P.area], v = new THREE.Vector3(to.x, 0, to.z); resolve(A, v, 0.38); const a = { x: P.pos.x, z: P.pos.z }, L = Math.hypot(v.x - a.x, v.z - a.z);
+  for (let i = 0; i < 5; i++) fGhost(a.x + (v.x - a.x) * i / 5, a.z + (v.z - a.z) * i / 5); if (o.slit !== false && L > 1.5) { fSlit(a, v, o.life || 1.0); fCrack(a.x, 1.2, a.z, 0.9, 0.4); }
+  P.pos.set(v.x, 0, v.z); P.kEmerge = 0.1; sfx.fDash(); fFeathers(a.x, 1.0, a.z, 3, 4); return L; }
+function fNear(d, dist, ang) { return kPt(d, dist, ang || 0); }
+// ---- 音 ----
+Object.assign(sfx, {
+  fPunch: () => { if (performance.now() - (sfx._fp || 0) < 28) return; sfx._fp = performance.now(); kSub(150, 45, 0.16, 0.85); kCrunch(0.09, 0.5, 2200); kNoise(0.07, 0.4, 3000, 700, 'bandpass', 1.2); kTone(2600, 0.06, 'square', 0.012, 900); },
+  fHeavy: () => { kSub(95, 26, 0.5, 1.3); kCrunch(0.3, 0.75, 1200); kNoise(0.35, 0.6, 2400, 150, 'lowpass', 1); kTone(48, 0.4, 'sawtooth', 0.1, 28); kNoise(0.2, 0.4, 7000, 2500, 'highpass', 1, 0.03); },
+  fDash: () => { if (performance.now() - (sfx._fd || 0) < 35) return; sfx._fd = performance.now(); kNoise(0.16, 0.6, 600, 7000, 'bandpass', 2.4); kTone(1800, 0.12, 'sine', 0.03, 400); kSub(90, 40, 0.12, 0.4); },
+  fInject: () => { kNoise(0.35, 0.35, 6000, 9000, 'highpass', 1); kTone(2400, 0.3, 'sine', 0.025, 3600); kTone(300, 0.4, 'sawtooth', 0.04, 120, 0.15); },
+  fScreech: () => { kTone(1800, 0.55, 'sawtooth', 0.05, 3400); kTone(2200, 0.5, 'square', 0.025, 4200, 0.04); kNoise(0.6, 0.5, 2500, 6000, 'bandpass', 3); kSub(70, 40, 0.6, 0.7); },
+  fRoar: () => { kTone(110, 1.2, 'sawtooth', 0.09, 55); kTone(1400, 0.9, 'sawtooth', 0.045, 2800, 0.1); kNoise(1.2, 0.6, 300, 4000, 'bandpass', 1.4); kSub(45, 30, 1.4, 1.2); kCrunch(0.8, 0.5, 700); },
+  fOpen: () => { kNoise(0.7, 1.0, 7000, 200, 'bandpass', 0.7); kSub(80, 20, 1.6, 1.4); kCrunch(0.7, 0.8, 900); [988, 1318, 1760].forEach((f, k) => kTone(f, 1.2, 'triangle', 0.04, f * 0.97, k * 0.02)); },
+  fMang: n => { [523, 659, 784, 988, 1175, 1397, 1568].slice(0, n).forEach((f, k) => kTone(f, 0.5, 'triangle', 0.035, f, k * 0.03)); kSub(110, 70, 0.2, 0.3); },
+  fShin: () => { kTone(220, 1.0, 'sine', 0.05, 330); kNoise(1.0, 0.25, 200, 1800, 'bandpass', 4); kSub(60, 80, 0.8, 0.5); },
+  fCrackS: () => { if (performance.now() - (sfx._fc || 0) < 60) return; sfx._fc = performance.now(); kNoise(0.12, 0.35, 8000, 3000, 'highpass', 1); kTone(3200, 0.08, 'triangle', 0.015, 1600); },
+});
+const FULL_CD = { wcut: 4.5, rap: 5.5, wing: 5.5, dive: 6.0, shot: 1.5, shin: 12, heavy: 6.5, chase: 7.5 };
+const fCan = () => kCan() && P.kFull > 0 && !G.fUlt;
+function fRage(v) { const was = G.kRage; G.kRage = Math.min(100, G.kRage + v); if (was < 100 && G.kRage >= 100) { sfx.kReady(); banner('猛り、満ちる', 'kae'); say(P, '……まだ、足りない', 1.6); G.hudKey = ''; } }
+function fMangUp(n = 1) { const was = G.kMang || 0; G.kMang = Math.min(7, was + n); G.kMangIdle = 0; if (G.kMang > was) { popText(P.pos, 3.3, KANJI[G.kMang] + '望', 'kult'); sfx.fMang(G.kMang); const m = kaeFullModel; for (let i = was; i < G.kMang; i++) { const r = m.rings[i]; r.k = 0.01; } kRing(P.pos.x, P.pos.z, 0.3, 1.6 + G.kMang * 0.2, 0xC9B8FF, 0.4, 1.2, 32); } }
+function fHit(d, dmg, key, o = {}) { const mg = G.kMang || 0; const r = kHit(d, dmg * (1 + mg * 0.1) * (P.kShin > 0 ? 1.15 : 1), key, Object.assign({ crit: 0.18 }, o)); if (r) { fRage(o.rage === undefined ? 2.5 : o.rage); G.kMangIdle = 0; G.kMangHits = (G.kMangHits || 0) + 1; if (G.kMangHits >= 8) { G.kMangHits = 0; fMangUp(); } } return r; }
+function kaeFullOn() {
+  if (G.state !== 'play' || G.mode !== 'kae' || G.pc !== 'kae' || G.kUlt || G.fUlt || (G.kFullCd || 0) > 0) return;
+  if (P.kFull > 0) return kaeFullOff();
+  P.kFull = 1; G.kFullCd = 1.0; G.kRage = Math.max(G.kRage || 0, 20); G.fcd = G.fcd || {}; for (const k of ['combo', 'wcut', 'rap', 'wing', 'dive', 'guard', 'shot', 'shin', 'heavy', 'chase']) G.fcd[k] = G.fcd[k] || 0; G.fStep = 0; G.fStepT = -9; P.kLock = 0.8; P.invuln = Math.max(P.invuln, 0.9); G.hudKey = ''; G.fAutoT = 0;
+  banner('全力――猛禽態', 'kae'); say(P, FULL_VO.on, 2.2); if (G.foe === 'amn' && AB.st !== 'down') kLater(() => { if (amnOK()) amnSay('……その姿は、記録にない', 2.8); }, 1200);
+  sfx.fRoar(); sfx.kBreak(); G.shake = 0.9; const fl = $('flash'); fl.style.opacity = 0.8; kLater(() => { fl.style.opacity = 0; }, 180);
+  const c = { x: P.pos.x, z: P.pos.z }, bk = P.facing + Math.PI;
+  const coat = new THREE.Group(); part(box(0.7, 1.3, 0.06), 0xEDEDF2, 0, 0, 0, coat, { ol: 1.03 }); for (const sx of [-1, 1]) part(cyl(0.09, 0.085, 0.6, 8), 0xEDEDF2, sx * 0.42, 0.3, 0, coat, { rz: sx * 0.6 }); coat.position.set(c.x, 1.5, c.z);
+  kAdd(coat, 1.8, (f, u) => { const t = u * 1.8; coat.position.set(c.x + Math.sin(bk) * t * 5, Math.max(0.1, 1.5 + 5 * t - 5 * t * t), c.z + Math.cos(bk) * t * 5); coat.rotation.set(t * 3, t * 5, t * 2); coat.scale.setScalar(1 - Math.max(0, u - 0.7) / 0.3); });
+  for (let k = 0; k < 5; k++) { const m = new THREE.Mesh(box(k ? 0.12 : 0.14, k ? 0.06 : 0.16, k ? 0.4 : 0.8), kMat(k ? 0x9A8CFF : 0xDADAE2, 1)), a = rand(0, TAU), sp = rand(2, 5), vy = rand(3, 6); kAdd(m, 1.2, (f, u) => { const t = u * 1.2; m.position.set(c.x + Math.sin(a) * sp * t, Math.max(0.05, 1.2 + vy * t - 9.8 * t * t), c.z + Math.cos(a) * sp * t); m.rotation.x += 0.4; m.rotation.y += 0.3; m.material.opacity = 1 - Math.max(0, u - 0.6) / 0.4; }); }
+  fShock(c.x, c.z, 6, true); fFeathers(c.x, 1.4, c.z, 30, 8); for (let k = 0; k < 6; k++) fCrack(c.x + rand(-1.5, 1.5), rand(0.8, 2.2), c.z + rand(-1.5, 1.5), rand(1, 1.6), 0.8);
+  kaeModel.root.visible = false; kaeFullModel.root.visible = true; me = kaeFullModel; kaeAura.visible = false; kAct('roar', 0.9); kPageUI();
+}
+function kaeFullOff() { if (!(P.kFull > 0) && me !== kaeFullModel) return; P.kFull = 0; P.kShin = 0; G.fUlt = null; G.fDive = null; P.fY = 0; G.kFullCd = 1.0; kaeFullModel.root.visible = false; kaeModel.root.visible = true; me = kaeModel; renderer.domElement.style.filter = ''; G.hudKey = '';
+  if (G.state === 'play' && G.mode === 'kae') { banner('全力――解除', 'kae'); say(P, FULL_VO.end, 2.0); kRing(P.pos.x, P.pos.z, 0.5, 4, 0xB89CFF, 0.5); fFeathers(P.pos.x, 1.4, P.pos.z, 16, 4); } kPageUI(); }
+function fMoveTo(to, dur, y0, y1, onEnd) { G.fMove = { from: { x: P.pos.x, z: P.pos.z }, to, t: 0, dur, y0, y1, onEnd }; }
+function fMoveTick(dt) { const M = G.fMove; if (!M) return; M.t += dt; const u = Math.min(1, M.t / M.dur), e = u * u; P.pos.x = M.from.x + (M.to.x - M.from.x) * e; P.pos.z = M.from.z + (M.to.z - M.from.z) * e; P.fY = M.y0 + (M.y1 - M.y0) * e; fGhost(P.pos.x, P.pos.z);
+  if (u >= 1) { G.fMove = null; const v = new THREE.Vector3(P.pos.x, 0, P.pos.z); resolve(AREAS[P.area], v, 0.38); P.pos.copy(v); P.fY = M.y1; if (M.onEnd) M.onEnd(); } }
+// 吹き飛ばす：打点の反対側から押し出す
+// 吹き飛ばし：power から飛距離を決め、弧を描いて飛ぶ。壁に当たると激突してひびが入る
+function fLaunch(d, dir, power) { const D = Math.min(24, power * 1.25) * (d.boss ? 0.6 : 1), dur = 0.45 + D * 0.022; d.kv.set(0, 0, 0); d.fly = { t: 0, dur, D, dir, sx: d.pos.x, sz: d.pos.z, h: 1.2 + D * 0.12, spin: (Math.random() < 0.5 ? -1 : 1) * (4 + D * 0.4) }; d.wobV += power * 2;
+  if (D > 8) { const s = glowSprite(0xFFFFFF, 1); kAdd(s, dur, (f, u) => { s.position.set(d.pos.x, (d.pos.y || 0) + 1.2, d.pos.z); s.material.opacity = 0.5 * (1 - u); }); } }
+function kFlyTick(d, dt) { const F = d.fly; if (!F) return false; F.t += dt; const u = Math.min(1, F.t / F.dur), e = 1 - Math.pow(1 - u, 2.2), A = AREAS[P.area];
+  const tx = F.sx + Math.sin(F.dir) * F.D * e, tz = F.sz + Math.cos(F.dir) * F.D * e, v = new THREE.Vector3(tx, 0, tz); resolve(A, v, d.boss ? 0.6 : 0.5);
+  const blocked = Math.hypot(v.x - tx, v.z - tz) > 0.25 || !kInside(v.x, v.z); if (!kInside(v.x, v.z)) { v.x = d.pos.x; v.z = d.pos.z; } d.pos.x = v.x; d.pos.z = v.z; d.pos.y = Math.sin(u * Math.PI) * F.h * (1 - u * 0.3);
+  if (Math.random() < 0.5) fGhost(d.pos.x, d.pos.z); F.rot = (F.rot || 0) + F.spin * dt * (1 - u);
+  if (blocked && !F.wall) { F.wall = true; sfx.fHeavy(); fCrack(d.pos.x, 1.2 + d.pos.y, d.pos.z, 2.0, 0.8); fShock(d.pos.x, d.pos.z, 2.6); if (!d.dead) kHit(d, 90, 'fist', { crit: 0 }); popText(d.pos, 3.0, '激突', 'agap'); d.fly = null; d.pos.y = 0; return true; }
+  if (u >= 1) { d.fly = null; d.pos.y = 0; kRing(d.pos.x, d.pos.z, 0.3, 1.6, 0xFFD0A0, 0.3, 0.08, 16); kBurst(_t.set(d.pos.x, 0.3, d.pos.z), 6, 0xD8D6D2, 4); } return true; }
+function fRider(d, dir) { if (!(P.kFull > 0) || !d || d.dead) return; const lx = d.pos.x + Math.sin(dir) * 3.2, lz = d.pos.z + Math.cos(dir) * 3.2, sx = d.pos.x - Math.sin(dir) * 3.4, sz = d.pos.z - Math.cos(dir) * 3.4;
+  const from = { x: P.pos.x, z: P.pos.z }; fSlit(from, { x: sx, z: sz }, 0.8, 1.2, 3.4); P.pos.set(sx, 0, sz); { const v = new THREE.Vector3(sx, 0, sz); resolve(AREAS[P.area], v, 0.38); P.pos.copy(v); } P.fY = 3.2; P.facing = dir; kAct('rider', 0.4); sfx.fDash(); sfx.fScreech(); fCrack(sx, 3.6, sz, 1.2, 0.4); popText(P.pos, 3.6, 'ライダーキック', 'kult');
+  kLater(() => { if (!(P.kFull > 0)) return; const tx = d.dead ? lx : d.pos.x, tz = d.dead ? lz : d.pos.z; fSlit({ x: P.pos.x, z: P.pos.z }, { x: tx, z: tz }, 0.8, 3.4, 1.0);
+    fMoveTo({ x: tx - Math.sin(dir) * 0.6, z: tz - Math.cos(dir) * 0.6 }, 0.09, 3.2, 0.4, () => { sfx.fHeavy(); sfx.kSlam(); fImpact(tx, 1.2, tz, true); fCrack(tx, 1.3, tz, 2.2, 0.8); fShock(tx, tz, 3.4, true); fFloorCrack(tx, tz, 3.4);
+      if (!d.dead) { fHit(d, 240, 'fist', { knock: 6 }); fLaunch(d, dir, 12); } for (const e of kAlive()) if (e !== d && Math.hypot(e.pos.x - tx, e.pos.z - tz) < 3) fHit(e, 120, 'fist', { push: 6, from: { x: tx, z: tz } }); kAct('land', 0.35); P.fY = 0; }); }, 140); }
+function fCombo() {
+  if (!fCan() || G.fcd.combo > 0 || G.fMove) return; const step = G.time - G.fStepT < 0.8 ? (G.fStep + 1) % 5 : 0; G.fStep = step; G.fStepT = G.time; const t = kNearest(9);
+  if (t && kDist(t) > 2.0) fBlinkTo(fNear(t, 1.15, rand(-0.5, 0.5)), { slit: kDist(t) > 4 }); kFace(t);
+  const hitFront = (r, dmg, o, arc = 0.2, h = 1.4) => { let n = 0; for (const d of kAlive()) if (kDist(d) < r && kInFront(d, arc)) { fHit(d, dmg, 'fist', o); fImpact(d.pos.x, h, d.pos.z, o && o.big); n++; } if (n) sfx.fCrackS(); return n; };
+  if (step === 0) { G.fcd.combo = 0.09; kAct('jab', 0.14); sfx.fPunch(); hitFront(2.2, 62, { push: 1 }); }
+  else if (step === 1) { G.fcd.combo = 0.1; kAct('cross', 0.15); sfx.fPunch(); hitFront(2.2, 68, { push: 1.2 }); }
+  else if (step === 2) { G.fcd.combo = 0.14; kAct('knee', 0.22); kJump({ dur: 0.22, h: 0.7 }); sfx.fPunch(); hitFront(2.2, 96, { knock: 3, big: true }, 0, 1.1); for (const d of kAlive()) if (kDist(d) < 2.2) d.wobV += 20; }
+  else if (step === 3) { G.fcd.combo = 0.55; kAct('sidekick', 0.3); P.kLock = 0.5; sfx.fHeavy(); const dir = P.facing; let main = null;
+    for (const d of kAlive()) if (kDist(d) < 2.8 && kInFront(d, 0.1)) { fHit(d, 130, 'fist', { knock: 4 }); fLaunch(d, dir, 17); fImpact(d.pos.x, 1.3, d.pos.z, true); fCrack(d.pos.x, 1.3, d.pos.z, 1.6, 0.6); if (!main || kDist(d) < kDist(main)) main = d; }
+    popText(P.pos, 3.2, '蹴り飛ばし', 'kana'); if (main) kLater(() => fRider(main, dir), 420); }
+  else { G.fcd.combo = 0.38; kAct('axe', 0.36); kJump({ dur: 0.3, h: 1.6, flip: 1 }); kLater(() => { if (!(P.kFull > 0)) return; sfx.fHeavy(); const x = P.pos.x + Math.sin(P.facing) * 1.2, z = P.pos.z + Math.cos(P.facing) * 1.2; fShock(x, z, 3.4); fFloorCrack(x, z, 3); fCrack(x, 0.6, z, 1.6, 0.6); for (const d of kAlive()) if (kDist(d) < 3.4) fHit(d, 165, 'fist', { push: 5, knock: 4, bind: 0.4 }); fSay('hit'); }, 260); }
+}
+// ---- 8 崩天・重拳：拳を引き絞って溜め、重すぎる一撃を叩き込む ----
+function fHeavyFist() {
+  if (!fCan() || G.fcd.heavy > 0) return; G.fcd.heavy = FULL_CD.heavy; const t = kNearest(8); if (t && kDist(t) > 2.4) fBlinkTo(fNear(t, 1.8, 0), { slit: kDist(t) > 4 }); kFace(t); P.kLock = 1.55; P.kArmor = 1.3; kAct('charge', 1.2); sfx.fInject(); sfx.kBladeCharge(); popText(P.pos, 3.2, '崩天・重拳', 'kult'); say(P, '……動くな', 1.2); G.kRumble = 1.1;
+  const fx = () => ({ x: P.pos.x - Math.sin(P.facing - 0.6) * 0.7, y: 1.5 + (kaeFullModel.root.position.y || 0), z: P.pos.z - Math.cos(P.facing - 0.6) * 0.7 });
+  if (typeof aGather === 'function') { const f = fx(); aGather(f.x, f.z, f.y, 34, 1.1, 0xC9B8FF); }
+  for (let k = 0; k < 7; k++) kLater(() => { if (!(P.kFull > 0)) return; const f = fx(); fCrack(f.x, f.y, f.z, 0.7 + k * 0.15, 0.35); sfx.fCrackS(); if (k % 2) kRing(P.pos.x, P.pos.z, 0.3, 2 + k * 0.3, 0xB89CFF, 0.3, 0.08, 6); }, 120 + k * 140);
+  kLater(() => { if (!(P.kFull > 0)) return; kAct('smash', 0.5); const dir = P.facing, mg = G.kMang || 0; G.kRumble = 0; G.slowT = 0.28; sfx.fHeavy(); sfx.kSlam(); sfx.kBigSlash(); sfx.fOpen(); kScreenWarp(); G.shake = 1.4; const fl = $('flash'); fl.style.opacity = 0.9; kLater(() => { fl.style.opacity = 0; }, 160);
+    const ox = P.pos.x + Math.sin(dir) * 1.3, oz = P.pos.z + Math.cos(dir) * 1.3; fImpact(ox, 1.4, oz, true); fShock(ox, oz, 4.5, true);
+    for (let k = 1; k <= 5; k++) { const x = P.pos.x + Math.sin(dir) * k * 1.9, z = P.pos.z + Math.cos(dir) * k * 1.9; kLater(() => { fCrack(x, rand(0.8, 2), z, 1.6 + k * 0.25, 0.8); fFloorCrack(x, z, 2 + k * 0.3); kRing(x, z, 0.3, 1.8 + k * 0.4, 0xFFFFFF, 0.35, 1.3, 32); }, k * 30); }
+    const cone = new THREE.Mesh(G_('fcone', () => { const c = new THREE.ConeGeometry(1, 1, 24, 1, true); c.rotateX(-Math.PI / 2); return c; }), kMat(0xDDE4FF, 0.45)); cone.position.set(ox, 1.4, oz); cone.rotation.y = dir; kAdd(cone, 0.4, (f, u) => { const L = 2 + u * 10; cone.scale.set(1 + u * 3.5, 1 + u * 3.5, L); cone.position.set(ox + Math.sin(dir) * L * 0.5, 1.4, oz + Math.cos(dir) * L * 0.5); cone.material.opacity = 0.45 * (1 - u); });
+    for (const d of kAlive()) { const dx = d.pos.x - P.pos.x, dz = d.pos.z - P.pos.z, L = Math.hypot(dx, dz), da = Math.abs(lerpAngle(0, Math.atan2(dx, dz) - dir, 1)); if (L < 11 && (da < 0.55 || L < 2.2)) { const k = Math.max(0.45, 1 - L / 14); fHit(d, Math.round(1000 * k), 'fist', { crit: 0.3, knock: 8 }); fLaunch(d, dir, 19 * k + 2); fCrack(d.pos.x, 1.4, d.pos.z, 2.4, 0.9); } }
+    popText(P.pos, 3.6, mg ? KANJI[mg] + '望・崩天' : '崩天', 'kqed'); fFeathers(ox, 1.4, oz, 18, 10); P.kArmor = 0; }, 1250);
+}
+// ---- 0 次元追撃《渡り鴉》：殴り飛ばし、次元移動で先回りしてまた殴り飛ばす。繰り返して、最後に重い一撃 ----
+function fChase() {
+  if (!fCan() || G.fcd.chase > 0) return; const t = kNearest(10); if (!t) { popText(P.pos, 2.6, '対象なし', 'info'); return; } G.fcd.chase = FULL_CD.chase; P.kLock = 3.2; P.invuln = Math.max(P.invuln, 3.2); popText(P.pos, 3.2, '次元追撃《渡り鴉》', 'kult'); sfx.fScreech();
+  let dir = Math.atan2(t.pos.x - P.pos.x, t.pos.z - P.pos.z); const N = 7;
+  const hit = i => { if (!(P.kFull > 0) || t.dead) return; if (i >= N) return fin();
+    if (i) { dir += (i % 2 ? 1 : -1) * rand(1.6, 2.4); } const bx = t.pos.x - Math.sin(dir) * 1.15, bz = t.pos.z - Math.cos(dir) * 1.15; const from = { x: P.pos.x, z: P.pos.z }; if (Math.hypot(bx - from.x, bz - from.z) > 1.2) { fSlit(from, { x: bx, z: bz }, 0.9); fCrack(from.x, 1.3, from.z, 1.0, 0.4); }
+    P.pos.set(bx, 0, bz); P.facing = dir; P.kEmerge = 0.08; sfx.fDash(); kAct(i % 2 ? 'cross' : 'jab', 0.16); sfx.fPunch(); if (i % 3 === 2) sfx.fHeavy();
+    fHit(t, 115, 'fist', { knock: 4, rage: 3 }); fLaunch(t, dir, 9); fImpact(t.pos.x, 1.4, t.pos.z, true); fCrack(t.pos.x, 1.4, t.pos.z, 1.5 + i * 0.12, 0.7); G.shake = Math.max(G.shake || 0, 0.4); if (i === 3) say(P, '逃がさない', 1);
+    kLater(() => hit(i + 1), 330); };
+  const fin = () => { if (!(P.kFull > 0) || t.dead) return; const sx = t.pos.x, sz = t.pos.z; fSlit({ x: P.pos.x, z: P.pos.z }, { x: sx, z: sz }, 0.9, 1.2, 4); P.pos.set(sx - Math.sin(dir) * 0.8, 0, sz - Math.cos(dir) * 0.8); P.fY = 3.6; kAct('hammer', 0.5); sfx.fScreech();
+    kLater(() => { if (!(P.kFull > 0)) return; fMoveTo({ x: t.dead ? sx : t.pos.x, z: t.dead ? sz : t.pos.z }, 0.08, 3.6, 0, () => { sfx.fHeavy(); sfx.kSlam(); sfx.fOpen(); kScreenWarp(); G.slowT = 0.3; G.shake = 1.3; const x = P.pos.x, z = P.pos.z; fShock(x, z, 6, true); fFloorCrack(x, z, 6); for (let k = 0; k < 5; k++) fCrack(x + rand(-1.5, 1.5), rand(0.4, 2.2), z + rand(-1.5, 1.5), 2.2, 0.9);
+      const fl = $('flash'); fl.style.opacity = 0.8; kLater(() => { fl.style.opacity = 0; }, 140); if (!t.dead) fHit(t, 720, 'fist', { crit: 0.35, knock: 8, bind: 1 }); for (const e of kAlive()) if (e !== t && Math.hypot(e.pos.x - x, e.pos.z - z) < 5) fHit(e, 220, 'fist', { push: 8, from: { x, z } }); popText({ x, y: 0, z }, 3.6, '落羽', 'kqed'); kAct('land', 0.4); P.kLock = 0.2; }); }, 160); };
+  hit(0);
+}
+// ---- 1 断空：血清W式。標的を次々に一直線で突き抜け、最後に全ての裂け目が開く ----
+function fWcut() {
+  if (!fCan() || G.fcd.wcut > 0) return; G.fcd.wcut = FULL_CD.wcut; kAct('inject', 0.18); sfx.fInject(); P.kLock = 0.95; P.invuln = Math.max(P.invuln, 1.1); popText(P.pos, 3.0, '断空', 'kult'); fSay('wcut');
+  const list = kAlive().filter(d => kDist(d) < 18).sort((a, b) => kDist(a) - kDist(b)).slice(0, 4); const cuts = [];
+  const go = i => { if (!(P.kFull > 0)) return; if (i >= Math.max(1, list.length) + (list.length < 3 ? 1 : 0)) return open(); const d = list[i] && !list[i].dead ? list[i] : null;
+    const a = d ? Math.atan2(d.pos.x - P.pos.x, d.pos.z - P.pos.z) : P.facing + rand(-0.6, 0.6), dd = d ? kDist(d) : 6, to = { x: P.pos.x + Math.sin(a) * (dd + 3.2), z: P.pos.z + Math.cos(a) * (dd + 3.2) };
+    const from = { x: P.pos.x, z: P.pos.z }; fBlinkTo(to, { life: 1.6 }); cuts.push([from, { x: P.pos.x, z: P.pos.z }]); P.facing = a; kAct('dashcut', 0.12); for (const e of kAlive()) if (segD(e.pos.x, e.pos.z, from.x, from.z, P.pos.x, P.pos.z) < 1.2) { fHit(e, 70, 'wcut', { quiet: true, rage: 2 }); fImpact(e.pos.x, 1.3, e.pos.z); }
+    kLater(() => go(i + 1), 110); };
+  const open = () => kLater(() => { if (!(P.kFull > 0)) return; sfx.fOpen(); kSplitScreen(); G.shake = Math.max(G.shake || 0, 0.8); const fl = $('flash'); fl.style.opacity = 0.6; kLater(() => { fl.style.opacity = 0; }, 120);
+    for (const o of FCUTS) o.open = G.time; const hit = new Set(); for (const [a, b] of cuts) { kZureLine(a, b); for (let k = 1; k < 4; k++) fCrack(a.x + (b.x - a.x) * k / 4, 1.2, a.z + (b.z - a.z) * k / 4, 1.2, 0.6); for (const e of kAlive()) if (!hit.has(e) && segD(e.pos.x, e.pos.z, a.x, a.z, b.x, b.z) < 1.4) { hit.add(e); fHit(e, 240, 'wcut', { crit: 0.3, knock: 4, frag: 3 }); popText(e.pos, 3.0, '断', 'kana'); } } }, 380);
+  go(0);
+}
+// ---- 2 猛禽連撃：踏み込んで拳の嵐、最後に突き上げ ----
+function fRap() {
+  if (!fCan() || G.fcd.rap > 0) return; const t = kNearest(10); if (!t) { popText(P.pos, 2.6, '対象なし', 'info'); return; } G.fcd.rap = FULL_CD.rap; fBlinkTo(fNear(t, 1.1, 0), { slit: kDist(t) > 3 }); kFace(t); P.kLock = 1.35; P.invuln = Math.max(P.invuln, 1.3); kAct('rush', 1.15); sfx.fScreech(); popText(P.pos, 3.0, '猛禽連撃', 'kult'); fSay('rap');
+  for (let k = 0; k < 20; k++) kLater(() => { if (!(P.kFull > 0) || t.dead) return; if (kDist(t) > 2.4) { fBlinkTo(fNear(t, 1.1, rand(-0.6, 0.6)), { slit: false }); kFace(t); } sfx.fPunch(); const a = P.facing + rand(-0.5, 0.5), x = P.pos.x + Math.sin(a) * 1.1, z = P.pos.z + Math.cos(a) * 1.1; fImpact(x, rand(1.0, 1.8), z, k % 5 === 4); for (const d of kAlive()) if (Math.hypot(d.pos.x - x, d.pos.z - z) < 1.7) fHit(d, 30, 'rap', { quiet: true, rage: 0.8 }); if (k % 4 === 0) fFeathers(x, 1.4, z, 3, 5); if (k % 3 === 0) sfx.fCrackS(); G.shake = Math.max(G.shake || 0, 0.18); }, k * 52);
+  kLater(() => { if (!(P.kFull > 0)) return; kAct('upper', 0.3); kJump({ dur: 0.3, h: 1.4 }); sfx.fHeavy(); sfx.fScreech(); for (const d of kAlive()) if (kDist(d) < 2.6) { fHit(d, 230, 'rap', { knock: 6, push: 6, big: true }); fImpact(d.pos.x, 1.8, d.pos.z, true); fCrack(d.pos.x, 2.2, d.pos.z, 2.2, 0.8); d.wobV += 30; } fShock(P.pos.x, P.pos.z, 3.0); }, 20 * 52 + 40);
+}
+// ---- 3 翼撃旋風：回し蹴りの連続で羽根の竜巻、引き寄せて吹き飛ばす ----
+function fWing() {
+  if (!fCan() || G.fcd.wing > 0) return; G.fcd.wing = FULL_CD.wing; P.kLock = 1.0; kAct('gale', 1.0); kJump({ dur: 0.5, h: 1.4 }); sfx.fScreech(); popText(P.pos, 3.0, '翼撃旋風', 'kult'); fSay('wing');
+  const c = { x: P.pos.x, z: P.pos.z }, grp = new THREE.Group(); grp.position.set(c.x, 0, c.z); const fs = []; for (let k = 0; k < 46; k++) { const m = new THREE.Mesh(G_('fwf', () => new THREE.PlaneGeometry(0.12, 0.34)), kMat(k % 3 ? 0xB98058 : 0xF6EEE2, 0.9)); grp.add(m); fs.push({ m, a: rand(0, TAU), r: rand(1.2, 4.8), y: rand(0.2, 3.5), sp: rand(6, 11) }); }
+  const ring = new THREE.Mesh(G_('fwr', () => new THREE.RingGeometry(3.6, 4.8, 48)), kMat(0xFFE0C0, 0.35)); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.08; grp.add(ring);
+  kAdd(grp, 1.25, (f, u) => { for (const q of fs) { q.a += q.sp * 0.016; const r = q.r * (1 - u * 0.4); q.m.position.set(Math.cos(q.a) * r, q.y + u * 0.8, Math.sin(q.a) * r); q.m.rotation.set(q.a, q.a * 2, 0); q.m.material.opacity = 0.9 * (1 - Math.max(0, u - 0.8) / 0.2); } ring.rotation.z += 0.2; ring.material.opacity = 0.35 * (1 - u); });
+  for (const d of kAlive()) { const r = Math.hypot(d.pos.x - c.x, d.pos.z - c.z); if (r < 9) { d.pullT = 0.8; d.pullX = c.x + (d.pos.x - c.x) / (r || 1) * 1.6; d.pullZ = c.z + (d.pos.z - c.z) / (r || 1) * 1.6; } }
+  for (let k = 0; k < 6; k++) kLater(() => { if (!(P.kFull > 0)) return; sfx.fPunch(); kRing(P.pos.x, P.pos.z, 0.5, 4.8, 0xFFE0C0, 0.25, 1.2, 32); const a = rand(0, TAU); fCrack(P.pos.x + Math.sin(a) * 2.4, rand(0.8, 2), P.pos.z + Math.cos(a) * 2.4, 1.0, 0.4); for (const d of kAlive()) if (Math.hypot(d.pos.x - P.pos.x, d.pos.z - P.pos.z) < 4.8) { fHit(d, 48, 'wing', { quiet: true, rage: 1.2 }); } }, 100 + k * 140);
+  kLater(() => { if (!(P.kFull > 0)) return; kAct('hammer', 0.35); sfx.fHeavy(); fShock(P.pos.x, P.pos.z, 5.2, true); fFloorCrack(P.pos.x, P.pos.z, 4.5); fFeathers(P.pos.x, 1.2, P.pos.z, 24, 10); for (const d of kAlive()) if (kDist(d) < 5.4) fHit(d, 170, 'wing', { push: 9, knock: 4 }); }, 1000);
+}
+// ---- 4 天穿・落踵：縦一直線に空へ跳び、光輪を纏った踵で一瞬で落ちて空間ごと叩き割る ----
+function fDive() {
+  if (!fCan() || G.fcd.dive > 0) return; G.fcd.dive = FULL_CD.dive; const t = kNearest(16); P.kLock = 0.85; P.invuln = Math.max(P.invuln, 0.9); kAct('crouch', 0.08); sfx.fInject(); popText(P.pos, 3.0, '天穿・落踵', 'kult'); fSay('dive');
+  const aim = t ? { x: t.pos.x, z: t.pos.z } : { x: P.pos.x + Math.sin(P.facing) * 5, z: P.pos.z + Math.cos(P.facing) * 5 }; const mark = new THREE.Group(); mark.position.set(aim.x, 0.06, aim.z);
+  const r1 = new THREE.Mesh(G_('fmk', () => new THREE.RingGeometry(2.2, 2.35, 48)), kMat(0xB89CFF, 0.9)); r1.rotation.x = -Math.PI / 2; mark.add(r1); kAdd(mark, 0.5, (f, u) => { r1.scale.setScalar(1.6 - u * 0.6); r1.material.opacity = 0.9 * (1 - u * 0.3); });
+  G.fDive = { t: 0, aim, from: { x: P.pos.x, z: P.pos.z }, tg: t, h: 9, stage: 0 };
+}
+function fDiveTick(dt) { const D = G.fDive; if (!D) return; D.t += dt;
+  if (D.stage === 0 && D.t > 0.08) { D.stage = 1; fSlit({ x: P.pos.x, z: P.pos.z }, { x: P.pos.x, z: P.pos.z + 0.001 }, 0.8, 0, D.h + 1); P.fY = D.h; sfx.fDash(); sfx.fScreech(); fCrack(P.pos.x, 1.0, P.pos.z, 1.4, 0.5); fFeathers(P.pos.x, 0.6, P.pos.z, 10, 6); kAct('heel', 0.32); G.fDiveRing = true; }
+  else if (D.stage === 1) { P.fY = D.h + Math.sin(D.t * 30) * 0.05; if (D.tg && !D.tg.dead) { D.aim.x = D.tg.pos.x; D.aim.z = D.tg.pos.z; } P.facing = Math.atan2(D.aim.x - P.pos.x, D.aim.z - P.pos.z); if (D.t > 0.34) { D.stage = 2;
+    const from = { x: P.pos.x, z: P.pos.z }, v = new THREE.Vector3(D.aim.x, 0, D.aim.z); resolve(AREAS[P.area], v, 0.38); fSlit(from, v, 1.0, D.h + 1, 0.1); P.pos.set(v.x, 0, v.z); P.fY = 0; kAct('land', 0.4); G.fDiveRing = false;
+    sfx.fHeavy(); sfx.kSlam(); sfx.fOpen(); const mg = G.kMang || 0; fShock(v.x, v.z, 6 + mg * 0.4, true); fFloorCrack(v.x, v.z, 6 + mg * 0.4); for (let k = 0; k < 4; k++) fCrack(v.x + rand(-1.5, 1.5), rand(0.5, 2.5), v.z + rand(-1.5, 1.5), 1.6 + mg * 0.1, 0.8);
+    for (let k = 0; k <= mg; k++) kRing(v.x, v.z, 0.3, 3 + k * 1.2, k % 2 ? 0xDDE4FF : 0xB89CFF, 0.4 + k * 0.08, 0.12 + k * 0.02, 48);
+    const pl = new THREE.Mesh(cyl(1, 1, 1, 16), kMat(0xC9B8FF, 0.6)); pl.position.set(v.x, 6, v.z); kAdd(pl, 0.35, (f, u) => { pl.scale.set(1.6 * (1 - u), 12, 1.6 * (1 - u)); pl.material.opacity = 0.6 * (1 - u); });
+    const fl = $('flash'); fl.style.opacity = 0.55; kLater(() => { fl.style.opacity = 0; }, 100); kScreenWarp();
+    for (const d of kAlive()) { const r = kDist(d); if (r < 6) fHit(d, r < 2.2 ? 360 : 200, 'dive', { push: 6, knock: 5, bind: 0.8 }); } G.fDive = null; } } }
+// ---- 5 望・光輪弾：纏った光輪を全部撃ち出す（気功弾のように遠くへ） ----
+function fShot() {
+  if (!fCan() || G.fcd.shot > 0) return; const n = G.kMang || 0; if (n < 1) { popText(P.pos, 2.6, '望なし（殴って光輪を溜める）', 'info'); return; } G.fcd.shot = FULL_CD.shot; const t = kNearest(22); kFace(t); kAct('shot', 0.35); P.kLock = 0.3; sfx.fMang(n); sfx.fScreech();
+  popText(P.pos, 3.1, KANJI[n] + '望・光輪弾', 'kult'); G.kMang = 0; G.kMangHits = 0;
+  for (let i = 0; i < n; i++) kLater(() => { if (!(P.kFull > 0)) return; let a = P.facing + (i - (n - 1) / 2) * 0.22; const g = new THREE.Group(), r = new THREE.Mesh(G_('fmr', () => new THREE.TorusGeometry(1, 0.06, 6, 32)), kMat(i % 2 ? 0xDDE4FF : 0xB89CFF, 0.95)), gl = glowSprite(0x9A80FF, 1.4); g.add(r); g.add(gl); const hit = new Set(); let x = P.pos.x + Math.sin(a) * 0.8, z = P.pos.z + Math.cos(a) * 0.8;
+    g.rotation.y = a; sfx.fDash();
+    kAdd(g, 1.0, (f, u) => { const tg = kNearest(30); if (tg) { let df = Math.atan2(tg.pos.x - x, tg.pos.z - z) - a; while (df > Math.PI) df -= TAU; while (df < -Math.PI) df += TAU; a += Math.max(-0.08, Math.min(0.08, df)); g.rotation.y = a; } x += Math.sin(a) * 26 * 0.016; z += Math.cos(a) * 26 * 0.016; g.position.set(x, 1.4, z); r.scale.setScalar(0.5 + u * 0.9); r.rotation.z += 0.4; r.material.opacity = 0.95 * (1 - Math.max(0, u - 0.8) / 0.2);
+      for (const d of kAlive()) if (!hit.has(d) && Math.hypot(d.pos.x - x, d.pos.z - z) < 1.2 + u) { hit.add(d); kHit(d, 170, 'fist', { push: 3, crit: 0.2 }); fImpact(d.pos.x, 1.4, d.pos.z, true); } }); }, i * 60);
+}
+// ---- 6 心：全身に気を纏う障壁（被ダメージ減、攻撃↑）。精神に負荷がかかり、安定が削れる ----
+function fShin() { if (!fCan() || G.fcd.shin > 0) return; G.fcd.shin = FULL_CD.shin; P.kShin = 8; kAct('shin', 0.5); sfx.fShin(); popText(P.pos, 3.1, '心', 'kult'); fMangUp(1); kRing(P.pos.x, P.pos.z, 0.3, 3, 0xC9B8FF, 0.5, 1.2, 32); fCrack(P.pos.x, 1.4, P.pos.z, 1.3, 0.5); }
+// ---- 位相安定（全力）：見切り。構えて、背後へ跳んで蹴る ----
+function fGuard() { if (G.state !== 'play' || !(P.kFull > 0) || G.fcd.guard > 0 || G.fUlt) return; G.fcd.guard = 1.0; P.kGuard = 0.4; kAct('guard', 0.3); sfx.kGuard(); popText(P.pos, 2.7, '見切り', 'kana'); if (G.foe === 'amn' && G.aThr > 0) { G.aThr = 0; popText(P.pos, 3.1, '白糸 切断', 'athr'); }
+  const t = kNearest(5); if (t) kLater(() => { if (!(P.kFull > 0) || t.dead) return; fBlinkTo(fNear(t, 1.2, Math.PI), { slit: false }); kFace(t); kAct('sidekick', 0.26); sfx.fHeavy(); fHit(t, 120, 'fist', { knock: 3 }); fLaunch(t, P.facing, 12); fImpact(t.pos.x, 1.4, t.pos.z, true); }, 180); }
+function fEndFx(o) { const f = kFx.find(q => q.o === o); if (f) f.life = Math.min(f.life, 0.02); }
+function fUlt() {
+  if (!fCan()) return; if (G.kRage < 100) { popText(P.pos, 2.6, '猛り ' + Math.floor(G.kRage) + '%', 'info'); return; } const main = kBoss() && !kBoss().dead && kDist(kBoss()) < 20 ? kBoss() : kNearest(18); if (!main) { popText(P.pos, 2.6, '対象なし', 'info'); return; }
+  const mg = G.kMang || 0, M = 1 + mg * 0.15, U = G.fUlt = { main, mg, M, cracks: [], rings: [], hits: 0 }; G.kRage = 0; P.invuln = 99; P.kLock = 99; G.hudKey = ''; sfx.fRoar(); sfx.kUltStart(); if (mg) sfx.fMang(mg); kAct('roar', 0.3); G.shake = 0.6;
+  banner(mg ? KANJI[mg] + '望・崩界千撃' : '崩界・千撃', 'kae'); say(P, FULL_VO.ult, 1.6); renderer.domElement.style.filter = 'saturate(.6) contrast(1.25) brightness(.85) hue-rotate(-25deg)';
+  const ok = () => G.fUlt === U && P.kFull > 0 && G.mode === 'kae';
+  const fix = () => { if (main.dead) return; main.fixT = 0.5; main.fixPos = main.fixPos || main.pos.clone(); main.fly = null; main.kv.set(0, 0, 0); main.bindT = Math.max(main.bindT, 0.5); };
+  // A：踏み込み
+  kLater(() => { if (!ok()) return; fBlinkTo(fNear(main, 1.1, 0), { life: 1.2 }); kFace(main); main.fixPos = main.pos.clone(); fix(); }, 200);
+  // B：超高速の連打。打つたびに空間が割れ、ひびが残って敵を縫い留める
+  let t0 = 0.35; const N = 44;
+  for (let i = 0; i < N; i++) { const at = t0 + (i < 12 ? i * 0.062 : 12 * 0.062 + (i - 12) * 0.036); kLater(() => { if (!ok() || main.dead) return; fix();
+      if (i % 5 === 0) { const ang = (i / 5) * 2.4 + rand(-0.3, 0.3), from = { x: P.pos.x, z: P.pos.z }, to = fNear(main, 1.05, ang); fSlit(from, to, 4.5); P.pos.set(to.x, 0, to.z); kFace(main); P.kEmerge = 0.06; sfx.fDash(); }
+      kAct('rush', 0.12); sfx.fPunch(); const a = P.facing + rand(-0.6, 0.6), hy = rand(0.8, 2.0), hx = main.pos.x - Math.sin(a) * 0.35, hz = main.pos.z - Math.cos(a) * 0.35;
+      fImpact(hx, hy, hz, i % 6 === 5); kHit(main, 42 * M, 'fult', { quiet: true }); G.shake = Math.max(G.shake || 0, 0.22 + i * 0.006);
+      const th = rand(0, TAU), ph = rand(0.3, 2.8), rr = rand(0.7, 1.5); U.cracks.push(fCrack(main.pos.x + Math.sin(ph) * Math.cos(th) * rr, 1.3 + Math.cos(ph) * rr * 0.9, main.pos.z + Math.sin(ph) * Math.sin(th) * rr, rand(0.9, 1.6), 6)); if (i % 3 === 0) sfx.fCrackS();
+      if (i % 9 === 8) { const g = new THREE.Group(), ring = new THREE.Mesh(G_('fixr', () => new THREE.TorusGeometry(1.25, 0.05, 6, 40)), kMat(i % 2 ? 0xDDE4FF : 0xB89CFF, 0.9)); g.add(ring); g.position.set(main.pos.x, 1.3, main.pos.z); g.rotation.set(rand(0, TAU), rand(0, TAU), 0); const sp = rand(-2, 2);
+        U.rings.push(kAdd(g, 6, (f, u) => { g.rotation.z += sp * 0.016; ring.scale.setScalar(1 + Math.sin(G.time * 20) * 0.03); })); popText(main.pos, 3.4, '固定', 'kana'); sfx.fMang(Math.min(7, U.rings.length + 1)); }
+      for (const e of kAlive()) if (e !== main && Math.hypot(e.pos.x - main.pos.x, e.pos.z - main.pos.z) < 4) { e.pullT = 0.2; e.pullX = main.pos.x; e.pullZ = main.pos.z; } }, at * 1000); }
+  const tB = t0 + 12 * 0.062 + (N - 12) * 0.036;
+  // C：距離を取り、凄まじい溜め
+  kLater(() => { if (!ok()) return; fix(); const back = fNear(main, 5.2, 0), from = { x: P.pos.x, z: P.pos.z }; fSlit(from, back, 1.0); { const v = new THREE.Vector3(back.x, 0, back.z); resolve(AREAS[P.area], v, 0.38); P.pos.copy(v); } kFace(main); kAct('charge', 2.1); popText(P.pos, 3.4, '――', 'kult'); say(P, '……砕けろ', 1.6); sfx.kBladeCharge(); sfx.fInject();
+    renderer.domElement.style.filter = 'saturate(.35) contrast(1.35) brightness(.7) hue-rotate(-20deg)'; G.kRumble = 2.1; }, (tB + 0.1) * 1000);
+  for (let k = 0; k < 10; k++) kLater(() => { if (!ok()) return; fix(); const fx = P.pos.x - Math.sin(P.facing - 0.6) * 0.7, fz = P.pos.z - Math.cos(P.facing - 0.6) * 0.7; if (typeof aGather === 'function') aGather(fx, fz, 1.5, 10 + k * 2, 0.4, k % 2 ? 0xFFFFFF : 0xC9B8FF);
+    fCrack(fx, 1.5, fz, 0.8 + k * 0.12, 0.35); kRing(P.pos.x, P.pos.z, 0.3, 1.5 + k * 0.5, 0xB89CFF, 0.35, 0.08, 6); fFloorCrack(P.pos.x, P.pos.z, 1.2 + k * 0.35); if (k % 3 === 0) sfx.kCharge(); G.shake = Math.max(G.shake || 0, 0.1 + k * 0.05);
+    for (const q of U.cracks.slice(-12)) if (q.scale) q.scale.setScalar(1 + Math.sin(G.time * 30) * 0.08); }, (tB + 0.25 + k * 0.19) * 1000);
+  // D：最大級の一撃。縫い留めたひびがすべて砕け、空間ごと吹き飛ぶ
+  kLater(() => { if (!ok()) return; const from = { x: P.pos.x, z: P.pos.z }, to = fNear(main, 1.0, 0); fSlit(from, to, 1.5); P.pos.set(to.x, 0, to.z); kFace(main); kAct('smash', 0.8); G.slowT = 0.55; G.kRumble = 0;
+    sfx.fHeavy(); sfx.kSlam(); sfx.kBigSlash(); sfx.fOpen(); const fl = $('flash'); fl.style.opacity = 1; renderer.domElement.style.filter = 'saturate(0) contrast(2) brightness(1.6)';
+    kLater(() => { fl.style.opacity = 0; if (!ok()) return; renderer.domElement.style.filter = 'saturate(.8) contrast(1.15) brightness(1.1)'; kSplitScreen(); kScreenWarp(); G.shake = 1.6; const dir = P.facing, cx = main.pos.x, cz = main.pos.z;
+      for (const c of U.cracks) { if (c.position) kBurst(_t.copy(c.position), 3, 0xC9B8FF, 7, 0.8); fEndFx(c); } for (const r of U.rings) { kBurst(_t.copy(r.position), 10, 0xFFFFFF, 9, 1); fEndFx(r); }
+      fShock(cx, cz, 9, true); fFloorCrack(cx, cz, 9); for (let k = 0; k < 10; k++) fCrack(cx + rand(-3, 3), rand(0.4, 3.2), cz + rand(-3, 3), rand(2, 3), 1.0);
+      const dome = new THREE.Mesh(sph(1, 20, 14), kMat(0xFFFFFF, 0.6)); dome.position.set(cx, 1, cz); kAdd(dome, 0.6, (f, u) => { dome.scale.setScalar(1 + u * 11); dome.material.opacity = 0.6 * (1 - u); });
+      const cone = new THREE.Mesh(G_('fcone', () => { const c = new THREE.ConeGeometry(1, 1, 24, 1, true); c.rotateX(-Math.PI / 2); return c; }), kMat(0xDDE4FF, 0.55)); cone.position.set(cx, 1.4, cz); cone.rotation.y = dir; kAdd(cone, 0.55, (f, u) => { const L = 3 + u * 22; cone.scale.set(2 + u * 7, 2 + u * 7, L); cone.position.set(cx + Math.sin(dir) * L * 0.5, 1.4, cz + Math.cos(dir) * L * 0.5); cone.material.opacity = 0.55 * (1 - u); });
+      const pl = new THREE.Mesh(cyl(1, 1, 1, 18), kMat(0xC9B8FF, 0.6)); pl.position.set(cx, 15, cz); kAdd(pl, 0.7, (f, u) => { pl.scale.set(3.5 * (1 - u), 30, 3.5 * (1 - u)); pl.material.opacity = 0.6 * (1 - u); });
+      if (U.mg) for (let k = 0; k < U.mg; k++) kRing(cx, cz, 0.5, 5 + k * 2.2, k % 2 ? 0xDDE4FF : 0xB89CFF, 0.6 + k * 0.08, 0.2 + k * 0.12, 64);
+      main.fixT = 0; main.fixPos = null; if (!main.dead) { kHit(main, 4200 * U.M, 'fult', { crit: 0.4, shared: true, knock: 9 }); if (!main.dead) fLaunch(main, dir, 22); popText(main.pos, 3.8, (U.mg ? KANJI[U.mg] + '望・' : '') + '崩界・千撃', 'kqed'); }
+      for (const e of kAlive()) if (e !== main && Math.hypot(e.pos.x - cx, e.pos.z - cz) < 9) { kHit(e, 1300 * U.M, 'fult', { shared: true, knock: 6 }); fLaunch(e, Math.atan2(e.pos.x - cx, e.pos.z - cz), 16); }
+      fFeathers(cx, 2, cz, 50, 14); say(P, FULL_VO.fin, 2); G.kMang = 0; }, 260);
+    kLater(() => { if (G.fUlt !== U) return; G.fUlt = null; P.invuln = 0.8; P.kLock = 0; renderer.domElement.style.filter = ''; G.hudKey = ''; }, 1600); }, (tB + 2.3) * 1000);
+}
+function fullUpdate(dt) {
+  G.kFullCd = Math.max(0, (G.kFullCd || 0) - dt);
+  if (!(P.kFull > 0)) { if (me === kaeFullModel) kaeFullOff(); return; }
+  for (const k in G.fcd) G.fcd[k] = Math.max(0, G.fcd[k] - dt);
+  G.kMangIdle = (G.kMangIdle || 0) + dt; if (G.kMang > 0 && G.kMangIdle > 7) { G.kMang--; G.kMangIdle = 4.5; }
+  if (P.kShin > 0) { P.kShin -= dt; P.sanity = Math.max(1, P.sanity - 1.5 * dt); if (P.kShin <= 0) popText(P.pos, 2.8, '心 解除', 'kana'); }
+  P.kArmor = Math.max(0, (P.kArmor || 0) - dt); fUltTick(dt); fDiveTick(dt); fMoveTick(dt);
+}
+function kaeFullVisual(dt, t) {
+  const m = kaeFullModel, A = P.kAct, u = A ? Math.min(1, A.t / A.dur) : 0;
+  if (dt > 0) { const sp = Math.hypot(P.pos.x - (P.kpx ?? P.pos.x), P.pos.z - (P.kpz ?? P.pos.z)) / dt; P.lastSpd = (P.lastSpd || 0) * 0.7 + Math.min(40, sp) * 0.3; P.kpx = P.pos.x; P.kpz = P.pos.z; }
+  const [L, R] = m.arms, [eL, eR] = m.elbows, [lg, rg] = m.legs, [kL, kR] = m.knees, spd = P.lastSpd || 0, rage = (G.kRage || 0) / 100, run = spd > 3 && !A;
+  m.g.rotation.set(0, 0, 0); m.g.position.set(0, 0, 0); m.g.scale.setScalar(1.08); m.torso.rotation.set(0, 0, 0); m.head.rotation.set(0, 0, 0);
+  // 基本：腰を落とした構え。肘は脇を締めて下げ、拳は顎の前（腕[0]は体の右側＝-x、外へ開く向きは rotation.z の負）
+  const b = Math.sin(t * 6) * 0.03; lg.rotation.set(-0.3, 0, -0.16); rg.rotation.set(-0.12, 0, 0.16); kL.rotation.x = 0.55; kR.rotation.x = 0.45; m.root.position.y -= 0.1 + b * 0.5;
+  L.rotation.set(-0.42 + b, 0, -0.24); R.rotation.set(-0.5 - b, 0, 0.24); eL.rotation.set(-1.85, 0, 0); eR.rotation.set(-1.95, 0, 0); m.torso.rotation.y = 0.06; m.torso.rotation.x = 0.1; m.head.rotation.x = 0.12;
+  if (run) { const s = Math.sin(t * 15); lg.rotation.set(-s * 0.85, 0, -0.05); rg.rotation.set(s * 0.85, 0, 0.05); kL.rotation.x = 0.25 + Math.max(0, s) * 1.1; kR.rotation.x = 0.25 + Math.max(0, -s) * 1.1; L.rotation.set(s * 0.9, 0, -0.14); R.rotation.set(-s * 0.9, 0, 0.14); eL.rotation.x = -1.4; eR.rotation.x = -1.4; m.g.rotation.x = Math.min(0.5, spd * 0.03); m.head.rotation.x = -Math.min(0.4, spd * 0.025); m.torso.rotation.y = 0; m.head.rotation.y = 0; m.root.position.y += 0.07 + Math.abs(s) * 0.06; }
+  if (A) { const k = A.kind;
+    if (k === 'jab') { R.rotation.set(-1.58, 0, 0.04); eR.rotation.x = -0.12 * u; m.torso.rotation.y = -0.35 * (1 - u * 0.5); lg.rotation.x = -0.4; kL.rotation.x = 0.6; }
+    if (k === 'cross') { L.rotation.set(-1.58, 0, -0.04); eL.rotation.x = -0.1; m.torso.rotation.y = 0.45; rg.rotation.x = 0.1; kR.rotation.x = 0.35; }
+    if (k === 'knee') { lg.rotation.set(-1.75, 0, 0); kL.rotation.x = 2.0; rg.rotation.x = 0.15; kR.rotation.x = 0.2; L.rotation.set(-1.25, 0, 0.12); R.rotation.set(-1.25, 0, -0.12); eL.rotation.x = -0.9; eR.rotation.x = -0.9; m.torso.rotation.x = 0.2; }
+    if (k === 'sidekick') { rg.rotation.set(-1.55, 0, 0); kR.rotation.x = u < 0.3 ? 1.6 * (1 - u / 0.3) : 0; lg.rotation.x = 0.25; kL.rotation.x = 0.45; m.g.rotation.x = -0.28; m.torso.rotation.y = -0.3; L.rotation.set(-0.5, 0, -0.45); R.rotation.set(0.5, 0, 0.35); eL.rotation.x = -1.5; eR.rotation.x = -0.6; }
+    if (k === 'rider') { rg.rotation.set(-0.95, 0, 0); kR.rotation.x = 0.05; lg.rotation.set(-1.3, 0, 0); kL.rotation.x = 2.1; m.g.rotation.x = 0.42; L.rotation.set(0.9, 0, -0.35); R.rotation.set(0.9, 0, 0.35); eL.rotation.x = -0.3; eR.rotation.x = -0.3; m.head.rotation.x = -0.3; }
+    if (k === 'axe' || k === 'heel') { const up = k === 'heel' ? 1 : u < 0.5 ? 1 : 1 - (u - 0.5) * 2; rg.rotation.set(-2.7 * up + 0.3 * (1 - up), 0, 0); kR.rotation.x = 0.05; lg.rotation.x = 0.25; kL.rotation.x = 0.4; L.rotation.set(-0.5, 0, -0.8); R.rotation.set(-0.5, 0, 0.8); eL.rotation.x = -0.5; eR.rotation.x = -0.5; }
+    if (k === 'rush') { const sw = Math.sin(t * 70) > 0; R.rotation.set(sw ? -1.58 : -0.5, 0, 0.04); eR.rotation.x = sw ? -0.05 : -1.9; L.rotation.set(sw ? -0.5 : -1.58, 0, -0.04); eL.rotation.x = sw ? -1.9 : -0.05; m.torso.rotation.y = sw ? -0.3 : 0.3; lg.rotation.x = -0.5; kL.rotation.x = 0.7; rg.rotation.x = 0.45; kR.rotation.x = 0.6; m.g.rotation.x = 0.15; }
+    if (k === 'upper') { R.rotation.set(-2.9, 0, 0.1); eR.rotation.x = -0.4; m.g.rotation.x = -0.2; lg.rotation.x = -0.4; kL.rotation.x = 0.2; rg.rotation.x = 0.4; kR.rotation.x = 0.1; }
+    if (k === 'inject') { L.rotation.set(-1.0, 0, 0.55); eL.rotation.x = -1.6; R.rotation.set(-1.0, 0, -0.05); eR.rotation.x = -0.4; }
+    if (k === 'dashcut') { R.rotation.set(-1.5, 0, 0.2); eR.rotation.x = -0.1; L.rotation.set(0.7, 0, -0.2); eL.rotation.x = -0.4; m.g.rotation.x = 0.5; lg.rotation.x = -0.9; kL.rotation.x = 0.8; rg.rotation.x = 0.8; kR.rotation.x = 0.2; }
+    if (k === 'roar') { L.rotation.set(-0.4, 0, -1.15); R.rotation.set(-0.4, 0, 1.15); eL.rotation.x = -1.3; eR.rotation.x = -1.3; m.head.rotation.x = -0.55; m.torso.rotation.x = -0.15; lg.rotation.set(-0.2, 0, -0.25); rg.rotation.set(-0.2, 0, 0.25); kL.rotation.x = 0.7; kR.rotation.x = 0.7; m.root.position.y -= 0.12; }
+    if (k === 'crouch') { lg.rotation.x = -0.9; rg.rotation.x = -0.6; kL.rotation.x = 1.6; kR.rotation.x = 1.5; m.root.position.y -= 0.32; m.g.rotation.x = 0.3; }
+    if (k === 'land') { lg.rotation.x = -1.1; kL.rotation.x = 1.6; rg.rotation.x = 0.9; kR.rotation.x = 1.4; m.root.position.y -= 0.35; m.g.rotation.x = 0.35; R.rotation.set(-1.4, 0, 0.15); eR.rotation.x = -0.2; L.rotation.set(-0.3, 0, -0.8); eL.rotation.x = -0.6; }
+    if (k === 'guard') { L.rotation.set(-1.4, 0, 0.5); R.rotation.set(-1.4, 0, -0.5); eL.rotation.x = -1.5; eR.rotation.x = -1.5; }
+    if (k === 'shot') { L.rotation.set(-1.55, 0, 0.15); R.rotation.set(-1.55, 0, -0.15); eL.rotation.x = -0.1; eR.rotation.x = -0.1; lg.rotation.x = -0.6; kL.rotation.x = 0.7; rg.rotation.x = 0.5; kR.rotation.x = 0.5; m.root.position.y -= 0.1; }
+    if (k === 'shin') { L.rotation.set(-0.3, 0, -0.6); R.rotation.set(-0.3, 0, 0.6); eL.rotation.x = -1.9; eR.rotation.x = -1.9; m.head.rotation.x = -0.3; }
+    if (k === 'gale') { L.rotation.set(-0.2 + u * 0.3, 0, -1.45); R.rotation.set(-0.2 + u * 0.3, 0, 1.45); eL.rotation.x = -0.25; eR.rotation.x = -0.25; m.g.rotation.x = -0.12; m.head.rotation.x = -0.35; lg.rotation.x = 0.2; rg.rotation.x = -0.2; kL.rotation.x = 0.6; kR.rotation.x = 0.6; }
+    if (k === 'hammer') { const sw = Math.min(1, u * 2.2); L.rotation.set(-3.0 + sw * 2.4, 0, 0.18); R.rotation.set(-3.0 + sw * 2.4, 0, -0.18); eL.rotation.x = -0.4; eR.rotation.x = -0.4; m.g.rotation.x = sw * 0.45; lg.rotation.x = -0.4; kL.rotation.x = 0.9; rg.rotation.x = 0.3; kR.rotation.x = 0.7; }
+    if (k === 'charge') { const tr = Math.sin(t * 60) * 0.02 * u; lg.rotation.x = -0.7; kL.rotation.x = 1.0; rg.rotation.x = 0.55; kR.rotation.x = 0.8; m.root.position.y -= 0.2; m.g.rotation.x = 0.18 + tr; m.torso.rotation.y = 0.75; R.rotation.set(0.75, 0, 0.3); eR.rotation.x = -2.0; L.rotation.set(-1.0, 0, -0.1); eL.rotation.x = -1.4; m.head.rotation.y = -0.6; }
+    if (k === 'smash') { R.rotation.set(-1.6, 0, 0.0); eR.rotation.x = 0; L.rotation.set(0.6, 0, -0.35); eL.rotation.x = -1.0; m.torso.rotation.y = -0.6; lg.rotation.x = -0.85; kL.rotation.x = 0.8; rg.rotation.x = 0.7; kR.rotation.x = 0.2; m.g.rotation.x = 0.35; m.root.position.y -= 0.12; } }
+  if (P.kJ) { const J = P.kJ, uu = Math.min(1, J.t / J.dur), C0 = 1.1; m.root.position.y += Math.sin(uu * Math.PI) * J.h; if (J.flip) { const th = J.flip * uu * TAU; m.g.rotation.x = th; m.g.position.y = C0 - C0 * Math.cos(th); m.g.position.z = -C0 * Math.sin(th); } if (J.spin) m.root.rotation.y += J.spin * uu * TAU; }
+  if (P.fY) m.root.position.y += P.fY;
+  m.root.visible = !(P.kHide > 0 && P.kDive <= 0); if (P.kEmerge > 0) { const k = P.kEmerge / 0.1; m.g.scale.set(1.08 * (1 - k * 0.5), 1.08 * (1 + k * 0.4), 1.08 * (1 - k * 0.5)); }
+  m.crestF.forEach((f, i) => { f.rotation.x = -0.5 - rage * 0.9 - (A ? 0.3 : 0) + Math.sin(t * 20 + i) * 0.05 * (1 + rage * 3); });
+  m.tufts.forEach(f => { f.scale.setScalar(1 + rage * 0.6 + (A ? 0.3 : 0)); });
+  m.eyeGlow.forEach(s => { s.material.opacity = 0.25 + rage * 0.6; s.scale.setScalar(0.16 + rage * 0.22); });
+  // 望の光輪：拳と足に纏い、回り、技の瞬間に強く輝く
+  const mg = G.kMang || 0; m.rings.forEach((q, i) => { const on = i < mg || (G.fDiveRing && i < Math.max(1, mg)); q.r.visible = on; if (!on) return; if (q.k > 0 && q.k < 1) q.k = Math.min(1, q.k + dt * 4); const pop = q.k > 0 && q.k < 1 ? 1 + (1 - q.k) * 2 : 1;
+    q.r.rotation.y += dt * (6 + i); q.t1.scale.setScalar(pop * (1 + (A ? 0.25 : 0) + Math.sin(t * 12 + i) * 0.06)); q.t2.rotation.z += dt * 4; q.gl.material.opacity = 0.2 + (A ? 0.35 : 0.08); });
+  m.shin.visible = P.kShin > 0; if (m.shin.visible) { m.shin.material.opacity = 0.12 + Math.sin(t * 14) * 0.05; m.shin.scale.set(0.75 + Math.sin(t * 9) * 0.03, 1.25, 0.7); }
+  m.aura.material.opacity = (0.15 + rage * 0.35 + mg * 0.04) * (0.8 + Math.sin(t * 9) * 0.2) + (G.fUlt ? 0.4 : 0); m.aura.material.color.setHex(G.fUlt ? 0xFF7A5A : P.kShin > 0 ? 0xC9B8FF : 0x8A6BFF);
+  if (spd > 9 && Math.random() < 0.6) fGhost(P.pos.x, P.pos.z); if (spd > 6 && Math.random() < 0.15) fFeathers(P.pos.x, 1.3, P.pos.z, 1, 2);
+}
+
+
+// ================= ここから鑑賞ページ側 =================
+// 共有して使い回す形と材質は、演出が消えるときに捨てない
+for (const o of [shardGeo, kbGeo, kPrism, kTip, fCrackGeo, fVoidGeo]) o.userData.keep = true;
+kCryMats.forEach(m => { m.userData.keep = true; });
+const kaeModel = makeKaEleP(); kaeModel.root.visible = true; me = kaeModel;
+const kaeFullModel = makeKaFull(); kaeFullModel.root.visible = false;
+const HOME = new THREE.Vector3(0, 0, 0);
+
+// ---- 当たり（木偶は壊れない） ----
+function kHit(d, base, key, o = {}) {
+  if (!d || d.dead) return 0;
+  let dmg = base * (d.frag > 0 ? 1.25 : 1) * (G.kOver > 0 ? 0.85 : 1);
+  if (d.bleed > 0) { dmg += d.bleed * 3; d.bleed = Math.max(0, d.bleed - 1); }
+  const crit = Math.random() < (o.crit ?? 0.12); if (crit) dmg *= 1.5;
+  dmg = Math.round(dmg * rand(0.94, 1.06)); d.idleT = 0; d.wobV += (o.knock || 1) * 6;
+  if (o.bleed) d.bleed = Math.min(10, d.bleed + o.bleed); if (o.frag) d.frag = Math.max(d.frag, o.frag); if (o.bind) d.bindT = Math.max(d.bindT, o.bind);
+  if (o.push) { const dx = d.pos.x - (o.from ? o.from.x : P.pos.x), dz = d.pos.z - (o.from ? o.from.z : P.pos.z), L = Math.hypot(dx, dz) || 1; d.kv.set(dx / L * o.push, 0, dz / L * o.push); }
+  if (o.quiet) d.acc = (d.acc || 0) + dmg; else { popText(d.pos, 2.4 + Math.random() * 0.6, dmg.toLocaleString(), crit ? 'crit' : ''); kBurst(_t.copy(d.pos).setY(1.3), crit ? 5 : 3, KAE_BY[key] ? KAE_BY[key].col : 0x9A8CFF, 3); sfx.kHit(); }
+  if (d.entT > 0 && !o.shared) { let n = 0; for (const e of KD) if (e !== d && e.entT > 0) { if (!o.quiet) kEntPulse(d.pos, e.pos); kHit(e, base * 0.5, 'ent', { shared: true, crit: 0, quiet: o.quiet }); n++; } if (n && Math.random() < 0.3) sfx.kEntPulse(); }
+  return dmg;
+}
+
+// ---- 訓練用の木偶（試作の大訓練場のもの） ----
+function makeDummy(kind) {
+  const g = new THREE.Group(); scene.add(g); const body = new THREE.Group(); g.add(body);
+  part(cyl(0.5, 0.56, 0.12, 16), 0x5A5866, 0, 0.06, 0, g, { ol: 1.04 });
+  part(cyl(0.06, 0.06, 1.3, 8), 0x7A7884, 0, 0.7, 0, body, NO);
+  part(cyl(0.34, 0.3, 0.9, 14), kind === 'shoot' ? 0x6B6F9A : 0xC9B89A, 0, 1.25, 0, body, { ol: 1.05 });
+  for (const [r, c] of [[0.3, 0xF2F2F2], [0.22, 0xC0392B], [0.13, 0xF2F2F2], [0.06, 0xC0392B]]) part(cyl(r, r, 0.02, 16), c, 0, 1.3, 0.33 - (0.3 - r) * 0.02, body, { outline: false, rx: Math.PI / 2 });
+  part(sph(0.2, 12, 10), 0xD8CDB8, 0, 1.86, 0, body, { ol: 1.05 });
+  part(box(0.9, 0.08, 0.08), 0x7A7884, 0, 1.45, -0.05, body, NO);
+  if (kind === 'shoot') part(cyl(0.07, 0.09, 0.4, 10), 0x2A2A34, 0, 1.6, 0.3, body, { rx: Math.PI / 2 });
+  const glow = glowSprite(0xFF5A5A, 0.8); glow.position.set(0, 1.62, 0.42); glow.visible = false; body.add(glow);
+  const bind = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.04, 6, 24), new THREE.MeshBasicMaterial({ color: 0xB59CFF, transparent: true, opacity: 0.8 })); bind.rotation.x = Math.PI / 2; bind.position.y = 1.0; bind.visible = false; g.add(bind);
+  const halo = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 6), new THREE.MeshBasicMaterial({ color: 0x8FE4FF, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false })); halo.rotation.x = -Math.PI / 2; halo.position.y = 2.35; halo.visible = false; g.add(halo);
+  blob(g, 0.6); return { g, body, glow, bind, halo, kind };
+}
+for (const [x, z, kind] of [[0, 6.5, 'shoot'], [-3.2, 8.6], [3.2, 8.6], [-5.4, 4.6], [5.4, 4.6]]) { const d = makeDummy(kind || 'stand'); Object.assign(d, { home: new THREE.Vector3(x, 0, z), pos: new THREE.Vector3(x, 0, z), kv: new THREE.Vector3(), dead: 0, wob: 0, wobV: 0, frag: 0, bleed: 0, bleedT: 0, bindT: 0, entT: 0, entOrd: 0, idleT: 9, acc: 0, accT: 0 }); d.g.position.copy(d.pos); d.g.rotation.y = Math.PI; KD.push(d); }
+const MAIN = KD[0];
+function turn(a, b, k) { const d = ((b - a + Math.PI) % TAU + TAU) % TAU - Math.PI; return a + d * Math.min(1, k); }
+const busyLeft = () => Math.max(0, (G.busyUntil || 0) - G.time);
+function tickDummies(dt) {
+  for (const d of KD) { d.g.visible = S.dummy; if (!S.dummy) continue;
+    d.idleT += dt; d.frag = Math.max(0, d.frag - dt); d.bindT = Math.max(0, d.bindT - dt); d.entT = Math.max(0, d.entT - dt); d.bleedT += dt; if (d.bleedT > 1.5) { d.bleedT = 0; d.bleed = Math.max(0, d.bleed - 1); }
+    if (!kFlyTick(d, dt)) { d.pos.addScaledVector(d.kv, dt); d.kv.multiplyScalar(Math.exp(-6 * dt)); } else d.idleT = 0;
+    if (d.pullT > 0) { d.pullT -= dt; const k = Math.min(1, dt * 9); d.pos.x += (d.pullX - d.pos.x) * k; d.pos.z += (d.pullZ - d.pos.z) * k; d.idleT = 0; }
+    resolve(null, d.pos);
+    if (d.fixT > 0 && d.fixPos) { d.fixT -= dt; d.pos.copy(d.fixPos); d.fly = null; }
+    d.crushT = Math.max(0, (d.crushT || 0) - dt); { const k = d.crushT / 0.7; d.body.scale.set(1 + k * 0.45, 1 - k * 0.5, 1 + k * 0.45); }
+    if (d.idleT > 2 && d.bindT <= 0 && !d.fly && !(d.fixT > 0) && busyLeft() <= 0) { d.pos.x += (d.home.x - d.pos.x) * Math.min(1, dt * 1.2); d.pos.z += (d.home.z - d.pos.z) * Math.min(1, dt * 1.2); }
+    d.wobV += (-d.wob * 60 - d.wobV * 6) * dt; d.wob += d.wobV * dt; d.body.rotation.x = Math.max(-0.6, Math.min(0.6, d.wob * 0.08));
+    d.accT -= dt; if (d.acc > 0 && d.accT <= 0) { popText(d.pos, rand(2.3, 3.1), Math.round(d.acc).toLocaleString(), ''); d.acc = 0; d.accT = 0.13; }
+    d.sliceT = Math.max(0, (d.sliceT || 0) - dt); d.body.position.x = d.sliceT > 0 ? Math.sin(d.sliceT * 30) * 0.05 + d.sliceT * 0.5 : 0; d.body.rotation.z = d.sliceT * 0.35;
+    d.g.position.copy(d.pos); if (d.fly) d.body.rotation.x = d.fly.rot || 0; d.g.rotation.y = turn(d.g.rotation.y, Math.atan2(P.pos.x - d.pos.x, P.pos.z - d.pos.z), dt * 3);
+    d.bind.visible = d.bindT > 0; if (d.bindT > 0) d.bind.rotation.z += dt * 3; d.halo.visible = d.entT > 0; if (d.entT > 0) d.halo.rotation.z += dt * 2; }
+}
+// 絡合でつながった木偶を、光の鎖で結ぶ
+function entTick() { const list = S.dummy ? KD.filter(d => d.entT > 0).sort((a, b) => a.entOrd - b.entOrd) : []; let i = 0;
+  for (; i < list.length - 1 && i < entBeams.length; i++) kLink(entBeams[i], { x: list[i].pos.x, y: 1.5 + list[i].pos.y, z: list[i].pos.z }, { x: list[i + 1].pos.x, y: 1.5 + list[i + 1].pos.y, z: list[i + 1].pos.z }, G.time);
+  for (; i < entBeams.length; i++) entBeams[i].g.visible = false; }
+// 位相安定・見切りの相手：射撃の木偶が撃つ弾
+function flash(op = 1, ms = 160) { const f = $('flash'); f.style.opacity = op; setTimeout(() => { f.style.opacity = 0; }, ms); }
+function kShoot(d) { if (!S.dummy) return; const dx = P.pos.x - d.pos.x, dz = P.pos.z - d.pos.z, L = Math.hypot(dx, dz) || 1; d.glow.visible = true; kLater(() => { d.glow.visible = false; }, 300);
+  const m = new THREE.Mesh(sph(0.2, 10, 8), kMat(0xFF6A5A, 0.95)); m.position.set(d.pos.x, 1.55, d.pos.z); scene.add(m); G.kShots.push({ m, vx: dx / L * 7, vz: dz / L * 7, life: 3, ref: false }); sfx.kShot(); }
+function shotTick(dt) { for (let i = G.kShots.length - 1; i >= 0; i--) { const s = G.kShots[i]; s.life -= dt; s.m.position.x += s.vx * dt; s.m.position.z += s.vz * dt; let dead = s.life <= 0;
+  const sd = Math.hypot(s.m.position.x - P.pos.x, s.m.position.z - P.pos.z);
+  if (!dead && !s.ref && (sd < 0.8 || (P.kGuard > 0 && sd < 1.6))) { if (P.kGuard > 0) { s.ref = true; s.vx *= -1.8; s.vz *= -1.8; s.life = 1.2; s.m.material.color.setHex(0xA0E0FF); sfx.kReflect(); popText(P.pos, 2.6, '反転', 'kana'); KAE_SAY('guard'); } else { dead = true; popText(P.pos, 2.6, '被弾', 'info'); flash(0.5, 120); } }
+  if (!dead && s.ref) for (const d of kAlive()) if (Math.hypot(d.pos.x - s.m.position.x, d.pos.z - s.m.position.z) < 0.8) { kHit(d, 140, 'rifle', { crit: 0.5, push: 2 }); dead = true; break; }
+  if (dead) { scene.remove(s.m); s.m.material.dispose(); G.kShots.splice(i, 1); } } }
+
+// ---- 演出の更新と後始末 ----
+function disposeTree(o) { o.traverse(m => { if (m.geometry && !m.isSprite && !m.geometry.userData.keep) m.geometry.dispose(); if (m.material && !m.material.userData.keep) m.material.dispose(); }); }
+function kFxTick(dt) {
+  for (let i = kFx.length - 1; i >= 0; i--) { const f = kFx[i]; f.life -= dt; const uu = Math.min(1, 1 - f.life / f.max); if (f.upd) f.upd(f, uu); if (f.life <= 0) { scene.remove(f.o); disposeTree(f.o); kFx.splice(i, 1); } }
+  for (const p of kShards) if (p.life > 0) { p.life -= dt; p.v.y -= 7 * dt; p.m.position.addScaledVector(p.v, dt); p.m.rotation.x += p.s.x * dt; p.m.rotation.y += p.s.y * dt; p.m.material.opacity = Math.min(0.9, p.life / p.max * 1.6); if (p.life <= 0 || p.m.position.y < 0) { p.life = 0; p.m.visible = false; } }
+  fFeaTick(dt); }
+
+// ---- カ・エレの毎フレーム（試作の updateKae から、鑑賞に要る分だけ） ----
+function updateKae(dt) {
+  kQTick(dt);
+  for (const k in G.kcd) G.kcd[k] = Math.max(0, G.kcd[k] - dt);
+  P.kLock = Math.max(0, P.kLock - dt); P.kGuard = Math.max(0, P.kGuard - dt); G.kOver = Math.max(0, G.kOver - dt); P.kRise = Math.max(0, P.kRise - dt); P.invuln = Math.max(0, P.invuln - dt);
+  if (P.kAct) { P.kAct.t += dt; if (P.kAct.t >= P.kAct.dur) P.kAct = null; }
+  fullUpdate(dt); kUltTick(dt); kBulTick(dt);
+  P.kHide = Math.max(0, (P.kHide || 0) - dt); P.kEmerge = Math.max(0, (P.kEmerge || 0) - dt); P.kDive = Math.max(0, (P.kDive || 0) - dt);
+  if (P.kJ) { const J = P.kJ; J.t += dt; const u = Math.min(1, J.t / J.dur); if (J.to) { const e = 1 - Math.pow(1 - u, 2); P.pos.x = J.from.x + (J.to.x - J.from.x) * e; P.pos.z = J.from.z + (J.to.z - J.from.z) * e; } if (u >= 1) P.kJ = null; }
+  if (G.kRumble > 0) { G.kRumble -= dt; G.shake = Math.max(G.shake || 0, 0.12); }
+  resolve(null, P.pos);
+}
+// 何もしていないときは、元の位置へ歩いて戻り、木偶の方を向く
+function idleTick(dt) { P.walkSpd = 0;
+  if (busyLeft() > 0 || kQ.length || P.kAct || P.kJ || G.fMove || G.fDive || G.kUlt || G.fUlt || G.kBarr || P.kHide > 0) return;
+  const dx = HOME.x - P.pos.x, dz = HOME.z - P.pos.z, L = Math.hypot(dx, dz);
+  if (L > 0.08) { const v = Math.min(L, 4 * dt); P.pos.x += dx / L * v; P.pos.z += dz / L * v; P.facing = turn(P.facing, Math.atan2(dx, dz), dt * 8); P.walkSpd = dt > 0 ? v / dt : 0; }
+  else P.facing = turn(P.facing, Math.atan2(MAIN.pos.x - P.pos.x, MAIN.pos.z - P.pos.z), dt * 5); }
+// 研究者態の素の姿勢（歩き・立ち）。技の姿勢は試作の kaeBodyVisual が上書きする
+function kaeBase(dt, t) { const m = kaeModel; m.root.position.set(P.pos.x, 0, P.pos.z); m.root.rotation.set(0, P.facing, 0); m.g.rotation.set(0, 0, 0); m.g.position.set(0, 0, 0);
+  const w = Math.min(1, (P.walkSpd || 0) / 3); P.ph = (P.ph || 0) + dt * 9 * w; const s = Math.sin(P.ph) * 0.55 * w, b = Math.sin(t * 2.2) * 0.04;
+  m.legs[0].rotation.set(s, 0, 0); m.legs[1].rotation.set(-s, 0, 0); m.arms[0].rotation.set(-s * 0.8 + b, 0, -0.08); m.arms[1].rotation.set(s * 0.8 - b, 0, 0.08); }
+function fullBase() { const m = kaeFullModel; m.root.position.set(P.pos.x, 0, P.pos.z); m.root.rotation.set(0, P.facing, 0); }
+// 形態を静かに切り替える（技を選んだとき、その形態でなければ）
+function setForm(full) { if ((P.kFull > 0) === full) return; const a = { x: P.pos.x, z: P.pos.z };
+  if (full) { P.kFull = 1; for (const k of ['combo', 'wcut', 'rap', 'wing', 'dive', 'guard', 'shot', 'shin', 'heavy', 'chase']) G.fcd[k] = 0; G.fStep = 0; G.fStepT = -9; kaeModel.root.visible = false; kaeFullModel.root.visible = true; me = kaeFullModel; kaeAura.visible = false; }
+  else { P.kFull = 0; P.kShin = 0; G.kMang = 0; G.kRage = 0; kaeFullModel.root.visible = false; kaeModel.root.visible = true; me = kaeModel; }
+  kRing(a.x, a.z, 0.4, 3, full ? 0xFF8A5A : 0xB89CFF, 0.4); kBurst(_t.set(a.x, 1.2, a.z), 8, full ? 0xFFC090 : 0xB8A8FF, 4); }
+
+// ================= 技の目録 =================
+function kStep(n) { G.kStep = (n + 2) % 3; G.kComboStepT = G.time; G.kcd.combo = 0; P.kLock = 0; kaeCombo(); }
+function fStep(n) { G.fStep = (n + 4) % 5; G.fStepT = G.time; G.fcd.combo = 0; P.kLock = 0; G.fMove = null; fCombo(); }
+const TECH = [
+  { id: 'name', grp: '姿', form: 'normal', name: '解析の開始', read: 'かいせきのかいし', dur: 3.4, run: () => { kAct('ent', 1.2); say(P, KAE_VO.start, 3.2); sfx.kReady(); kRing(P.pos.x, P.pos.z, 0.5, 6, 0x7A6BFF, 0.9, 0.1, 6); kRing(P.pos.x, P.pos.z, 0.5, 4, 0xDDE4FF, 0.7, 1.3, 6); KD.forEach((d, i) => kLater(() => { if (S.dummy) { popText(d.pos, 2.8, '観測', 'kana'); kRing(d.pos.x, d.pos.z, 0.3, 1.4, 0xA0E0FF, 0.4, 1.2, 6); } }, 400 + i * 160)); },
+    desc: '戦いのはじめに、相手の構造を観測する。小技で十の干渉経路をひとつずつ揃えていく。', line: KAE_VO.start },
+  { id: 'edge', grp: '研究者態', form: 'normal', key: 'J', name: '折刃', read: 'おりば', dur: 1.4, run: () => kStep(0), desc: '連撃の一段目。次元の裂け目に入り、標的の横の裂け目から出て、次元短剣《Folded Edge》で斬る。', meta: '次元短剣《Folded Edge》・出血', line: '折るよ' },
+  { id: 'arm', grp: '研究者態', form: 'normal', key: 'J', name: '可変腕', read: 'かへんわん', dur: 1.4, run: () => kStep(1), desc: '連撃の二段目。手前の裂け目に拳を突っ込み、標的の横に開いた裂け目から腕が出る。', meta: '可変次元アーム《Dimensional Arm》・押し飛ばし', line: '腕は、ここにもある' },
+  { id: 'spike', grp: '研究者態', form: 'normal', key: 'J', name: '錨', read: 'いかり', dur: 1.5, run: () => kStep(2), desc: '連撃の三段目。裂け目で後ろへ抜け、宙返りしながら投げる。刺さった相手はその座標に固定される。', meta: '次元投擲体《Anchor Spike》・固定 1.6秒', line: '座標、確定' },
+  { id: 'combo', grp: '研究者態', form: 'normal', name: '連撃（折刃→可変腕→錨）', read: 'れんげき', dur: 2.4, run: () => { kStep(0); kLater(() => kStep(1), 520); kLater(() => kStep(2), 1050); }, desc: '折刃・可変腕・錨を続けて出す。どれも裂け目を通って、相手の横か後ろから届く。', line: '短く、済ませよう' },
+  { id: 'rifle', grp: '研究者態', form: 'normal', key: '1', name: '位相断', read: 'いそうだん', dur: 1.6, run: () => kaeRifle(), desc: '次元干渉ライフル《Phase Breaker》で、位相を破断する貫通ビームを撃つ。撃った反動で少し後ろへ跳ぶ。', meta: '射程 18・貫通', line: '位相を断つ' },
+  { id: 'frame', grp: '研究者態', form: 'normal', key: '2', name: '不可能幾何', read: 'ふかのうきか', dur: 2.6, run: () => kaeFrame(), desc: '裂け目をくぐって四度跳び、そのたびにありえない立体で空間を歪ませる。最後は宙返りで高く跳び、落ちてくる立体で押し潰す。', meta: '幾何構成デバイス《Impossible Frame》', line: 'ありえない形を、少しだけ' },
+  { id: 'fold', grp: '研究者態', form: 'normal', key: '3', name: '折り畳み', read: 'おりたたみ', dur: 1.8, run: () => kaeFold(), desc: '周りの空間を一点へ畳み寄せ、ぐしゃりと潰す。引き寄せられた相手はその場で固まる。', meta: '非ユークリッド折り畳み・引き寄せ 半径9', line: '距離を、畳む' },
+  { id: 'ent', grp: '研究者態', form: 'normal', key: '4', name: '絡合', read: 'からみあい', dur: 2.4, run: () => kaeEnt(), desc: '最大五体を光の鎖でつなぎ、ひとつの系にする。つないだ相手の一体に与えた傷の半分が、つながった全員に流れる。', meta: '空間絡合・7秒', line: '君たちは今、ひとつの系だ' },
+  { id: 'warp', grp: '研究者態', form: 'normal', key: '6', name: '歪曲軌道', read: 'わいきょくきどう', dur: 1.8, run: () => kaeWarp(), desc: '裂け目を三度くぐり、左、右、背後から斬る。曲がった光の軌跡が残る。', meta: 'ワープド・トラジェクトリ', line: '通らせてもらうね' },
+  { id: 'mani', grp: '研究者態', form: 'normal', key: '7', name: '実体化', read: 'じったいか', dur: 2.6, run: () => kaeMani(), desc: '跳んで叩きつけ、足もとから結晶を噴き出させる。結晶は三方向へ連なって走り、標的のまわりでもう一度噴き出す。', meta: '次元干渉・実体化', line: '形にするよ' },
+  { id: 'barr', grp: '研究者態', form: 'normal', key: '8', name: '歪曲弾幕', read: 'わいきょくだんまく', dur: 2.4, run: () => kaeBarr(), desc: '背後一面に十四の裂け目を開き、1.25秒のあいだ、揺らぎながら飛ぶ歪みを凄まじい速さで撃ち続ける。一部は標的を追う。', meta: '次元歪曲弾幕', line: '軌道は、全部曲げておいた' },
+  { id: 'guard', grp: '研究者態', form: 'normal', key: 'K', name: '位相安定', read: 'いそうあんてい', dur: 2.2, run: () => { kShoot(MAIN); kLater(() => kaeGuard(), 420); }, desc: '0.5秒だけ構え、飛んでくる弾の向きを反転させて撃ち返す。射撃の木偶が一発撃ってくる。', meta: '位相安定化モジュール《Phase Stabilizer》', line: 'その向きは、返すよ' },
+  { id: 'ult', grp: '研究者態の奥義', form: 'normal', key: 'R', ult: true, name: '全位相収束', read: 'ぜんいそうしゅうそく', dur: 9.6, run: () => { for (const t of KAE_T) G.kAna.add(t.k); kaeUlt(); },
+    desc: '十の手段を一度ずつ使うと解ける奥義。裂け目を渡り歩いて全手段を叩き込み、最後は次元のズレで作った刃を溜めて、敵の集団を一直線に一瞬で突き抜けて一閃する。少し遅れて「ズレ」が追撃する。使った後は七秒の演算負荷。', meta: '位相断・双 → 錨 → 不可能幾何 → 折刃 → 可変腕・双 → 歪曲軌道 → 歪曲弾幕 → 折り畳み → 絡合 → 実体化 → 折刃・連 → 次元断層・一閃', line: '……解は、ひとつだ' },
+  { id: 'fon', grp: '全力・猛禽態', form: 'full', key: 'V', name: '全力・猛禽態', read: 'ぜんりょく・もうきんたい', dur: 2.4, run: () => { G.kFullCd = 0; kaeFullOn(); },
+    desc: 'コートも銃も短剣もコアも脱ぎ捨て、鍛えた体と文鳥の本能だけで戦う姿になる。移動は1.5倍。', line: '……ここからは、計算は要らない' },
+  { id: 'fcombo', grp: '全力・猛禽態', form: 'full', key: 'J', name: '連撃（拳→拳→膝→蹴り飛ばし→踵落とし）', read: 'れんげき', dur: 3.6, run: () => { [0, 260, 520, 860].forEach((ms, i) => kLater(() => fStep(i), ms)); kLater(() => fStep(4), 2150); },
+    desc: '拳、拳、膝、そして蹴り飛ばす。吹き飛んだ先へ次元移動して空からライダーキックを入れ、最後に踵落とし。', line: '遅い' },
+  { id: 'wcut', grp: '全力・猛禽態', form: 'full', key: '1', name: '断空', read: 'だんくう', dur: 2.2, run: () => fWcut(), desc: '空間を一直線に突き抜けて、標的を次々に通り過ぎる。少し遅れて、通った跡の裂け目がすべて開く。', line: '断つ' },
+  { id: 'rap', grp: '全力・猛禽態', form: 'full', key: '2', name: '猛禽連撃', read: 'もうきんれんげき', dur: 2.4, run: () => fRap(), desc: '踏み込んで二十発の拳を打ち込み、最後に突き上げる。', line: '止まるな' },
+  { id: 'wing', grp: '全力・猛禽態', form: 'full', key: '3', name: '翼撃旋風', read: 'よくげきせんぷう', dur: 2.2, run: () => fWing(), desc: '回し蹴りを続けて羽根の竜巻を起こし、周りを引き寄せてから、まとめて吹き飛ばす。', line: '吹き飛べ' },
+  { id: 'dive', grp: '全力・猛禽態', form: 'full', key: '4', name: '天穿・落踵', read: 'てんせん・らくしょう', dur: 2.0, run: () => fDive(), desc: '縦に一瞬で天へ跳び、光輪をまとった踵で一瞬で落ちて、空間ごと叩き割る。', line: '落ちろ' },
+  { id: 'shot', grp: '全力・猛禽態', form: 'full', key: '6', name: '望・光輪弾', read: 'もち・こうりんだん', dur: 2.4, run: () => { fMangUp(7 - (G.kMang || 0)); kLater(() => { G.fcd.shot = 0; P.kLock = 0; fShot(); }, 700); },
+    desc: '殴り続けると、心を圧縮した次元光輪《望》が拳と足にひとつずつ宿る（一望〜七望）。纏った光輪を全部、気功弾のように撃ち出す。', meta: '光輪の数だけ打撃が強くなる。ここでは七望まで溜めてから撃つ', line: '――そこ' },
+  { id: 'shin', grp: '全力・猛禽態', form: 'full', key: '7', name: '心', read: 'しん', dur: 1.8, run: () => fShin(), desc: '全身に気をまとう障壁。受ける傷が大きく減り、攻撃が強くなる。そのかわり精神に負荷がかかり、安定が削れていく。', meta: '8秒', line: '見えてる' },
+  { id: 'heavy', grp: '全力・猛禽態', form: 'full', key: '8', name: '崩天・重拳', read: 'ほうてん・じゅうけん', dur: 3.0, run: () => fHeavyFist(), desc: '拳を引き絞って溜め、重すぎる一撃を叩き込む。溜めのあいだは受ける傷が半分になる。', line: '……動くな' },
+  { id: 'chase', grp: '全力・猛禽態', form: 'full', key: '0', name: '次元追撃《渡り鴉》', read: 'じげんついげき・わたりがらす', dur: 4.2, run: () => fChase(), desc: '殴り飛ばし、次元移動で先回りしてまた殴り飛ばす。七回繰り返して、最後は空からの重い一撃。', line: '逃がさない' },
+  { id: 'fguard', grp: '全力・猛禽態', form: 'full', key: 'K', name: '見切り', read: 'みきり', dur: 1.8, run: () => { fBlinkTo(fNear(MAIN, 3.2, 0), { slit: false }); kFace(MAIN); kLater(() => kShoot(MAIN), 200); kLater(() => { G.fcd.guard = 0; fGuard(); }, 420); },
+    desc: '構えて弾を返し、そのまま相手の背後へ跳んで蹴り飛ばす。', line: 'まだだ' },
+  { id: 'fult', grp: '全力・猛禽態の奥義', form: 'full', key: 'R', ult: true, name: '崩界・千撃', read: 'ほうかい・せんげき', dur: 7.4, run: () => { G.kRage = 100; if ((G.kMang || 0) < 5) fMangUp(5 - (G.kMang || 0)); kLater(() => { P.kLock = 0; fUlt(); }, 500); },
+    desc: '猛りが満ちると使える奥義。超高速の連打で、割れていく次元ごと敵をその場に縫い留める。距離を取って凄まじく溜め、最大級の一撃を打ち込む。縫い留めたひびがすべて砕け、敵は遠くへ吹き飛ぶ。', meta: '纏った《望》の数だけ威力が上がる。管理者の戦闘記録は、この姿を記録できない', line: '……逃がさない。そこに、縫い留める' },
+  { id: 'foff', grp: '姿', form: 'full', name: '全力の解除', read: 'ぜんりょくのかいじょ', dur: 2.0, run: () => kaeFullOff(), desc: '全力を解き、白いコートの研究者の姿に戻る。', line: '……戻ろう。ここからは、また解析だ' },
+];
+const KEYMAP = { normal: {}, full: {} }; TECH.forEach(t => { if (t.key && t.id !== 'edge' && t.id !== 'arm' && t.id !== 'spike') KEYMAP[t.form][t.key] = t; }); KEYMAP.normal.J = TECH.find(t => t.id === 'combo'); KEYMAP.full.V = TECH.find(t => t.id === 'foff'); KEYMAP.normal.V = TECH.find(t => t.id === 'fon');
+
+let cur = TECH[0];
+function resetState() { kQ.length = 0; for (const f of kFx) f.life = Math.min(f.life, 0.18); for (const r of kaeFullModel.rings) r.k = 0; G.kUlt = null; G.fUlt = null; G.fDive = null; G.fMove = null; G.kBarr = null; G.fDiveRing = false;
+  P.kAct = null; P.kJ = null; P.kLock = 0; P.invuln = 0; P.kGuard = 0; P.kHide = P.kEmerge = P.kDive = 0; P.kRise = 0; P.fY = 0; P.kWarpHit = 0; P.kWarpBody = 0; P.kArmor = 0;
+  for (const k in G.kcd) G.kcd[k] = 0; for (const k in G.fcd) G.fcd[k] = 0; G.kOver = 0; G.kFullCd = 0; G.slowT = 0; G.kRumble = 0;
+  const cv = renderer.domElement; cv.style.filter = ''; cv.style.transform = '';
+  for (const s of G.kShots) { scene.remove(s.m); s.m.material.dispose(); } G.kShots.length = 0; for (const b of KB_POOL) if (b.on) { b.on = false; b.m.visible = false; }
+  if (Math.hypot(P.pos.x - HOME.x, P.pos.z - HOME.z) > 1) { kRift(P.pos.x, P.pos.z, 0, 0.3); kRift(HOME.x, HOME.z, Math.PI, 0.3); P.pos.copy(HOME); P.kEmerge = 0.16; }
+  P.pos.y = 0; kFace(MAIN);
+  for (const d of KD) { d.fly = null; d.fixT = 0; d.fixPos = null; d.pullT = 0; d.bindT = 0; d.entT = 0; d.crushT = 0; d.kv.set(0, 0, 0); d.pos.y = 0; d.body.rotation.set(0, 0, 0); if (d.pos.distanceTo(d.home) > 0.5) { d.pos.copy(d.home); if (S.dummy) kRing(d.pos.x, d.pos.z, 0.2, 1.4, 0xFFFFFF, 0.4); } } }
+function play(t, fromAll) { if (S.sound) audioOn(); muted = !S.sound; if (!fromAll) setAll(false); resetState();
+  if (t.id !== 'fon' && t.id !== 'foff') setForm(t.form === 'full'); else if (t.id === 'fon') setForm(false); else setForm(true);
+  G.busyUntil = G.time + t.dur; select(t); skillName(t); t.run();
+  if (S.all) kLater(() => { if (!S.all) return; play(TECH[(TECH.indexOf(t) + 1) % TECH.length], true); }, (t.dur + 1.0) * 1000); }
+
+// ================= 文字 =================
+function skillName(t) { const el = $('skill'); el.querySelector('b').textContent = t.ult ? '《' + t.name + '》' : t.name; el.querySelector('i').textContent = t.ult ? '奥義' : t.read; el.classList.toggle('ult', !!t.ult); el.classList.toggle('full', t.form === 'full' && !t.ult); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); skillT = t.ult ? 3.0 : 1.7; }
+
+// ================= カメラ =================
+const CAM = { yaw: 0.9, pitch: 0.3, dist: 15, ty: 2.2, tz: 3.2 }, CAMT = Object.assign({}, CAM), CT = { x: 0, z: 3.2 };
+const PRESET = { front: { yaw: 0.0001, pitch: 0.22, dist: 14, ty: 2.2, tz: 3.2 }, side: { yaw: 0.9, pitch: 0.3, dist: 15, ty: 2.2, tz: 3.2 }, top: { yaw: 0.6, pitch: 1.05, dist: 22, ty: 1, tz: 3.2 }, close: { yaw: 0.35, pitch: 0.14, dist: 7, ty: 2.4, tz: 0.6 } };
+function setCam(k) { const p = PRESET[k]; Object.assign(CAMT, p); CAMT.yaw = CAM.yaw + ((((p.yaw - CAM.yaw) + Math.PI) % TAU + TAU) % TAU - Math.PI); S.rot = false; $('tRot').setAttribute('aria-pressed', 'false'); document.querySelectorAll('#cams button').forEach(b => b.setAttribute('aria-pressed', b.dataset.cam === k ? 'true' : 'false')); }
+let drag = null; const ptrs = new Map();
+const vw = $('view');
+vw.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; audioOn(); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { vw.setPointerCapture(e.pointerId); } catch (er) { /* 無視 */ } drag = { pinch: ptrs.size >= 2 ? pinchD() : 0 }; });
+vw.addEventListener('pointermove', e => { const p = ptrs.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size >= 2) { const d = pinchD(); if (drag && drag.pinch) CAMT.dist = clamp(CAMT.dist * drag.pinch / d, 5, 40); if (drag) drag.pinch = d; return; }
+  CAMT.yaw -= dx * 0.008; CAMT.pitch = clamp(CAMT.pitch + dy * 0.006, 0.03, 1.3); CAM.yaw = CAMT.yaw; });
+const endP = e => { ptrs.delete(e.pointerId); if (!ptrs.size) drag = null; };
+vw.addEventListener('pointerup', endP); vw.addEventListener('pointercancel', endP);
+vw.addEventListener('wheel', e => { e.preventDefault(); CAMT.dist = clamp(CAMT.dist * (e.deltaY > 0 ? 1.1 : 0.9), 5, 40); }, { passive: false });
+function pinchD() { const a = [...ptrs.values()]; return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function camTick(rdt) { if (S.rot && !drag) CAMT.yaw += rdt * 0.12;
+  const k = Math.min(1, rdt * 4), ult = G.kUlt || G.fUlt ? 1 : 0; CAM.yaw += (CAMT.yaw - CAM.yaw) * k; CAM.pitch += ((CAMT.pitch + ult * 0.12) - CAM.pitch) * k; CAM.dist += ((CAMT.dist * (1 + ult * 0.25) * (camera.aspect < 1 ? 1.3 : 1)) - CAM.dist) * k; CAM.ty += (CAMT.ty - CAM.ty) * k; CAM.tz += (CAMT.tz - CAM.tz) * k;
+  const kt = Math.min(1, rdt * 2.5); CT.x += (P.pos.x * 0.5 - CT.x) * kt; CT.z += (CAM.tz + P.pos.z * 0.4 - CT.z) * kt;
+  const cp = Math.cos(CAM.pitch); camYaw = CAM.yaw;
+  camera.position.set(CT.x + Math.sin(CAM.yaw) * cp * CAM.dist, CAM.ty + Math.sin(CAM.pitch) * CAM.dist, CT.z + Math.cos(CAM.yaw) * cp * CAM.dist);
+  camera.lookAt(CT.x, CAM.ty, CT.z); if (G.shake > 0.01) { if (!reduce) { camera.position.x += rand(-1, 1) * G.shake * 0.25; camera.position.y += rand(-1, 1) * G.shake * 0.25; } G.shake *= Math.exp(-6 * rdt); } }
+
+// ================= 毎フレーム =================
+let last = performance.now();
+function loop(now) { requestAnimationFrame(loop); const rdt = Math.min(0.05, (now - last) / 1000); last = now;
+  let dt = rdt * (S.slow ? 0.35 : 1); if (G.slowT > 0) { G.slowT -= rdt; dt *= 0.25; }
+  G.time += dt; muted = !S.sound;
+  updateKae(dt); idleTick(dt); tickDummies(dt); entTick(); shotTick(dt);
+  if (P.kFull > 0) { fullBase(); kaeFullVisual(dt, G.time); kaeModel.root.visible = false; kaeAura.visible = false; } else { kaeBase(dt, G.time); kaeBodyVisual(dt, G.time); kaeFullModel.root.visible = false; }
+  kFxTick(dt); camTick(rdt);
+  if (subT > 0) { subT -= rdt; if (subT <= 0) $('sub').hidden = true; } if (skillT > 0) { skillT -= rdt; if (skillT <= 0) $('skill').classList.remove('on'); }
+  const fn = G.kUlt ? '奥義・全位相収束' : G.fUlt ? '奥義・崩界千撃' : P.kFull > 0 ? '全力・猛禽態' + (G.kMang ? '（' + KANJI[G.kMang] + '望）' : '') : G.kOver > 0 ? '研究者態（演算負荷）' : '研究者態'; if ($('formName').textContent !== fn) $('formName').textContent = fn;
+  renderer.render(scene, camera); }
+
+// ================= 画面の部品 =================
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function select(t) { cur = t; document.querySelectorAll('.tech').forEach(b => b.classList.toggle('on', b.dataset.id === t.id));
+  const chip = t.ult ? '<span class="chip ult">奥義</span>' : t.form === 'full' ? '<span class="chip full">' + esc(t.grp) + '</span>' : '<span class="chip">' + esc(t.grp) + '</span>';
+  $('info').innerHTML = '<div class="row1">' + chip + (t.key ? '<span class="meta">操作キー ' + esc(t.key) + '</span>' : '') + '</div><h2>' + (t.ult ? '《' + esc(t.name) + '》' : esc(t.name)) + '</h2><div class="read">' + esc(t.read) + '</div><p>' + esc(t.desc) + '</p>' + (t.meta ? '<div class="meta">' + esc(t.meta) + '</div>' : '') + '<p class="line">「' + esc(t.line) + '」</p>'; }
+{ const groups = []; TECH.forEach(t => { let g = groups.find(x => x.name === t.grp); if (!g) groups.push(g = { name: t.grp, items: [] }); g.items.push(t); });
+  const order = ['研究者態', '研究者態の奥義', '全力・猛禽態', '全力・猛禽態の奥義', '姿']; groups.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+  $('list').innerHTML = groups.map(g => '<h3>' + esc(g.name) + '</h3><div class="techs">' + g.items.map(t => '<button type="button" class="tech' + (t.ult ? ' ultb' : '') + (t.form === 'full' ? ' full' : '') + '" data-id="' + t.id + '"><span class="n">' + esc(t.name) + '</span><span class="r">' + esc(t.ult ? '奥義' : t.read) + '</span>' + (t.key ? '<kbd>' + esc(t.key) + '</kbd>' : '') + '</button>').join('') + '</div>').join('')
+    + '<p class="hint">技を押すと、その場で一度だけ見せます。研究者態と猛禽態は、選んだ技に合わせて切り替わります。舞台をドラッグで視点を回し、ホイールかピンチで寄り引き。キーボードでは、いまの形態の技を J・1〜8・0・K・R で、V で全力の切り替えを出せます。</p>';
+  $('list').addEventListener('click', e => { const b = e.target.closest('.tech'); if (!b) return; play(TECH.find(t => t.id === b.dataset.id)); }); }
+function bindToggle(id, key, after) { const b = $(id); b.addEventListener('click', () => { S[key] = !S[key]; b.setAttribute('aria-pressed', S[key] ? 'true' : 'false'); if (after) after(S[key]); }); }
+function setAll(on) { S.all = on; $('tAll').setAttribute('aria-pressed', on ? 'true' : 'false'); }
+$('tAll').addEventListener('click', () => { if (S.all) { setAll(false); return; } setAll(true); play(cur, true); });
+bindToggle('tSlow', 'slow'); bindToggle('tRot', 'rot'); bindToggle('tDummy', 'dummy'); bindToggle('tTalk', 'talk', on => { if (!on) $('sub').hidden = true; }); bindToggle('tSound', 'sound', on => { if (on) audioOn(); muted = !on; });
+$('cams').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setCam(b.dataset.cam); });
+$('profBtn').addEventListener('click', () => { $('prof').hidden = false; $('profClose').focus(); });
+$('profClose').addEventListener('click', () => { $('prof').hidden = true; $('profBtn').focus(); });
+$('prof').addEventListener('click', e => { if (e.target.id === 'prof') $('prof').hidden = true; });
+addEventListener('keydown', e => { if (e.key === 'Escape') { $('prof').hidden = true; return; } if (e.metaKey || e.ctrlKey || e.altKey || !$('prof').hidden) return; const k = e.key.length === 1 ? e.key.toUpperCase() : ''; const t = KEYMAP[P.kFull > 0 ? 'full' : 'normal'][k]; if (t) { e.preventDefault(); play(t); } });
+window.__kae = { play: id => play(TECH.find(t => t.id === id)), TECH, G, P, KD };
+
+select(cur); resize(); requestAnimationFrame(loop);
+setTimeout(() => play(TECH[0]), 600);
+})();
+</script>
