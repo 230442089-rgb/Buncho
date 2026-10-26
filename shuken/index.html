@@ -21342,25 +21342,53 @@ function koshiModel41() { const m = makeBird({ coat: 0x5A5A62, pants: 0x18181C, 
   for (const sx of [-1, 1]) part(box(0.16, 0.12, 0.2), 0xC81828, sx * 0.48, 1.38, 0.0, TO, { outline: false });
   m.wings41 = []; for (const sx of [-1, 1]) { const g = new THREE.Group(); g.position.set(sx * 0.3, 1.5, -0.42); TO.add(g); for (let k = 0; k < 7; k++) { const f = part(box(0.16, 1.5 - k * 0.12, 0.04), [0x2A2A30, 0x3A3A42][k % 2], sx * (0.25 + k * 0.17), -0.5 - k * 0.05, 0, g, { outline: false }); f.rotation.z = sx * (0.3 + k * 0.09); } g.rotation.y = sx * 0.5; m.wings41.push(g); }
   return m; }
-// ---- 红尘飞：変身した姿（赤い結晶の装甲とベルト） ----
-function hcfRider41() { const m = makeChar(Object.assign({}, LK.hcf39, { top: 0x141016, sleeve: 0x141016, bc: 0x141016, leg: 0x141016, shoe: 0x2A0A10, hair: 0x141016, skin: 0x141016, coat: undefined, shortCoat: false, lining: undefined, st: ['short'] })), H = m.head, TO = m.torso;
-  H.traverse(o => { if (o.isMesh) o.visible = false; }); const hd = part(sph(0.34, 14, 10), 0xB8182A, 0, 0.1, 0, H, { s: [1, 1.12, 1.05] }); hd.visible = true;
-  const vis = part(box(0.42, 0.12, 0.08), 0x6A1A8A, 0, 0.14, 0.31, H, { outline: false, rx: -0.2 }); vis.material = toon(0x8A2AB0, 0x4A0A6A); const vg = glowSprite(0xC060FF, 0.6, 0.6); vg.position.set(0, 0.14, 0.36); H.add(vg);
-  for (const sx of [-1, 1]) { part(G_('rhorn41', () => new THREE.ConeGeometry(0.07, 0.62, 5)), 0xE02A3A, sx * 0.17, 0.52, -0.02, H, { rz: -sx * 0.32 }); part(G_('rfin41', () => new THREE.ConeGeometry(0.04, 0.26, 4)), 0xE02A3A, sx * 0.3, 0.12, 0.05, H, { rz: -sx * 1.3 }); }
-  for (let k = 0; k < 5; k++) part(G_('rteeth41', () => new THREE.ConeGeometry(0.025, 0.12, 4)), 0xF0F0F0, -0.1 + k * 0.05, -0.06, 0.32, H, { rx: Math.PI, outline: false });
-  // 胸の V、肩、腕、脛の結晶
-  for (const sx of [-1, 1]) { const v = part(box(0.08, 0.5, 0.06), 0xE02A3A, sx * 0.12, 1.25, 0.24, TO); v.rotation.z = sx * 0.6; for (let k = 0; k < 3; k++) part(G_('rsp41', () => new THREE.ConeGeometry(0.08, 0.42, 4)), [0xE02A3A, 0xB8182A][k % 2], sx * (0.28 + k * 0.06), 1.5 + k * 0.06, -0.02 + k * 0.04, TO, { rz: -sx * (0.7 + k * 0.25) }); }
-  for (const a of m.arms || []) for (let k = 0; k < 3; k++) part(G_('rsp41', () => new THREE.ConeGeometry(0.08, 0.42, 4)), 0xE02A3A, 0, -0.3 - k * 0.14, -0.08, a, { rx: -0.9, s: [0.7, 0.7, 0.7] });
-  for (const l of m.legs || []) { part(G_('rsp41', () => new THREE.ConeGeometry(0.08, 0.42, 4)), 0xE02A3A, 0, -0.35, 0.1, l, { rx: 0.5 }); part(G_('rsp41', () => new THREE.ConeGeometry(0.08, 0.42, 4)), 0xB8182A, 0, -0.58, 0.12, l, { rx: 0.4, s: [0.8, 0.8, 0.8] }); }
-  // ベルト
-  part(box(0.62, 0.11, 0.5), 0x1A1A1E, 0, 0.95, 0, TO); const bk = part(cyl(0.12, 0.12, 0.06, 16), 0xC8A040, 0, 0.95, 0.27, TO, { rx: Math.PI / 2 }); const bc = part(cyl(0.08, 0.08, 0.07, 16), 0xE02A3A, 0, 0.95, 0.29, TO, { rx: Math.PI / 2, outline: false }); bc.material = toon(0xFF3A4A, 0x8A0A1A); const bg = glowSprite(0xFF4A5A, 0.5, 0.8); bg.position.set(0, 0.95, 0.34); TO.add(bg); m.belt41 = bg;
+// 红尘飞の変身体：写真の形をもとに、猫面と同じ白と黒、ところどころに赤
+function hcfRider41() { const W = 0xF2F0EA, W2 = 0xD2D0CC, K = 0x141418, K2 = 0x2C2C32, R = 0xD0202E, R2 = 0x8A101C;
+  const m = makeChar(Object.assign({}, LK.hcf39, { top: K, sleeve: K, bc: K, leg: K, shoe: W, hair: K, skin: K, glove: K, coat: undefined, shortCoat: false, lining: undefined, st: ['bald'] })), H = m.head, TO = m.torso;
+  const cr = (r, h) => G_('cr41_' + r + '_' + h, () => new THREE.ConeGeometry(r, h, 4));
+  // 兜：白い猫の頭に黒い面、赤い目、長い耳、牙の縁
+  H.traverse(o => { if (o.isMesh) o.visible = false; });
+  part(sph(0.33, 16, 12), W, 0, 0.06, -0.02, H, { s: [1, 1.08, 1.04] }); part(sph(0.29, 14, 10), K, 0, -0.03, 0.08, H, { s: [0.92, 0.82, 0.86] });
+  for (const sx of [-1, 1]) { part(box(0.17, 0.05, 0.04), R, sx * 0.095, 0.03, 0.315, H, { outline: false, rz: sx * 0.38, emis: 0xC0101C });
+    part(cr(0.1, 0.52), W, sx * 0.19, 0.46, -0.03, H, { rz: -sx * 0.36 }); part(cr(0.055, 0.3), R, sx * 0.18, 0.42, 0.03, H, { rz: -sx * 0.36, outline: false });
+    part(cr(0.05, 0.26), W, sx * 0.31, 0.02, 0.06, H, { rz: -sx * 1.5 }); part(cr(0.03, 0.14), R, sx * 0.045, 0.24, 0.26, H, { rz: -sx * 0.5, rx: 0.4, outline: false });
+    for (const k of [0, 1]) part(box(0.15, 0.012, 0.012), R, sx * 0.17, -0.07 - k * 0.04, 0.29, H, { outline: false, rz: sx * (0.12 - k * 0.24) }); }
+  const eg = glowSprite(0xFF3A3A, 0.55, 0.7); eg.position.set(0, 0.04, 0.36); H.add(eg); m.eye41 = eg;
+  for (let k = -3; k <= 3; k++) { const a = k * 0.34; part(G_('rfang41', () => new THREE.ConeGeometry(0.022, 0.1, 4)), W, Math.sin(a) * 0.15, -0.15 - Math.cos(a) * 0.04 + Math.abs(k) * 0.012, 0.27 - Math.abs(k) * 0.025, H, { rx: Math.PI, rz: -a * 0.8, outline: false }); }
+  // 首の棘、胸の V、腹の赤い線
+  for (let k = 0; k < 5; k++) { const an = -1.2 + k * 0.6; part(cr(0.04, 0.16), W, Math.sin(an) * 0.17, 1.47, Math.cos(an) * 0.13, TO, { rz: -Math.sin(an) * 0.7, rx: Math.cos(an) * 0.5 }); }
+  for (const sx of [-1, 1]) { part(box(0.2, 0.34, 0.07), W, sx * 0.11, 1.25, 0.215, TO, { rz: sx * 0.42 }); part(box(0.07, 0.24, 0.05), R, sx * 0.06, 1.2, 0.255, TO, { rz: sx * 0.42, outline: false });
+    part(cr(0.07, 0.28), W2, sx * 0.2, 1.32, 0.18, TO, { rz: -sx * 1.1, rx: 0.3 }); part(box(0.035, 0.16, 0.02), R, sx * 0.075, 1.0, 0.245, TO, { rz: sx * 0.5, outline: false }); part(box(0.035, 0.12, 0.02), R2, sx * 0.13, 0.98, 0.235, TO, { rz: -sx * 0.4, outline: false }); }
+  // 肩当てと籠手
+  m.arms.forEach((a, i) => { const sx = i ? 1 : -1; part(box(0.2, 0.12, 0.24), W, sx * 0.03, 0.03, 0, a, { rz: -sx * 0.3 }); part(cr(0.11, 0.48), W, sx * 0.08, 0.18, 0, a, { rz: -sx * 0.55 });
+    part(cr(0.07, 0.3), R, sx * 0.12, 0.08, -0.08, a, { rz: -sx * 1.0, rx: -0.3 }); part(cr(0.06, 0.26), W2, sx * 0.1, 0.1, 0.09, a, { rz: -sx * 0.9, rx: 0.4 });
+    part(box(0.13, 0.2, 0.13), W, 0, -0.36, 0, a); part(cr(0.05, 0.26), W, sx * 0.08, -0.3, -0.02, a, { rz: -sx * 1.25 }); part(cr(0.045, 0.22), R, sx * 0.08, -0.4, -0.02, a, { rz: -sx * 1.45, outline: false });
+    part(cr(0.045, 0.2), W2, 0, -0.27, -0.08, a, { rx: -1.3 }); part(box(0.09, 0.05, 0.06), R, 0, -0.5, 0.05, a, { outline: false }); });
+  // ベルト：黒い帯、白い縁の楕円、真ん中に赤い卵と猫の耳、右脇にレバー
+  part(cyl(0.27, 0.27, 0.1, 18), K, 0, 0.9, 0, TO); part(cyl(0.15, 0.15, 0.05, 20), W2, 0, 0.92, 0.27, TO, { rx: Math.PI / 2, s: [1.3, 1, 1] }); part(cyl(0.12, 0.12, 0.055, 20), K2, 0, 0.92, 0.285, TO, { rx: Math.PI / 2, s: [1.25, 1, 1], outline: false });
+  part(sph(0.075, 12, 10), R, 0, 0.92, 0.31, TO, { s: [0.85, 1.15, 0.6], outline: false, emis: 0x9A0A18 }); for (const sx of [-1, 1]) part(G_('rbear41', () => new THREE.ConeGeometry(0.03, 0.06, 4)), W, sx * 0.04, 1.0, 0.31, TO, { outline: false });
+  part(box(0.05, 0.1, 0.05), W, -0.27, 0.92, 0.18, TO, { rz: 0.4 }); const bg = glowSprite(0xFF4A4A, 0.5, 0.8); bg.position.set(0, 0.92, 0.36); TO.add(bg); m.belt41 = bg;
   // 尾
-  for (let k = 0; k < 4; k++) part(box(0.08 - k * 0.012, 0.18, 0.06), [0xB8182A, 0x6A0A14][k % 2], 0, 0.7 - k * 0.16, -0.32 - k * 0.04, TO, { outline: false });
+  const tl = new THREE.Group(); tl.position.set(0, 0.86, -0.24); TO.add(tl); m.tail41 = tl;
+  for (let k = 0; k < 6; k++) part(box(0.09 - k * 0.008, 0.14, 0.08 - k * 0.006), k % 2 ? K2 : W, 0, -k * 0.12, -k * 0.035, tl, { outline: false, rx: 0.25 });
+  part(cr(0.06, 0.22), R, 0, -0.8, -0.22, tl, { rx: Math.PI, outline: false }); for (const sx of [-1, 1]) part(cr(0.03, 0.12), R, sx * 0.05, -0.72, -0.2, tl, { rz: -sx * 2.4, outline: false });
+  // 腿、膝、脛の結晶と赤いつま先
+  m.legs.forEach((l, i) => { const sx = i ? 1 : -1; part(box(0.15, 0.24, 0.17), W, 0, -0.17, 0.01, l); part(cr(0.06, 0.3), W, sx * 0.1, -0.1, 0, l, { rz: -sx * 2.3 }); part(cr(0.045, 0.22), R, sx * 0.09, -0.22, 0.04, l, { rz: -sx * 2.0, outline: false });
+    part(cr(0.05, 0.16), W2, 0, -0.4, 0.09, l, { rx: 1.4 }); part(box(0.13, 0.26, 0.13), W, 0, -0.57, 0.02, l); part(cr(0.06, 0.46), W, sx * 0.1, -0.5, -0.01, l, { rz: -sx * 0.38 }); part(cr(0.04, 0.24), R, sx * 0.09, -0.6, 0.06, l, { rz: -sx * 0.6, outline: false });
+    part(box(0.18, 0.08, 0.12), R, 0, -0.79, 0.15, l, { outline: false }); part(box(0.18, 0.03, 0.32), K, 0, -0.83, 0.04, l, { outline: false }); });
   return m; }
-// 変身の光：赤い結晶が集まる
-function henshin41(n) { const x = n.pos.x, z = n.pos.z; for (let i = 0; i < 40; i++) { const c = new THREE.Mesh(G_('hshard41', () => new THREE.ConeGeometry(0.08, 0.36, 4)), new THREE.MeshBasicMaterial({ color: [0xFF2A3A, 0xB8182A, 0xFF6A7A][i % 3], transparent: true })); const an = rand(0, TAU), r = rand(2.5, 5), y0 = rand(0.3, 3.2); c.position.set(x + Math.cos(an) * r, y0, z + Math.sin(an) * r);
-    fxAdd(c, 1.2, u => { const k = Math.min(1, u * 1.3); c.position.set(x + Math.cos(an + u * 3) * r * (1 - k), y0 + (1.3 - y0) * k, z + Math.sin(an + u * 3) * r * (1 - k)); c.rotation.x += 0.3; c.material.opacity = 1 - Math.max(0, (u - 0.85) / 0.15); }); }
-  for (let k = 0; k < 3; k++) setTimeout(() => fxRing(x, 0.1, z, 4 + k * 2, 0xFF3A4A, 0.6), 900 + k * 120); setTimeout(() => { fxFlash(x, 1.4, z, 0xFF4A5A, 5, 0.5); flash40('#FF3A4A', 0.5, 600); }, 1100); }
+// 変身前のベルト（红尘飞の腰に巻く）
+function hcfBelt41(m) { if (m.beltPre41) { m.beltPre41.visible = true; return m.beltPre41; } const g = new THREE.Group(); m.torso.add(g); m.beltPre41 = g;
+  part(cyl(0.31, 0.31, 0.1, 18), 0x141418, 0, 0.85, 0, g); part(cyl(0.15, 0.15, 0.05, 20), 0xD2D0CC, 0, 0.86, 0.32, g, { rx: Math.PI / 2, s: [1.3, 1, 1] }); part(box(0.05, 0.1, 0.05), 0xF2F0EA, -0.3, 0.86, 0.22, g, { rz: 0.4 });
+  const egg = part(sph(0.075, 12, 10), 0xD0202E, 0, 0.86, 0.36, g, { s: [0.85, 1.15, 0.6], outline: false, emis: 0x9A0A18 }); egg.visible = false; g.egg = egg; const gl = glowSprite(0xFF4A2A, 0.45, 0); gl.position.set(0, 0.86, 0.41); g.add(gl); g.gl = gl; return g; }
+// 変身：足もとが燃え、赤い卵の殻が体を包み、割れる
+function henshin41(n) { const x = n.pos.x, z = n.pos.z;
+  for (let i = 0; i < 26; i++) { const an = i / 26 * TAU, f = glowSprite([0xFF5A1A, 0xFF2A2A, 0xFFB040][i % 3], rand(0.6, 1.1), 0.9); f.position.set(x + Math.cos(an) * 1.4, 0.3, z + Math.sin(an) * 1.4); fxAdd(f, 1.9, u => { f.position.y = 0.3 + u * 1.6 + Math.sin(u * 20 + i) * 0.08; f.scale.setScalar((0.6 + Math.sin(u * 14 + i) * 0.2) * (1 - u * 0.4)); f.material.opacity = 0.9 * (1 - u); }); }
+  for (let k = 0; k < 3; k++) setTimeout(() => fxRing(x, 0.08, z, 2.4 + k, 0xFF4A1A, 0.6), k * 160);
+  const sh = new THREE.Mesh(G_('egg41', () => new THREE.SphereGeometry(1, 20, 14)), new THREE.MeshBasicMaterial({ color: 0xE0202E, transparent: true, opacity: 0.55, depthWrite: false })); sh.position.set(x, 1.15, z); fxAdd(sh, 1.15, u => { const k = Math.min(1, u * 2.4); sh.scale.set(0.9 * k, 1.3 * k, 0.9 * k); sh.material.opacity = 0.35 + 0.35 * k + Math.random() * 0.1; });
+  setTimeout(() => { if (S.chapter !== 41) return; sfx('boom40'); fxFlash(x, 1.3, z, 0xFF4A4A, 5, 0.5); flash40('#FF3A3A', 0.5, 500);
+    for (let i = 0; i < 34; i++) { const c = new THREE.Mesh(G_('hshard41', () => new THREE.ConeGeometry(0.08, 0.36, 4)), new THREE.MeshBasicMaterial({ color: [0xE0202E, 0xF2F0EA, 0x8A101C][i % 3], transparent: true })); const an = rand(0, TAU), el = rand(-0.6, 1.0), sp = rand(2, 5); c.position.set(x, 1.2, z);
+      fxAdd(c, 1.0, u => { c.position.set(x + Math.cos(an) * Math.cos(el) * sp * u, 1.2 + Math.sin(el) * sp * u - u * u * 2, z + Math.sin(an) * Math.cos(el) * sp * u); c.rotation.x += 0.4; c.material.opacity = 1 - u; }); } }, 1150); }
 
 // ---- 瀬戸の山の中：留保の古い訓練場へ続く道 ----
 makeArea('seto41', { place: '瀬戸　山の中の道　留保の古い訓練場へ', bounds: [-16, 16, -6, 6], spawn: [14, 0], spawnFace: -Math.PI / 2, cam: [0, 12.5, 10], music: '', bg: 0x060810, fog: [16, 54], light: 0.42, sun: 0.22, stealth: true, detLabel: '見つかり',
@@ -21723,11 +21751,14 @@ async function goRider41() { G.mode = 'cine'; S.flags.c41st = 'rider'; setObj(''
   fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', 'すみません。どけないんです。');
   cine(-12.8, 1.0, 1.8, -7.6, 1.2, 0.2); await say('kuze', '（……あいつ、何をする気だ）');
   // ベルト
-  cine(-10.0, 1.4, 1.4, -7.6, 1.3, 0.2); await narr('红尘飞は上着の内側から、赤い石のはまった太いベルトを取り出して、腰に巻いた。');
-  bgm('rider41'); sfx('henshin41'); const gl = glowSprite(0xFF3A4A, 1.2, 0.9); gl.position.set(hc.pos.x, 1.0, hc.pos.z); fxAdd(gl, 1.4, u => { gl.scale.setScalar(1.2 + u * 3); gl.material.opacity = 0.9 * (1 - u); });
+  cine(-10.0, 1.4, 1.4, -7.6, 1.3, 0.2); const bp = hcfBelt41(hc.model); sfx('metal'); await narr('红尘飞は上着の内側から黒い太いベルトを取り出して、腰に巻いた。白い縁の楕円の留め具の右脇に、押しこむ形のレバーがついていた。');
+  fc22(hc, 2.0, -0.4, 0.2); await narr('それから、卵の形をした赤い石をひとつ出して、留め具の真ん中にはめた。'); bp.egg.visible = true; sfx('hack39'); bp.gl.material.opacity = 0.8; fxFlash(hc.pos.x, 0.95, hc.pos.z, 0xFF4A2A, 1.2, 0.3);
+  fc22(hc, 2.4, 0.2, 0.3); await say('hcf39', '少し熱くなりますけど、我慢してくださいね。');
+  bgm('rider41'); sfx('henshin41'); const gl = glowSprite(0xFF5A2A, 1.2, 0.9); gl.position.set(hc.pos.x, 1.0, hc.pos.z); fxAdd(gl, 1.4, u => { gl.scale.setScalar(1.2 + u * 3); gl.material.opacity = 0.9 * (1 - u); });
   fc22(hc, 2.2, 0.2, 0.3); await say('hcf39', '……変身。');
-  henshin41(hc); await z22(1100); const rd = Q41(a, 'hcfR41', () => hcfRider41(), hc.pos.x, hc.pos.z, hc.facing); hc.hidden = true; G.shake = 0.8;
-  cine(-9.8, 1.6, 1.2, -7.6, 1.5, 0.2); await narr('赤い結晶が四方から集まって、红尘飞の体を覆った。棘のような装甲、紫の目、腰の石だけが赤く光っていた。');
+  sfx('glass'); bp.egg.visible = false; cine(-10.4, 2.0, 2.4, -7.6, 1.3, 0.2); henshin41(hc); await z22(1150); const rd = Q41(a, 'hcfR41', () => hcfRider41(), hc.pos.x, hc.pos.z, hc.facing); hc.hidden = true; bp.visible = false; G.shake = 0.8; await z22(500);
+  cine(-9.8, 1.6, 1.2, -7.6, 1.5, 0.2); await narr('レバーを押しこむと、石が割れた。足もとの土が燃え、赤い卵の殻のようなものが红尘飞を包んだ。');
+  cine(-11.4, 1.3, 1.4, -7.6, 1.15, 0.2); await narr('殻が割れて、中から白と黒の装甲が出てきた。猫の耳のような二本の角、赤い目、胸と肩と脛から突き出した白い結晶。腰の留め具には、炎をまとった猫の顔が浮かんでいた。');
   fc22(rd, 2.6, 0.3, 0.3); await say('hcfR41', 'さて。お話は、これからです。');
   fc30(ks, 2.6, 0.3, 0.3); await say('koshi', '……面白い。');
   cine(-9.4, 2.6, 5.4, -10.0, 1.4, 0.2); await narr('山道の上で、黒い文鳥と赤い装甲が向かい合った。');
@@ -21744,7 +21775,7 @@ function showReport41() { G.mode = 'end'; $('hud').hidden = true; $('act').hidde
     '<tr><td>記録係</td><td>チャ・ニュユー「記録結晶に、同じ波形がひとつだけ残っています。外神竜の次女の、本来の姿の記録です」「B.U.N は、越えてはいけない線を踏みました」。</td></tr>' +
     '<tr><td>魂心</td><td>束ねた腕の最後の一撃を、刃こぼれした剣のカシアが受け止めた。モイの大槌が腕を跳ね上げ、ツナのトンファーが炉の真ん中に入った。炉の音が止まった。たこすけ「もういいよ。どうにもならねえ。……ほっといてくれ」。カシア「あなたは、ここでは誰も殺してない」。</td></tr>' +
     '<tr><td>教主と No.2</td><td>紫の霧を裂いて教主が降りた。「メスが、三つ」。その刃の前では、どんな守りも意味を持たない。たこすけ「……おい。やめろよ……」。空間が折れて、カ・エレが立った。「この子たちは、ぼくの事務所の子なんだ」。</td></tr>' +
-    '<tr><td>紅い装甲</td><td>杭の箱を抱えた No.3 の前に、红尘飞。「その杭、うちが先にお約束してたんです」「すみません。どけないんです」。赤い石のベルトを巻いて、赤い結晶の装甲をまとった。「さて。お話は、これからです」。</td></tr></table>' +
+    '<tr><td>紅い装甲</td><td>杭の箱を抱えた No.3 の前に、红尘飞。「その杭、うちが先にお約束してたんです」「すみません。どけないんです」。黒いベルトに卵形の赤い石をはめ、レバーを押しこんだ。石が割れ、燃える土と赤い殻の中から、白と黒に赤の混じった装甲が出てきた。「さて。お話は、これからです」。</td></tr></table>' +
     '<p class="close">――　第十一章 結へ</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn41">タイトルへ</button></div>';
   $('report').hidden = false; $('titleBtn41').addEventListener('click', () => location.reload()); }
