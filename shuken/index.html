@@ -1853,7 +1853,7 @@ const CHSYN = [
   '恵那の結界中継所で、カシアたちは T.C.O と六本の腕を相手に死闘を始める。瀬戸では留保が杭を抱えて探照灯の下をくぐるが、No.3 ザ・コシに見つかる。乾は発信機を見抜かれ、紅塵に閉じこめられた。押されはじめた異種族の線に、ヴォルの紫の眷属が降り、憎むものほど操り人形に変わっていく。炉心を止めたあと、教主が現れ、カ・エレが立った。瀬戸の山道には、ベルトを巻いた红尘飞。',
   '紫の光が消えた朝、街の全員の頭の中でヴォルの声がした。恵那の広い雪原で、カ・エレは断偽の一派と教主をひとりで斬り伏せる。そのあいだに、T.C.O の炉にもう一度火が入る。瀬戸の山道では、红尘飞の紅い装甲と No.3 ザ・コシ。原本の杭を手にした久世は、それをどこにも渡さないと決める。',
   '観測艇の記録結晶に残る、隣の世界の記録。恵那の雪原で、空間は折れなかった。カシアたちを巻き込み、竜の娘たちに敗れた教主は、雪の上で経を唱えつづけ、ひとつの解脱に至る。竜の家へ、街へ、記録局へ、北口広場へ。そして十年後、久世が語る人間の社会。',
-  '閉じたはずの隣の世界の記録が、まだ書き足されていた。恵那の杭を削った精真釘。打てば老いと病が遅れ、痛みは決して引かない。本数が増えるほど効き、何十本にも達した者は死ななくなる。配られた釘と、叫び声で埋まる街と、釘を打たなかった最後の一人。'];
+  '閉じたはずの隣の世界の記録が、まだ書き足されていた。恵那の杭を削った精真釘。適わなかった者は全身から血を噴くか、痛みで息が止まって死ぬ。適った者は老いと病が遅れ、痛みは決して引かない。本数が増えるほど効き、何十本にも達した者は死ななくなる。配られた釘と、叫び声で埋まる街と、釘を打たなかった最後の一人。'];
 // 記録ファイルが進んでいる章までは開く（章のクリアの印が残らなかったときの受け皿）
 const fileCh = () => Object.values(readFiles()).reduce((a, d) => Math.max(a, (d && d.s && d.s.chapter) || 0), 0);
 const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh();
@@ -23591,6 +23591,13 @@ function chorus44(V, o = {}) { CH44.on = false; if (!V || !V.length) return; con
 function uchi44(by, n, o = {}) { if (by) { face34(by, n); by.st = { punch: true }; setTimeout(() => { if (by.st.punch) by.st = {}; }, 260); } sfx('kugi44'); G.shake = Math.max(G.shake, o.shake ?? 0.25);
   for (let i = 0; i < 8; i++) { const s = glowSprite([0xFFE0A0, 0xFFFFFF, 0xFF6A3A][i % 3], rand(0.05, 0.12), 1), v = new THREE.Vector3(rand(-1, 1), rand(0.2, 1.2), rand(-1, 1)), y = (n.model.h44 || 2.3) * 0.55; fxAdd(s, 0.35, u => { s.position.set(n.pos.x + v.x * u, y + v.y * u, n.pos.z + v.z * u); s.material.opacity = 1 - u; }); }
   blood42(n.pos.x, (n.model.h44 || 2.3) * 0.55, n.pos.z, rand(0, TAU), o.blood ?? 10, 0.5); nailTo44(n.model, (n.model.nails44 ? n.model.nails44.length : 0) + 1, o.s ?? 1); if (o.yell !== false) yell44(n, o.t); }
+// 適わなかった者：神経が焼き切れて全身から血を噴くか（burn）、痛みで息が止まる（shock）
+async function shi44(n, mode = 'burn') { if (!n || n.hidden) return; const h = n.model.h44 || 2.3;
+  if (mode === 'burn') { yell44(n, 'ア゛ッ、ア゛ア゛ア゛ア゛ッ'); for (let i = 0; i < 28; i++) { const s = glowSprite([0xFF2A1A, 0xFFB040, 0xFFFFFF][i % 3], rand(0.04, 0.1), 1), y = rand(0.3, h * 0.95), x = rand(-0.35, 0.35), z = rand(-0.25, 0.25), t0 = rand(0, 0.5);
+      fxAdd(s, 1.0, u => { const v = u - t0; s.position.set(n.pos.x + x + rand(-0.05, 0.05), y, n.pos.z + z); s.material.opacity = v > 0 ? Math.max(0, 1 - v * 2) : 0; }); }
+    n.st = { reel: true }; await z22(550); for (let k = 0; k < 8; k++) setTimeout(() => { if (S.chapter !== 44) return; const d = rand(0, TAU); blood42(n.pos.x + Math.sin(d) * 0.2, rand(0.5, h * 0.9), n.pos.z + Math.cos(d) * 0.2, d, 34, 1.0); }, k * 70);
+    spray43(n.pos.x, h * 0.55, n.pos.z, rand(0, TAU), 0.9); flash40('#7A0010', 0.35, 200); await z22(650); n.st = { down: true }; pool43(n.pos.x, n.pos.z, 1.2); return; }
+  yell44(n, 'ア゛ア゛ア゛ア゛ア゛ッ'); for (let k = 0; k < 5; k++) { n.st = { reel: true }; await z22(150); n.st = {}; await z22(110); } yell44(n, 'ア゛……', false); await z22(350); n.st = { down: true }; }
 // 精真存在：赤い目と、体のまわりの赤い光
 function seishin44(n, on = true) { const m = n.model; if (!m.ss44) { const g = glowSprite(0xFF1A2A, 2.6, 0.35); g.position.y = (m.h44 || 2.3) * 0.5; m.root.add(g); const E = []; if (m.head) for (const sx of [-1, 1]) { const e = glowSprite(0xFF2A3A, 0.22, 1); e.position.set(sx * 0.12, 0.08, 0.32); m.head.add(e); E.push(e); }
     m.ss44 = { g, E }; const f = () => { if (!g.visible) return; g.material.opacity = 0.28 + Math.sin(T.now * 3) * 0.08; }; ANIM40.push(f); }
@@ -23623,6 +23630,11 @@ async function goKugi44() { G.mode = 'cine'; S.flags.c44st = 'kugi'; const a = a
   fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '……恵那の杭を、削ったものです。百と八本、取れました。');
   fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', '教主の杭は、偽りを縫いとめる。ならば、身に打てば、身の偽りが縫いとめられる。');
   await say('gedatsu', '老いは偽りだ。病も偽りだ。……試した者は。');
+  fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '門下の七人に、一本ずつ打ちました。五人が死にました。');
+  fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', '死に方は。');
+  fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '三人は、打ったとたんに体じゅうから血を噴きました。中の筋が、残らず焼き切れたようでした。二人は、叫んでいるうちに息が止まりました。');
+  await say('mujou', '残った二人も、まだ寝床から起き上がれません。');
+  fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', 'そなたは。');
   fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '……私の左腕に、三本。');
   await narr('ム・ジョウが袖をまくると、黒い釘の頭が三つ、腕に並んでいた。');
   await say('mujou', '打ってからひと月、白髪が一本も増えておりません。かわりに、ひと月、一度も眠れておりません。');
@@ -23638,9 +23650,11 @@ async function goKugi44() { G.mode = 'cine'; S.flags.c44st = 'kugi'; const a = a
   await say('shinmai', '……い、たい……ずっと、いたい……');
   fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', '数えよ。痛みが、どこまで行くか。');
   fc30(sh, 2.4, 0.1, 0.3); await say('shinmai', '……経が……聞こえます……雌ハ……偽……ナリ……');
-  CH44.on = false; cine(-2.6, 2.4, 3.2, 0.4, 1.0, 0.2); await narr('その夜、シ・ンマイは朝まで叫びつづけた。夜が明けると、子どものころの古い傷あとが、肩から消えていた。');
+  CH44.on = false; cine(-2.6, 2.4, 3.2, 0.4, 1.0, 0.2); await narr('その夜、シ・ンマイは朝まで叫びつづけた。夜が明けると、子どものころの古い傷あとが、肩から消えていた。それから三月、シ・ンマイは寝床から起き上がれなかった。');
   fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', '人は、あと一代で終わると言われてきた。……その一代が、終わらなければよい。');
   await say('gedatsu', '釘を増やせ。人にも、B.U.N にも配る。');
+  fc30(za, 3.0, 0.3, 0.3); await say('zange', '……打てば、多くが死にまする。');
+  fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', '適わぬ者は、それだけ偽りが深かったのだ。');
   fc30(za, 3.0, 0.3, 0.3); await say('zange', '……百八本では、足りませぬ。');
   fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '削った粉を鉄に混ぜれば、一本の杭から、何万本でも打てます。');
   fc30(ge, 3.4, 0.3, 0.3); await say('gedatsu', 'では、そうせよ。');
@@ -23652,45 +23666,55 @@ async function goHaifu44() { G.mode = 'cine'; S.flags.c44st = 'haifu'; let a = a
   const mk = Q43(a, 'monk44', () => member30(2, true), -0.4, -2.4, 0), M = MEN44(), Ln = [];
   const ol = Q43(a, 'old44', () => makeChar(old44(LK.sal1)), 0, -0.6, Math.PI); ol.model.h44 = 2.2;
   for (let i = 0; i < 9; i++) { const n = Q43(a, 'line44' + i, () => makeChar(i % 3 === 0 ? old44(M[i % M.length]) : M[i % M.length]), 0.2 * Math.sin(i), 0.6 + i * 0.75, Math.PI); if (i % 2) nailTo44(n.model, 1 + (i % 4)); Ln.push(n); }
-  const mn = Ln[0];
+  const mn = Ln[3], fr = Q43(a, 'front44', () => makeChar(M[1]), 0, -0.6, Math.PI); ol.pos.set(0, 0, 0.4); Ln[0].pos.set(0.2, 0, 1.2); Ln[1].pos.set(-0.1, 0, 1.9);
   cine(4.4, 2.6, 2.6, 0, 1.2, -0.4); await fade(false); await card('隣の世界　春日井駅　北口広場', '十三年後', 1300);
   await narr('北口広場に、配給とは別の列ができていた。並んでいるのは、四十を過ぎた男たちと、年寄りばかりだった。');
   fc30(mk, 2.8, 0.2, 0.3); await say('monk44', '精真釘。一本につき、雌ハ偽ナリを百遍。一本で、老いが一年遅れる。十本で十年。');
-  fc22(ol, 2.2, 0.1, 0.3); await say('old44', '……一本、ください。');
+  await say('monk44', '適わぬ者は死ぬ。承知の者だけ、腕を出せ。');
+  cine(2.4, 1.8, 0.6, 0, 1.1, -1.0); await z22(400); uchi44(mk, fr, { blood: 14, shake: 0.4, yell: false }); await shi44(fr, 'burn');
+  cine(3.4, 2.4, 1.6, 0, 0.6, -0.6); await narr('打たれた男の体じゅうから、血が噴き出した。男は、叫び終わる前に倒れた。');
+  fc30(mk, 2.8, 0.2, 0.3); await say('monk44', '……適わなかったか。次。');
+  fr.hidden = true; ol.pos.set(0, 0, -0.6); fc22(ol, 2.2, 0.1, 0.3); await say('old44', '……一本、ください。');
   fc30(mk, 2.8, 0.2, 0.3); await say('monk44', '腕を出せ。');
-  cine(2.4, 1.8, 0.6, 0, 1.1, -1.0); await z22(400); uchi44(mk, ol, { blood: 14, shake: 0.4 }); ol.st = { kneel: true }; await z22(500);
-  chorus44([ol], { gap: 800, loud: true }); cine(4.0, 3.2, 4.4, 0, 1.0, 1.6); await narr('打たれた男は、その場にうずくまって叫んだ。列は、一歩も崩れなかった。');
-  fc22(mn, 2.2, 0.1, -0.3); await say('man44', '隣の田中さん、もう五本目だってよ。腰が治ったって。');
+  cine(2.4, 1.8, 0.6, 0, 1.1, -1.0); await z22(400); uchi44(mk, ol, { blood: 14, shake: 0.4 }); ol.st = { kneel: true }; ol.pos.x = 1.0; await z22(500);
+  chorus44([ol], { gap: 800, loud: true }); cine(4.0, 3.2, 4.4, 0, 1.0, 1.0); await narr('老いた男は、その場にうずくまって叫んだ。死にはしなかった。');
+  const nx = Ln[0]; nx.pos.set(0, 0, -0.6); await z22(300); uchi44(mk, nx, { blood: 10, shake: 0.3, yell: false }); shi44(nx, 'shock');
+  await narr('次の男は、叫んでいるうちに息が止まった。列は、一歩も崩れなかった。');
+  fc22(mn, 2.2, 0.1, -0.3); await say('man44', '隣の田中さん、三本目で死んだってよ。……五本打って、腰が治ったやつもいるのに。');
   CH44.on = false; fc22(ol, 2.0, 0.1, 0.3); await say('old44', '……妻の顔を……もう少し、覚えていたいんだ。');
   await say('old44', '覚えているうちは……死にたくない。');
-  for (const n of [mk, ol, ...Ln]) n.hidden = true; a.g.remove(tb); a.g.remove(sg); await fade(true);
+  for (const n of [mk, ol, fr, ...Ln]) n.hidden = true; a.g.remove(tb); a.g.remove(sg); await fade(true);
   // 夜の街
   const night = async (id, place, cam, cx, cz) => { const b = cut43(id, place, { bg: 0x0A0A12, hi: 0.3 }); loc43(place, '十三年後　夜'); if (id === 'city22' && b.sw40) b.sw40.g.visible = false; const V = [];
-    for (let i = 0; i < 8; i++) { const n = Q43(b, 'nt44' + i, () => makeChar(M[i % M.length]), cx + rand(-4, 4), cz + rand(-2.4, 2.4), rand(-Math.PI, Math.PI), i % 3 ? {} : { kneel: true }); nailTo44(n.model, 1 + (i % 5)); V.push(n); }
+    for (let i = 0; i < 8; i++) { const n = Q43(b, 'nt44' + i, () => makeChar(M[i % M.length]), cx + rand(-4, 4), cz + rand(-2.4, 2.4), rand(-Math.PI, Math.PI), [{ down: true }, { kneel: true }, { down: true }, {}][i % 4]); nailTo44(n.model, 1 + (i % 5)); V.push(n); }
     cine(...cam); camSnap = true; await fade(false); chorus44(V, { gap: 420, loud: false }); return V; };
   let V = await night('city22', '春日井　鳥居松　国道19号', [8, 3.6, 7, 0, 1.0, 0], 0, 0);
-  await narr('その夜から、春日井の夜は叫び声で埋まった。窓を閉めても、どこかの家から聞こえてきた。');
+  await narr('その夜から、春日井の夜は叫び声で埋まった。打たれて生き残った者のほとんどは、仕事にも出られず、寝床や道端で叫んでいた。');
   await fade(true); V.forEach(n => { n.hidden = true; }); V = await night('station', '春日井駅前', [8, 4.0, 4, 0, 1.0, -2], 0, -2);
-  await narr('一本で足りなくなった者は、二本目を打った。二本目で足りなくなった者は、三本目を打った。');
+  await narr('一本で足りなくなった者は、二本目を打った。二本目で死ぬ者もいた。それでも、列は毎朝できた。');
   CH44.on = false; loc43(''); V.forEach(n => { n.hidden = true; }); await fade(true); await goBun44(); }
 
 // ---- B.U.N：王の間にも ----
 async function goBun44() { G.mode = 'cine'; S.flags.c44st = 'bun'; const a = await stage43('enfHall', 'B.U.N society　王の間', { ifw: true, music: 'seishin44', bg: 0x030308, hi: 0.45 }); ckSave();
   const zs = Q43(a, 'ult', () => zessonBird(), 0, -3.4, 0), mu = Q43(a, 'mujou', () => mujou30(), 0, 0.6, Math.PI), sr = Q43(a, 'shirobun', () => shirobunBird(), 2.8, -0.6, -Math.PI * 0.6), ks = Q43(a, 'koshi41', () => koshiModel41(), -2.6, -0.2, Math.PI * 0.6);
-  mu.model.h44 = 2.9; nailTo44(mu.model, 9); ks.model.h44 = 3.2; const tr = tray44(0.9, 1.4, 12, a.g);
+  mu.model.h44 = 2.9; nailTo44(mu.model, 9); ks.model.h44 = 3.2; const tr = tray44(1.4, 0.4, 12, a.g);
   cine(3.6, 3.2, 5.0, 0, 1.6, -1.0); await fade(false); await card('隣の世界　B.U.N society　王の間', '十四年後', 1300);
   await narr('ム・ジョウが、精真釘を王の間へ運んできた。');
   fc30(mu, 3.0, 0.3, 0.3); await say('mujou', 'B.U.N の皆さまにも、教主の加護を。');
   fc30(zs, 2.6, 0.3, 0.3); await say('ult', '……余は、ただ在る。老いも病も、余には関わりがない。');
   fc30(sr, 2.6, 0.2, -0.3); await say('shirobun', 'あらあら。美しくないものを、わざわざ身体に入れる趣味はありませんねぇ。');
-  fc30(ks, 3.2, 0.3, 0.3); await say('koshi', '……寄越せ。');
-  ks.pos.set(-0.6, 0, 1.0); face34(ks, mu); cine(-4.6, 3.2, 4.6, -0.6, 1.8, 0.8); await z22(400);
-  for (let i = 0; i < 3; i++) { uchi44(null, ks, { yell: false, s: 1.3, shake: 0.3 }); await z22(500); }
-  await narr('ザ・コシは盆の釘を取って、自分の腕に三本続けて打ちこんだ。声は上げなかった。');
-  uchi44(null, ks, { yell: false, s: 1.3, shake: 0.5 }); await z22(300); yell44(ks, 'う゛お゛お゛お゛ッ'); G.shake = 0.8; await z22(300); yell44(ks, 'う゛お゛お゛お゛ッ');
-  fc30(ks, 3.2, 0.3, 0.3); await say('koshi', '……ッ、ぐ、う゛お゛お゛お゛ッ！！', { cls: 'shout24' });
-  await say('koshi', '……悪くない。弱いまま老いるより、ずっといい。');
-  cine(3.6, 3.2, 5.0, 0, 1.6, -1.0); await narr('その日のうちに、B.U.N の兵たちはザ・コシに倣って列を作った。シ・ロブンは、最後まで一本も打たなかった。');
+  fc30(ks, 3.2, 0.3, 0.3); await say('koshi', '……要らん。');
+  fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '痛みは、強さになります。');
+  fc30(ks, 3.2, 0.3, 0.3); await say('koshi', '人間の町で、打った連中を見た。半分は死んで、残りは寝床で叫んでいる。……あれを、強さとは言わん。');
+  fc30(mu, 3.0, 0.3, 0.3); await say('mujou', '……兵の方々には、選ばせていただきたい。');
+  fc30(zs, 2.6, 0.3, 0.3); await say('ult', '止めぬ。');
+  const t1 = Q43(a, 'trp44a', () => bunTrooper40(1), -1.0, 2.2, Math.PI), t2 = Q43(a, 'trp44b', () => bunTrooper40(2), 1.0, 2.2, Math.PI); t1.model.h44 = 2.2; t2.model.h44 = 2.2;
+  t1.pos.set(-0.5, 0, 1.6); t2.pos.set(0.6, 0, 1.9); face34(t1, mu); face34(t2, mu); cine(-3.6, 2.6, 4.4, 0, 1.2, 1.2); await narr('兵が二羽、前に出た。');
+  uchi44(mu, t1, { blood: 10, yell: false }); await shi44(t1, 'shock'); await z22(400); uchi44(mu, t2, { blood: 12 }); t2.st = { kneel: true }; chorus44([t2], { gap: 700, loud: true }); await z22(600);
+  await narr('一羽は、叫んでいるうちに動かなくなった。もう一羽は生き残ったが、その日から羽を広げられなくなった。');
+  CH44.on = false; fc30(ks, 3.2, 0.3, 0.3); await say('koshi', '……下げろ。');
+  cine(3.6, 3.2, 5.0, 0, 1.6, -1.0); await narr('それでも、老いを恐れる兵たちは、ム・ジョウのもとへ通った。ザ・コシと絶尊とシ・ロブンは、最後まで一本も打たなかった。');
+  for (const n of [t1, t2]) n.hidden = true;
   a.g.remove(tr); for (const n of [zs, mu, sr, ks]) n.hidden = true; await fade(true); await goRyuho44(); }
 
 // ---- 留文堂：打つか、打たないか ----
@@ -23701,7 +23725,9 @@ async function goRyuho44() { G.mode = 'cine'; S.flags.c44st = 'ryuho'; const a =
   cine(3.4, 2.6, 3.8, 0, 1.2, -1.2); await fade(false); await card('隣の世界　留文堂　地下', '十五年後', 1300);
   fc22(ni, 2.2, 0.2, 0.3); await say('nishina', '……恵那の杭と同じ鉄が混ざってる。削った粉を溶かして、打ち直したんだろう。');
   fc22(mu, 2.2, 0.2, 0.3); await say('murase', '春日井の男で、まだ一本も打ってないのは、三割もいないそうだ。');
+  await say('murase', '打った連中の三人に一人は死んだ。生き残ったやつも、ほとんどは寝床から起きられない。');
   fc22(ta, 2.2, 0.2, -0.3); await say('takane', '……すみません。おれ、三本、打ちました。');
+  await say('takane', 'なんでか、適ったみたいっす。立って歩けるのは、打ったやつの一割もいないって聞きました。');
   fc22(kz, 2.2, 0.1, 0.3); await say('kuze', '……なんでだ。');
   fc22(ta, 2.2, 0.2, -0.3); await say('takane', 'この金庫の写真、三万枚あるんすよ。おれらが死んだら、誰が見るんすか。');
   await say('takane', '女の人の顔を覚えてるやつが、ひとりもいなくなる。……それが、いちばん怖いっす。');
@@ -23722,7 +23748,7 @@ async function goShinsei44() { G.mode = 'cine'; S.flags.c44st = 'shinsei'; const
   for (let i = 0; i < 12; i++) { const sd = i % 2 ? 1 : -1, n = Q43(a, 'mem44' + i, () => member30(i, true), sd * (3.6 + (i % 3) * 1.1), -2.6 + (i >> 1) * 1.0, 0); face34(n, ge); nailTo44(n.model, 2 + (i % 6) * 2); M.push(n); }
   cine(0, 4.4, 9.0, 0, 1.2, -0.6); await fade(false); await card('隣の世界　断偽文鳥門　本山', '二十年後', 1300);
   chorus44([ge, ...M], { gap: 520, loud: false }); await narr('境内のあちこちから、叫び声が上がっていた。いちばん大きな声は、ゲ・ダツのものだった。');
-  await narr('ゲ・ダツの身体には、四十八本の釘が打たれていた。四十九本目は、胸の真ん中に打つと決められていた。');
+  await narr('ゲ・ダツの身体には、四十八本の釘が打たれていた。四十九本目は、胸の真ん中に打つと決められていた。これまでに、四十九本目で死んだ僧が三人いた。');
   CH44.on = false; fc30(ge, 3.6, 0.3, 0.3); await say('gedatsu', 'ム・ジョウ。……打て。');
   mu.pos.set(0.9, 0, -0.4); face34(mu, ge); cine(3.4, 2.4, 2.4, 0, 1.6, -1.4); await z22(700);
   uchi44(mu, ge, { t: 'ア゛ア゛ア゛ア゛ア゛ッ', blood: 24, shake: 0.8, s: 1.1 }); await z22(500); sfx('boom40'); flash40('#FF1A2A', 0.7, 700); G.shake = 1.2; glitchBurst(1); for (let k = 0; k < 4; k++) setTimeout(() => { if (S.chapter === 44) fxRing(ge.pos.x, 0.2, ge.pos.z, 3 + k * 2.5, 0xFF2A3A, 0.8); }, k * 140);
@@ -23734,20 +23760,23 @@ async function goShinsei44() { G.mode = 'cine'; S.flags.c44st = 'shinsei'; const
   for (let i = 0; i < 14; i++) { const s = glowSprite(0xFF4A5A, rand(0.08, 0.16), 1), y = rand(1.0, 2.2); fxAdd(s, 0.8, u => { s.position.set(ge.pos.x - 0.5 + (1 - u) * rand(-0.2, 0.2), y, ge.pos.z + 0.3); s.material.opacity = 1 - u; }); }
   await narr('ザ・ンゲの刃で裂けた腕は、釘のまわりから閉じていった。血はすぐに止まり、傷あとも残らなかった。');
   fc30(ge, 3.6, 0.3, 0.3); await say('gedatsu', '精真の身、と呼ぶ。釘が三十を越えた者は、ここへ来させよ。');
-  cine(0, 4.4, 9.0, 0, 1.2, -0.6); await narr('その年のうちに、精真存在は十一人になった。B.U.N ではザ・コシが最初だった。六十本を打ち終えた夜、王の間の柱が三本折れた。');
+  cine(0, 4.4, 9.0, 0, 1.2, -0.6); await narr('その年のうちに、精真存在は十一人になった。そこへ届く前に死んだ者は、その百倍いた。');
+  await narr('B.U.N でも、兵が二羽、三十本を越えた。ザ・コシは、その二羽と口をきかなくなった。');
   for (const n of [ge, mu, za, ...M]) n.hidden = true; await fade(true); await goGojuu44(); }
 
 // ---- 国道：五十年後 ----
 async function goGojuu44() { G.mode = 'cine'; S.flags.c44st = 'gojuu'; const a = await stage43('city22', '春日井　鳥居松　国道19号', { ifw: true, music: 'seishin44', bg: 0x9AA0A8, hi: 0.8 }); ckSave(); city40(a); if (a.sw40) a.sw40.g.visible = false;
   const M = MEN44(), V = [], Q = [];
-  for (let i = 0; i < 26; i++) { const bird = i % 3 === 2, n = Q43(a, 'g44_' + i, () => bird ? bunTrooper40(i) : makeChar(M[i % M.length]), rand(-11, 11), rand(-5, 5), rand(-Math.PI, Math.PI)); const k = [2, 4, 7, 12, 18, 34, 44][i % 7]; nailTo44(n.model, k, bird ? 1.1 : 1);
-    if (k >= 30) { seishin44(n, true); Q.push(n); } else V.push(n); walk31(n, Math.max(-12, Math.min(12, n.pos.x + rand(-6, 6))), Math.max(-5.6, Math.min(5.6, n.pos.z + rand(-2, 2))), k >= 30 ? 0.6 : rand(0.6, 1.2)); }
+  for (let i = 0; i < 26; i++) { const bird = i % 3 === 2, n = Q43(a, 'g44_' + i, () => bird ? bunTrooper40(i) : makeChar(M[i % M.length]), rand(-11, 11), rand(-5, 5), rand(-Math.PI, Math.PI)); const k = bird ? (i % 2 ? 0 : 36) : [2, 4, 7, 12, 3, 34, 44][i % 7]; if (k) nailTo44(n.model, k, bird ? 1.1 : 1);
+    if (k >= 30) { seishin44(n, true); Q.push(n); walk31(n, Math.max(-12, Math.min(12, n.pos.x + rand(-6, 6))), Math.max(-5.6, Math.min(5.6, n.pos.z + rand(-2, 2))), 0.6); } else if (!k) walk31(n, Math.max(-12, Math.min(12, n.pos.x + rand(-6, 6))), n.pos.z, 1.0); else { n.st = i % 4 ? { down: true } : { kneel: true }; n.pos.z = (i % 2 ? 1 : -1) * rand(4.4, 5.6); V.push(n); } }
   cine(10, 4.4, 9, 0, 1.0, 0); await fade(false); await card('隣の世界　春日井　国道19号', '五十年後', 1300); chorus44(V, { gap: 380, loud: false });
-  await narr('国道を歩いているのは、釘だらけの男たちと、釘だらけの文鳥たちだった。誰も老いていなかった。');
+  await narr('国道を歩いている者は少なかった。歩道には、釘を打って生き残った男たちが横たわって、叫んでいた。');
+  await narr('立って歩いているのは、釘が三十を越えた精真存在と、文鳥たちだけだった。精真存在は、誰も老いていなかった。');
   cine(3.4, 2.2, 3.0, Q[0].pos.x, 1.6, Q[0].pos.z); await narr('釘の少ない者は、いつも叫んでいた。釘の多い者ほど、静かだった。');
   cine(-6, 6, 10, 0, 0.6, 0); await narr('人間はあと一代で終わる、と言われたその一代は、五十年たっても終わっていなかった。');
-  await say('chanyu', '（記録）春日井市。人口、二十九万四千。五十年前から、一人も減っていません。増えてもいません。');
-  await say('chanyu', '（記録）精真存在、八千二百。釘を打っていない者、確認できたのは一人。');
+  await say('chanyu', '（記録）春日井市。人間、四万二千。釘で死んだ者、九万一千。');
+  await say('chanyu', '（記録）精真存在、千二百。釘を打って生き残り、起き上がれない者、三万四千。');
+  await say('chanyu', '（記録）釘を打たずに生きている者、確認できたのは一人。');
   CH44.on = false; for (const n of [...V, ...Q]) n.hidden = true; await fade(true); await goSaigo44(); }
 
 // ---- 留文堂：釘を打たなかった最後の一人 ----
@@ -23796,20 +23825,20 @@ async function goKyoshu44() { G.mode = 'cine'; S.flags.c44st = 'kyoshu'; const a
 async function goTojiru44() { G.mode = 'cine'; S.flags.c44st = 'tojiru'; loc43(''); const a = await stage43('lab6', '春日井上空　タカハラsociety 観測艇', { bg: 0x0A0E18, hi: 0.5 }); ckSave(); bgm('');
   const ch = Q43(a, 'chanyu', () => chanyuBird(), 0, 0.6, Math.PI);
   cine(0, 2.4, -2.6, 0, 1.6, 0.6); await fade(false); await narr('記録はそこで止まっていた。今度は、書き足される気配がなかった。');
-  fc30(ch, 2.4, 0.2, 0.3); await say('chanyu', '（記録）同定記録、隣の世界、第三一四番。人口、二十九万四千。五十年前から増減なし。');
-  await say('chanyu', '（記録）釘を打たずに死んだ者、一名。');
+  fc30(ch, 2.4, 0.2, 0.3); await say('chanyu', '（記録）同定記録、隣の世界、第三一四番。人間、四万二千。精真存在、千二百。');
+  await say('chanyu', '（記録）釘を打たずに生きている者、なし。');
   await say('chanyu', '……この続きは、No.2 には見せないでおきます。');
   sfx('glitch'); flash40('#C8D8FF', 0.4, 500); ch.hidden = true; await fade(true);
   ifOff43(); await card('IF　続　精真', '記録終了', 3600); await fade(false); setMeta({ ch44Clear: true, ch44: packS(), ch44Done: [...DONE] }); showReport44(); }
 
 function showReport44() { G.mode = 'end'; ifOff43(); CH44.on = false; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); news22off(); fear20(0); kuu34(false); bigCue39(null); nerve39(false); nameCard(null); bgm('seishin44'); speedLines42(false); fov42(46);
   const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>精</span><span>真</span></div><h2>IF　続　精真</h2><div class="meta">同定記録　隣の世界　第三一四番（続き）　／　本堂の奥　／　北口広場　／　B.U.N　／　留文堂　／　本山　／　国道19号　／　恵那</div><table>' +
-    '<tr><td>精真釘</td><td>十二年後。ム・ジョウは恵那の杭を二年かけて削り、百八本の釘にした。身に打てば老いと病が遅れる。かわりに、打った日から痛みが少しも引かない。痛むたびに、頭の中で経が鳴る。シ・ンマイは朝まで叫びつづけ、肩の古い傷あとが消えた。ゲ・ダツ「人は、あと一代で終わると言われてきた。……その一代が、終わらなければよい」。削った粉を鉄に混ぜ、何万本も打たれた。</td></tr>' +
-    '<tr><td>配布</td><td>十三年後。北口広場の配布所。「一本につき、雌ハ偽ナリを百遍。一本で、老いが一年遅れる。十本で十年」。老いた男「……妻の顔を、もう少し、覚えていたいんだ」。春日井の夜は叫び声で埋まった。</td></tr>' +
-    '<tr><td>B.U.N</td><td>十四年後。絶尊は「余は、ただ在る」と打たなかった。シ・ロブンも打たなかった。ザ・コシは三本続けて打ち、四本目で吠えた。「弱いまま老いるより、ずっといい」。</td></tr>' +
-    '<tr><td>留文堂</td><td>十五年後。高嶺は三本打った。「女の人の顔を覚えてるやつが、ひとりもいなくなる。……それが、いちばん怖いっす」。久世「俺は、人間のやり方で死ぬ」。</td></tr>' +
-    '<tr><td>精真存在</td><td>二十年後。ゲ・ダツは四十九本目を胸に打ち、叫ぶのをやめた。「……痛い。今も痛い。だが、もう叫ばずにいられる」。ザ・ンゲの刃で裂けた腕は、釘のまわりから閉じた。釘が三十を越えた者は死ななくなった。B.U.N ではザ・コシが最初だった。</td></tr>' +
-    '<tr><td>五十年後</td><td>国道を歩くのは釘だらけの男たちと文鳥たち。釘の少ない者ほど叫び、多い者ほど静かだった。人口二十九万四千、五十年前から増減なし。精真存在八千二百。久世は七十九歳で、釘を打たないまま死んだ。高嶺は五十二本。写真三万二千四百十一枚の顔と名前を、全部言える。</td></tr>' +
+    '<tr><td>精真釘</td><td>十二年後。ム・ジョウは恵那の杭を二年かけて削り、百八本の釘にした。門下の七人に打つと、五人が死んだ。三人は体じゅうから血を噴き、二人は叫んでいるうちに息が止まった。適った者は老いと病が遅れる。かわりに、打った日から痛みが少しも引かず、痛むたびに頭の中で経が鳴る。シ・ンマイは朝まで叫び、古い傷あとが消え、三月起き上がれなかった。ゲ・ダツ「適わぬ者は、それだけ偽りが深かったのだ」。削った粉を鉄に混ぜ、何万本も打たれた。</td></tr>' +
+    '<tr><td>配布</td><td>十三年後。北口広場の配布所。「一本で、老いが一年遅れる。十本で十年」「適わぬ者は死ぬ。承知の者だけ、腕を出せ」。前の男は全身から血を噴いて倒れ、次の男は叫んでいるうちに息が止まった。列は崩れなかった。老いた男「……妻の顔を、もう少し、覚えていたいんだ」。生き残った者のほとんどは、仕事にも出られず寝床や道端で叫んだ。</td></tr>' +
+    '<tr><td>B.U.N</td><td>十四年後。絶尊「余は、ただ在る」。シ・ロブン「美しくないものを、わざわざ身体に入れる趣味はありませんねぇ」。ザ・コシ「あれを、強さとは言わん」。前に出た兵の一羽は息が止まり、もう一羽は羽を広げられなくなった。三羽は最後まで一本も打たなかった。</td></tr>' +
+    '<tr><td>留文堂</td><td>十五年後。打った者の三人に一人は死に、生き残っても起き上がれない者がほとんどだった。高嶺は三本打ち、なぜか適った。「女の人の顔を覚えてるやつが、ひとりもいなくなる。……それが、いちばん怖いっす」。久世「俺は、人間のやり方で死ぬ」。</td></tr>' +
+    '<tr><td>精真存在</td><td>二十年後。四十九本目で死んだ僧はそれまでに三人いた。ゲ・ダツは胸に四十九本目を打たれ、叫ぶのをやめた。「……痛い。今も痛い。だが、もう叫ばずにいられる」。ザ・ンゲの刃で裂けた腕は、釘のまわりから閉じた。釘が三十を越えた者は死ななくなった。そこへ届く前に死んだ者は、その百倍いた。</td></tr>' +
+    '<tr><td>五十年後</td><td>歩道には、釘を打って生き残った男たちが横たわって叫んでいた。立って歩くのは精真存在と文鳥たちだけだった。春日井の人間四万二千、釘で死んだ者九万一千、精真存在千二百、起き上がれない者三万四千。久世は七十九歳で、釘を打たないまま死んだ。高嶺は五十二本。写真三万二千四百十一枚の顔と名前を、全部言える。</td></tr>' +
     '<tr><td>教主</td><td>恵那の雪原で、教主に百八本の釘が打たれた。教主は叫ばなかった。「諸行無常。是生滅法。生滅滅已。寂滅為楽」。</td></tr></table>' +
     '<p class="close">――　記録終了</p>' +
     '<div class="trow"><button type="button" class="go" id="titleBtn44">タイトルへ</button></div>';
