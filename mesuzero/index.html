@@ -116,6 +116,25 @@ button:focus-visible { outline: 3px solid var(--redl); outline-offset: 2px; }
 [hidden] { display: none !important; }
 #err { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .pop { animation-duration: .01s; } #fxSplit.on, #fxSplit.on::before { animation-duration: .01s; } }
+
+/* ロゴ演出：再生中は 16:9 の一枚のキャンバスだけを、画面いっぱいに出す */
+#mv { position: fixed; inset: 0; z-index: 30; background: #000; display: none; }
+body.mv #mv { display: block; }
+body.mv #panel, body.mv .top, body.mv .cams, body.mv #pops, body.mv #skill, body.mv #sub { visibility: hidden; }
+#mvCv { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100vw, calc(100vh * 16 / 9)); width: min(100vw, calc(100dvh * 16 / 9)); height: auto; aspect-ratio: 16 / 9; display: block; }
+#mvClose { transition: opacity .3s; } body.mvIdle #mvClose:not(:focus-visible) { opacity: 0; pointer-events: none; } #mv:focus { outline: none; }
+#mvUi button:disabled { opacity: .5; }
+#mvUi { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10, 7, 9, .72); }
+#mvUi[hidden] { display: none; }
+#mvUi .box { text-align: center; padding: 0 16px; }
+#mvUi h2 { margin: 0 0 6px; font: 400 clamp(28px, 7vw, 46px) var(--display); color: var(--bone); text-shadow: 0 2px 0 #000, 0 0 18px rgba(224,40,58,.45); }
+#mvUi p { margin: 0 0 18px; color: var(--mute); font-size: 14px; font-weight: 700; }
+#mvUi button, #mvClose { border-radius: 12px; padding: 11px 20px; font-size: 15px; font-weight: 900; border: 1.5px solid var(--redl); background: rgba(224,40,58,.16); color: var(--bone); margin: 4px; }
+#mvUi button + button { border-color: var(--line); background: transparent; }
+#mvUi .dl { margin: 14px 0 0; } #mvUi .dl a { color: var(--redl); font-weight: 700; font-size: 13px; }
+#mvClose { position: absolute; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 12px); padding: 7px 12px; font-size: 13px; background: rgba(10, 7, 9, .6); border-color: var(--line); }
+body.mvx #mvClose { display: none; }
+.tg.mvBtn { border-color: var(--redl); color: var(--bone); background: rgba(224,40,58,.14); }
 </style>
 
 <div id="view">
@@ -144,6 +163,7 @@ button:focus-visible { outline: 3px solid var(--redl); outline-offset: 2px; }
   <div class="info" id="info"></div>
   <div class="ctrl">
     <button type="button" class="tg play" id="tAll" aria-pressed="false">▶ ぜんぶ続けて</button>
+    <button type="button" class="tg mvBtn" id="tMovie">▶ ロゴ演出</button>
     <button type="button" class="tg" id="tForm" aria-pressed="false">コア解放形態</button>
     <button type="button" class="tg" id="tSlow" aria-pressed="false">スロー</button>
     <button type="button" class="tg" id="tRot" aria-pressed="true">自動回転</button>
@@ -192,7 +212,7 @@ $('stage').appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG); scene.fog = new THREE.Fog(BG, 34, 90);
 const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 260);
-function resize() { const v = $('view'), w = v.clientWidth || 1, h = v.clientHeight || 1; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+function resize() { if (MV.on) { mvFit(); if (MV.paused) mvRender(MV.t); return; } const v = $('view'), w = v.clientWidth || 1, h = v.clientHeight || 1; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x4A3A50, 0.85));
 const sun = new THREE.DirectionalLight(0xffffff, 0.55); sun.position.set(10, 30, 14); scene.add(sun);
@@ -304,7 +324,7 @@ function makeMesZero() {
 const mzSigilTex = canvasTex(256, 256, (c, w, h) => { c.translate(w / 2, h / 2); c.strokeStyle = 'rgba(255,70,80,0.95)'; c.lineWidth = 3; for (const r of [120, 104, 70]) { c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.stroke(); }
   c.lineWidth = 2; c.beginPath(); for (let k = 0; k <= 3; k++) { const a = k / 3 * Math.PI * 2 - Math.PI / 2; c[k ? 'lineTo' : 'moveTo'](Math.cos(a) * 104, Math.sin(a) * 104); } c.stroke();
   c.beginPath(); for (let k = 0; k <= 3; k++) { const a = k / 3 * Math.PI * 2 + Math.PI / 2; c[k ? 'lineTo' : 'moveTo'](Math.cos(a) * 70, Math.sin(a) * 70); } c.stroke();
-  for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; c.beginPath(); c.moveTo(Math.cos(a) * 104, Math.sin(a) * 104); let r = 104; for (let j = 0; j < 3; j++) { r += 6; c.lineTo(Math.cos(a + (Math.random() - 0.5) * 0.12) * r, Math.sin(a + (Math.random() - 0.5) * 0.12) * r); } c.stroke(); }
+  const rr = mvRng(5150); for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2; c.beginPath(); c.moveTo(Math.cos(a) * 104, Math.sin(a) * 104); let r = 104; for (let j = 0; j < 3; j++) { r += 6; c.lineTo(Math.cos(a + (rr() - 0.5) * 0.12) * r, Math.sin(a + (rr() - 0.5) * 0.12) * r); } c.stroke(); }
   c.fillStyle = 'rgba(255,90,100,0.9)'; c.beginPath(); c.moveTo(0, -46); c.lineTo(14, -6); c.lineTo(52, -26); c.lineTo(24, 10); c.lineTo(10, 46); c.lineTo(0, 22); c.lineTo(-10, 46); c.lineTo(-24, 10); c.lineTo(-52, -26); c.lineTo(-14, -6); c.closePath(); c.fill();
   c.font = '15px serif'; c.fillStyle = 'rgba(255,120,130,0.9)'; for (let k = 0; k < 20; k++) { const a = k / 20 * Math.PI * 2; c.save(); c.rotate(a); c.fillText('B.U.N-000'[k % 9], -4, -110); c.restore(); } });
 // 腕の向き（XYZ 回転）から手の位置を求める
@@ -350,9 +370,10 @@ function mzRig(m, pose, o = {}) {
 }
 
 // ================= 舞台 =================
-{ const fl = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshLambertMaterial({ color: 0x4A4054 })); fl.rotation.x = -Math.PI / 2; scene.add(fl);
-  const sg = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: mzSigilTex, transparent: true, opacity: 0.13, depthWrite: false, color: 0xFF4A5A })); sg.rotation.x = -Math.PI / 2; sg.position.y = 0.012; sg.scale.setScalar(22); scene.add(sg);
-  for (const r of [12, 18]) { const rg = new THREE.Mesh(new THREE.RingGeometry(r - 0.06, r, 96), new THREE.MeshBasicMaterial({ color: 0x8A2A3A, transparent: true, opacity: 0.45, depthWrite: false })); rg.rotation.x = -Math.PI / 2; rg.position.y = 0.015; scene.add(rg); } }
+const STAGE = { rings: [] };
+{ const fl = new THREE.Mesh(new THREE.CircleGeometry(60, 48), new THREE.MeshLambertMaterial({ color: 0x4A4054 })); fl.rotation.x = -Math.PI / 2; scene.add(fl); STAGE.fl = fl;
+  const sg = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: mzSigilTex, transparent: true, opacity: 0.13, depthWrite: false, color: 0xFF4A5A })); sg.rotation.x = -Math.PI / 2; sg.position.y = 0.012; sg.scale.setScalar(22); scene.add(sg); STAGE.sg = sg;
+  for (const r of [12, 18]) { const rg = new THREE.Mesh(new THREE.RingGeometry(r - 0.06, r, 96), new THREE.MeshBasicMaterial({ color: 0x8A2A3A, transparent: true, opacity: 0.45, depthWrite: false })); rg.rotation.x = -Math.PI / 2; rg.position.y = 0.015; scene.add(rg); STAGE.rings.push(rg); } }
 
 const mz = makeMesZero();
 const M = { pos: new THREE.Vector3(0, 0, 0), face: 0, pose: null, kv: new THREE.Vector3(), ext: 1, extTo: 1, sig: 0, sigR: 6, sigT: 0, coreT: 0, ult: false, dash: null, spd: 0, busy: 0 };
@@ -659,6 +680,8 @@ function camTick(rdt) { if (S.rot && !drag) CAMT.yaw += rdt * 0.12;
 
 let last = performance.now();
 function loop(now) { requestAnimationFrame(loop); const rdt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (MV.on) { if (!MV.paused && MV.clock) { let mt = MV.clock(); for (const k of [476 / 30, 478 / 30, 480 / 30]) if (MV.lastT < k && mt >= k + 1 / 30) { mt = k + 0.001; break; } MV.lastT = mt;
+    if (mt >= MV.dur) mvEndLive(); else { const fq = Math.floor(mt * 60); if (fq !== MV.lastF) { MV.lastF = fq; mvRender(Math.max(0, mt)); } } } return; }
   let dt = rdt * (S.slow ? 0.35 : 1); if (G.freezeT > 0) { G.freezeT -= rdt; dt *= 0.04; }
   G.time += dt; runQ(); tickM(dt); tickD(dt); fxTick(dt); shardTick(dt); bloodTick(dt); skyTick(dt); camTick(rdt);
   if (subT > 0) { subT -= rdt; if (subT <= 0) $('sub').hidden = true; } if (skillT > 0) { skillT -= rdt; if (skillT <= 0) $('skill').classList.remove('on'); }
@@ -683,9 +706,490 @@ $('cams').addEventListener('click', e => { const b = e.target.closest('button');
 $('profBtn').addEventListener('click', () => { $('prof').hidden = false; $('profClose').focus(); });
 $('profClose').addEventListener('click', () => { $('prof').hidden = true; $('profBtn').focus(); });
 $('prof').addEventListener('click', e => { if (e.target.id === 'prof') $('prof').hidden = true; });
-addEventListener('keydown', e => { if (e.key === 'Escape') { $('prof').hidden = true; return; } if (e.metaKey || e.ctrlKey || e.altKey || !$('prof').hidden) return; const k = e.key.length === 1 ? e.key.toUpperCase() : ''; const t = KEYMAP[k]; if (t) { e.preventDefault(); play(t); } });
+addEventListener('keydown', e => { if (MV.on || MV.busy) return; if (e.key === 'Escape') { $('prof').hidden = true; return; } if (e.metaKey || e.ctrlKey || e.altKey || !$('prof').hidden) return; const k = e.key.length === 1 ? e.key.toUpperCase() : ''; const t = KEYMAP[k]; if (t) { e.preventDefault(); play(t); } });
+
+// ================= ロゴ演出（ムービー） =================
+// すべてを時刻 t（秒）の関数として描く。ページ内ではそのまま再生し、書き出しでは t を一コマずつ指定して撮る
+const MV = { on: false, paused: false, t: 0, dur: 22, ac: null, shot: 0, frz: null, sig: null, streak: 0, expo: 1, clock: null };
+// 決まった乱数（毎回同じ並び）
+function mvRng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const mvC = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const mvK = (t, a, b) => mvC((t - a) / (b - a));                     // a→b で 0→1
+const mvE = { io: u => u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2, o: u => 1 - Math.pow(1 - u, 3), o5: u => 1 - Math.pow(1 - u, 5), i: u => u * u * u, s: u => u * u * (3 - 2 * u) };
+const mvL = (a, b, u) => a + (b - a) * u;
+// 区間 [a, b] の中だけ 0→1→0 になる山（立ち上がり ia、消え fo）
+const mvBell = (t, a, b, ia = 0.15, fo = 0.25) => t < a || t > b ? 0 : Math.min(mvC((t - a) / ia), mvC((b - t) / fo));
+// 決まった揺れ（乱数の代わりに正弦の重ね合わせ）
+const mvJit = (t, s) => Math.sin(t * 37.1 + s) * 0.5 + Math.sin(t * 61.7 + s * 2.3) * 0.3 + Math.sin(t * 97.3 + s * 4.1) * 0.2;
+
+// WAV（16bit ステレオ）に
+function mvWav(buf) { const n = buf.length, ch = Math.min(2, buf.numberOfChannels), rate = buf.sampleRate, ab = new ArrayBuffer(44 + n * 4), v = new DataView(ab); let p = 0; const w4 = s => { for (let i = 0; i < 4; i++) v.setUint8(p++, s.charCodeAt(i)); }, u32 = x => { v.setUint32(p, x, true); p += 4; }, u16 = x => { v.setUint16(p, x, true); p += 2; };
+  w4('RIFF'); u32(36 + n * 4); w4('WAVE'); w4('fmt '); u32(16); u16(1); u16(2); u32(rate); u32(rate * 4); u16(4); u16(16); w4('data'); u32(n * 4);
+  const L = buf.getChannelData(0), R = buf.getChannelData(ch > 1 ? 1 : 0); for (let i = 0; i < n; i++) { v.setInt16(p, Math.max(-1, Math.min(1, L[i])) * 32767, true); p += 2; v.setInt16(p, Math.max(-1, Math.min(1, R[i])) * 32767, true); p += 2; }
+  let s = ''; const u8 = new Uint8Array(ab); for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+// ---- 画面：1920×1080 の一枚のキャンバスに、3D の画と文字をまとめて描く ----
+const MW = 1920, MH = 1080;
+const OV = { cv: null, c: null, grain: [] };
+function mvSetup() { if (OV.cv) return; const root = document.createElement('div'); root.id = 'mv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'メス・ゼロ ロゴ演出'); root.tabIndex = -1; root.innerHTML = '<canvas id="mvCv" width="1920" height="1080" role="img" aria-label="メス・ゼロ ロゴ演出（22秒）"></canvas><div id="mvUi" hidden><div class="box"><h2>メス・ゼロ</h2><p>ロゴ演出　22秒</p><button type="button" id="mvGo">▶ 音ありで再生</button><button type="button" id="mvGoM">音なしで再生</button><p class="dl"><a href="mes-zero-logo.mp4" download>動画（MP4・1920×1080）を保存</a></p></div></div><button type="button" id="mvClose">× 閉じる</button>';
+  document.body.appendChild(root); OV.cv = $('mvCv'); OV.c = OV.cv.getContext('2d'); root.addEventListener('pointermove', mvWake); root.addEventListener('pointerdown', mvWake);
+  if (!MV.x && location.protocol !== 'file:') fetch('mes-zero-logo.mp4', { method: 'HEAD' }).then(r => { if (!r.ok) throw 0; }).catch(() => { root.querySelector('.dl').hidden = true; });
+  // 粒子の荒れ（決まった並びのタイルを数枚）
+  for (let k = 0; k < 4; k++) { const g = document.createElement('canvas'); g.width = g.height = 256; const gc = g.getContext('2d'), id = gc.createImageData(256, 256), r = mvRng(900 + k); for (let i = 0; i < id.data.length; i += 4) { const v = r() * 255 | 0; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } gc.putImageData(id, 0, 0); OV.grain.push(g); }
+  $('mvClose').addEventListener('click', () => mvStop()); $('mvGo').addEventListener('click', () => mvPlay(true)); $('mvGoM').addEventListener('click', () => mvPlay(false)); }
+// GL を movie 用の大きさで描いて、キャンバスに写す
+let MVQ = 1;
+function mvGL(cam) { renderer.render(scene, cam || camera); }
+function mvBlit(c, x = 0, y = 0, w = MW, h = MH) { c.drawImage(renderer.domElement, x, y, w, h); }
+
+// ---- 3D の部品：使い回しの置き場から、その時刻に生きている分だけ取り出す ----
+const P3 = { rings: [], glows: [], used: {} };
+function p3Init() { if (P3.rings.length) return;
+  for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(new THREE.RingGeometry(0.88, 1, 64), kMat(0xFFFFFF, 0.8)); m.visible = false; scene.add(m); P3.rings.push(m); }
+  for (let i = 0; i < 160; i++) { const s = glowSprite(0xFF3A4A, 0.5); s.visible = false; scene.add(s); P3.glows.push(s); }
+}
+function p3Reset() { for (const m of P3.rings) m.visible = false; for (const s of P3.glows) s.visible = false; P3.used = { r: 0, g: 0 }; }
+// 床に広がる輪
+function fRing(t, t0, life, x, y, z, r0, r1, col, op = 0.85, o = {}) { const u = (t - t0) / life; if (u < 0 || u > 1) return; const m = P3.rings[P3.used.r++]; if (!m) return; m.visible = true; m.position.set(x, y, z);
+  if (o.face) { m.rotation.set(0, 0, 0); m.lookAt(o.face); } else m.rotation.set(-Math.PI / 2, 0, (o.spin || 0.03 * 60) * u * life); const e = o.ease ? o.ease(u) : u; m.scale.setScalar(r0 + (r1 - r0) * e); m.material.color.setHex(col); m.material.opacity = op * (1 - u) * (o.k ?? 1); }
+// 光の粒
+function fGlow(x, y, z, col, sc, op, sx) { const s = P3.glows[P3.used.g++]; if (!s) return null; s.visible = true; s.position.set(x, y, z); s.material.color.setHex(col); s.material.opacity = op; if (sx) s.scale.set(sx[0], sx[1], 1); else s.scale.setScalar(sc); return s; }
+// ---- 緩急 ----
+const EZ = { ios: u => -(Math.cos(Math.PI * u) - 1) / 2, oc: u => 1 - Math.pow(1 - u, 3), ioc: u => u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2, oq: u => 1 - Math.pow(1 - u, 4), oe: u => u >= 1 ? 1 : 1 - Math.pow(2, -10 * u),
+  ob: u => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2); }, iq: u => u * u, os: u => Math.sin(u * Math.PI / 2), sm: (a, b, x) => { const u = mvC((x - a) / (b - a)); return u * u * (3 - 2 * u); } };
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z), lerpV = (a, b, u) => V3(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u);
+const CORE3 = V3(0, 2.61, 0.74);
+const T_IG = 284 / 30 - 1e-4, T_TIP = 404 / 30 - 1e-4, T_SL = 476 / 30 - 1e-4, T_FRZ = 475 / 30;   // 点火・刃の先・一閃・凍らせるコマ（コマの頭に合わせる）
+const HERO_DIR = V3(0.1786, -0.0600, 0.9817).normalize();
+
+// ---- 映画のための舞台の部品（入るときに一度だけ作る） ----
+const MP = { built: false };
+function mvBuild() { if (MP.built) return; MP.built = true; p3Init();
+  MP.hemi = scene.children.find(o => o.isHemisphereLight);
+  MP.rim2 = new THREE.DirectionalLight(0xFF6A7A, 0); MP.rim2.position.set(6, 5, -10); scene.add(MP.rim2);
+  MP.key = new THREE.DirectionalLight(0xDDE6EE, 0); scene.add(MP.key);
+  MP.coreL = new THREE.PointLight(0xFF2A3A, 0, 5, 2); MP.coreL.position.set(0, 2.62, 1.10); scene.add(MP.coreL);
+  MP.upL = new THREE.PointLight(0xFF3A4A, 0, 12, 1); MP.upL.position.set(0, 0.4, 1.5); scene.add(MP.upL);
+  // 光の柱（文字なし：目盛りと翼の印）
+  MP.cols = []; for (let i = 0; i < 7; i++) { const tex = canvasTex(128, 2048, (c, w, h) => { const r = mvRng(7 + i); c.clearRect(0, 0, w, h);
+      for (let k = 0; k < 60; k++) { const y = r() * h, ww = 8 + r() * 32, hh = 2 + r() * 4; c.fillStyle = '#FF3A4A'; c.fillRect((w - ww) / 2 + (r() - 0.5) * 30, y, ww, hh); }
+      for (let y = 256; y < h; y += 512) { c.save(); c.translate(w / 2, y); c.scale(0.56, 0.56); c.fillStyle = '#FF5A64'; c.beginPath(); c.moveTo(0, -46); c.lineTo(14, -6); c.lineTo(52, -26); c.lineTo(24, 10); c.lineTo(10, 46); c.lineTo(0, 22); c.lineTo(-10, 46); c.lineTo(-24, 10); c.lineTo(-52, -26); c.lineTo(-14, -6); c.closePath(); c.fill(); c.restore(); }
+      c.globalCompositeOperation = 'destination-in'; const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.2, 'rgba(0,0,0,1)'); g.addColorStop(0.8, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h); });
+    tex.wrapT = THREE.RepeatWrapping; const m = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 18), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, color: 0xFF4A56 }));
+    const a = Math.PI + (i - 3) * 0.32; m.position.set(Math.sin(a) * 9.5, 9, Math.cos(a) * 9.5); m.lookAt(0, 9, 0); m.visible = false; scene.add(m); MP.cols.push(m); }
+  // 細い波紋の輪
+  MP.thin = []; for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(new THREE.RingGeometry(0.985, 1, 160), new THREE.MeshBasicMaterial({ color: 0xFF4A5A, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); m.rotation.x = -Math.PI / 2; m.position.y = 0.03; m.visible = false; scene.add(m); MP.thin.push(m); }
+  // 外の輪（二重）と、内側の輪の 8 本の目盛り
+  MP.outer = []; for (const R of [10.2, 11.4]) { const g = new THREE.Group(); const m = new THREE.Mesh(new THREE.RingGeometry(R * 0.992, R, 192), new THREE.MeshBasicMaterial({ color: 0xFF3A4A, transparent: true, opacity: 0, depthWrite: false })); m.rotation.x = -Math.PI / 2; g.add(m);
+    if (R < 11) for (let k = 0; k < 8; k++) { const b = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.9), m.material); const a = k / 8 * TAU; b.rotation.x = -Math.PI / 2; b.rotation.z = -a; b.position.set(Math.sin(a) * (R - 0.6), 0, Math.cos(a) * (R - 0.6)); g.add(b); }
+    g.position.y = 0.04; g.visible = false; scene.add(g); MP.outer.push(g); }
+  // 一閃の帯（扇形の板）
+  MP.sheets = []; for (let k = 0; k < 3; k++) { const g = new THREE.Group(), m = new THREE.Mesh(new THREE.RingGeometry(30 * 0.35, 30, 64, 1, -Math.PI / 2 - 1.3, 2.6), new THREE.MeshBasicMaterial({ color: k === 1 ? 0xFFFFFF : 0xFF2A3A, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); m.rotation.x = -Math.PI / 2; g.add(m); g.visible = false; scene.add(g); MP.sheets.push(g); }
+  // 赤い線の材質を一本ずつに分け、それぞれの高さを測る
+  mz.root.position.set(0, 0, 0); mz.root.rotation.set(0, 0, 0); G.time = 0; mzRig(mz, null, {}); mz.root.updateMatrixWorld(true);
+  const wp = new THREE.Vector3(); MP.lines = mz.lines.map(m => { m.getWorldPosition(wp); const dial = Math.abs(m.position.z - 0.56) < 0.005 && Math.abs(Math.hypot(m.position.x, m.position.y - 2.04) - 0.17) < 0.01, edge = mz.edgeM.includes(m);
+    return { m, orig: m.material, mat: m.material.clone(), y: wp.y, dial, edge, ang: Math.atan2(m.position.x, m.position.y - 2.04) }; });
+  MP.dial = MP.lines.filter(l => l.dial).sort((a, b) => ((a.ang + TAU) % TAU) - ((b.ang + TAU) % TAU));
+  MP.eyeS = []; mz.head.traverse(o => { if (o.isMesh && o.geometry && o.geometry.parameters && o.geometry.parameters.radius === 0.055 && o.material !== outlineMat) MP.eyeS.push({ m: o, orig: o.material, mat: o.material.clone() }); });
+  MP.coreM = { m: mz.core, orig: mz.core.material, mat: mz.core.material.clone() };
+  // 寄りで角が見えないように、映画のあいだだけ球を細かくする
+  MP.geo = []; const up = { 0.085: [32, 24], 0.055: [24, 16], 0.42: [36, 28], 0.21: [28, 20] };
+  mz.root.traverse(o => { if (!o.isMesh || o.material === outlineMat || !o.geometry || o.geometry.type !== 'SphereGeometry') return; const r = o.geometry.parameters.radius, u = up[r]; if (!u) return; const ng = new THREE.SphereGeometry(r, u[0], u[1]), ol = o.children.find(c => c.material === outlineMat); MP.geo.push({ o, ol, g0: o.geometry, g1: ng }); });
+  // 火の粉・目の光の筋・白い芯
+  MP.ember = []; { const r = mvRng(31); for (let i = 0; i < 40; i++) MP.ember.push({ x: (r() - 0.5) * 9, z: (r() - 0.5) * 9, y0: r() * 7, v: 0.25 + r() * 0.25, ph: r() * TAU, s: 0.05 + r() * 0.08, op: 0.2 + r() * 0.4 }); }
+  MP.gather = []; { const r = mvRng(57); for (let i = 0; i < 16; i++) { const a = r() * TAU; MP.gather.push({ x: Math.sin(a) * 10, y: 0.3 + r() * 3.7, z: Math.cos(a) * 10 }); } }
+}
+function mvSigTex() { return canvasTex(256, 256, (c, w, h) => { const r = mvRng(321); c.translate(w / 2, h / 2); c.strokeStyle = 'rgba(255,70,80,0.95)'; c.lineWidth = 3; for (const rr of [120, 104, 70]) { c.beginPath(); c.arc(0, 0, rr, 0, TAU); c.stroke(); }
+  c.lineWidth = 2; c.beginPath(); for (let k = 0; k <= 3; k++) { const a = k / 3 * TAU - Math.PI / 2; c[k ? 'lineTo' : 'moveTo'](Math.cos(a) * 104, Math.sin(a) * 104); } c.stroke(); c.beginPath(); for (let k = 0; k <= 3; k++) { const a = k / 3 * TAU + Math.PI / 2; c[k ? 'lineTo' : 'moveTo'](Math.cos(a) * 70, Math.sin(a) * 70); } c.stroke();
+  for (let k = 0; k < 18; k++) { const a = k / 18 * TAU; c.beginPath(); c.moveTo(Math.cos(a) * 104, Math.sin(a) * 104); let rr = 104; for (let j = 0; j < 3; j++) { rr += 6; c.lineTo(Math.cos(a + (r() - 0.5) * 0.12) * rr, Math.sin(a + (r() - 0.5) * 0.12) * rr); } c.stroke(); }
+  c.fillStyle = 'rgba(255,90,100,0.9)'; c.beginPath(); c.moveTo(0, -46); c.lineTo(14, -6); c.lineTo(52, -26); c.lineTo(24, 10); c.lineTo(10, 46); c.lineTo(0, 22); c.lineTo(-10, 46); c.lineTo(-24, 10); c.lineTo(-52, -26); c.lineTo(-14, -6); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(255,120,130,0.9)'; for (let k = 0; k < 20; k++) { c.save(); c.rotate(k / 20 * TAU); c.fillRect(-1.5, -116, 3, 8); c.restore(); } }); }
+function mvMats(on) { if (!MP.built) return; if (!MP.sigTex) MP.sigTex = mvSigTex(); const st = on ? MP.sigTex : mzSigilTex; for (const o of [mzSkyObj.sig, mzSkyObj.fl, STAGE.sg, mz.sigil]) o.material.map = st; mz.eyes.forEach(e => { e.position.z = on ? 0.43 : 0.34; }); MP.eyeS.forEach(e => { e.m.position.z = on ? 0.365 : 0.30; }); for (const l of MP.lines) l.m.material = on ? l.mat : l.orig; for (const e of MP.eyeS) e.m.material = on ? e.mat : e.orig; MP.coreM.m.material = on ? MP.coreM.mat : MP.coreM.orig;
+  for (const g of MP.geo) { g.o.geometry = on ? g.g1 : g.g0; if (g.ol) g.ol.geometry = on ? g.g1 : g.g0; }
+  for (const l of MP.lines) { l.mat.emissive.setHex(0xFF2A3A); } for (const e of MP.eyeS) e.mat.emissive.setHex(0xFF1020); MP.coreM.mat.emissive.setHex(0xFF2030); }
+
+// ---- 一コマぶんの 3D を組む ----
+const FOG = new THREE.Fog(0x050306, 4, 26);
+function mvBg(hex, near, far) { scene.background.setHex(hex); FOG.color.setHex(hex); FOG.near = near; FOG.far = far; scene.fog = FOG; }
+function mvCam(p, tg, fov, roll = 0, vo = 0) { camera.position.copy(p); camera.up.set(0, 1, 0); camera.lookAt(tg); if (roll) camera.rotateZ(roll); camera.fov = fov; camera.aspect = 16 / 9;
+  if (vo) camera.setViewOffset(1920, 1080, 0, vo, 1920, 1080); else camera.clearViewOffset(); camera.updateProjectionMatrix(); }
+// 炉心の脈（S3）
+function crPulse(t) { let c = 0; const f1 = t >= 6.6 ? 0.25 * Math.exp(-(t - 6.6) / 0.12) : 0, f2 = t >= 7.3 ? 0.40 * Math.exp(-(t - 7.3) / 0.14) : 0; c = Math.max(f1, f2);
+  if (t >= 8.0) c = Math.max(c, t < 8.12 ? 0.55 * EZ.oc((t - 8) / 0.12) : 0.5 + 0.06 * Math.sin(TAU * 1.1 * (t - 8))); if (t >= 8.7 && t < T_IG) c = Math.max(c, t < 8.82 ? mvL(0.5, 0.62, EZ.oc((t - 8.7) / 0.12)) : 0.5 + 0.12 * Math.exp(-(t - 8.82) / 0.4)); if (t >= T_IG) c = 1; return c; }
+const PULSES = [18.10, 19.50, 20.90, 21.80];
+const pulseK = t => PULSES.reduce((a, p) => a + (t >= p ? Math.exp(-(t - p) / 0.15) : 0), 0);
+
+function mvScene(t) { const s = MV.shot = t < 2.4 ? 1 : t < 6 ? 2 : t < 9.8 ? 3 : t < 11 ? 4 : t < 14.2 ? 5 : t < 15.8 ? 6 : t < 16.3 ? 7 : 8;
+  p3Reset(); for (const m of MP.cols) m.visible = false; for (const m of MP.thin) m.visible = false; for (const g of MP.outer) g.visible = false; for (const g of MP.sheets) g.visible = false;
+  mzSkyObj.g.visible = false; dm.root.visible = false; for (const p of BLOOD.drops) p.m.visible = false; for (const d of BLOOD.decals) d.m.visible = false; for (const p of shards) p.m.visible = false;
+  MP.hemi.intensity = 0; sun.intensity = 0; rim.intensity = 0; MP.rim2.intensity = 0; MP.key.intensity = 0; MP.coreL.intensity = 0; MP.upL.intensity = 0;
+  MP.hemi.color.setHex(0xFFFFFF); MP.hemi.groundColor.setHex(0x4A3A50); sun.color.setHex(0xB8B0C8); MP.key.position.set(3, 6, 6);
+  STAGE.fl.material.color.setHex(0x1E1922); STAGE.sg.material.opacity = 0; for (const r of STAGE.rings) r.material.opacity = 0;
+  mz.root.position.set(0, 0, 0); mz.root.rotation.set(0, 0, 0); if (s === 6 || (s === 7 && t < 16.033)) mz.root.rotation.y = -1.70;
+  // 間（15.5〜15.8）は時計を止める
+  const tt = s === 6 && t > 15.5 ? 15.5 : t; G.time = tt;
+  let pose = null, op = { core: 0, edge: 0, aura: 0, sig: 0, wind: 0, ext: 1, spd: 0 }, headX = null, eyes = 0, eyeSc = 0.4, coreG = null, lineK = 0.08, lineFn = null, edgeOn = 0;
+  // ---- カットごと ----
+  if (s === 1) { const u = t / 2.4; mvCam(lerpV([1.6, 0.45, 5.2], [1.35, 0.42, 4.4], u), V3(0.1, 0.6, 0.3), 30); mvBg(0x050306, 4, 26);
+    headX = 0.35; coreG = 0.06;
+    const rip = (t0, col, k) => { const u2 = (t - t0) / 2.1; if (u2 < 0 || u2 > 1) return; const m = MP.thin.find(x => !x.visible); if (!m) return; m.visible = true; m.material.color.setHex(col); m.scale.setScalar(0.6 + 15.4 * EZ.oc(u2)); m.material.opacity = 0.85 * k * Math.pow(1 - u2, 1.5); };
+    rip(0.30, 0xFF4A5A, 1); rip(0.38, 0xFFE6E8, 0.5);
+    lineK = t < 0.36 ? 0.20 : 0.30 + 1.0 * Math.exp(-(t - 0.36) / 0.5); rim.intensity = 0.25; }
+  if (s === 2) { const u = EZ.ios((t - 2.4) / 3.6); mvCam(lerpV([-3.3, 1.0, 11.0], [-2.4, 3.2, 9.4], u), lerpV([0, 1.4, 0], [0, 3.0, 0], u), 34); mvBg(0x160B15, 10, 34);
+    headX = 0.35; coreG = 0.06; rim.intensity = 1.6 * EZ.sm(2.4, 5.4, t); MP.hemi.intensity = 0.10 * EZ.sm(2.4, 5.4, t);
+    lineFn = l => { const T = 2.7 + l.y * 0.78; return 0.10 + 1.30 * EZ.sm(T, T + 0.25, t) - 0.30 * EZ.sm(T + 0.25, T + 0.8, t); };
+    mvColumns(t, 0.45, 1); mvEmbers(t, 24, 6, 4.5); }
+  if (s === 3) { const u = EZ.ioc(mvK(t, 6.0, T_IG)); let p = lerpV([1.4, 2.95, 4.6], [0.5, 2.75, 2.7], u); if (t >= T_IG && !mvCalm()) { const d = t - T_IG, a = 0.035 * Math.exp(-8 * d); p.x += a * 0.6 * Math.sin(71.3 * t); p.y += a * 0.4 * Math.sin(113.7 * t); }
+    mvCam(p, V3(0, 2.62, 0.76), mvL(30, 24, u)); mvBg(t >= T_IG ? mvHex(0x07040A, 0x14060A, mvK(t, T_IG, 9.767)) : 0x07040A, 10, 34);
+    pose = { kind: 'core', t: 1, dur: 1 }; const cr = crPulse(t); op.core = cr; if (t < T_IG) coreG = { op: 0.15 + 0.35 * cr, sc: 0.16 + 0.10 * cr, em: 0.15 + 1.2 * cr }; op.aura = t >= T_IG ? 0.15 : 0; rim.intensity = 0.8; MP.hemi.intensity = 0.06; MP.coreL.intensity = 1.3 * cr;
+    lineK = t < T_IG ? 1.10 : 1.5;
+    // 胸の八本：時計回りに一本ずつ
+    MP.dialFn = (k) => { const tk = 8.4 + k * 0.1333; return t < tk ? 0.08 : t < tk + 0.034 ? 1.8 : mvL(1.8, 1.2, mvK(t, tk + 0.034, tk + 0.3)); };
+    mvSparks(t, 8.0, 10, 3); mvSparks(t, 8.7, 14, 5);
+    if (t >= T_IG) { const d = t - T_IG; fGlow(CORE3.x, CORE3.y, CORE3.z + 0.08, 0xFFFFFF, d < 0.06 ? 0.4 * d / 0.06 : mvL(0.4, 0.22, mvK(d, 0.06, 0.63)), 0.9); coreG = { op: 0.55, sc: mvL(0.34, 0.26, mvK(d, 0, 0.63)), em: 1.2 };
+      if (d < 0.45) { const m = P3.rings[P3.used.r++]; m.visible = true; m.position.copy(CORE3); m.position.z += 0.1; m.rotation.set(0, 0, 0); m.lookAt(camera.position); m.scale.setScalar(0.1 + 2.3 * EZ.oc(d / 0.45)); m.material.color.setHex(d < 0.15 ? 0xFFFFFF : 0xFF3A4A); m.material.opacity = 0.8 * (1 - d / 0.45); } } }
+  if (s === 4) { const u = (t - 9.8) / 1.2; mvCam(lerpV([1.45, 3.3, 4.4], [1.3, 3.32, 4.05], u), V3(0.05, 3.30, 0.40), 32); mvBg(0x14060A, 10, 34);
+    pose = { kind: 'core', t: 1, dur: 1 }; op.core = 1; op.aura = 0.15; rim.intensity = 1.0; MP.hemi.intensity = 0.06; MP.coreL.intensity = 1.4; MP.key.intensity = 0.30; MP.key.position.set(3, 6, 6);
+    const hu = mvK(t, 9.95, 10.45); headX = t < 9.95 ? 0.35 : t < 10.45 ? mvL(0.35, -0.05, EZ.ioc(hu)) : -0.05 - 0.02 * Math.sin(mvK(t, 10.45, 10.6) * Math.PI);
+    lineK = 1.5; eyes = t >= 10.4 ? 1 : 0; eyeSc = t >= 10.4 ? mvL(0.55, 0.40, mvK(t, 10.4, 10.7)) : 0.4; MV.streak = t >= 10.4 ? 0.9 * Math.exp(-5 * (t - 10.4)) : 0; mvEmbers(t, 3, 6, 2.5); }
+  if (s === 5) { const u = EZ.ios((t - 11) / 3.2), tg = lerpV([0, 1.5, 0], [0, 5.2, 0], u), d = mvL(15, 16.5, u), e = mvL(0.95, -0.26, u), y = mvL(0.70, 0.19, u);
+    mvCam(V3(tg.x + d * Math.cos(e) * Math.sin(y), tg.y + d * Math.sin(e), tg.z + d * Math.cos(e) * Math.cos(y)), tg, mvL(38, 54, u)); mvBg(0x0C0508, 14, 46);
+    op.core = 1; op.edge = 0.4 * EZ.sm(12.8, 14.2, t); op.aura = 0.35 * EZ.sm(11, 14.2, t); op.wind = 0.5 * EZ.sm(11, 14.2, t); eyes = 1;
+    MP.upL.intensity = 2.0 * EZ.sm(11, 11.6, t); sun.intensity = 0.22 * EZ.sm(11, 12.5, t); sun.color.setHex(0xB8B0C8); MP.key.intensity = mvL(0.30, 0.20, u); MP.key.position.set(3, 6, 6); rim.intensity = mvL(1.0, 1.2, u); MP.hemi.intensity = mvL(0.06, 0.15, u); MP.coreL.intensity = 2.4; lineK = 1.5;
+    const ou = mvK(t, 11, 11.9); MV.sig = { s: t < 11.9 ? mvL(2, 8.5, EZ.oq(ou)) : mvL(8.5, 9, mvK(t, 11.9, 14.2)), o: t < 11.3 ? 0.95 * mvK(t, 11, 11.3) : 0.85 + 0.05 * Math.sin(TAU * 0.8 * t), r: -0.6 * EZ.oq(ou) - 0.32 * (t - 11) };
+    { const u2 = (t - 11) / 1.8; if (u2 >= 0 && u2 <= 1) { const m = MP.thin[0]; m.visible = true; m.material.color.setHex(0xFF4A5A); const R = 1 + 21 * EZ.oc(u2); m.scale.setScalar(R); m.material.opacity = 0.55 * Math.pow(1 - u2, 1.5); MP.ripR = R; } }
+    STAGE.sg.material.opacity = 0.16 * EZ.sm(11, 11.8, t); STAGE.rings.forEach((r, i) => { r.material.opacity = 0.35 * EZ.sm(11 + (i ? 0.75 : 0.45), 11 + (i ? 1.0 : 0.7), t); });
+    MP.outer.forEach((g, i) => { const ta = 11.4 + i * 0.2; if (t < ta) return; g.visible = true; g.children.forEach(c => { c.material.opacity = 0.6 * mvK(t, ta, ta + 0.2); }); g.rotation.y = (i ? -0.08 : 0.12) * (t - ta); });
+    edgeOn = t; mvColumns(t, mvL(0.45, 0.65, u), 3); mvEmbers(t, 24, 6, 4.5); }
+  if (s === 6) { const u = EZ.os(mvK(tt, 14.2, 15.5)); mvCam(lerpV([2.2, 1.7, 10.5], [1.9, 1.65, 9.6], u), V3(0, 2.3, 0), 40, -0.244 * EZ.ios(mvK(tt, 14.2, 15.5))); mvBg(mvHex(0x0C0508, 0x120408, mvK(t, 15.5, 15.8)), 14, 46);
+    pose = { kind: 'ultwind', t: 1, dur: 1 }; const k = mvK(tt, 14.2, 15.5); op.core = 1; op.edge = mvL(0.4, 1, k); op.aura = mvL(0.35, 0.8, k); op.wind = mvL(0.5, 1, k); op.ext = 1; eyes = 1;
+    const dim = t > 15.5 ? 0.7 : 1; rim.intensity = 1.2 * dim; MP.hemi.intensity = 0.15 * dim; sun.intensity = 0.22 * dim; sun.color.setHex(0xB8B0C8); MP.upL.intensity = mvL(2.0, 2.6, k) * dim; MP.coreL.intensity = 2.4 * dim; MP.key.intensity = 0.2 * dim; lineK = 1.5 * dim;
+    // 紋章は加速して回る（角度は積分した形で）
+    const w0 = 0.32, w1 = 1.4, dt6 = tt - 14.2, D = 1.3, ang = w0 * dt6 + (w1 - w0) * Math.pow(Math.min(dt6, D), 3) / (3 * D * D) + (dt6 > D ? (w1 - w0) * (dt6 - D) : 0);
+    MV.sig = { s: mvL(9, 10, k), o: 0.9, r: -0.6 - 0.32 * 3.2 - ang }; edgeOn = 99; mvColumns(tt, 0.9, 10, mvL(1, 0.5, k)); mvGather(tt); }
+  if (s === 7 && t < 16.033) { mvCam(V3(1.9, 1.65, 9.6), V3(0, 2.3, 0), 40, -0.244); mvBg(0x120408, 14, 46);
+    const pt = t - 15.8; pose = { kind: 'ultcut', t: pt, dur: 0.9 }; op.core = 1; op.edge = 1; op.aura = 0.8; op.wind = 1; op.ext = 1; op.sig = 1; eyes = 1;
+    rim.intensity = 1.2; MP.hemi.intensity = 0.15; sun.intensity = 0.22; MP.upL.intensity = 2.6; MP.coreL.intensity = 2.4; lineK = 1.5; edgeOn = 99; MV.sig = { s: 10, o: 0.9, r: -3.4 };
+    MP.sheets.forEach((g, k) => { const t0 = T_SL + k / 30, u2 = (t - t0) / 0.35; if (u2 < 0 || u2 > 1) return; g.visible = true; g.position.set(0, 2.0 + k * 0.4, 0); g.rotation.y = 0.3 * Math.PI - k * 0.9 - 1.70; g.children[0].material.opacity = (k === 1 ? 1 : 0.7) * (1 - u2); g.scale.setScalar(1 + u2 * 0.1); });
+    fRing(t, T_SL, 0.5, 0, 1.5, 0, 1, 30, 0xFFFFFF, 0.8, { spin: 0 }); }
+  if (s >= 7 && t >= 16.033 || s === 8) { mvHero(t); return null; }
+  mzRig(mz, pose, op);
+  mvOverride({ headX, eyes, eyeSc, coreG, lineK, lineFn, edgeOn, t });
+  return s; }
+
+// 決めの画（16.033〜）：炉心がロゴの中黒の真後ろに来るように
+function mvHero(t) { const th = Math.max(0, t - 16.3), d = mvL(10, 9.4, EZ.os(mvK(t, 16.3, 21.4))); const P = CORE3.clone().addScaledVector(HERO_DIR, d); mvCam(P, CORE3, 32, 0, 40 * MW / (MW + 40)); mvBg(0x0E0A10, 12, 40);
+  const pk = pulseK(t), pre = t < 16.3 ? 0.3 : 1; G.time = t;
+  MP.hemi.intensity = 0.20 * pre; MP.hemi.color.setHex(0xFFFFFF); MP.hemi.groundColor.setHex(0x2A1A22); MP.key.intensity = 0.18 * pre; MP.key.position.set(-8, 3, 10);
+  const sp = th > 0 ? Math.exp(-th / 0.18) : 0; rim.intensity = (mvL(1.4, 3.0, sp) + pk * 0.1) * pre; MP.rim2.intensity = (mvL(0.9, 3.0, sp) + pk * 0.1) * pre; MP.coreL.intensity = 1.2 * pre;
+  STAGE.fl.material.color.setHex(0x1E1822); STAGE.sg.material.opacity = 0.25 * pre;
+  mzRig(mz, { kind: 'core', t: 1, dur: 1 }, { core: 1, aura: 0.4, edge: 1, sig: 0.8, sigR: 9, wind: 0.4, ext: 1 }); mz.g.position.y = 0;
+  const lk = (th > 0 ? mvL(1.4, 2.5, Math.exp(-th / 0.2)) : 1.4) + pk * 0.4;
+  mvOverride({ headX: 0.06, eyes: 1, eyeSc: 0.40, coreG: { k: (th > 0 ? mvL(1.2, 2.2, Math.exp(-th / 0.2)) : 1.2) + pk * 0.35 }, lineK: lk * pre, edgeOn: 99, t, sigFix: true });
+  // 後ろの光輪：カメラ→炉心の線の上、カメラから 22 の所
+  const sk = mzSkyObj; sk.g.visible = true; sk.g.position.set(0, 0, 0); sk.fl.visible = false; const dir = CORE3.clone().sub(P).normalize(); sk.sig.position.copy(P).addScaledVector(dir, 22); sk.sig.lookAt(P);
+  const pop = th > 0 ? mvL(0.8, 1, EZ.ob(mvK(th, 0, 0.2))) : 0.8; sk.sig.scale.setScalar(13.9 * pop); sk.sig.rotateZ(0.05 * t); sk.sig.material.opacity = 0.28 * pre; sk.sig.material.color.setHex(0xFF3A4A);
+  if (th > 0) fRing(t, 16.3, 0.5, 0, 0.1, 0, 0.3, 9, 0xFFFFFF, 0.45, { spin: 0 });
+  mvEmbers(t, 40, 7, 5, true);
+  // 終わりの暗転（3D だけ先に落とす）
+  MV.expo = 1 - EZ.iq(mvK(t, 21.4, 21.8)); }
+function mvHex(a, b, u) { const A = new THREE.Color(a), B = new THREE.Color(b); return A.lerp(B, u).getHex(); }
+
+// 光の当たり方を上書き（mzRig のあと）
+function mvOverride(o) { const t = o.t;
+  if (o.headX !== null && o.headX !== undefined) mz.head.rotation.x = o.headX;
+  mz.eyes.forEach(e => { e.material.opacity = o.eyes; e.scale.setScalar(o.eyeSc); }); for (const e of MP.eyeS) e.mat.emissiveIntensity = o.eyes ? 1.6 : 0;
+  if (o.coreG !== null && o.coreG !== undefined) { if (typeof o.coreG === 'number') { mz.coreGlow.material.opacity = o.coreG; mz.coreGlow.scale.setScalar(0.4); MP.coreM.mat.emissiveIntensity = 0.15; } else if (o.coreG.op !== undefined) { mz.coreGlow.material.opacity = o.coreG.op; mz.coreGlow.scale.setScalar(o.coreG.sc); MP.coreM.mat.emissiveIntensity = o.coreG.em; } else { mz.coreGlow.scale.multiplyScalar(o.coreG.k); MP.coreM.mat.emissiveIntensity = 1.2; } } else MP.coreM.mat.emissiveIntensity = 1.0;
+  for (const l of MP.lines) { let v = o.lineFn && !l.dial && !l.edge ? o.lineFn(l) : o.lineK; if (l.dial) { v = MV.shot < 3 ? (o.lineFn ? 0.08 : o.lineK) : MV.shot === 3 ? MP.dialFn(MP.dial.indexOf(l)) : o.lineK; l.mat.color.setHex(v < 0.3 ? 0x2A0A10 : MZ_RD); } if (l.edge) { const k = mz.edgeM.indexOf(l.m), te = 12.8 + k * 0.1333; v = t >= te || o.edgeOn === 99 ? 1.6 : 0.08; } l.mat.emissiveIntensity = v; }
+  if (o.edgeOn !== 99 && !(t >= 12.8)) { mz.bladeGlow.material.opacity = 0; mz.tip.material.opacity = 0; } else if (MV.shot === 5) { mz.tip.material.opacity = t >= T_TIP ? 0.9 : 0; }
+  if (MV.shot >= 5 && MV.shot <= 7) { mz.bladeGlow.scale.set(1.0, 2.2, 1); mz.bladeGlow.material.opacity = Math.min(0.4, mz.bladeGlow.material.opacity); }
+  if (MV.shot <= 2) { mz.bladeGlow.material.opacity = 0; mz.tip.material.opacity = 0; mz.aura.material.opacity = 0; }
+  // 足もとの紋章
+  const sg = mz.sigil; if (MV.sig && (MV.shot === 5 || MV.shot === 6 || MV.shot === 7)) { sg.visible = true; sg.scale.setScalar(MV.sig.s); sg.material.opacity = MV.sig.o; sg.rotation.z = MV.sig.r; } else if (!o.sigFix) sg.visible = false; else { sg.material.opacity = 0.8 * (0.85 + 0.05 * Math.sin(t * 5)); sg.rotation.z = -0.1 * t; }
+  MV.sig = null;
+  // 目の光の筋
+  if (MV.streak > 0.01) { mz.root.updateMatrixWorld(true); const w = new THREE.Vector3(); for (const e of mz.eyes) { e.getWorldPosition(w); fGlow(w.x, w.y, w.z + 0.05, 0xFF3A4A, 1, MV.streak, [1.8, 0.03]); fGlow(w.x, w.y, w.z + 0.05, 0xFF8A94, 1, MV.streak * 0.6, [1.1, 0.02]); } } MV.streak = 0; }
+
+// 光の柱
+function mvColumns(t, op, spd, rep = 1) { const order = [3, 2, 4, 1, 5, 0, 6]; MP.cols.forEach((m, i) => { const n = order.indexOf(i), ti = 2.4 + n * 0.25; if (t < ti) return; m.visible = true; const d = t - ti, o = d < 0.067 ? 0.8 * d / 0.067 : d < 0.4 ? mvL(0.8, op, (d - 0.067) / 0.333) : op;
+  m.material.opacity = o; m.material.map.repeat.y = rep; m.material.map.offset.y = ((t * 0.035 * spd + i * 0.137) % 1 + 1) % 1; }); }
+// 火の粉
+function mvEmbers(t, n, H, R, flick) { for (let i = 0; i < n; i++) { const e = MP.ember[i], y = ((e.y0 + e.v * t) % H + H) % H; fGlow(e.x * R / 4.5, y, e.z * R / 4.5 + 0.15 * Math.sin(1.3 * t + e.ph), 0xFF5A4A, e.s, e.op * (flick ? 0.7 + 0.3 * Math.sin(6 * TAU * t + e.ph) : 1) * Math.min(1, y / 0.6, (H - y) / 0.8)); } }
+// 炉心の火花
+function mvSparks(t, t0, n, seed) { const d = t - t0; if (d < 0 || d > 1.2) return; const r = mvRng(seed); for (let i = 0; i < n; i++) { const a = (r() - 0.5) * 1.4, b = r() * TAU, v = 0.6 + r() * 0.8, sc = 0.04 + r() * 0.05;
+  const vx = Math.sin(a) * Math.cos(b) * v, vy = Math.cos(a) * v, vz = Math.sin(a) * Math.sin(b) * v * 0.6 + 0.3; const x = CORE3.x + vx * d, y = CORE3.y + vy * d - 0.15 * d * d, z = CORE3.z + vz * d; const u = d / 1.2;
+  fGlow(x, y, z, u < 0.4 ? 0xFFB070 : 0xFF3A4A, 1, 1 - u, [sc * 0.35, sc * 1.8]); } }
+// 刃へ集まる光（S6）
+function mvGather(t) { const u = mvK(t, 14.2, 15.2); if (u <= 0 || u >= 1) return; mz.root.updateMatrixWorld(true); const b = new THREE.Vector3(); mz.blade.localToWorld(b.set(-0.15, 1.0, 0)); const e = u * u;
+  for (const g of MP.gather) fGlow(g.x + (b.x - g.x) * e, g.y + (b.y - g.y) * e, g.z + (b.z - g.z) * e, 0xFF3A4A, 0.5, 0.3 + 0.7 * u); }
+// ---- 重ね描き（1920×1080） ----
+const CX = 960, CY = 500, SU = [0.9703, -0.2419], SN = [-0.2419, -0.9703];   // 一閃の向きと、その法線（上向き）
+const LOGO = { ready: false };
+// 名前は一度だけ下書きしておく（縁取り・押し出し・外の光）。一閃の下の半分は、ほんの少し沈めた版も作る
+async function mvFonts() { if (LOGO.ready) return; try { await Promise.race([new Promise(r => setTimeout(r, 4000)), Promise.all([document.fonts.load('400 200px "Dela Gothic One"', 'メスゼロ'), document.fonts.load('700 36px "Zen Kaku Gothic New"', '「偽りを、断つ。」'), document.fonts.load('700 18px "Zen Kaku Gothic New"', 'M.E.S.U. CORE No.0 B.U.N-000'), document.fonts.load('900 40px "Zen Kaku Gothic New"', 'MESZERO-')])]); } catch (e) { /* 読めなくても代わりの字で描く */ }
+  const cv = document.createElement('canvas'); cv.width = MW; cv.height = MH; const c = cv.getContext('2d'); c.font = '400 200px "Dela Gothic One", "Hiragino Kaku Gothic StdN", sans-serif'; c.textBaseline = 'alphabetic';
+  const mA = c.measureText('メス'), base = CY + (mA.actualBoundingBoxAscent - mA.actualBoundingBoxDescent) / 2;   // 濁点を除いた字の胴で、中黒の高さにそろえる
+  const xA = 868 - mA.width, xB = 1062; const draw = (dx, dy, fill, stroke) => { c.lineJoin = 'round'; if (stroke) { c.lineWidth = 12; c.strokeStyle = stroke; c.strokeText('メス', xA + dx, base + dy); c.strokeText('ゼロ', xB + dx, base + dy); } c.fillStyle = fill; c.fillText('メス', xA + dx, base + dy); c.fillText('ゼロ', xB + dx, base + dy); };
+  c.save(); c.shadowColor = 'rgba(224,40,58,.25)'; c.shadowBlur = 24; draw(0, 8, '#8A0A18', '#0C0A10'); c.restore(); draw(0, 0, '#EFEDE8', '#0C0A10');
+  const lo = document.createElement('canvas'); lo.width = MW; lo.height = MH; const l = lo.getContext('2d'); l.drawImage(cv, 0, 0); l.globalCompositeOperation = 'source-atop'; l.fillStyle = 'rgba(20,10,14,.06)'; l.fillRect(0, 0, MW, MH);
+  LOGO.name = cv; LOGO.nameLo = lo; LOGO.ready = true; c.font = '900 40px "Zen Kaku Gothic New", sans-serif'; LOGO.w40 = ch => c.measureText(ch).width; }
+// 一閃の線で、上か下の半平面だけを残す
+function clipHalf(c, up) { const L = 4000, x0 = CX - SU[0] * L, y0 = CY - SU[1] * L, x1 = CX + SU[0] * L, y1 = CY + SU[1] * L, s = up ? 1 : -1; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.lineTo(x1 + SN[0] * L * s, y1 + SN[1] * L * s); c.lineTo(x0 + SN[0] * L * s, y0 + SN[1] * L * s); c.closePath(); c.clip(); }
+// レンズ形の一閃（両端 0、中央 w）
+function slashLens(c, ax, ay, bx, by, w, col, blur, bcol) { const mx = (ax + bx) / 2, my = (ay + by) / 2; c.save(); if (blur) { c.shadowColor = bcol; c.shadowBlur = blur; } c.fillStyle = col; c.beginPath(); c.moveTo(ax, ay); c.lineTo(mx + SN[0] * w / 2, my + SN[1] * w / 2); c.lineTo(bx, by); c.lineTo(mx - SN[0] * w / 2, my - SN[1] * w / 2); c.closePath(); c.fill(); c.restore(); }
+const ptOn = d => [CX + SU[0] * d, CY + SU[1] * d];
+// 周辺の暗がり
+function vign(c, k) { if (k <= 0) return; const g = c.createRadialGradient(CX, 540, 300, CX, 540, 1150); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,' + k + ')'); c.fillStyle = g; c.fillRect(0, 0, MW, MH); }
+function redInset(c, k) { if (k <= 0.003) return; const g = c.createRadialGradient(CX, 540, 380, CX, 540, 1100); g.addColorStop(0, 'rgba(224,40,58,0)'); g.addColorStop(1, 'rgba(224,40,58,' + (0.6 * k) + ')'); c.save(); c.globalCompositeOperation = 'screen'; c.fillStyle = g; c.fillRect(0, 0, MW, MH); c.restore(); }
+function bars(c, h) { if (h <= 0) return; c.fillStyle = '#000'; c.fillRect(0, 0, MW, h); c.fillRect(0, MH - h, MW, h); }
+function grain(c, f, k) { if (k <= 0) return; c.save(); c.globalAlpha = k; c.globalCompositeOperation = 'soft-light'; const g = OV.grain[f % 4], ox = (f * 97) % 256, oy = (f * 61) % 256; for (let x = -ox; x < MW; x += 512) for (let y = -oy; y < MH; y += 512) c.drawImage(g, x, y, 512, 512); c.restore(); }
+// 2D の揺れ（決まった正弦の重ね）
+function shake2(t) { if (mvCalm()) return [0, 0]; let a = 0; if (t >= 16.033 && t < 16.3) a += 14 * Math.exp(-12 * (t - 16.033)); if (t >= 16.3) a += 16 * Math.exp(-14 * (t - 16.3)); return [a * (0.6 * Math.sin(71.3 * t) + 0.4 * Math.sin(43.1 * t)), a * (0.6 * Math.sin(57.7 * t + 1) + 0.4 * Math.sin(91.3 * t))]; }
+
+// ---- 凍った一コマ（15.90）を赤の二色にして取っておく ----
+function mvFreeze() { if (MV.frz) return MV.frz; const keep = MV.t, sh = MV.shot; mvScene(T_FRZ); renderer.render(scene, camera); const cv = document.createElement('canvas'); cv.width = MW; cv.height = MH; const c = cv.getContext('2d'); c.drawImage(renderer.domElement, 0, 0, MW, MH);
+  const id = c.getImageData(0, 0, MW, MH), d = id.data; const A = [11, 7, 9], B = [224, 40, 58], Cc = [255, 230, 232];
+  for (let i = 0; i < d.length; i += 4) { const l = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255, u = Math.min(1, l * 1.6); let r, g, b; if (u < 0.5) { const k = u / 0.5; r = A[0] + (B[0] - A[0]) * k; g = A[1] + (B[1] - A[1]) * k; b = A[2] + (B[2] - A[2]) * k; } else { const k = (u - 0.5) / 0.5; r = B[0] + (Cc[0] - B[0]) * k; g = B[1] + (Cc[1] - B[1]) * k; b = B[2] + (Cc[2] - B[2]) * k; } d[i] = r; d[i + 1] = g; d[i + 2] = b; }
+  c.putImageData(id, 0, 0); MV.frz = cv; MV.t = keep; MV.shot = sh; return cv; }
+
+// ---- 一コマを描く ----
+function mvRender(t) { const c = OV.c, f = Math.round(t * 30); MV.t = t; MV.expo = 1;
+  // 3D
+  const impact = t >= 15.933 && t < 15.967 + 0.001, white = t >= 16.0 && t < 16.033; if (t >= 16.033 && t < 16.5 && !MV.frz) mvFreeze();
+  if (!white) { mvScene(t);
+    if (impact) { const hid = []; scene.traverse(o => { if ((o.isSprite || o === STAGE.fl || o === STAGE.sg || STAGE.rings.includes(o) || o === mz.sigil || MP.cols.includes(o)) && o.visible) { hid.push(o); o.visible = false; } }); scene.overrideMaterial = MP.black || (MP.black = new THREE.MeshBasicMaterial({ color: 0x0B0709 })); const bg = scene.background.getHex(), fg = scene.fog; scene.background.setHex(mvCalm() ? 0x3A0A12 : 0xFFFFFF); scene.fog = null;
+      renderer.render(scene, camera); scene.overrideMaterial = null; scene.background.setHex(bg); scene.fog = fg; hid.forEach(o => { o.visible = true; }); }
+    else renderer.render(scene, camera); }
+  const [sx, sy] = shake2(t); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; c.fillStyle = '#000'; c.fillRect(0, 0, MW, MH);
+  if (white) { c.fillStyle = mvCalm() ? '#3A0A12' : '#FFF'; c.fillRect(0, 0, MW, MH); slashFull(c, 6, '#E0283A'); return; }
+  c.save(); c.translate(Math.round(sx), Math.round(sy));
+  c.globalAlpha = MV.expo; c.drawImage(renderer.domElement, -20, -11.25, MW + 40, MH + 22.5); c.globalAlpha = 1;
+  // 割れて飛ぶ、凍った一コマ
+  if (t >= 16.033 && t < 16.5) { const frz = MV.frz;
+    let D, S, al = 1; if (t < 16.3) { const u = EZ.oe(mvK(t, 16.033, 16.3)); D = 46 * u; S = 120 * u; } else { const u = EZ.oe(mvK(t, 16.3, 16.5)); D = 46 + 654 * u; S = 120 + 200 * u; al = 1 - u; }
+    for (const up of [true, false]) { const k = up ? 1 : -1; c.save(); c.globalAlpha = al; c.translate(k * (SN[0] * D + SU[0] * S), k * (SN[1] * D + SU[1] * S)); clipHalf(c, up); c.drawImage(frz, 0, 0); c.globalAlpha = 0.6 * al; slashFull(c, 2, '#FFE6E8'); c.restore(); }
+    if (t < 16.3) slashFull(c, 4, '#FFFFFF', 30, 'rgba(255,60,80,.95)'); }
+  // 間までの画面のしつらえ
+  const s = MV.shot; let barH = 138, vg = 0.55;
+  if (s === 6) { barH = mvL(138, 200, EZ.ioc(mvK(t, 15.5, 15.8))); vg = mvL(0.55, 0.70, mvK(t, 15.5, 15.8)); } if (t >= 15.8) barH = 200; if (t >= 16.3) barH = mvL(200, 0, EZ.oe(mvK(t, 16.3, 16.4)));
+  if (t < 16.3 && !impact) vign(c, vg); else if (t >= 16.3) { // 名前の読みやすさのための幕
+    const g = c.createRadialGradient(CX, 540, 0, CX, 540, 980); g.addColorStop(0, 'rgba(11,7,9,.5)'); g.addColorStop(1, 'rgba(11,7,9,0)'); c.save(); c.setTransform(1, 0, 0, 420 / 980, Math.round(sx), Math.round(sy) + 540 * (1 - 420 / 980)); c.fillStyle = g; c.fillRect(-100, -800, 2200, 2600); c.restore();
+    const g2 = c.createLinearGradient(0, 860, 0, 1080); g2.addColorStop(0, 'rgba(5,3,6,0)'); g2.addColorStop(1, 'rgba(5,3,6,.85)'); c.fillStyle = g2; c.fillRect(-20, 860, MW + 40, 240); vign(c, 0.45); }
+  if (s === 3 && t >= T_IG) redInset(c, 0.4 * (1 - mvK(t, T_IG, 10.167)));
+  if (t >= 16.3) redInset(c, 0.6 * (1 - mvK(t, 16.3, 16.7)));
+  // 一閃（T_SL〜）
+  if (t >= 475.5 / 30 && t < 477.5 / 30) { const u = mvK(t, 475 / 30, 477 / 30); const a = ptOn(-1400), b = ptOn(-1400 + 2800 * u); c.save(); c.lineCap = 'round'; c.shadowColor = 'rgba(255,255,255,.35)'; c.shadowBlur = 70; c.strokeStyle = '#FFFFFF'; c.lineWidth = 4; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); c.shadowColor = 'rgba(255,60,80,.9)'; c.shadowBlur = 18; c.stroke(); c.restore(); }
+  if (impact) slashFull(c, 6, '#0B0709');
+  // ロゴ
+  if (t >= 16.3) mvLogo(c, t);
+  c.restore();
+  bars(c, Math.round(barH));
+  grain(c, f, t >= 16.3 ? 0.03 : 0.05);
+  // 最後の暗転：中黒だけを残す
+  if (t >= 21.4) { c.fillStyle = 'rgba(0,0,0,' + EZ.iq(mvK(t, 21.4, 21.8)) + ')'; c.fillRect(0, 0, MW, MH); if (t < 21.933) coreDot(c, t, true); }
+  if (t >= 21.933) { c.fillStyle = '#000'; c.fillRect(0, 0, MW, MH); } }
+function slashFull(c, w, col, blur, bcol) { const a = ptOn(-1400), b = ptOn(1400); c.save(); if (blur) { c.shadowColor = bcol; c.shadowBlur = blur; } c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); c.restore(); }
+
+// ---- ロゴ一式 ----
+function mvLogo(c, t) { const th = t - 16.3, f = Math.floor((t - 18.1) * 30);
+  // 一閃（炉心の印の内側には通さない）
+  c.save(); c.beginPath(); c.rect(-60, -60, MW + 120, MH + 120); c.arc(CX, CY, 70, 0, TAU); c.clip('evenodd');
+  c.globalAlpha = 0.3; slashFull(c, 1, '#E0283A'); c.globalAlpha = 1;
+  const lw = th < 0.6 ? mvL(8, 6, mvK(th, 0, 0.6)) : 6; slashLens(c, 280, 669.5, 1640, 330.5, 18, 'rgba(224,40,58,.4)'); slashLens(c, 280, 669.5, 1640, 330.5, lw, '#FFFFFF', 20, 'rgba(255,60,80,.95)'); c.restore();
+  // 名前：一閃で二つに割れたまま（法線の向きにも少し離して、継ぎ目に一閃の光をのぞかせる）
+  const sc = th < 0.1 ? mvL(1.08, 1.0, EZ.oe(th / 0.1)) : 1, cl = th < 0.1 ? mvL(64, 6, EZ.oe(th / 0.1)) : 6;
+  const nameAt = (off, al) => { for (const up of [true, false]) { const k = up ? 1 : -1; c.save(); clipHalf(c, up); c.globalAlpha = al; c.translate(CX + k * (SU[0] * off + SN[0] * 1.5), CY + k * (SU[1] * off + SN[1] * 1.5)); c.scale(sc, sc); c.translate(-CX, -CY); c.drawImage(up ? LOGO.name : LOGO.nameLo, 0, 0); c.restore(); } };
+  if (th < 0.1) { for (const [a, k] of [[0.35, 2], [0.2, 4], [0.1, 6]]) nameAt(mvL(64, 6, EZ.oe(Math.max(0, th - k / 30) / 0.1)), a); }
+  nameAt(cl, 1);
+  // 光の走り（18.8〜19.3）：名前の上を、一閃に沿って
+  if (t >= 18.8 && t < 19.3) { const u = EZ.ios(mvK(t, 18.8, 19.3)), d = -680 + 1360 * u, p = ptOn(d), q = ptOn(d + 120); c.save(); c.globalCompositeOperation = 'lighter'; c.shadowColor = 'rgba(255,200,210,.9)'; c.shadowBlur = 16; c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineWidth = 5; c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.stroke(); c.restore(); }
+  // 中黒＝炉心
+  coreDot(c, t, false);
+  // MES-ZERO
+  if (t >= 16.6) { const u = EZ.oc(mvK(t, 16.6, 16.95)); c.save(); c.globalAlpha = u; c.font = '900 40px "Zen Kaku Gothic New", sans-serif'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round';
+    const word = (w, cx, dx) => { const tr = 20, ws = [...w].map(ch => LOGO.w40(ch)), tot = ws.reduce((a, b) => a + b, 0) + tr * (w.length - 1); let x = cx - tot / 2 + dx * SU[0]; const y = 666 + dx * SU[1];
+      [...w].forEach((ch, i) => { c.lineWidth = 6; c.strokeStyle = '#0C0A10'; c.strokeText(ch, x, y); c.fillStyle = '#E0283A'; c.fillText(ch, x, y); x += ws[i] + tr; }); };
+    word('MES', 668, 24 * (1 - u)); word('ZERO', 1252, -24 * (1 - u));
+    const hu = mvK(t, 16.6, 16.7); c.translate(960, 652); c.rotate(Math.atan2(SU[1], SU[0])); c.lineWidth = 3; c.strokeStyle = '#0C0A10'; c.strokeRect(-22, -2.5, 44 * hu, 5); c.fillStyle = '#FF7A86'; c.fillRect(-22, -2.5, 44 * hu, 5); c.restore(); }
+  // ひとこと（句読点は半角の幅で詰める。下に薄い影の帯）
+  if (t >= 17.6) { const u = mvK(t, 17.6, 18.2), tr = mvL(0.5, 0.3, EZ.oc(u)) * 36; c.save(); c.globalAlpha = 0.92 * u;
+    c.save(); c.translate(960, 757); c.scale(1, 0.15); const g = c.createRadialGradient(0, 0, 0, 0, 0, 320); g.addColorStop(0, 'rgba(8,5,7,.6)'); g.addColorStop(1, 'rgba(8,5,7,0)'); c.fillStyle = g; c.fillRect(-340, -340, 680, 680); c.restore();
+    c.font = '700 36px "Zen Kaku Gothic New", sans-serif'; c.fillStyle = '#EFEDE8'; c.textBaseline = 'alphabetic';
+    const body = '偽りを、断つ。', ws = [...body].map(ch => c.measureText(ch).width * ('、。'.includes(ch) ? 0.5 : 1)), tot = ws.reduce((a, b) => a + b, 0) + tr * (body.length - 1); let x = 960 - tot / 2;
+    c.fillText('「', x - c.measureText('「').width, 770); [...body].forEach((ch, i) => { c.fillText(ch, x, 770); x += ws[i] + tr; }); c.fillText('」', x - tr + tr * 0.4, 770); c.restore(); }
+  // 記号（18.1〜）：正しい字だけを、定まった位置に左から順に出す。まだの所は細い線が瞬く
+  if (t >= 18.1) { c.save(); c.font = '700 18px "Zen Kaku Gothic New", sans-serif'; c.textBaseline = 'alphabetic'; const tr = 5.4;
+    const put = (s, seed, x0, right) => { const ws = [...s].map(ch => c.measureText(ch).width), tot = ws.reduce((a, b) => a + b, 0) + tr * (s.length - 1); let x = right ? x0 - tot : x0;
+      [...s].forEach((ch, i) => { const lock = Math.round((i + 1) / s.length * 12); if (f >= lock || ch === ' ') { if (ch !== ' ') c.fillText(ch, x, 1008); } else { c.save(); c.globalAlpha = 0.3 + 0.5 * mvRng(seed + i * 131 + f * 7)(); c.fillRect(x, 1001, Math.max(3, ws[i]), 2); c.restore(); } x += ws[i] + tr; }); };
+    const tk = mvK(t, 18.1, 18.5); c.fillStyle = '#E0283A'; c.fillRect(96, 1001, 32 * tk, 2); c.fillRect(1792 + 32 * (1 - tk), 1001, 32 * tk, 2);
+    c.fillStyle = '#B8A9B5'; put('M.E.S.U. CORE No.0', 11, 144, false); put('B.U.N-000', 29, 1776, true); c.restore(); } }
+// 中黒＝炉心の印（last：最後の暗転の上に、これだけを残す）
+function coreDot(c, t, last) { const th = t - 16.3, pk = pulseK(t), dl = t - 21.8; c.save();
+  const fk = last ? EZ.iq(mvK(t, 21.4, 21.8)) : 1, gl = last && dl >= 0 ? 1 + 0.4 * Math.exp(-dl / 0.05) : 1, gs = last && dl >= 0.05 ? Math.max(0, 1 - mvK(dl, 0.05, 0.133)) : 1;
+  const br = 0.45 + 0.15 * (0.5 + 0.5 * Math.sin(TAU * 0.8 * t)), R = 150 * gs;
+  if (R > 1) { const rg = c.createRadialGradient(CX, CY, 0, CX, CY, R); rg.addColorStop(0, 'rgba(255,58,74,' + (br * fk * gl) + ')'); rg.addColorStop(0.45, 'rgba(224,40,58,' + (0.18 * fk * gl) + ')'); rg.addColorStop(1, 'rgba(224,40,58,0)');
+    c.globalCompositeOperation = 'lighter'; c.fillStyle = rg; c.beginPath(); c.arc(CX, CY, R, 0, TAU); c.fill(); c.globalCompositeOperation = 'source-over'; }
+  let ds = 1 + 0.10 * Math.min(1, pk); if (last) ds = dl < 0 ? 1 : dl < 0.05 ? 1.15 : 1.15 * (1 - mvK(dl, 0.05, 0.133));
+  if (!last) { c.fillStyle = 'rgba(11,7,9,.85)'; c.beginPath(); c.arc(CX, CY, 70, 0, TAU); c.fill();
+    const rs = th < 0.3 ? mvL(0.6, 1, EZ.oq(th / 0.3)) : 1, rot = (3 * Math.PI / 180) * Math.max(0, t - 16.6); c.save(); c.translate(CX, CY); c.rotate(rot); c.scale(rs, rs); c.strokeStyle = '#FF7A86'; c.lineWidth = 3; c.beginPath(); c.arc(0, 0, 58, 0, TAU); c.stroke();
+    for (let k = 0; k < 8; k++) { if (t < 16.4 + k * 0.0667) continue; c.save(); c.rotate(k / 8 * TAU); c.fillStyle = '#E0283A'; c.fillRect(-2.5, -52, 5, 12); c.restore(); } c.restore(); }
+  // 白い円盤が小さくなって、炉心の色に変わる
+  let r = 24 * ds; if (!last && th < 0.15) r = mvL(60, 24, EZ.oc(th / 0.15)); const wk = !last && th < 0.15 ? 1 - th / 0.15 : 0;
+  if (r > 0.3) { const dg = c.createRadialGradient(CX, CY, 0, CX, CY, r); dg.addColorStop(0, '#FFFFFF'); dg.addColorStop(0.33, '#FFFFFF'); dg.addColorStop(0.66, '#FF7A86'); dg.addColorStop(1, '#E0283A'); c.fillStyle = dg; c.beginPath(); c.arc(CX, CY, r, 0, TAU); c.fill();
+    if (wk > 0) { c.fillStyle = 'rgba(255,255,255,' + wk + ')'; c.beginPath(); c.arc(CX, CY, r, 0, TAU); c.fill(); } }
+  c.restore(); }
+// ---- 音：三つの道（A＝一閃の前、B＝一閃のあと、H＝最後の鼓動）。どの AudioContext にも同じ音を置く ----
+function mvIR(ctx, sec, seed) { const r = mvRng(seed), len = (ctx.sampleRate * sec) | 0, pre = (ctx.sampleRate * 0.02) | 0, ir = ctx.createBuffer(2, len, ctx.sampleRate); for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = pre; i < len; i++) d[i] = (r() * 2 - 1) * Math.pow(1 - i / len, 2.6); } return ir; }
+function mvAudio(ctx, t0) { const master = ctx.createGain(); master.gain.value = 0.5; const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.3;
+  const dc = ctx.createIIRFilter([1, -1], [1, -0.9987]); master.connect(dc); dc.connect(comp); comp.connect(ctx.destination);   // 直流を抜く（一次の高域通過）
+  const ir = mvIR(ctx, 4.0, 77), cu = new Float32Array(1025); for (let i = 0; i < 1025; i++) cu[i] = Math.tanh((i / 512 - 1) * 5);   // 奇数の長さで、0 の入力は 0 のまま
+  const bus = () => { const out = ctx.createGain(); out.connect(master); const cv = ctx.createConvolver(); cv.buffer = ir; cv.connect(out); const ws = ctx.createWaveShaper(); ws.curve = cu; const dist = ctx.createGain(); dist.gain.value = 0.6; dist.connect(ws); ws.connect(out); return { ctx, t0, out, verb: cv, dist, noise: {} }; };
+  const A = bus(), B = bus(), C = bus(), H = bus(); return { A, B, C, H, master }; }
+// 先読みつきの、左右を連動させたリミッター（書き出す前の音の山を抑える）
+function mvLimit(buf, ceilDb = -2.5, gainDb = 0, laMs = 5, relMs = 150) { const sr = buf.sampleRate, n = buf.length, C = [buf.getChannelData(0), buf.getChannelData(1)], c = 10 ** (ceilDb / 20), G = 10 ** (gainDb / 20), H = Math.round(sr * laMs / 1000), need = new Float32Array(n); for (const d of C) for (let i = 0; i < n; i++) d[i] *= G;
+  for (let i = 0; i < n; i++) { let p = 0; for (const d of C) { const z = d[Math.max(0, i - 1)], a = d[i], b = d[Math.min(n - 1, i + 1)], e = d[Math.min(n - 1, i + 2)]; p = Math.max(p, Math.abs(a), Math.abs(0.5625 * (a + b) - 0.0625 * (z + e))); } need[i] = p > c ? c / p : 1; }
+  const m = new Float32Array(n), q = new Int32Array(n); let h = 0, t = 0; for (let i = n - 1; i >= 0; i--) { while (t > h && need[q[t - 1]] >= need[i]) t--; q[t++] = i; while (q[h] > i + H) h++; m[i] = need[q[h]]; }
+  const k = 1 - Math.exp(-1 / (sr * relMs / 1000)); let g = 1; for (let i = 0; i < n; i++) { g = Math.min(m[i], g + (1 - g) * k); m[i] = g; }
+  const w = H + 1; let sm = w; for (let i = 0; i < n; i++) { sm += m[i] - (i >= w ? m[i - w] : 1); const gi = sm / w; for (const d of C) d[i] *= gi; } }
+// 全編の音を一度に作る（書き出しも、ページでの再生も、この同じ音を使う）
+async function mvRenderAudio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * MV.dur), sr), X = mvAudio(oc, 0); mvCues(X); const buf = await oc.startRendering(); mvLimit(buf, -2.5, 6.5); return buf; }
+// 音の部品
+function aT(B, at, type, f0, f1, dur, vol, o = {}) { const c = B.ctx, t = B.t0 + at, os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f0, t); if (f1 !== f0) os.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur); if (o.det) os.detune.value = o.det;
+  const a = o.a || 0.005; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t + a); if (o.hold) g.gain.setValueAtTime(vol, t + a + o.hold); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  let src = os; if (o.lp || o.bp) { const fl = c.createBiquadFilter(); fl.type = o.lp ? 'lowpass' : 'bandpass'; fl.frequency.value = o.lp || o.bp; fl.Q.value = o.q || 0.8; os.connect(fl); src = fl; } src.connect(g); mvOut(c, g, o.dist ? B.dist : B.out, o.pan); if (o.verb) { const s = c.createGain(); s.gain.value = o.verb; g.connect(s); s.connect(B.verb); } os.start(t); os.stop(t + dur + 0.05); return { os, g }; }
+function mvOut(c, g, dest, pan) { if (pan) { const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(dest); } else g.connect(dest); }
+function noiseBuf(B, dur, pw = 1.3, crk = false, seed = 0) { const k = dur.toFixed(3) + '|' + pw + '|' + crk + '|' + seed; if (B.noise[k]) return B.noise[k]; const c = B.ctx, len = Math.max(64, (c.sampleRate * dur) | 0), r = mvRng(len + seed * 7 + (crk ? 3 : 0)), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (r() * 2 - 1) * (pw ? Math.pow(1 - i / len, pw) : 1) * (crk && r() < 0.006 ? 4 : 1); return (B.noise[k] = buf); }
+function aN(B, at, dur, vol, ftype, f0, f1, q = 1, o = {}) { const c = B.ctx, t = B.t0 + at, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain(); s.buffer = noiseBuf(B, dur, o.pw === undefined ? 1.3 : o.pw, o.crk, o.seed || 0); fl.type = ftype; fl.Q.value = q; fl.frequency.setValueAtTime(f0, t); if (f1 !== f0) fl.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+  if (o.a) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + o.a); if (o.env === 'exp') g.gain.setValueAtTime(vol, t + o.a); } else g.gain.setValueAtTime(vol, t); if (o.cut) { g.gain.setValueAtTime(o.env === 'exp' ? vol : vol, t + o.cut - 0.002); g.gain.linearRampToValueAtTime(0, t + o.cut); }
+  let src = fl; s.connect(fl); if (o.am) { const m = c.createGain(); m.gain.value = 0.5; const lfo = c.createOscillator(), lg = c.createGain(); lfo.type = 'square'; lfo.frequency.value = o.am; lg.gain.value = 0.5; lfo.connect(lg); lg.connect(m.gain); fl.connect(m); src = m; lfo.start(t); lfo.stop(t + dur + 0.05); }
+  src.connect(g); mvOut(c, g, o.dist ? B.dist : B.out, o.pan); if (o.verb) { const sv = c.createGain(); sv.gain.value = o.verb; g.connect(sv); sv.connect(B.verb); } s.start(t); return g; }
+// 続く音（線形の山）：env = [[秒, 音量], ...]
+function aHold(B, type, f, env, o = {}) { const c = B.ctx, os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f, B.t0 + env[0][0]); if (o.f1) os.frequency.linearRampToValueAtTime(o.f1, B.t0 + env[env.length - 1][0]);
+  if (o.vib) { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = o.vib; lg.gain.value = f * 0.0035; l.connect(lg); lg.connect(os.frequency); l.start(B.t0 + env[0][0]); l.stop(B.t0 + env[env.length - 1][0] + 0.1); }
+  g.gain.setValueAtTime(0, B.t0 + env[0][0]); for (const [tm, v] of env) g.gain.linearRampToValueAtTime(v, B.t0 + tm); let src = os;
+  if (o.lp) { const fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = o.lp; os.connect(fl); src = fl; }
+  if (o.am) { const m = c.createGain(); m.gain.value = 0.5; const lfo = c.createOscillator(), lg = c.createGain(); lfo.type = 'square'; lfo.frequency.setValueAtTime(o.am[0], B.t0 + env[0][0]); lfo.frequency.linearRampToValueAtTime(o.am[1], B.t0 + env[env.length - 1][0]); lg.gain.value = 0.5; lfo.connect(lg); lg.connect(m.gain); src.connect(m); src = m; lfo.start(B.t0 + env[0][0]); lfo.stop(B.t0 + env[env.length - 1][0] + 0.1); }
+  src.connect(g); g.connect(B.out); if (o.verb) { const s = c.createGain(); s.gain.value = o.verb; g.connect(s); s.connect(B.verb); } os.start(B.t0 + env[0][0]); os.stop(B.t0 + env[env.length - 1][0] + 0.1); return g; }
+// 鐘：不協和な倍音を、少しずつずらして唸らせる
+const BELL_R = [0.5, 1, 1.183, 1.506, 2, 2.514, 2.662, 3.011, 4.166, 5.43, 6.82, 8.93], BELL_A = [.5, .35, .28, .2, .18, .1, .08, .06, .04, .035, .025, .015], BELL_T = [9, 7, 5.5, 4.5, 3.5, 2.5, 2.2, 1.8, 1.2, 1.0, 0.8, 0.6];
+function aBell(B, at, vol, tk = 1, f0 = 73.4) { aN(B, at, 0.03, 0.6 * vol, 'lowpass', 2400, 2400, 0.7, { pw: 1 }); const c = B.ctx, t = B.t0 + at;
+  BELL_R.forEach((r, i) => { for (const dd of [-0.35, 0.35]) { const os = c.createOscillator(), g = c.createGain(); os.frequency.value = f0 * r + dd; const T = BELL_T[i] * tk, v = BELL_A[i] * vol * 0.32; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.00005, t + T);
+    os.connect(g); mvOut(c, g, B.out, dd < 0 ? -0.5 : 0.5); const s = c.createGain(); s.gain.value = 0.5; g.connect(s); s.connect(B.verb); os.start(t); os.stop(t + T + 0.05); } }); }
+// 逆回しの鐘（終わりで最大になる）
+function aRevBell(B, at, end, vol) { const c = B.ctx, sr = c.sampleRate, len = ((end - at) * sr) | 0, buf = c.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) { const tt = (len - i) / sr; let v = 0; BELL_R.forEach((r, k) => { v += BELL_A[k] * Math.exp(-6.9 * tt / BELL_T[k]) * (Math.sin(TAU * (73.4 * r - 0.35) * tt) + Math.sin(TAU * (73.4 * r + 0.35) * tt)); }); d[i] = v * 0.16; }
+  const s = c.createBufferSource(), g = c.createGain(); s.buffer = buf; g.gain.value = vol; s.connect(g); g.connect(B.out); const sv = c.createGain(); sv.gain.value = 0.3; g.connect(sv); sv.connect(B.verb); s.start(B.t0 + at); }
+// 声のような和音（のこぎり波を母音の帯域に通す）
+const VOW = { o: [[430, 6, 1.0], [820, 8, 0.55], [2700, 10, 0.18]], a: [[730, 6, 1.0], [1090, 8, 0.55], [2440, 10, 0.18]] };
+function aChant(B, f, env, vow = 'o', morph = null, o = {}) { const c = B.ctx, t0 = B.t0 + env[0][0], t1 = B.t0 + env[env.length - 1][0], os = c.createOscillator(), g = c.createGain(); os.type = 'sawtooth'; os.frequency.value = f;
+  const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = 5.2; lg.gain.value = f * 0.0035; l.connect(lg); lg.connect(os.frequency); l.start(t0); l.stop(t1 + 0.1);
+  g.gain.setValueAtTime(0, t0); for (const [tm, v] of env) g.gain.linearRampToValueAtTime(v, B.t0 + tm);
+  VOW[vow].forEach(([fr, q, gn], i) => { const fl = c.createBiquadFilter(), fg = c.createGain(); fl.type = 'bandpass'; fl.Q.value = q; fl.frequency.setValueAtTime(fr, t0); if (morph) { fl.frequency.setValueAtTime(fr, B.t0 + morph[0]); fl.frequency.linearRampToValueAtTime(VOW[morph[2]][i][0], B.t0 + morph[1]); } fg.gain.value = gn; os.connect(fl); fl.connect(fg); fg.connect(g); });
+  mvOut(c, g, B.out, o.pan); const s = c.createGain(); s.gain.value = o.verb ?? 0.35; g.connect(s); s.connect(B.verb); os.start(t0); os.stop(t1 + 0.1); }
+// 鑑賞ページの音（MZS）を、この道具に移したもの
+const MZM = { rend(B, at, v = 1) { aN(B, at, 0.025, 1.0 * v, 'highpass', 7000, 7000, 0.7); aN(B, at + 0.004, 0.34, 0.95 * v, 'bandpass', 5600, 420, 2.4, { dist: true, am: 72 }); aT(B, at, 'sawtooth', 240, 52, 0.26, 0.28 * v, { dist: true }); aT(B, at, 'sine', 140, 30, 0.5, 1.0 * v); aN(B, at + 0.03, 0.24, 0.85 * v, 'lowpass', 1600, 170, 1.2, { dist: true, am: 38 }); },
+  big(B, at, v = 1) { MZM.rend(B, at, v); aN(B, at + 0.07, 0.36, 0.9 * v, 'bandpass', 3800, 300, 2.2, { dist: true, am: 55 }); aT(B, at + 0.01, 'sine', 95, 20, 1.2, 1.1 * v); aN(B, at + 0.02, 1.4, 0.7 * v, 'lowpass', 520, 45, 0.8, { pw: 1.0, crk: true }); [1830, 2740, 3910].forEach((f, i) => aT(B, at + 0.01, 'triangle', f, f * 0.98, 0.9 - i * 0.2, 0.06 * v)); },
+  swing(B, at, v = 1) { aN(B, at, 0.34, 0.85 * v, 'bandpass', 260, 5200, 1.3, { a: 0.12, pw: 0.55 }); aT(B, at, 'sawtooth', 95, 40, 0.32, 0.14 * v, { dist: true }); aN(B, at + 0.12, 0.06, 0.6 * v, 'highpass', 6000, 3000, 0.8); },
+  thrust(B, at, v = 1) { aN(B, at, 0.26, 0.9 * v, 'bandpass', 7000, 900, 3, { dist: true }); aT(B, at, 'sawtooth', 1500, 180, 0.24, 0.1 * v, { dist: true }); aT(B, at, 'sine', 160, 50, 0.3, 0.5 * v); },
+  slam(B, at, v = 1) { MZM.big(B, at, v); aT(B, at + 0.02, 'sine', 60, 30, 1.6, 0.6 * v); aN(B, at, 0.9, 0.9 * v, 'lowpass', 900, 50, 0.7, { dist: true }); },
+  white(B, at) { aT(B, at, 'sine', 3300, 3260, 1.8, 0.24); aT(B, at, 'sine', 4950, 4930, 1.5, 0.1); aT(B, at, 'sine', 44, 30, 1.2, 0.5); aN(B, at, 0.04, 0.4, 'highpass', 8000, 8000, 0.7); } };
+
+// ---- 合図表 ----
+function mvCues(X) { const { A, B, C, H } = X, Bm = X.master;
+  // S1 鐘
+  aHold(A, 'sine', 36.7, [[0, 0], [2.4, 0.16], [15.49, 0.16], [15.5, 0]]); aHold(A, 'sine', 73.4, [[0, 0], [2.4, 0.05], [15.49, 0.05], [15.5, 0]]);
+  aN(A, 0, 15.5, 0.04, 'lowpass', 110, 110, 0.7, { pw: 0 });
+  aBell(A, 0.30, 0.9);
+  // S2 灯
+  aChant(A, 73.4, [[2.4, 0], [5.0, 0.09], [9.4, 0.09], [T_IG, 0.14], [9.8, 0.14], [9.9, 0.05], [11.0, 0.05], [13.0, 0.12], [15.49, 0.12], [15.5, 0]], 'o', [11.0, 13.0, 'a'], { pan: -0.35 });
+  aChant(A, 110.0, [[2.4, 0], [5.0, 0.09], [9.4, 0.09], [T_IG, 0.14], [9.8, 0.14], [9.9, 0.05], [11.0, 0.05], [13.0, 0.12], [15.49, 0.12], [15.5, 0]], 'o', [11.0, 13.0, 'a'], { pan: 0.35 });
+  aChant(A, 146.8, [[11.6, 0], [13.0, 0.08], [15.49, 0.08], [15.5, 0]], 'a');
+  aN(A, 2.4, 13.1, 0.015, 'bandpass', 1200, 1200, 1, { pw: 0 });
+  for (let n = 0; n < 7; n++) { const at = 2.4 + n * 0.25; aN(A, at, 0.14, 0.05, 'bandpass', 3200, 1100, 2); aT(A, at, 'sine', 1320, 1320, 0.10, 0.012); }
+  { const g = aN(A, 2.7, 3.2, 0.03, 'highpass', 4500, 9000, 0.7, { pw: 0, am: 18, a: 1.6 }); g.gain.linearRampToValueAtTime(0.0001, A.t0 + 5.9); }
+  aBell(A, 4.20, 0.8);
+  // S3 炉
+  const fail = (at, k, w0, w1) => { aT(A, at, 'sine', 62, 34, 0.42, 0.55 * k); aN(A, at, 0.018, 0.5 * k, 'highpass', 5000, 5000, 0.7, { pw: 1 }); aT(A, at, 'sine', w0, w1, 0.3, 0.03); };
+  fail(6.6, 1, 880, 660); fail(7.3, 1.25, 990, 700);
+  const bel = (at, k) => { aN(A, at, 0.7, 0.35 * k, 'lowpass', 320, 70, 0.8, { crk: true }); aT(A, at, 'sine', 48, 36, 0.6, 0.3 * k); }; bel(8.0, 1); bel(8.7, 1.25);
+  for (let k = 0; k < 8; k++) { const at = 8.4 + k * 0.1333; aT(A, at, 'square', 2400 * Math.pow(1.04, k), 2400 * Math.pow(1.04, k), 0.025, 0.03, { pan: k % 2 ? 0.4 : -0.4 }); aN(A, at, 0.012, 0.08, 'highpass', 6000, 6000, 0.7); }
+  aT(A, 8.82, 'sawtooth', 80, 640, 0.647, 0.07, { a: 0.5 }); aT(A, 8.82, 'square', 160, 1280, 0.647, 0.03, { a: 0.5 }); aN(A, 8.82, 0.647, 0.3, 'highpass', 300, 6000, 0.7, { a: 0.5, pw: 0 });
+  aBell(A, T_IG, 1.0); aT(A, T_IG, 'sine', 60, 30, 1.6, 0.5); MZM.big(A, T_IG, 0.45); aN(A, T_IG, 2.6, 0.4, 'bandpass', 280, 900, 0.8, { crk: true, pw: 1.0 });
+  // S4 眼
+  aT(A, 10.4, 'sine', 2960, 2960, 0.9, 0.04); aT(A, 10.4, 'sine', 4440, 4440, 0.7, 0.02); aT(A, 10.4, 'sine', 41, 41, 0.5, 0.5); aN(A, 10.4, 0.01, 0.3, 'highpass', 8000, 8000, 0.7, { pw: 1 });
+  // S5 陣
+  aT(A, 11.0, 'sine', 52, 30, 1.2, 0.7); aN(A, 11.0, 1.6, 0.4, 'lowpass', 700, 60, 0.8, { crk: true });
+  aHold(A, 'sawtooth', 36.7, [[11.0, 0], [11.3, 0.06], [15.49, 0.12], [15.5, 0]], { lp: 160, am: [0.55, 1.8] });
+  for (const [at, v, pn] of [[11.4, 0.05, -0.4], [11.6, 0.035, 0.4]]) { aT(A, at, 'triangle', 1830, 1830, 0.6, v, { pan: pn }); aT(A, at, 'triangle', 2740, 2740, 0.6, v, { pan: pn }); }
+  for (let k = 0; k < 5; k++) aT(A, 12.8 + k * 0.1333, 'triangle', 2600 * Math.pow(1.05, k), 2600 * Math.pow(1.05, k), 0.06, 0.03);
+  aT(A, T_TIP, 'triangle', 2740, 2740, 0.9, 0.05); aT(A, T_TIP, 'triangle', 3910, 3910, 0.6, 0.03);
+  // S6 構
+  MZM.swing(A, 14.2, 0.7); aRevBell(A, 14.45, 15.5, 0.7);
+  { const g = aN(A, 14.2, 1.3, 0.02, 'bandpass', 400, 2400, 1.2, { pw: 0 }); g.gain.exponentialRampToValueAtTime(0.22, A.t0 + 15.5); }
+  for (let k = 0; k < 4; k++) aHold(A, 'sawtooth', 55 * (1 + k / 2), [[14.2, 0], [14.5, 0.03], [15.49, 0.03], [15.5, 0]], { f1: 220 * (1 + k / 2) }); aHold(A, 'sine', 36, [[14.2, 0], [14.5, 0.3], [15.49, 0.3], [15.5, 0]], { f1: 30 });
+  A.out.gain.setValueAtTime(1, A.t0 + 15.49); A.out.gain.linearRampToValueAtTime(0, A.t0 + 15.5);
+  aHold(B, 'sine', 6200, [[15.5, 0], [15.52, 0.006], [15.78, 0.006], [15.8, 0]], { f1: 6600 });
+  // S7 断
+  aN(C, 15.8, 0.9, 0.3, 'bandpass', 9000, 300, 1); aT(C, 15.8, 'sawtooth', 3200, 120, 0.7, 0.08); MZM.thrust(C, 15.8, 0.5);
+  MZM.big(C, T_SL, 0.5); MZM.white(C, 15.933);
+  aN(C, 16.033, 0.04, 0.3, 'highpass', 8000, 8000, 0.7, { pw: 1 }); { const r = mvRng(4242); for (let i = 0; i < 22; i++) { const f = 1800 + r() * 5600; aT(C, 16.033 + r() * 0.25, 'sine', f, f * 0.9, 0.2 + r() * 0.5, 0.04, { pan: r() * 1.6 - 0.8 }); } }
+  aN(C, 16.10, 0.19, 0.4, 'bandpass', 250, 7000, 2, { pw: 0, a: 0.19, env: 'exp', cut: 0.19 });
+  C.out.gain.setValueAtTime(1, C.t0 + 16.286); C.out.gain.linearRampToValueAtTime(0, C.t0 + 16.290);
+  // S8 名
+  aBell(B, 16.3, 1.2, 1.3); MZM.slam(B, 16.3, 1.0);
+  for (const [f, pn] of [[73.4, -0.35], [110, 0.35], [146.8, 0]]) aChant(B, f, [[16.3, 0], [16.32, 0.10], [18.0, 0.075], [21.4, 0.03], [21.95, 0]], 'a', null, { pan: pn });
+  for (let k = 0; k < 8; k++) aT(B, 16.4 + k * 0.0667, 'triangle', 2740 * (1 + 0.008 * k), 2740 * (1 + 0.008 * k), 0.06, 0.025);
+  aN(B, 16.6, 0.25, 0.05, 'highpass', 2000, 6000, 0.7); aHold(B, 'sine', 36.7, [[16.4, 0], [17.6, 0.10], [21.95, 0.10]]); aHold(B, 'sine', 73.4, [[16.4, 0], [17.6, 0.04], [21.95, 0.04]]);
+  // S9 留
+  { const r = mvRng(1810); for (let k = 0; k < 12; k++) { const f = 3000 + r() * 2200; aT(B, 18.1 + k / 30, 'square', f, f, 0.008, 0.015, { pan: k % 2 ? 0.4 : -0.4 }); } aT(B, 18.5, 'square', 4200, 4200, 0.012, 0.03); }
+  aT(B, 18.8, 'sine', 5200, 5600, 0.5, 0.01); aT(B, 20.9, 'sine', 50, 34, 0.4, 0.15);
+  B.out.gain.setValueAtTime(1, B.t0 + 21.4); B.out.gain.linearRampToValueAtTime(0.6, B.t0 + 21.7); B.out.gain.linearRampToValueAtTime(0, B.t0 + 21.95);
+  aT(H, 21.8, 'sine', 62, 34, 0.42, 0.30); aT(H, 21.8, 'sine', 124, 68, 0.3, 0.06); aN(H, 21.8, 0.03, 0.10, 'lowpass', 900, 300, 0.7, { pw: 1 });
+  H.out.gain.setValueAtTime(1, H.t0 + 21.90); H.out.gain.linearRampToValueAtTime(0, H.t0 + 21.99);
+  void Bm; }
+// ---- 入る・再生する・出る ----
+let MVSAVE = null;
+const mvCalm = () => reduce && !MV.x;                                   // 動きを抑える設定（ページでの再生だけ。書き出しは元のまま）
+const mvLights = () => [MP.rim2, MP.key, MP.coreL, MP.upL];
+function mvFit() { const w = MV.x ? 1920 : Math.min(1920, Math.round(Math.min(innerWidth, innerHeight * 16 / 9) * Math.min(2, devicePixelRatio || 1))); renderer.setSize(w, Math.round(w * 9 / 16), false); }
+function mvAcClose() { const ac = MV.ac; MV.ac = null; if (ac) try { const q = ac.close(); if (q && q.catch) q.catch(() => {}); } catch (e) { /* 無視 */ } }
+function mvWake() { document.body.classList.remove('mvIdle'); clearTimeout(MV.idleT); if (MV.on && !MV.paused) MV.idleT = setTimeout(() => { if (MV.on && !MV.paused) document.body.classList.add('mvIdle'); }, 2000); }
+function mvCard(msg, go, busy) { const ui = $('mvUi'); ui.querySelector('p').textContent = msg; if (go) $('mvGo').textContent = go; $('mvGo').disabled = $('mvGoM').disabled = !!busy; }
+async function mvEnter(o = {}) { if (MV.on || MV.busy) return; MV.busy = true; MV.cancel = false; MV.x = !!o.export; const gt = G.time; mvSetup();
+  document.body.classList.add('mv'); document.body.classList.toggle('mvx', MV.x); if (!MV.x) { mvCard('読み込み中…', '▶ 音ありで再生', true); $('mvUi').hidden = false; $('mv').focus(); }
+  mvBuild(); G.time = gt; await mvFonts(); MV.busy = false;
+  if (MV.cancel) { document.body.classList.remove('mv', 'mvx'); $('mvUi').hidden = true; $('tMovie').focus(); return; }
+  for (let i = fx.length - 1; i >= 0; i--) { scene.remove(fx[i].o); disposeTree(fx[i].o); } fx.length = 0; Q = []; setAll(false); resetState(); bloodClear(); mzSky(false); renderer.domElement.style.filter = '';
+  $('sub').hidden = true; $('skill').classList.remove('on'); $('pops').innerHTML = '';
+  MVSAVE = { pr: renderer.getPixelRatio(), bg: scene.background.getHex(), fog: scene.fog, hemi: [MP.hemi.intensity, MP.hemi.color.getHex(), MP.hemi.groundColor.getHex()], sun: [sun.intensity, sun.color.getHex()], rim: rim.intensity, sig: mzSkyObj.sig.scale.x, time: G.time };
+  for (const l of mvLights()) l.visible = true; mvMats(true); MV.on = true; MV.paused = true; MV.frz = null; MV.lastT = -1; MV.lastF = -1;
+  renderer.setPixelRatio(1); mvFit(); for (const wt of [2.5, 6.7, 11.5, 14.5, 15.95, 16.1, 16.45]) mvRender(wt); mvRender(0);   // 初めて使う絵の具や、凍った一コマを先に作っておく
+  if (!MV.x) { MV.bufP = MV.bufP || mvRenderAudio().then(b => { MV.buf = b; }).catch(() => { MV.buf = null; }); mvCard('ロゴ演出　22秒', '▶ 音ありで再生', false); $('mvGo').focus(); } }
+async function mvPlay(sound) { mvAcClose(); MV.paused = true; MV.clock = null; MV.lastT = -1; MV.lastF = -1; let ac = null;
+  if (sound) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state !== 'running') ac.resume(); } catch (e) { ac = null; } }   // 押した瞬間に作って、音を出してよい状態にしておく
+  if (ac) { if (!MV.buf) { mvCard('音を準備中…', null, true); await MV.bufP; mvCard('ロゴ演出　22秒', null, false); }
+    if (!MV.on) { try { ac.close(); } catch (e) { /* 無視 */ } return; }
+    if (MV.buf) { const src = ac.createBufferSource(); src.buffer = MV.buf; src.connect(ac.destination); const t0 = ac.currentTime + 0.15; src.start(t0); MV.ac = ac; const lat = (ac.outputLatency || 0) + (ac.baseLatency || 0); MV.clock = () => ac.currentTime - lat - t0; }
+    else try { ac.close(); } catch (e) { /* 無視 */ } }
+  if (!MV.clock) { const s0 = performance.now() + 300; MV.clock = () => (performance.now() - s0) / 1000; }
+  $('mvUi').hidden = true; $('mv').focus(); MV.paused = false; mvWake(); }
+function mvEndLive() { MV.paused = true; mvAcClose(); document.body.classList.remove('mvIdle'); mvRender(MV.dur - 1 / 30); mvCard('もう一度見ますか', '▶ 音ありでもう一度', false); $('mvUi').hidden = false; $('mvGo').focus(); }
+function mvStop() { if (MV.busy) { MV.cancel = true; return; } if (!MV.on) return; MV.on = false; MV.paused = true; mvAcClose(); clearTimeout(MV.idleT);
+  mvMats(false); document.body.classList.remove('mv', 'mvx', 'mvIdle'); $('mvUi').hidden = true; p3Reset(); for (const m of MP.cols) m.visible = false; for (const m of MP.thin) m.visible = false; for (const g of MP.outer) g.visible = false; for (const g of MP.sheets) g.visible = false;
+  const S0 = MVSAVE; scene.background.setHex(S0.bg); scene.fog = S0.fog; MP.hemi.intensity = S0.hemi[0]; MP.hemi.color.setHex(S0.hemi[1]); MP.hemi.groundColor.setHex(S0.hemi[2]); sun.intensity = S0.sun[0]; sun.color.setHex(S0.sun[1]); rim.intensity = S0.rim; G.time = S0.time;
+  for (const l of mvLights()) { l.intensity = 0; l.visible = false; } mzSkyObj.sig.scale.setScalar(S0.sig); mzSkyObj.sig.rotation.set(0, 0, 0); mzSkyObj.fl.visible = true; mzSkyObj.g.visible = false;
+  STAGE.fl.material.color.setHex(0x4A4054); STAGE.sg.material.opacity = 0.13; for (const r of STAGE.rings) r.material.opacity = 0.45; dm.root.visible = S.dummy;
+  camera.clearViewOffset(); camera.fov = 46; camera.up.set(0, 1, 0); renderer.setPixelRatio(MVSAVE.pr); resize(); $('tMovie').focus(); }
+$('tMovie').addEventListener('click', () => mvEnter());
+addEventListener('keydown', e => { if ((MV.on || MV.busy) && e.key === 'Escape') mvStop(); });
+// タブを離れたら止め、戻ったら続きから
+document.addEventListener('visibilitychange', () => { if (!MV.on || MV.paused || !MV.clock) return;
+  if (document.hidden) { MV.hold = MV.clock(); if (MV.ac) MV.ac.suspend(); }
+  else if (MV.ac) MV.ac.resume(); else { const s0 = performance.now() - MV.hold * 1000; MV.clock = () => (performance.now() - s0) / 1000; } });
+// 書き出し用：ページの外から一コマずつ指定して撮る
+window.__mzMovie = { dur: MV.dur, enter: () => mvEnter({ export: true }), seek: t => mvRender(t), audioWav: async () => mvWav(await mvRenderAudio()) };
 
 select(cur); resize(); requestAnimationFrame(loop);
-setTimeout(() => play(TECH[0]), 600);
+if (location.hash === '#logo') setTimeout(() => mvEnter(), 300); else if (location.hash !== '#export') setTimeout(() => play(TECH[0]), 600);
 })();
 </script>
