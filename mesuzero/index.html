@@ -131,8 +131,9 @@ body.mv #panel, body.mv .top, body.mv .cams, body.mv #pops, body.mv #skill, body
 #mvUi p { margin: 0 0 18px; color: var(--mute); font-size: 14px; font-weight: 700; }
 #mvUi button, #mvClose { border-radius: 12px; padding: 11px 20px; font-size: 15px; font-weight: 900; border: 1.5px solid var(--redl); background: rgba(224,40,58,.16); color: var(--bone); margin: 4px; }
 #mvUi button + button { border-color: var(--line); background: transparent; }
-#mvUi .dl { margin: 14px 0 0; } #mvUi .dl a { color: var(--redl); font-weight: 700; font-size: 13px; }
-#mvClose { position: absolute; right: 14px; top: calc(env(safe-area-inset-top, 0px) + 12px); padding: 7px 12px; font-size: 13px; background: rgba(10, 7, 9, .6); border-color: var(--line); }
+#mvUi .dl { margin: 14px 0 0; } #mvUi .dl button { border: 0; background: none; padding: 4px 2px; margin: 0; color: var(--redl); font-weight: 700; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+#mvV { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100vw, calc(100vh * 16 / 9)); width: min(100vw, calc(100dvh * 16 / 9)); max-width: 100%; aspect-ratio: 16 / 9; background: #000; z-index: 1; }
+#mvClose { position: absolute; z-index: 2; right: calc(env(safe-area-inset-right, 0px) + 14px); top: calc(env(safe-area-inset-top, 0px) + 12px); padding: 7px 12px; font-size: 13px; background: rgba(10, 7, 9, .6); border-color: var(--line); }
 body.mvx #mvClose { display: none; }
 .tg.mvBtn { border-color: var(--redl); color: var(--bone); background: rgba(224,40,58,.14); }
 </style>
@@ -730,12 +731,12 @@ function mvWav(buf) { const n = buf.length, ch = Math.min(2, buf.numberOfChannel
 // ---- 画面：1920×1080 の一枚のキャンバスに、3D の画と文字をまとめて描く ----
 const MW = 1920, MH = 1080;
 const OV = { cv: null, c: null, grain: [] };
-function mvSetup() { if (OV.cv) return; const root = document.createElement('div'); root.id = 'mv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'メス・ゼロ ロゴ演出'); root.tabIndex = -1; root.innerHTML = '<canvas id="mvCv" width="1920" height="1080" role="img" aria-label="メス・ゼロ ロゴ演出（22秒）"></canvas><div id="mvUi" hidden><div class="box"><h2>メス・ゼロ</h2><p>ロゴ演出　22秒</p><button type="button" id="mvGo">▶ 音ありで再生</button><button type="button" id="mvGoM">音なしで再生</button><p class="dl"><a href="mes-zero-logo.mp4" download>動画（MP4・1920×1080）を保存</a></p></div></div><button type="button" id="mvClose">× 閉じる</button>';
+function mvSetup() { if (OV.cv) return; const root = document.createElement('div'); root.id = 'mv'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'メス・ゼロ ロゴ演出'); root.tabIndex = -1; root.innerHTML = '<canvas id="mvCv" width="1920" height="1080" role="img" aria-label="メス・ゼロ ロゴ演出（22秒）"></canvas><div id="mvUi" hidden><div class="box"><h2>メス・ゼロ</h2><p>ロゴ演出　22秒</p><button type="button" id="mvGo">▶ 音ありで再生</button><button type="button" id="mvGoM">音なしで再生</button><p class="dl"><button type="button" id="mvVid">書き出した動画（MP4）で見る</button></p></div></div><video id="mvV" playsinline controls preload="none" hidden></video><button type="button" id="mvClose">× 閉じる</button>';
   document.body.appendChild(root); OV.cv = $('mvCv'); OV.c = OV.cv.getContext('2d'); root.addEventListener('pointermove', mvWake); root.addEventListener('pointerdown', mvWake);
   if (!MV.x && location.protocol !== 'file:') fetch('mes-zero-logo.mp4', { method: 'HEAD' }).then(r => { if (!r.ok) throw 0; }).catch(() => { root.querySelector('.dl').hidden = true; });
   // 粒子の荒れ（決まった並びのタイルを数枚）
   for (let k = 0; k < 4; k++) { const g = document.createElement('canvas'); g.width = g.height = 256; const gc = g.getContext('2d'), id = gc.createImageData(256, 256), r = mvRng(900 + k); for (let i = 0; i < id.data.length; i += 4) { const v = r() * 255 | 0; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } gc.putImageData(id, 0, 0); OV.grain.push(g); }
-  $('mvClose').addEventListener('click', () => mvStop()); $('mvGo').addEventListener('click', () => mvPlay(true)); $('mvGoM').addEventListener('click', () => mvPlay(false)); }
+  $('mvClose').addEventListener('click', () => { if (!mvVidOff()) mvStop(); }); $('mvVid').addEventListener('click', mvVidOn); $('mvV').addEventListener('error', () => { if (mvVidOff()) mvCard('この環境では MP4 を再生できませんでした。上のボタンで見られます', null, false); }); $('mvGo').addEventListener('click', () => mvPlay(true)); $('mvGoM').addEventListener('click', () => mvPlay(false)); }
 // GL を movie 用の大きさで描いて、キャンバスに写す
 let MVQ = 1;
 function mvGL(cam) { renderer.render(scene, cam || camera); }
@@ -1154,6 +1155,9 @@ const mvLights = () => [MP.rim2, MP.key, MP.coreL, MP.upL];
 function mvFit() { const w = MV.x ? 1920 : Math.min(1920, Math.round(Math.min(innerWidth, innerHeight * 16 / 9) * Math.min(2, devicePixelRatio || 1))); renderer.setSize(w, Math.round(w * 9 / 16), false); }
 function mvAcClose() { const ac = MV.ac; MV.ac = null; if (ac) try { const q = ac.close(); if (q && q.catch) q.catch(() => {}); } catch (e) { /* 無視 */ } }
 function mvWake() { document.body.classList.remove('mvIdle'); clearTimeout(MV.idleT); if (MV.on && !MV.paused) MV.idleT = setTimeout(() => { if (MV.on && !MV.paused) document.body.classList.add('mvIdle'); }, 2000); }
+// 書き出した MP4 をそのまま流す（重い端末向け）。閉じるとカードに戻る
+function mvVidOn() { const v = $('mvV'); if (!v.src) v.src = 'mes-zero-logo.mp4'; mvAcClose(); MV.paused = true; $('mvUi').hidden = true; v.hidden = false; v.currentTime = 0; const q = v.play(); if (q && q.catch) q.catch(() => {}); v.focus(); }
+function mvVidOff() { const v = $('mvV'); if (!v || v.hidden) return false; v.pause(); v.hidden = true; mvRender(0); $('mvUi').hidden = false; $('mvGo').focus(); return true; }
 function mvCard(msg, go, busy) { const ui = $('mvUi'); ui.querySelector('p').textContent = msg; if (go) $('mvGo').textContent = go; $('mvGo').disabled = $('mvGoM').disabled = !!busy; }
 async function mvEnter(o = {}) { if (MV.on || MV.busy) return; MV.busy = true; MV.cancel = false; MV.x = !!o.export; const gt = G.time; mvSetup();
   document.body.classList.add('mv'); document.body.classList.toggle('mvx', MV.x); if (!MV.x) { mvCard('読み込み中…', '▶ 音ありで再生', true); $('mvUi').hidden = false; $('mv').focus(); }
@@ -1174,14 +1178,14 @@ async function mvPlay(sound) { mvAcClose(); MV.paused = true; MV.clock = null; M
   if (!MV.clock) { const s0 = performance.now() + 300; MV.clock = () => (performance.now() - s0) / 1000; }
   $('mvUi').hidden = true; $('mv').focus(); MV.paused = false; mvWake(); }
 function mvEndLive() { MV.paused = true; mvAcClose(); document.body.classList.remove('mvIdle'); mvRender(MV.dur - 1 / 30); mvCard('もう一度見ますか', '▶ 音ありでもう一度', false); $('mvUi').hidden = false; $('mvGo').focus(); }
-function mvStop() { if (MV.busy) { MV.cancel = true; return; } if (!MV.on) return; MV.on = false; MV.paused = true; mvAcClose(); clearTimeout(MV.idleT);
+function mvStop() { if (MV.busy) { MV.cancel = true; return; } if (!MV.on) return; { const v = $('mvV'); if (v) { v.pause(); v.hidden = true; } } MV.on = false; MV.paused = true; mvAcClose(); clearTimeout(MV.idleT);
   mvMats(false); document.body.classList.remove('mv', 'mvx', 'mvIdle'); $('mvUi').hidden = true; p3Reset(); for (const m of MP.cols) m.visible = false; for (const m of MP.thin) m.visible = false; for (const g of MP.outer) g.visible = false; for (const g of MP.sheets) g.visible = false;
   const S0 = MVSAVE; scene.background.setHex(S0.bg); scene.fog = S0.fog; MP.hemi.intensity = S0.hemi[0]; MP.hemi.color.setHex(S0.hemi[1]); MP.hemi.groundColor.setHex(S0.hemi[2]); sun.intensity = S0.sun[0]; sun.color.setHex(S0.sun[1]); rim.intensity = S0.rim; G.time = S0.time;
   for (const l of mvLights()) { l.intensity = 0; l.visible = false; } mzSkyObj.sig.scale.setScalar(S0.sig); mzSkyObj.sig.rotation.set(0, 0, 0); mzSkyObj.fl.visible = true; mzSkyObj.g.visible = false;
   STAGE.fl.material.color.setHex(0x4A4054); STAGE.sg.material.opacity = 0.13; for (const r of STAGE.rings) r.material.opacity = 0.45; dm.root.visible = S.dummy;
   camera.clearViewOffset(); camera.fov = 46; camera.up.set(0, 1, 0); renderer.setPixelRatio(MVSAVE.pr); resize(); $('tMovie').focus(); }
 $('tMovie').addEventListener('click', () => mvEnter());
-addEventListener('keydown', e => { if ((MV.on || MV.busy) && e.key === 'Escape') mvStop(); });
+addEventListener('keydown', e => { if ((MV.on || MV.busy) && e.key === 'Escape' && !mvVidOff()) mvStop(); });
 // タブを離れたら止め、戻ったら続きから
 document.addEventListener('visibilitychange', () => { if (!MV.on || MV.paused || !MV.clock) return;
   if (document.hidden) { MV.hold = MV.clock(); if (MV.ac) MV.ac.suspend(); }
