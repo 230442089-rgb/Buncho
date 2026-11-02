@@ -1051,7 +1051,7 @@ function mvLimit(buf, ceilDb = -2.5, gainDb = 0, laMs = 5, relMs = 150) { const 
   const k = 1 - Math.exp(-1 / (sr * relMs / 1000)); let g = 1; for (let i = 0; i < n; i++) { g = Math.min(m[i], g + (1 - g) * k); m[i] = g; }
   const w = H + 1; let sm = w; for (let i = 0; i < n; i++) { sm += m[i] - (i >= w ? m[i - w] : 1); const gi = sm / w; for (const d of C) d[i] *= gi; } }
 // 全編の音を一度に作る（書き出しも、ページでの再生も、この同じ音を使う）
-async function mvRenderAudio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * MV.dur), sr), X = mvAudio(oc, 0); mvCues(X); const buf = await oc.startRendering(); mvLimit(buf, -2.5, 6.5); return buf; }
+async function mvRenderAudio() { const sr = 48000, oc = new OfflineAudioContext(2, Math.ceil(sr * MV.dur), sr), X = mvAudio(oc, 0); mvCues(X); const buf = await oc.startRendering(); mvLimit(buf, -3.3, 7.0); return buf; }
 // 音の部品
 function aT(B, at, type, f0, f1, dur, vol, o = {}) { const c = B.ctx, t = B.t0 + at, os = c.createOscillator(), g = c.createGain(); os.type = type; os.frequency.setValueAtTime(f0, t); if (f1 !== f0) os.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur); if (o.det) os.detune.value = o.det;
   const a = o.a || 0.005; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), t + a); if (o.hold) g.gain.setValueAtTime(vol, t + a + o.hold); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
