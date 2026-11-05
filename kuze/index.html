@@ -1,6 +1,7 @@
 <title>久世 留保</title>
 <meta name="description" content="留保班の工作員 久世躁一郎で戦う、一人称視点の撃ち合い。音はすべてページ内で作っている。">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="kz-ui" content="pc">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +23,8 @@
   --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
   color-scheme: dark;
 }
-html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: pan-y; overscroll-behavior: none; -webkit-touch-callout: none; }
+body.touch { position: fixed; inset: 0; }
 * { box-sizing: border-box; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--redl); outline-offset: 2px; }
@@ -105,26 +107,28 @@ body.saku #stage canvas { filter: grayscale(.85) contrast(1.25) brightness(.72);
 /* スマホ操作 */
 #touch { position: fixed; inset: 0; pointer-events: none; }
 #touch[hidden] { display: none; }
-#tl { position: absolute; left: 0; bottom: 0; width: 46%; height: 62%; pointer-events: auto; }
-#tr { position: absolute; right: 0; top: 0; width: 54%; height: 100%; pointer-events: auto; }
+#touch, #tl, #tr, .tb { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#tl { position: absolute; left: 0; width: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px); bottom: 0; pointer-events: auto; }
+#tr { position: absolute; right: 0; width: 50%; top: calc(env(safe-area-inset-top, 0px) + 64px); bottom: 0; pointer-events: auto; }
 #stickB { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(0,0,0,.25); }
 #stickK { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255,255,255,.6); }
 .tb { position: absolute; pointer-events: auto; width: 68px; height: 68px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,12,20,.5); color: var(--ink); font-size: 12px; font-weight: 900; letter-spacing: .06em; display: grid; place-items: center; }
 .tb:active, .tb.on { background: rgba(216,50,62,.55); border-color: var(--redl); }
-#bFire { right: calc(env(safe-area-inset-right, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); width: 92px; height: 92px; }
-#bJump { right: calc(env(safe-area-inset-right, 0px) + 120px); bottom: calc(env(safe-area-inset-bottom, 0px) + 112px); }
-#bDash { right: calc(env(safe-area-inset-right, 0px) + 124px); bottom: calc(env(safe-area-inset-bottom, 0px) + 196px); }
-#bSaku { right: calc(env(safe-area-inset-right, 0px) + 28px); bottom: calc(env(safe-area-inset-bottom, 0px) + 236px); border-color: rgba(255,138,146,.6); }
-#bRel { right: calc(env(safe-area-inset-right, 0px) + 212px); bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); width: 56px; height: 56px; font-size: 11px; }
-#bSw { right: calc(env(safe-area-inset-right, 0px) + 212px); bottom: calc(env(safe-area-inset-bottom, 0px) + 216px); width: 56px; height: 56px; font-size: 11px; }
-#bStake { right: calc(env(safe-area-inset-right, 0px) + 124px); bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); width: 56px; height: 56px; font-size: 12px; border-color: rgba(106,184,255,.6); }
-#bMelee { right: calc(env(safe-area-inset-right, 0px) + 40px); bottom: calc(env(safe-area-inset-bottom, 0px) + 44px); width: 64px; height: 64px; font-size: 11px; }
-#bAim { right: calc(env(safe-area-inset-right, 0px) + 212px); bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); width: 56px; height: 56px; font-size: 11px; }
+#bFire { right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 104px); width: 76px; height: 76px; }
+#bSaku { right: calc(env(safe-area-inset-right, 0px) + 24px); bottom: calc(env(safe-area-inset-bottom, 0px) + 190px); width: 52px; height: 52px; border-color: rgba(255,138,146,.6); }
+#bMelee { right: calc(env(safe-area-inset-right, 0px) + 28px); bottom: calc(env(safe-area-inset-bottom, 0px) + 36px); width: 56px; height: 56px; font-size: 11px; }
+#bJump { right: calc(env(safe-area-inset-right, 0px) + 104px); bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); width: 64px; height: 64px; }
+#bDash { right: calc(env(safe-area-inset-right, 0px) + 104px); bottom: calc(env(safe-area-inset-bottom, 0px) + 140px); width: 64px; height: 64px; }
+#bAim { right: calc(env(safe-area-inset-right, 0px) + 108px); bottom: calc(env(safe-area-inset-bottom, 0px) + 214px); width: 56px; height: 56px; font-size: 11px; }
+#bStake { right: calc(env(safe-area-inset-right, 0px) + 180px); bottom: calc(env(safe-area-inset-bottom, 0px) + 36px); width: 52px; height: 52px; font-size: 12px; border-color: rgba(106,184,255,.6); }
+#bRel { right: calc(env(safe-area-inset-right, 0px) + 182px); bottom: calc(env(safe-area-inset-bottom, 0px) + 100px); width: 48px; height: 48px; font-size: 11px; }
+#bSw { right: calc(env(safe-area-inset-right, 0px) + 182px); bottom: calc(env(safe-area-inset-bottom, 0px) + 160px); width: 48px; height: 48px; font-size: 11px; }
+#bPause { left: calc(env(safe-area-inset-left, 0px) + 10px); top: calc(env(safe-area-inset-top, 0px) + 8px); width: 44px; height: 44px; font-size: 12px; border-color: rgba(255,255,255,.3); }
 
 /* 画面：題・待機・結果 */
-.ov { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(6,8,14,.78); z-index: 20; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
+.ov { position: fixed; inset: 0; display: flex; align-items: flex-start; justify-content: center; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; background: rgba(6,8,14,.78); z-index: 20; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
 .ov[hidden] { display: none; }
-.box { text-align: center; max-width: 560px; width: 100%; }
+.box { text-align: center; max-width: 560px; width: 100%; margin: auto; padding: 14px 0; }
 .box h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(44px, 11vw, 88px); line-height: 1; color: var(--ink); text-shadow: 0 4px 0 #000, 0 0 30px rgba(216,50,62,.55); letter-spacing: .02em; }
 .box .eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 900; letter-spacing: .3em; color: var(--redl); }
 .box .sub { margin: 10px 0 0; font-size: 14px; font-weight: 700; color: var(--mute); line-height: 1.7; }
@@ -132,6 +136,7 @@ body.saku #stage canvas { filter: grayscale(.85) contrast(1.25) brightness(.72);
 .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
 .btn { border-radius: 12px; padding: 13px 26px; font-size: 16px; font-weight: 900; border: 2px solid var(--red); background: rgba(216,50,62,.18); color: var(--ink); min-width: 160px; }
 .btn.ghost { border-color: var(--line); background: rgba(255,255,255,.04); }
+.opts { display: flex; gap: 10px 18px; justify-content: center; flex-wrap: wrap; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--mute); } .opts label { display: inline-flex; align-items: center; gap: 6px; } .opts select, .opts input { font: inherit; color: var(--ink); background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; } .opts input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--red); } .note a { color: var(--ink); }
 .btn:hover { background: rgba(216,50,62,.32); }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 18px auto 0; font-size: 13px; text-align: left; width: max-content; max-width: 100%; color: var(--mute); font-weight: 700; }
 .keys kbd { font-family: var(--body); font-weight: 900; color: var(--ink); background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 4px; padding: 1px 7px; font-size: 12px; }
@@ -147,8 +152,8 @@ body.saku #stage canvas { filter: grayscale(.85) contrast(1.25) brightness(.72);
 body.touch #ro { right: auto; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); text-align: center; }
 body.touch #ro #wlist { justify-content: center; } body.touch #ammo { font-size: 34px; }
 body.touch #lo { width: min(300px, 36vw); } body.touch #combo { right: auto; left: calc(50% + 120px); top: calc(env(safe-area-inset-top, 0px) + 8px); text-align: left; }
-body.touch #sub { bottom: 30%; font-size: 13px; }
-@media (orientation: portrait) { body.touch #ro { left: auto; right: max(16px, env(safe-area-inset-right, 0px)); transform: none; bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 44px); text-align: right; } body.touch #ro #wlist { justify-content: flex-end; } body.touch #combo { left: max(16px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 44px); } body.touch #lo { width: 44vw; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); } body.touch #feed { top: calc(env(safe-area-inset-top, 0px) + 120px); } #bFire { bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); } #bJump { bottom: calc(env(safe-area-inset-bottom, 0px) + 132px); } #bDash { bottom: calc(env(safe-area-inset-bottom, 0px) + 216px); } #bSaku { bottom: calc(env(safe-area-inset-bottom, 0px) + 256px); } #bRel { bottom: calc(env(safe-area-inset-bottom, 0px) + 170px); } #bSw { bottom: calc(env(safe-area-inset-bottom, 0px) + 236px); } #bMelee { bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); } #bStake { bottom: calc(env(safe-area-inset-bottom, 0px) + 48px); right: calc(env(safe-area-inset-right, 0px) + 124px); } #bAim { bottom: calc(env(safe-area-inset-bottom, 0px) + 300px); } }
+body.touch #sub { bottom: 32%; font-size: 13px; max-width: min(560px, 54vw); }
+@media (orientation: portrait) { body.touch #ro { left: auto; right: max(16px, env(safe-area-inset-right, 0px)); transform: none; bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 44px); text-align: right; } body.touch #ro #wlist { justify-content: flex-end; } body.touch #combo { left: max(16px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 44px); } body.touch #lo { width: 44vw; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); } body.touch #feed { top: calc(env(safe-area-inset-top, 0px) + 120px); } body.touch #sub { bottom: 52%; max-width: 92vw; } #bFire { right: calc(env(safe-area-inset-right, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); } #bSaku { right: calc(env(safe-area-inset-right, 0px) + 24px); bottom: calc(env(safe-area-inset-bottom, 0px) + 240px); } #bRel { right: calc(env(safe-area-inset-right, 0px) + 28px); bottom: calc(env(safe-area-inset-bottom, 0px) + 306px); } #bMelee { right: calc(env(safe-area-inset-right, 0px) + 28px); bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); } #bJump { right: calc(env(safe-area-inset-right, 0px) + 104px); bottom: calc(env(safe-area-inset-bottom, 0px) + 116px); } #bDash { right: calc(env(safe-area-inset-right, 0px) + 104px); bottom: calc(env(safe-area-inset-bottom, 0px) + 194px); } #bAim { right: calc(env(safe-area-inset-right, 0px) + 108px); bottom: calc(env(safe-area-inset-bottom, 0px) + 272px); } #bSw { right: calc(env(safe-area-inset-right, 0px) + 88px); bottom: calc(env(safe-area-inset-bottom, 0px) + 342px); } #bStake { right: calc(env(safe-area-inset-right, 0px) + 112px); bottom: calc(env(safe-area-inset-bottom, 0px) + 48px); } }
 /* ボスの体力 */
 #boss { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 44px); transform: translateX(-50%); width: min(520px, 70vw); display: none; }
 #boss.on { display: block; } #boss .n { font-size: 12px; font-weight: 900; letter-spacing: .2em; color: var(--redl); text-align: center; text-shadow: 0 1px 2px #000; margin-bottom: 4px; }
@@ -179,19 +184,23 @@ body.touch #sub { bottom: 30%; font-size: 13px; }
   <div id="tr"></div>
   <button type="button" class="tb" id="bFire">撃つ</button>
   <button type="button" class="tb" id="bJump">跳ぶ</button>
-  <button type="button" class="tb" id="bDash">走る</button>
+  <button type="button" class="tb" id="bDash">突進</button>
   <button type="button" class="tb" id="bSaku">朔</button>
   <button type="button" class="tb" id="bRel">装填</button>
   <button type="button" class="tb" id="bSw">持替</button>
   <button type="button" class="tb" id="bMelee">警棒</button>
   <button type="button" class="tb" id="bStake">杭</button>
   <button type="button" class="tb" id="bAim">構え</button>
+  <button type="button" class="tb" id="bPause">休止</button>
 </div>
 <div class="ov" id="title">
   <div class="box">
     <p class="eyebrow">内閣 主権保全室　留保班</p>
     <h1>久世　留保</h1>
     <p class="sub" id="titleSub">とある未来の夜。春日井。<br>魔法の届かない「杭」の内側から、人間が撃つ。<br><b>留保班　久世躁一郎</b>は今夜、頭を下げない。</p>
+    <p class="sub note" id="spNote" hidden>スマホ版　横向きがおすすめ（縦でも遊べます）<br><a href="https://claude.ai/artifact/65zkyP8E6pnkpDeVNSRm3g">PC版はこちら</a></p>
+    <div class="opts" id="spOpts" hidden><label><input type="checkbox" id="optAuto"> 自動で撃つ（照準が敵に重なったら）</label><label>視線の速さ <select id="optLook"><option value="0.28">低</option><option value="0.4">中</option><option value="0.55">高</option></select></label><button type="button" class="btn ghost" id="bFull" hidden style="min-width:0;padding:8px 16px;font-size:13px">全画面にする</button></div>
+    <p class="sub note" id="pcNote" hidden>指で遊ぶなら <a href="https://claude.ai/artifact/WQxx9ZfAoBmrCYugH6qgNQ">スマホ版</a> をどうぞ。</p>
     <div class="btns"><button type="button" class="btn" id="bStart">はじめる</button><button type="button" class="btn ghost" id="bHow">操作を見る</button></div>
     <div class="keys" id="keys" hidden></div>
   </div>
@@ -214,7 +223,8 @@ if (!window.THREE) { document.body.insertAdjacentHTML('beforeend', '<div id="err
 // ================= 土台：描画・部品・入力・時間 =================
 const TAU = Math.PI * 2, rand = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.random() * a.length | 0], clamp = (x, a, b) => Math.max(a, Math.min(b, x)), lerp = (a, b, t) => a + (b - a) * t;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const isTouch = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
+const UI_META = document.querySelector('meta[name="kz-ui"]'); const isTouch = !!UI_META && UI_META.content === 'touch'; // 版はビルドで決める（PC版／スマホ版）
+const coarseOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -274,7 +284,9 @@ function rayWorld(o, d, maxT) { let best = null; for (const b of W.solids) { if 
 function raySphere(o, d, c, r) { const lx = c.x - o.x, ly = c.y - o.y, lz = c.z - o.z, tca = lx * d.x + ly * d.y + lz * d.z; if (tca < 0) return null; const d2 = lx * lx + ly * ly + lz * lz - tca * tca; if (d2 > r * r) return null; const thc = Math.sqrt(r * r - d2); return tca - thc; }
 
 // ---- 入力 ----
-const keys = {}; const IN = { mx: 0, my: 0, lastMx: 0, lastMy: 0, fire: false, fireT: 0, alt: false, jump: false, jumpT: 0, dash: false, dashT: 0, reload: false, swap: 0, melee: false, saku: false, sprint: false, lock: false, drag: null };
+const keys = {}; const IN = { mx: 0, my: 0, lastMx: 0, lastMy: 0, fire: false, fireT: 0, alt: false, jump: false, jumpT: 0, dash: false, dashT: 0, reload: false, swap: 0, melee: false, saku: false, sprint: false, lock: false, drag: null, rx: 0, ry: 0 };
+const OPT = { auto: false, look: 0.40 }; // スマホ：自動で撃つ・視線の速さ（1px あたりの度）
+try { OPT.auto = localStorage.getItem('kz_auto') === '1'; const lk = +localStorage.getItem('kz_look'); if (lk > 0) OPT.look = lk; } catch (e) { /* 無視 */ }
 const KEYB = { KeyW: 'f', KeyS: 'b', KeyA: 'l', KeyD: 'r', ArrowUp: 'f', ArrowDown: 'b', ArrowLeft: 'l', ArrowRight: 'r' };
 addEventListener('keydown', e => { if (e.repeat) return; keys[e.code] = true; if (G.mode !== 'play') return;
   if (e.code === 'Space') { IN.jump = true; IN.jumpT = T.raw; e.preventDefault(); } if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') { IN.dash = true; IN.dashT = T.raw; } if (e.code === 'KeyR') IN.reload = true; if (e.code === 'KeyQ') IN.swap = 1; if (e.code === 'KeyF' || e.code === 'KeyV') IN.melee = true; if (e.code === 'KeyE' || e.code === 'KeyX') IN.saku = true; if (e.code === 'KeyG') IN.stake = true;
@@ -288,20 +300,41 @@ addEventListener('mouseup', e => { if (e.button === 0) IN.fire = false; if (e.bu
 addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('pointerlockchange', () => { IN.lock = document.pointerLockElement === stage; if (!IN.lock && G.mode === 'play' && !isTouch) pause(true); });
 addEventListener('mousemove', e => { if (G.mode !== 'play') return; if (IN.lock) { IN.mx += e.movementX; IN.my += e.movementY; } else if (IN.drag) { IN.mx += (e.clientX - IN.drag.x) * 1.6; IN.my += (e.clientY - IN.drag.y) * 1.6; IN.drag = { x: e.clientX, y: e.clientY }; } });
-// スマホ：左は移動のスティック、右は視線の引きずり、ボタンは撃つ・跳ぶ・走る・朔・装填・持替・警棒
-const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 }, look = { id: null, x: 0, y: 0 };
+// スマホ：左半分は移動のスティック、右半分は視線。右は短く叩くと撃ち、押し続けると撃ちながら視線を動かせる
+const stick = { id: null, ox: 0, oy: 0, x: 0, y: 0, m: 0, run: false }, look = { id: null, x: 0, y: 0, x0: 0, y0: 0, t0: 0, moved: false, hold: false };
+const STK = { R: 56, dz: 0.16, runOn: 0.92, runOff: 0.80 }, LK = { pitchK: 0.85, tapMs: 180, tapPx: 10, holdMs: 220 };
+const FSRC = { btn: false, look: false, auto: false, tapT: -9 }; // 撃つ入力の出どころ：ボタン・押し続け・自動・叩き
+function resetTouch() { stick.id = null; stick.x = stick.y = stick.m = 0; stick.run = false; look.id = null; look.hold = false; look.moved = false; FSRC.btn = FSRC.look = FSRC.auto = false; FSRC.tapT = -9; IN.fire = false; IN.alt = false; const sb = $('stickB'); if (sb) sb.hidden = true; for (const b of document.querySelectorAll('.tb.on')) b.classList.remove('on'); }
+function touchTick() { // 毎フレーム：押し続けの判定、自動で撃つ、撃つ入力の合算
+  if (look.id !== null && !look.moved && !look.hold && performance.now() - look.t0 >= LK.holdMs) look.hold = true;
+  FSRC.look = look.hold; FSRC.auto = OPT.auto && HUD.tgt === 2 && !!WP.cur && !WP.cur.d.energy && WP.reloadT <= 0;
+  const f = FSRC.btn || FSRC.look || FSRC.auto || (T.raw - FSRC.tapT < 0.09); if (f && !IN.fire) IN.fireT = T.raw; IN.fire = f; }
 if (isTouch) { document.body.classList.add('touch');
   const tl = $('tl'), tr = $('tr'), sb = $('stickB'), sk = $('stickK');
-  tl.addEventListener('pointerdown', e => { stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = 0; sb.style.left = e.clientX + 'px'; sb.style.top = e.clientY + 'px'; sb.hidden = false; sk.style.transform = ''; tl.setPointerCapture(e.pointerId); });
-  tl.addEventListener('pointermove', e => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const d = Math.hypot(dx, dy), R = 50; if (d > R) { dx *= R / d; dy *= R / d; } stick.x = dx / R; stick.y = dy / R; sk.style.transform = `translate(${dx}px,${dy}px)`; });
-  const endS = e => { if (e.pointerId !== stick.id) return; stick.id = null; stick.x = stick.y = 0; sb.hidden = true; };
-  tl.addEventListener('pointerup', endS); tl.addEventListener('pointercancel', endS);
-  tr.addEventListener('pointerdown', e => { look.id = e.pointerId; look.x = e.clientX; look.y = e.clientY; tr.setPointerCapture(e.pointerId); });
-  tr.addEventListener('pointermove', e => { if (e.pointerId !== look.id) return; IN.mx += (e.clientX - look.x) * 2.2; IN.my += (e.clientY - look.y) * 2.2; look.x = e.clientX; look.y = e.clientY; });
-  const endL = e => { if (e.pointerId === look.id) look.id = null; }; tr.addEventListener('pointerup', endL); tr.addEventListener('pointercancel', endL);
-  const hold = (id, on, off) => { const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); on(); }); const f = () => off && off(); b.addEventListener('pointerup', f); b.addEventListener('pointercancel', f); };
-  hold('bFire', () => { IN.fire = true; IN.fireT = T.raw; }, () => { IN.fire = false; }); hold('bJump', () => { IN.jump = true; IN.jumpT = T.raw; }); hold('bDash', () => { IN.dash = true; IN.dashT = T.raw; });
-  hold('bSaku', () => { IN.saku = true; }); hold('bStake', () => { IN.stake = true; }); hold('bRel', () => { IN.reload = true; }); hold('bSw', () => { IN.swap = 1; }); hold('bMelee', () => { IN.melee = true; }); hold('bAim', () => { IN.alt = true; }, () => { IN.alt = false; }); }
+  const cap = (el, e) => { try { el.setPointerCapture(e.pointerId); } catch (x) { /* 無視 */ } };
+  const placeB = () => { const r = tl.getBoundingClientRect(); sb.style.left = (stick.ox - r.left) + 'px'; sb.style.top = (stick.oy - r.top) + 'px'; };
+  tl.addEventListener('pointerdown', e => { if (stick.id !== null || G.mode !== 'play') return; stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY; stick.x = stick.y = stick.m = 0; stick.run = false; placeB(); sb.hidden = false; sk.style.transform = ''; cap(tl, e); });
+  tl.addEventListener('pointermove', e => { if (e.pointerId !== stick.id) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy, d = Math.hypot(dx, dy); const R = STK.R;
+    if (d > R * 1.5) { const k = (d - R) / d; stick.ox += dx * k; stick.oy += dy * k; dx = e.clientX - stick.ox; dy = e.clientY - stick.oy; d = Math.hypot(dx, dy); placeB(); } // 指が輪を越えたら台が付いてくる
+    const m = clamp((d / R - STK.dz) / (1 - STK.dz), 0, 1); stick.m = m; stick.x = d > 0 ? dx / d * m : 0; stick.y = d > 0 ? dy / d * m : 0; stick.run = stick.run ? m > STK.runOff : m >= STK.runOn; // 倒し切ると走る（戻りに遊び）
+    const kd = Math.min(d, R); sk.style.transform = `translate(${d > 0 ? dx / d * kd : 0}px,${d > 0 ? dy / d * kd : 0}px)`; });
+  const endS = e => { if (e.pointerId !== stick.id) return; stick.id = null; stick.x = stick.y = stick.m = 0; stick.run = false; sb.hidden = true; };
+  for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) tl.addEventListener(t, endS);
+  tr.addEventListener('pointerdown', e => { if (look.id !== null || G.mode !== 'play') return; look.id = e.pointerId; look.x = look.x0 = e.clientX; look.y = look.y0 = e.clientY; look.t0 = performance.now(); look.moved = false; look.hold = false; cap(tr, e); });
+  tr.addEventListener('pointermove', e => { if (e.pointerId !== look.id) return; const k = HUD.tgt === 2 ? 0.5 : HUD.tgt === 1 ? 0.72 : 1, sdeg = OPT.look * Math.PI / 180 * k; // 敵に重なると視線が遅くなる
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : []; if (!evs.length) evs.push(e);
+    for (const c of evs) { IN.rx += (c.clientX - look.x) * sdeg; IN.ry += (c.clientY - look.y) * sdeg * LK.pitchK; look.x = c.clientX; look.y = c.clientY; }
+    if (!look.moved && Math.hypot(look.x - look.x0, look.y - look.y0) > LK.tapPx) look.moved = true; });
+  const endL = e => { if (e.pointerId !== look.id) return; if (e.type === 'pointerup' && !look.moved && !look.hold && performance.now() - look.t0 < LK.tapMs) FSRC.tapT = T.raw; look.id = null; look.hold = false; };
+  for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) tr.addEventListener(t, endL);
+  const hold = (id, on, off) => { const b = $(id); let pid = null; b.addEventListener('pointerdown', e => { if (pid !== null || G.mode !== 'play') return; pid = e.pointerId; e.preventDefault(); cap(b, e); b.classList.add('on'); on(); }); const f = e => { if (e.pointerId !== pid) return; pid = null; b.classList.remove('on'); if (off) off(); }; for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(t, f); };
+  hold('bFire', () => { FSRC.btn = true; }, () => { FSRC.btn = false; }); hold('bJump', () => { IN.jump = true; IN.jumpT = T.raw; }); hold('bDash', () => { IN.dash = true; IN.dashT = T.raw; });
+  hold('bSaku', () => { IN.saku = true; }); hold('bStake', () => { IN.stake = true; }); hold('bRel', () => { IN.reload = true; }); hold('bSw', () => { IN.swap = 1; }); hold('bMelee', () => { IN.melee = true; }); hold('bAim', () => { IN.alt = true; }, () => { IN.alt = false; }); hold('bPause', () => { pause(true); });
+  // ブラウザの拡大縮小・引っ張り・長押し・二度叩きの既定動作を止める（遊んでいる間と二本指のとき）
+  const pd = e => { if (G.mode === 'play' || (e.touches && e.touches.length > 1)) e.preventDefault(); };
+  for (const t of ['touchstart', 'touchmove', 'touchend']) document.addEventListener(t, pd, { passive: false });
+  for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, e => e.preventDefault(), { passive: false });
+  document.addEventListener('dblclick', e => e.preventDefault()); document.addEventListener('contextmenu', e => e.preventDefault()); }
 
 // ---- 主人公の体 ----
 const P = { pos: V3(0, 0, 0), vel: V3(), yaw: 0, pitch: 0, r: 0.36, h: 1.7, eye: 1.6, ground: false, hp: 100, maxHp: 100, dead: false, dashT: 0, dashCd: 0, dashDir: V3(), slideT: 0, bob: 0, bobA: 0, kickP: 0, kickY: 0, kickV: 0, trauma: 0, fovK: 0, tilt: 0, lastHurt: 0, step: 0, sakuT: 0, saku: 0, sakuOn: false, coyote: 0, jumpBuf: 0, dmgTint: 0, jumps: 0 };
@@ -319,13 +352,13 @@ function moveAxis(k, d) { if (!d) return false; P.pos[k] += d; let hit = false;
 const MV = { walk: 6.4, sprint: 8.6, accel: 60, airAccel: 18, friction: 9, jump: 7.2, grav: 22, dash: 15.8, dashLen: 0.19, dashRe: 0.9, slide: 11 };
 function tickPlayer(dt) { if (P.dead) return;
   // 視線
-  const sens = 0.0021 * (isTouch ? 1.1 : 1); P.yaw -= IN.mx * sens; P.pitch = clamp(P.pitch - IN.my * sens, -1.45, 1.45); IN.lastMx += IN.mx; IN.lastMy += IN.my; IN.mx = IN.my = 0;
+  if (isTouch) touchTick(); const sens = 0.0021; P.yaw -= IN.mx * sens + IN.rx; P.pitch = clamp(P.pitch - IN.my * sens - IN.ry, -1.45, 1.45); IN.lastMx += IN.mx + IN.rx / sens; IN.lastMy += IN.my + IN.ry / sens; IN.mx = IN.my = IN.rx = IN.ry = 0;
   // 入力の向き
   let ix = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0), iz = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0);
   if (isTouch && stick.id !== null) { ix = stick.x; iz = -stick.y; }
   const il = Math.hypot(ix, iz); if (il > 1) { ix /= il; iz /= il; }
   flatDir(FWD); RGT.set(-FWD.z, 0, FWD.x); const wishX = FWD.x * iz + RGT.x * ix, wishZ = FWD.z * iz + RGT.z * ix, wish = Math.hypot(wishX, wishZ);
-  P.stagger = Math.max(0, (P.stagger || 0) - dt); const stg = P.stagger > 0; const sprint = !stg && (keys.ShiftLeft || keys.ShiftRight || (isTouch && $('bDash').matches(':active'))) && iz > 0.2; P.sprintOn = sprint && wish > 0 && P.ground;
+  P.stagger = Math.max(0, (P.stagger || 0) - dt); const stg = P.stagger > 0; const sprint = !stg && (keys.ShiftLeft || keys.ShiftRight || (isTouch && stick.id !== null && stick.run)) && iz > 0.2; P.sprintOn = sprint && wish > 0 && P.ground;
   // 走り出し：Shift を押した瞬間に短い突進
   P.dashCh = Math.min(2, (P.dashCh ?? 2) + dt / MV.dashRe);
   if (IN.dash && !stg && P.dashCh >= 1 && (wish > 0 || !P.ground)) { P.dashCh -= 1; P.dashT = MV.dashLen; P.dashDir.set(wish > 0 ? wishX / wish : FWD.x, 0, wish > 0 ? wishZ / wish : FWD.z); P.fovK = 1; P.iframes = 0.24; onDash(); }
@@ -538,7 +571,7 @@ function setCombo(n) { const c = $('combo'); HUD.combo = n; HUD.comboT = n ? 2.6
   const tier = n >= 20 ? 3 : n >= 10 ? 2 : n >= 5 ? 1 : 0; $('cT').textContent = ['連続', '冴えている', '止まらない', '朔の手つき'][tier]; if (tier > HUD.comboTier && n) { comboChime(tier); if (tier >= 2) bigText(['', '', '止まらない', '朔の手つき'][tier], tier === 3 ? 'cy' : 'red'); } HUD.comboTier = n ? tier : 0; }
 function hudTick(dt) { HUD.calls = (HUD.calls || 0) + 1; radioTick(dt); if (dirT > 0) { dirT -= dt; const el = $('dir'); el.style.opacity = Math.min(1, dirT * 2); el.style.transform = `rotate(${dirA * 180 / Math.PI}deg)`; }
   // 照準の先に敵がいれば赤く
-  { eyePos(RAY_O); lookDir(RAY_D); const wall = rayWorld(RAY_O, RAY_D, 90); let on = false; const mt = wall ? wall.t : 90; for (const e of EN.list) { if (e.dead) continue; for (const z of e.zones()) { const t = raySphere(RAY_O, RAY_D, z.c, z.r); if (t !== null && t < mt) { on = true; break; } } if (on) break; } $('xh').classList.toggle('tgt', on); }
+  { eyePos(RAY_O); lookDir(RAY_D); const wall = rayWorld(RAY_O, RAY_D, 90); let on = false, near = false; const mt = wall ? wall.t : 90; for (const e of EN.list) { if (e.dead) continue; for (const z of e.zones()) { const t2 = raySphere(RAY_O, RAY_D, z.c, z.r * 2.4); if (t2 === null || t2 >= mt) continue; near = true; const t = raySphere(RAY_O, RAY_D, z.c, z.r); if (t !== null && t < mt) { on = true; break; } } if (on) break; } HUD.tgt = on ? 2 : near ? 1 : 0; $('xh').classList.toggle('tgt', on); }
   if (HUD.comboT > 0) { HUD.comboT -= dt; $('cB').style.transform = `scaleX(${Math.max(0, HUD.comboT / 2.6)})`; if (HUD.comboT <= 0) { HUD.combo = 0; HUD.comboTier = 0; $('combo').classList.remove('on'); } }
   if (subT > 0) { subT -= dt; if (subT <= 0) $('sub').classList.remove('on'); }
   P.dmgTint = Math.max(0, P.dmgTint - dt * 1.6); const low = P.hp <= 30 ? 0.35 + Math.sin(T.raw * 6) * 0.1 : 0; $('dmg').style.boxShadow = `inset 0 0 140px 50px rgba(216,50,62,${Math.min(0.85, P.dmgTint * 0.7 + low)})`;
@@ -1123,8 +1156,8 @@ function loop(now) { requestAnimationFrame(loop); const raw = Math.min(0.05, (no
   hudTick(raw); popsTick(raw); musicTick(); applyCamera(); tickViewModel(raw); if (!G.noRender) renderer.render(scene, camera); }
 
 // ---- 画面の切り替え ----
-function show(id) { for (const k of ['title', 'pause', 'result']) $(k).hidden = k !== id; $('hud').hidden = id !== null; $('touch').hidden = !(isTouch && id === null); }
-function pause(on) { if (on) { if (G.mode !== 'play') return; G.mode = 'pause'; show('pause'); if (document.pointerLockElement) document.exitPointerLock(); if (AC) AC.suspend(); $('bResume').focus(); } else { if (G.mode !== 'pause') return; G.mode = 'play'; show(null); last = performance.now(); if (AC) AC.resume(); if (!isTouch) { try { const q = stage.requestPointerLock(); if (q && q.catch) q.catch(() => {}); } catch (e) { /* 無視 */ } } } }
+function show(id) { for (const k of ['title', 'pause', 'result']) $(k).hidden = k !== id; $('hud').hidden = id !== null; $('touch').hidden = !(isTouch && id === null); if (isTouch && $('touch').hidden) resetTouch(); }
+function pause(on) { if (on) { if (G.mode !== 'play') return; G.mode = 'pause'; G.pausedAt = performance.now(); show('pause'); if (document.pointerLockElement) document.exitPointerLock(); if (AC) AC.suspend(); $('bResume').focus(); } else { if (G.mode !== 'pause') return; G.mode = 'play'; show(null); last = performance.now(); if (AC) AC.resume(); if (!isTouch) { try { const q = stage.requestPointerLock(); if (q && q.catch) q.catch(() => {}); } catch (e) { /* 無視 */ } } } }
 function startGame() { audioOn(); show(null); G.mode = 'play'; G.score = 0; G.time = 0; G.sakuUsed = 0; EN.kills = 0; HUD.combo = 0; HUD.comboMax = 0; HUD.comboTier = 0; $('combo').classList.remove('on'); $('feed').innerHTML = '';
   for (const e of EN.list) { cancelTel(e); scene.remove(e.m); } EN.list.length = 0; for (const k of PK.list) scene.remove(k.g); PK.list.length = 0; clearProj(); clearAnchors(); for (const t of TEL.list) scene.remove(t.g); TEL.list.length = 0; if (ALLY.mu) { scene.remove(ALLY.mu.m.g); ALLY.mu = null; } ALLY.saeT = 0; ALLY.muT = 0; ALLY.muCd = 0; for (const p of FX.parts) { p.on = false; p.m.visible = false; } FX.free = FX.parts.slice(); for (const d of FX.decals) d.visible = false; for (const q of POPS) q.el.remove(); POPS.length = 0; document.body.classList.remove('saku');
   RADIO.length = 0; subT = 0; $('sub').classList.remove('on'); dirT = 0; $('dir').style.opacity = 0; bossBar(null); P.hp = P.maxHp; P.dead = false; P.saku = 0; P.sakuOn = false; P.sakuT = 0; P.sakuHit = 0; P.dashCh = 2; P.dashEndT = -9; $('me').textContent = '久世'; T.scale = 1; T.hit = 0; P.vel.set(0, 0, 0); P.trauma = 0; P.dmgTint = 0; $('saku').classList.remove('on'); if (AC) { A.lpf.frequency.cancelScheduledValues(AC.currentTime); A.lpf.frequency.setValueAtTime(20000, AC.currentTime); A.lpf.Q.value = 0.5; }
@@ -1135,16 +1168,19 @@ function showResult(won) { G.mode = 'result'; show('result'); if (document.point
   $('rEye').textContent = won ? '報告書　任務完了' : '報告書　任務失敗'; $('rH').textContent = won ? '夜明け' : '小さな点'; $('rKills').textContent = EN.kills; $('rCombo').textContent = HUD.comboMax; $('rTime').textContent = m + ':' + String(s).padStart(2, '0');
   const sc = G.score; const rank = !won ? 'D' : sc > 14000 ? 'S' : sc > 9000 ? 'A' : sc > 5000 ? 'B' : 'C'; $('rRank').textContent = rank; $('rSub').innerHTML = won ? (G.level && G.level.outro ? G.level.outro(rank) : '') : '黒岩なら、こう書く。「社員一人、小さな点」。<br>……まだ点になる気はない。';
   $('bAgain').focus(); if (won) { musicStop(2); aBell(null, 1.0, 196); setTimeout(() => aBell(null, 0.8, 147), 900); } }
-$('bStart').addEventListener('click', () => startGame()); $('bAgain').addEventListener('click', () => startGame()); $('bResume').addEventListener('click', () => pause(false));
+if (isTouch) { $('spNote').hidden = false; $('spOpts').hidden = false; $('optAuto').checked = OPT.auto; $('optLook').value = String(OPT.look); $('optAuto').addEventListener('change', e => { OPT.auto = e.target.checked; try { localStorage.setItem('kz_auto', OPT.auto ? '1' : '0'); } catch (x) { /* 無視 */ } }); $('optLook').addEventListener('change', e => { OPT.look = +e.target.value; try { localStorage.setItem('kz_look', String(OPT.look)); } catch (x) { /* 無視 */ } });
+  if (document.fullscreenEnabled && document.documentElement.requestFullscreen) { $('bFull').hidden = false; $('bFull').addEventListener('click', () => { document.documentElement.requestFullscreen({ navigationUI: 'hide' }).then(() => { try { const q = screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape'); if (q && q.catch) q.catch(() => {}); } catch (x) { /* 無視 */ } }).catch(() => {}); }); } }
+else if (coarseOnly) $('pcNote').hidden = false;
+$('bStart').addEventListener('click', () => startGame()); $('bAgain').addEventListener('click', () => startGame()); $('bResume').addEventListener('click', () => { if (performance.now() - (G.pausedAt || 0) < 400) return; pause(false); }); // 休止ボタンの指が離れた瞬間の誤タップを無視
 function toTitle() { if (P.sakuOn) sakuEnd(); document.body.classList.remove('saku'); $('saku').classList.remove('on'); $('me').textContent = '久世'; T.scale = 1; T.hit = 0; if (AC) { const t = AC.currentTime; A.lpf.frequency.cancelScheduledValues(t); A.lpf.frequency.setValueAtTime(20000, t); A.lpf.Q.value = 0.5; } G.mode = 'title'; show('title'); }
 $('bQuit').addEventListener('click', () => { toTitle(); musicStop(0.5); }); $('bTitle').addEventListener('click', () => { toTitle(); });
 $('bSound').addEventListener('click', () => { sound = !sound; $('bSound').textContent = sound ? '音：入' : '音：切'; if (sound) audioOn(); else if (AC) AC.suspend(); });
 $('bHow').addEventListener('click', () => { const k = $('keys'); k.hidden = !k.hidden; });
-$('keys').innerHTML = isTouch ? '<span>左の画面</span><span>なぞって移動</span><span>右の画面</span><span>なぞって視線</span><span>撃つ</span><span>押している間　撃つ</span><span>走る</span><span>押した瞬間に突進</span><span>朔</span><span>満ちたら押す。世界が遅くなる</span><span>警棒</span><span>近くの敵を打つ。刃を受ける</span><span>杭</span><span>打った内側では魔法が来ない</span><span>構え</span><span>押している間 構える。逆写機は溜めて放す</span>'
+$('keys').innerHTML = isTouch ? '<span>左半分</span><span>なぞって移動。いっぱいに倒すと走る</span><span>右半分</span><span>なぞって視線。短く叩くと一発。押し続けると撃ちながら視線</span><span>撃つ</span><span>押している間　撃つ</span><span>突進</span><span>押した瞬間に突進（2回分）</span><span>跳ぶ</span><span>空中でもう一度</span><span>装填・持替</span><span>弾を込める・武器を替える</span><span>休止</span><span>左上。一時停止</span><span>朔</span><span>満ちたら押す。世界が遅くなる</span><span>警棒</span><span>近くの敵を打つ。刃を受ける</span><span>杭</span><span>打った内側では魔法が来ない</span><span>構え</span><span>押している間 構える。逆写機は溜めて放す</span>'
   : '<kbd>W A S D</kbd><span>移動</span><kbd>マウス</kbd><span>視線・左で撃つ・右で構える（逆写機は右で溜めて放す）</span><kbd>Shift</kbd><span>押した瞬間に突進、押し続けて走る</span><kbd>Space</kbd><span>跳ぶ（空中でもう一度）</span><kbd>C</kbd><span>走りながら滑る</span><kbd>F</kbd><span>警棒。刃を受ける</span><kbd>R</kbd><span>装填</span><kbd>Q / ホイール / 1 2 3 4</kbd><span>持ち替え</span><kbd>G</kbd><span>杭を打つ（内側では魔法が来ない）</span><kbd>E</kbd><span>朔（満ちたら）</span><kbd>Esc</kbd><span>止める</span>';
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.mode === 'play') pause(true); });
 resize(); requestAnimationFrame(loop);
 // 自動の点検用（外から覗く口）
-window.__fps = { P, EN, G, WP, IN, keys, T, HUD, ANC, PR, TEL, start: startGame, pause, renderAudioTest, GUN, HIT, sfx: { pinSound, sleepSound, bunScream, foxSound, bellToll, zanSound, stakeSound, hitTick, killSound, aBell, stepSound, reloadSound, batonSwing, batonHit, dashSound, slideSound, jumpSound, landSound, hurtSound, emptyClick, uiBlip, comboChime, waveSound, alarmSound, pickupSound, enemyBark, nailSound, sakuIn, sakuOut, heartbeat }, aimAt(x, y, z) { eyePos(TMP); const dx = x - TMP.x, dy = y - TMP.y, dz = z - TMP.z; P.yaw = Math.atan2(-dx, -dz); P.pitch = Math.atan2(dy, Math.hypot(dx, dz)); }, near() { let b = null, bd = 1e9; for (const e of EN.list) { if (e.dead) continue; const d = e.pos.distanceTo(P.pos); if (d < bd) { bd = d; b = e; } } return b ? { x: b.pos.x, y: b.pos.y + b.h * 0.75, z: b.pos.z, d: bd, type: b.type, hp: b.hp } : null; }, levels: () => LEVELS.map(l => l.id), dbg: () => ({ subT, radioN: RADIO.length, dirT, hudCalls: HUD.calls || 0 }), mk(t, x, z) { const e = makeEnemy(t, x, z); return e; }, killAll() { for (const e of EN.list.slice()) if (!e.dead) killEnemy(e, e.pos.clone(), V3(0, -1, 0), false, 'debug'); }, noRender(v) { G.noRender = v; }, snap() { renderer.render(scene, camera); }, goto(id) { const L = LEVELS.find(l => l.id === id); if (L) { loadLevel(L); ammoText(); } }, god(v) { P.god = v; }, dmgK(v) { G.dmgK = v; }, state() { const L = G.level; return { level: L && L.id, wave: L && L.state.wave, queue: L && L.state.queue.length, alive: EN.list.filter(e => !e.dead).map(e => e.type + ':' + Math.round(e.hp)), anchors: ANC.list.length, charges: ANC.charges, hp: Math.round(P.hp), mode: G.mode, kills: EN.kills, sub: document.getElementById('sub').textContent }; } };
+window.__fps = { P, EN, G, WP, IN, keys, T, HUD, ANC, PR, TEL, start: startGame, pause, renderAudioTest, GUN, HIT, sfx: { pinSound, sleepSound, bunScream, foxSound, bellToll, zanSound, stakeSound, hitTick, killSound, aBell, stepSound, reloadSound, batonSwing, batonHit, dashSound, slideSound, jumpSound, landSound, hurtSound, emptyClick, uiBlip, comboChime, waveSound, alarmSound, pickupSound, enemyBark, nailSound, sakuIn, sakuOut, heartbeat }, aimAt(x, y, z) { eyePos(TMP); const dx = x - TMP.x, dy = y - TMP.y, dz = z - TMP.z; P.yaw = Math.atan2(-dx, -dz); P.pitch = Math.atan2(dy, Math.hypot(dx, dz)); }, near() { let b = null, bd = 1e9; for (const e of EN.list) { if (e.dead) continue; const d = e.pos.distanceTo(P.pos); if (d < bd) { bd = d; b = e; } } return b ? { x: b.pos.x, y: b.pos.y + b.h * 0.75, z: b.pos.z, d: bd, type: b.type, hp: b.hp } : null; }, levels: () => LEVELS.map(l => l.id), dbg: () => ({ subT, radioN: RADIO.length, dirT, hudCalls: HUD.calls || 0 }), mk(t, x, z) { const e = makeEnemy(t, x, z); return e; }, inp() { return { yaw: P.yaw, pitch: P.pitch, x: P.pos.x, z: P.pos.z, fire: IN.fire, stick: { id: stick.id, x: stick.x, y: stick.y, m: stick.m, run: stick.run }, look: { id: look.id, hold: look.hold, moved: look.moved }, src: Object.assign({}, FSRC), tgt: HUD.tgt, isTouch, opt: Object.assign({}, OPT), mag: WP.cur ? WP.cur.mag : -1 }; }, killAll() { for (const e of EN.list.slice()) if (!e.dead) killEnemy(e, e.pos.clone(), V3(0, -1, 0), false, 'debug'); }, noRender(v) { G.noRender = v; }, snap() { renderer.render(scene, camera); }, goto(id) { const L = LEVELS.find(l => l.id === id); if (L) { loadLevel(L); ammoText(); } }, god(v) { P.god = v; }, dmgK(v) { G.dmgK = v; }, state() { const L = G.level; return { level: L && L.id, wave: L && L.state.wave, queue: L && L.state.queue.length, alive: EN.list.filter(e => !e.dead).map(e => e.type + ':' + Math.round(e.hp)), anchors: ANC.list.length, charges: ANC.charges, hp: Math.round(P.hp), mode: G.mode, kills: EN.kills, sub: document.getElementById('sub').textContent }; } };
 })();
 </script>
