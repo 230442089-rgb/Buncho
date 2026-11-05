@@ -276,7 +276,7 @@ const keys = {}; const IN = { mx: 0, my: 0, lastMx: 0, lastMy: 0, fire: false, f
 const KEYB = { KeyW: 'f', KeyS: 'b', KeyA: 'l', KeyD: 'r', ArrowUp: 'f', ArrowDown: 'b', ArrowLeft: 'l', ArrowRight: 'r' };
 addEventListener('keydown', e => { if (e.repeat) return; keys[e.code] = true; if (G.mode !== 'play') return;
   if (e.code === 'Space') { IN.jump = true; IN.jumpT = T.raw; e.preventDefault(); } if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') { IN.dash = true; IN.dashT = T.raw; } if (e.code === 'KeyR') IN.reload = true; if (e.code === 'KeyQ') IN.swap = 1; if (e.code === 'KeyF' || e.code === 'KeyV') IN.melee = true; if (e.code === 'KeyE' || e.code === 'KeyX') IN.saku = true; if (e.code === 'KeyG') IN.stake = true;
-  if (e.code === 'Digit1') IN.swap = 'a'; if (e.code === 'Digit2') IN.swap = 'b'; if (e.code === 'Digit3') IN.swap = 'c'; if (e.code === 'Escape') pause(true); });
+  if (e.code === 'Digit1') IN.swap = 'a'; if (e.code === 'Digit2') IN.swap = 'b'; if (e.code === 'Digit3') IN.swap = 'c'; if (e.code === 'Digit4') IN.swap = 'd'; if (e.code === 'Escape') pause(true); });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('wheel', e => { if (G.mode === 'play') IN.swap = e.deltaY > 0 ? 1 : -1; }, { passive: true });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; IN.fire = false; });
@@ -600,7 +600,7 @@ function muzzleWorld(out) { const m = WP.models[WP.cur.id]; return m.localToWorl
 
 // ---- 撃つ ----
 function tickWeapon(dt) { const w = WP.cur; if (!w || P.dead) return; WP.t = Math.max(0, WP.t - dt);
-  if (IN.swap) { if (typeof IN.swap === 'string') { const i = 'abc'.indexOf(IN.swap); if (WP.list[i]) selectWeapon(WP.list[i]); } else { const i = WP.list.indexOf(w); selectWeapon(WP.list[(i + IN.swap + WP.list.length) % WP.list.length]); } IN.swap = 0; }
+  if (IN.swap) { if (typeof IN.swap === 'string') { const i = 'abcd'.indexOf(IN.swap); if (WP.list[i]) selectWeapon(WP.list[i]); } else { const i = WP.list.indexOf(w); selectWeapon(WP.list[(i + IN.swap + WP.list.length) % WP.list.length]); } IN.swap = 0; }
   WP.spread = Math.max(w.d.spread * (WP.ads > 0.5 ? 0.3 : 1), WP.spread - dt * 0.16);
   if (w.d.energy) { if (T.now - WP.lastShot > 0.9) w.mag = Math.min(100, w.mag + w.d.regen * dt); }
   // 装填
@@ -873,7 +873,7 @@ EN.types.human = { name: '断偽の協力者', kind: 'human', human: true, hp: 4
   build(e) { const m = humanoid({ skin: 0xE8D0C0, hair: 0x202024, cap: 0x16161A, top: 0x2A2A32, leg: 0x24242C, eye: 0x24242A, band: 0xA01828 }); e.b = m; const club = part(cyl(0.03, 0.045, 0.7, 6), 0x3A2A1E, 0, -0.8, 0.1, m.arms[1], { ol: 1.1 }); club.rotation.x = 0.4; return m.g; },
   zones: zonesHuman, anim(e, dt, mode) { const m = e.b; walkAnim(m, e, dt, mode); armTo(m.arms[1], mode === 'attack' ? (e.st < 0.35 ? -2.4 : -0.6) : -0.4, dt); armTo(m.arms[0], mode === 'walk' ? Math.sin(e.ph * 9) * 0.4 : 0, dt); },
   attack(e, dt, dist) { const r = swingMove(e, 2.4, 1.5, 0.5, 12, { col: 0xFFB080 }); if (r) endMove(e); return r; },
-  bark(e) { if (Math.random() < 0.5) radio('協力者', pick(['どけ、人間！', '偽りを断て！', '門の邪魔をするな！']), 1.6); } };
+  bark(e) { if (Math.random() < 0.5) radio('協力者', pick(['どけ！　邪魔だ！', '偽りを断て！', '門の邪魔をするな！']), 1.6); } };
 // ---- 断偽の協力者（銃）：離れて撃つ ----
 EN.types.gunman = { name: '断偽の銃手', kind: 'human', human: true, hp: 40, speed: 3.2, r: 0.4, h: 1.8, sense: 22, range: 17, keep: 8, cooldown: 1.6, score: 90, hitKind: 'flesh', staggerAt: 30, saku: 0.05, shardCol: 0x2A2A32, drop: 0.35,
   build(e) { const m = humanoid({ skin: 0xE8D0C0, hair: 0x202024, cap: 0x16161A, top: 0x32323A, leg: 0x24242C, eye: 0x24242A, band: 0xA01828 }); e.b = m; part(box(0.06, 0.08, 0.5), 0x1A1A20, 0, -0.5, 0.2, m.arms[1], { ol: 1.08 }); return m.g; },
@@ -931,12 +931,12 @@ EN.types.fox = { name: '妖狐の警備', kind: 'human', alien: true, hp: 90, sp
     if (e.n >= 3 && e.st > 1.3) { e.n = 0; return 'done'; } void dist; },
   keepFn(e) { return e.inA ? 0 : 9; } };
 // ---- ミマモリ：白い筒に青い画面の顔。浮いて、記録の光で刺す ----
-EN.types.mimamori = { name: 'ミマモリ', kind: 'machine', hp: 60, speed: 3.9, r: 0.42, h: 1.0, sense: 26, range: 16, keep: 7, cooldown: 1.5, fly: true, hover: 1.7, score: 110, hitKind: 'metal', saku: 0.06, shardCol: 0xE8ECF0, drop: 0.12,
+EN.types.mimamori = { name: 'ミマモリ', kind: 'machine', hp: 60, speed: 3.9, r: 0.42, h: 1.0, sense: 26, range: 16, keep: 7, cooldown: 2.0, fly: true, hover: 1.7, score: 110, hitKind: 'metal', saku: 0.06, shardCol: 0xE8ECF0, drop: 0.12,
   build(e) { const g = new THREE.Group(); const b = new THREE.Group(); g.add(b); part(cyl(0.3, 0.32, 0.9, 12), 0xF0F2F4, 0, 0, 0, b, { ol: 1.04 }); part(cyl(0.33, 0.33, 0.06, 12), 0xC8D0D8, 0, 0.45, 0, b, { outline: false }); const face = part(box(0.36, 0.26, 0.04), 0x7AF0F0, 0, 0.1, 0.31, b, { outline: false, emis: 0x2A9AA0 }); const gl = glowSprite(0x7AF0F0, 0.7, 0.5); gl.position.set(0, 0.1, 0.36); b.add(gl); for (let k = 0; k < 2; k++) part(box(0.1, 0.1, 0.1), 0x7AF0F0, -0.08 + k * 0.16, 0.12, 0.33, b, { outline: false, emis: 0x7AF0F0 }); e.b = { b, face }; return g; },
   zones(e) { return [{ c: V3(e.pos.x, e.pos.y, e.pos.z), r: 0.5 }, { c: V3(e.pos.x - Math.sin(e.yaw) * 0.2, e.pos.y + 0.12, e.pos.z - Math.cos(e.yaw) * 0.2), r: 0.26, head: true }]; },
   anim(e, dt, mode) { e.b.b.rotation.z = Math.sin(e.ph * 2) * 0.06; e.b.b.position.y = Math.sin(e.ph * 1.7) * 0.08; void mode; },
   muzzle(e) { return V3(e.pos.x - Math.sin(e.yaw) * 0.3, e.pos.y + 0.1, e.pos.z - Math.cos(e.yaw) * 0.3); },
-  attack(e, dt, dist) { if (e.st < 0.6) e.b.face.material = toon(0xFFFFFF, 0xFFFFFF); if (e.st > 0.6 && !e.atkDone) { e.atkDone = true; e.b.face.material = toon(0x7AF0F0, 0x2A9AA0); enemyShoot(e, 7, 0.75, { hex: 0x7AF0F0, snd: 'zap' }); if (Math.random() < 0.4) { const o = spatial(e.pos, { reach: 12 }); for (let i = 0; i < 3; i++) aT('square', 1480, 1480, 0.06, 0.03, Object.assign({ at: i * 0.12, lp: 4000 }, o)); } } if (e.st > 0.8 && e.atkDone && !e.atk2) { e.atk2 = true; enemyShoot(e, 7, 0.7, { hex: 0x7AF0F0, snd: 'zap' }); } if (e.st > 1.1) { e.atk2 = false; return 'done'; } void dist; } };
+  attack(e, dt, dist) { if (e.st < 0.6) e.b.face.material = toon(0xFFFFFF, 0xFFFFFF); if (e.st > 0.6 && !e.atkDone) { e.atkDone = true; e.b.face.material = toon(0x7AF0F0, 0x2A9AA0); enemyShoot(e, 7, 0.62, { hex: 0x7AF0F0, snd: 'zap' }); if (Math.random() < 0.4) { const o = spatial(e.pos, { reach: 12 }); for (let i = 0; i < 3; i++) aT('square', 1480, 1480, 0.06, 0.03, Object.assign({ at: i * 0.12, lp: 4000 }, o)); } } if (e.st > 0.8 && e.atkDone && !e.atk2) { e.atk2 = true; enemyShoot(e, 7, 0.58, { hex: 0x7AF0F0, snd: 'zap' }); } if (e.st > 1.1) { e.atk2 = false; return 'done'; } void dist; } };
 // ---- ぬくもりの影：白いクッションが人の形になりかけたもの ----
 EN.types.cush = { name: 'ぬくもりの影', kind: 'human', alien: true, hp: 34, speed: 4.6, r: 0.42, h: 1.5, sense: 30, range: 5, keep: 0, cooldown: 0.9, score: 60, hitKind: 'flesh', staggerAt: 20, saku: 0.04, shardCol: 0xF4F2EC, drop: 0.1,
   build(e) { const g = new THREE.Group(); const b = new THREE.Group(); g.add(b); part(sph(0.45, 12, 9), 0xF4F2EC, 0, 0.75, 0, b, { s: [1, 1.5, 0.9], ol: 1.04 }); part(sph(0.3, 10, 8), 0xF4F2EC, 0, 1.5, 0.05, b, { ol: 1.05 }); for (const sx of [-1, 1]) part(sph(0.2, 8, 6), 0xF4F2EC, sx * 0.5, 1.0, 0, b, { s: [1.6, 0.7, 0.8], ol: 1.05 }); part(sph(0.06, 6, 4), 0x7AF0F0, 0, 1.55, 0.3, b, { outline: false, emis: 0x7AF0F0 }); const gl = glowSprite(0x7AF0F0, 0.35, 0.8); gl.position.set(0, 1.55, 0.33); b.add(gl); e.b = { b, legs: [], arms: [] }; return g; },
@@ -988,11 +988,11 @@ function loadLevel(L) { clearLevel(); clearProj(); clearAnchors(); for (const t 
 function waveTick(L, dt) { const s = L.state; s.t += dt; s.waveT += dt; if (s.cleared) return;
   for (let i = s.queue.length - 1; i >= 0; i--) { const q = s.queue[i]; if (s.waveT >= q.at) { s.queue.splice(i, 1); const e = makeEnemy(q.type, q.x, q.z, q.opt); e.seen = true; e.state = 'chase'; ring(e.pos.x, 0.08, e.pos.z, 0.2, 1.6, 0xFF2A3A, 0.4, 0.7); if (q.boss) { bossBar(e); if (q.onSpawn) q.onSpawn(e); } } }
   const alive = EN.list.filter(e => !e.dead).length + s.queue.length;
-  if (s.wave < 0) { s.gapT = 9; } if (alive === 0) s.gapT += dt; else s.gapT = 0;
+  if (s.wave < 0) { if (s.t < (L.introWait || 0)) return; s.gapT = 9; } if (alive === 0) s.gapT += dt; else s.gapT = 0;
   if (s.gapT > (s.wave < 0 ? 0 : 2.4)) { const next = s.wave + 1; if (next >= L.waves.length) { s.cleared = true; L.clear ? L.clear() : finishLevel(); return; } s.wave = next; s.waveT = 0; s.gapT = 0; G.wave = next + 1; startWave(L, L.waves[next]); } }
-function startWave(L, w) { const s = L.state; waveSound(!!w.big); RADIO.length = 0; if (subT > 0.8) subT = 0.8; $('obj').innerHTML = `${L.name}　<b>${w.title || ('第' + (s.wave + 1) + '波')}</b>`; if (w.lines) for (const ln of w.lines) radio(ln[0], ln[1], ln[2] || 3.0, ln[3] || ''); if (w.big) bigText(w.title, 'red'); MUS.heat = w.heat ?? Math.min(1, 0.4 + s.wave * 0.15);
+function startWave(L, w) { const s = L.state; waveSound(!!w.big); if (s.wave > 0) { RADIO.length = 0; if (subT > 0.8) subT = 0.8; } $('obj').innerHTML = `${L.name}　<b>${w.title || ('第' + (s.wave + 1) + '波')}</b>`; if (w.lines) for (const ln of w.lines) radio(ln[0], ln[1], ln[2] || 3.0, ln[3] || ''); if (w.big) bigText(w.title, 'red'); MUS.heat = w.heat ?? Math.min(1, 0.4 + s.wave * 0.15);
   let k = 0; for (const [type, x, z, n, opt] of w.spawn) for (let i = 0; i < (n || 1); i++) { s.queue.push({ type, x: x + rand(-1.2, 1.2), z: z + rand(-1.2, 1.2), at: (w.delay || 0.3) + k * 0.25, opt: opt || w.opt, boss: !!w.boss, onSpawn: w.onSpawn }); k++; } if (w.start) w.start(); }
-function finishLevel() { const i = LEVELS.indexOf(G.level); MUS.heat = 0.15; if (G.level.after) for (const ln of G.level.after) radio(ln[0], ln[1], ln[2] || 3.0, ln[3] || ''); if (i + 1 < LEVELS.length) { setTimeout(() => { if (G.mode === 'play') { loadLevel(LEVELS[i + 1]); ammoText(); } }, 4200); } else { G.mode = 'won'; setTimeout(() => showResult(true), 2600); } }
+function finishLevel() { const i = LEVELS.indexOf(G.level); MUS.heat = 0.15; RADIO.length = 0; if (subT > 0.6) subT = 0.6; let wait = 700; if (G.level.after) for (const ln of G.level.after) { radio(ln[0], ln[1], ln[2] || 3.0, ln[3] || ''); wait += (ln[2] || 3.0) * 1000; } if (i + 1 < LEVELS.length) { setTimeout(() => { if (G.mode === 'play') { loadLevel(LEVELS[i + 1]); ammoText(); } }, wait); } else { G.mode = 'won'; setTimeout(() => showResult(true), wait + 400); } }
 // 高嶺の一球：白い一本の線が走って、相手が止まる
 function takanePitch(e, word) { if (!e || e.dead) return; eyePos(TMP); flatDir(FWD); const from = V3(TMP.x - FWD.x * 6 + rand(-2, 2), 5.5, TMP.z - FWD.z * 6 + rand(-2, 2)); const to = V3(e.pos.x, e.pos.y + e.h * 0.85, e.pos.z); tracer(from, to, 0xFFFFFF, 0.14, 0.35); tracer(from, to, 0xBFD8FF, 0.3, 0.2); flashLight(to.x, to.y, to.z, 0xFFFFFF, 4, 0.2, 12);
   aN(0.18, 0.7, 'bandpass', 2400, 2400, 1.2); aT('sine', 180, 180, 0.25, 0.3); aN(0.2, 0.3, 'lowpass', 400, 400, 0.7, { at: 0.05 }); setTimeout(() => { if (e.dead) return; e.stunned = Math.max(e.stunned, 2.6); e.state = 'stagger'; e.st = 0; openGap(e, 2.6); pop(to.x, to.y + 0.3, to.z, word || 'ストライク', 'gold big'); ring(to.x, to.y, to.z, 0.2, 2.0, 0xFFFFFF, 0.3, 0.9, camera.position); T.hit = Math.max(T.hit, 0.1); P.trauma = Math.min(1, P.trauma + 0.3); }, 90); }
@@ -1012,7 +1012,7 @@ function allyTick(dt) { const alive = EN.list.filter(e => !e.dead);
     if (a.t > 0.9) { scene.remove(a.m.g); ALLY.mu = null; } } }
 
 // ---- 一　春日井駅 北口（とある未来。焼け野原）----
-LEVELS.push({ id: 'plaza', name: '春日井駅　北口', start: [0, 0, 22], yaw: 0, weapons: ['pistol', 'smg'], bg: 0x0B0A10, fog: [28, 95], light: 0.42, sun: 0.3, hemiCol: 0xB8B8D0, groundCol: 0x2A1810,
+LEVELS.push({ id: 'plaza', introWait: 7.6, name: '春日井駅　北口', start: [0, 0, 22], yaw: 0, weapons: ['pistol', 'smg'], bg: 0x0B0A10, fog: [28, 95], light: 0.42, sun: 0.3, hemiCol: 0xB8B8D0, groundCol: 0x2A1810,
   build() { floorPlane(76, 76, 'asphalt', 0x9A9088); fence(-34, -34, 34, 34);
     // 駅舎（壊れている）と、ノイズまじりの大画面
     wallBox(0, 0, -28, 40, 9, 8, 'concrete', 0xB8B4B0); wallBox(-12, 9, -28, 10, 4, 8, 'concrete', 0xA8A4A0); wallBox(14, 9, -28, 8, 3, 8, 'concrete', 0xA8A4A0);
@@ -1038,25 +1038,25 @@ LEVELS.push({ id: 'plaza', name: '春日井駅　北口', start: [0, 0, 22], yaw
   waves: [
     { title: '第一波', spawn: [['human', -6, -16, 2], ['human', 8, -14, 2]], heat: 0.4 },
     { title: '第二波', lines: [['石居', '文鳥が来ます。硬いですよ。頭を狙ってください。', 3.0]], spawn: [['bird', -14, -18, 1], ['bird', 14, -18, 1], ['gunman', 0, -20, 1]], heat: 0.55 },
-    { title: '第三波', big: true, lines: [['三枝', '（通信）断偽の門下です。加護があるうちは弾かれます。', 3.2], ['三枝', '（通信）杭の内側へ誘い込んでください。内側なら通ります。', 3.2], ['朔', '杭を打て。青い輪の中で撃て。', 2.6, 'sk']], spawn: [['monk', -12, -18, 1], ['monk', 12, -18, 1], ['mimamori', 0, -22, 2]], heat: 0.7 },
+    { title: '第三波', big: true, lines: [['三枝', '（通信）断偽の門下です。加護があるうちは浅くしか入りません。', 3.2], ['三枝', '（通信）杭の内側へ誘い込んでください。内側なら通ります。', 3.2], ['朔', '杭を打て。青い輪の中で撃て。', 2.6, 'sk']], spawn: [['monk', -12, -18, 1], ['monk', 12, -18, 1], ['mimamori', 0, -22, 2]], heat: 0.7 },
     { title: '第四波', lines: [['高嶺', '久世さん、でかいのが来ます！　オレの球で足止めしますから！', 3.0]], spawn: [['arm', 0, -20, 1], ['bird', -14, -12, 2], ['gunman', 14, -12, 2], ['monk', 0, 14, 1]], heat: 0.85, start() { setTimeout(() => { const e = EN.list.find(q => q.type === 'arm' && !q.dead); if (e) { takanePitch(e); radio('高嶺', '……ストライク。', 1.4); } }, 2600); } },
   ],
   after: [['黒岩', '北口は押さえた。次は勝川だ。……鐘が鳴っている。', 3.2], ['久世', '……了解。', 1.4]],
   tick(dt, raw) { levelTick(this, dt, raw); } });
 
 // ---- 二　勝川 弘法通り商店街（夜）----
-LEVELS.push({ id: 'shotengai', name: '勝川　弘法通り商店街', start: [0, 0, 26], yaw: 0, weapons: ['pistol', 'smg', 'shotgun'], bg: 0x0A0C14, fog: [26, 80], light: 0.5, sun: 0.25, hemiCol: 0xD0C8E0, groundCol: 0x1A1418,
+LEVELS.push({ id: 'shotengai', introWait: 5.0, name: '勝川　弘法通り商店街', start: [0, 0, 26], yaw: 0, weapons: ['pistol', 'smg', 'shotgun'], bg: 0x0A0C14, fog: [26, 80], light: 0.5, sun: 0.25, hemiCol: 0xD0C8E0, groundCol: 0x1A1418,
   build() { floorPlane(40, 80, 'tile', 0xB0B0B8); fence(-19, -38, 19, 38);
     // 両側の店（シャッター）と看板
-    const shops = [['喫茶かちがわ', '#E8D8B0', '#5A3A2A'], ['ことりのいえ', '#F4F0E8', '#2A6A4A'], ['田中米穀店', '#F2E8D0', '#3A2A1A'], ['青果みどり', '#DDF0D0', '#2A5A2A'], ['たい焼きしっぽ', '#F8E0B0', '#8A3A1A'], ['古書 鳩居', '#E8E4D8', '#2A2A3A'], ['質', '#F0E8D8', '#5A2A2A'], ['理容 マツダ', '#E0F0F8', '#2A4A7A']];
-    for (let i = 0; i < 8; i++) { const z = -30 + i * 8.5; for (const sx of [-1, 1]) { const k = (i * 2 + (sx > 0 ? 1 : 0)) % 8; wallBox(sx * 16, 0, z, 6, 6, 7.5, i % 2 ? 'brick' : 'concrete', 0xB0A8A8); wallBox(sx * 12.8, 0, z, 0.3, 3.2, 5, 'metal', 0x9AA0A8); sign(sx * 12.6, 4.4, z, 5, 1.2, [{ t: shops[k][0], size: 56, c: shops[k][2] }], { bg: shops[k][1], ry: -sx * Math.PI / 2, glow: i % 3 === 0 }); } }
+    const shops = [['喫茶かちがわ', '#E8D8B0', '#5A3A2A'], ['ことりのいえ', '#F4F0E8', '#2A6A4A'], ['田中米穀店', '#F2E8D0', '#3A2A1A'], ['青果みどり', '#DDF0D0', '#2A5A2A'], ['たい焼きしっぽ', '#F8E0B0', '#8A3A1A'], ['古書 鳩居', '#E8E4D8', '#2A2A3A'], ['仕立て', '#F2F0E8', '#3A3A4A']];
+    for (let i = 0; i < 8; i++) { const z = -30 + i * 8.5; for (const sx of [-1, 1]) { const k = (i * 2 + (sx > 0 ? 1 : 0)) % shops.length; wallBox(sx * 16, 0, z, 6, 6, 7.5, i % 2 ? 'brick' : 'concrete', 0xB0A8A8); wallBox(sx * 12.8, 0, z, 0.3, 3.2, 5, 'metal', 0x9AA0A8); sign(sx * 12.6, 4.4, z, 5, 1.2, [{ t: shops[k][0], size: 56, c: shops[k][2] }], { bg: shops[k][1], ry: -sx * Math.PI / 2, glow: i % 3 === 0 }); } }
     // アーケードの柱と提灯、小旗
     for (let i = 0; i < 9; i++) { const z = -34 + i * 8.5; for (const sx of [-1, 1]) { deco(cyl(0.18, 0.18, 7, 8), 0x4A4A52, sx * 11.5, 3.5, z, { outline: false }); lamp(sx * 11.3, 6.2, z, i % 2 ? 0xFF6A5A : 0x8AB0FF, 0.9, 10); } deco(box(23, 0.2, 0.3), 0x3A3A42, 0, 7, z, { outline: false }); }
     // 置き物：ベンチ・自販機・箱・放置された軽トラ
     for (const [x, z, w, h, d, k, c] of [[-6, -20, 1.8, 0.9, 0.6, 'wood', 0x8A6A4A], [6, -8, 1.8, 0.9, 0.6, 'wood', 0x8A6A4A], [-8, 4, 1.2, 2.0, 0.9, 'metal', 0x4A6AA0], [8, -24, 1.2, 2.0, 0.9, 'metal', 0xA04A4A], [0, -2, 3.6, 1.4, 1.6, 'metal', 0xC8C8C8], [-5, 14, 1.2, 1.0, 1.2, 'wood', 0x7A5A3A], [5, 16, 1.2, 1.0, 1.2, 'wood', 0x7A5A3A], [0, -30, 4, 2.2, 1.2, 'concrete', 0x8A8A90]]) wallBox(x, 0, z, w, h, d, k, c);
     lamp(-8, 1.9, 4, 0x8AD0FF, 1.2, 7); lamp(8, 1.9, -24, 0xFF9A8A, 1.2, 7);
-    // 突き当たり：古書 留文堂
-    wallBox(0, 0, -37, 38, 8, 2, 'brick', 0xA8A0A0); sign(0, 4.2, -35.9, 8, 1.6, [{ t: '古書　留文堂', size: 64, c: '#E8D8B0' }], { bg: '#4A3A2A', glow: true, glowCol: 0xFFD8A0 }); wallBox(0, 0, 37, 38, 8, 2, 'brick', 0xA8A0A0);
+    // 突き当たり：商店街の門の看板
+    wallBox(0, 0, -37, 38, 8, 2, 'brick', 0xA8A0A0); sign(0, 4.2, -35.9, 8, 1.6, [{ t: '弘法通り商店街', size: 60, c: '#E8D8B0' }], { bg: '#4A3A2A', glow: true, glowCol: 0xFFD8A0 }); wallBox(0, 0, 37, 38, 8, 2, 'brick', 0xA8A0A0);
     plantAnchor(0, -10, { perm: true, quiet: true, r: 8 }); },
   intro() { radio('村瀬', '（電話）……商店街。狐が二つ。……灯りを踏むな。', 3.0); radio('朔', '狐火は警棒で弾ける。杭の内側なら、来ない。', 2.8, 'sk'); },
   waves: [
@@ -1070,7 +1070,7 @@ LEVELS.push({ id: 'shotengai', name: '勝川　弘法通り商店街', start: [0
   tick(dt, raw) { levelTick(this, dt, raw); } });
 
 // ---- 三　弥勒山 断偽文鳥門 本山（夜）----
-LEVELS.push({ id: 'sohon', name: '弥勒山　本山', start: [0, 0, 24], yaw: 0, weapons: ['pistol', 'smg', 'shotgun', 'rev'], bg: 0x070508, fog: [26, 84], light: 0.4, sun: 0.22, hemiCol: 0xC8C0D8, groundCol: 0x1E1A14,
+LEVELS.push({ id: 'sohon', introWait: 6.0, name: '弥勒山　本山', start: [0, 0, 24], yaw: 0, weapons: ['pistol', 'smg', 'shotgun', 'rev'], bg: 0x070508, fog: [26, 84], light: 0.4, sun: 0.22, hemiCol: 0xC8C0D8, groundCol: 0x1E1A14,
   build() { floorPlane(64, 70, 'concrete', 0x8A867E); fence(-31, -34, 31, 34);
     // 参道・本堂・山門・塀
     { const m = new THREE.Mesh(new THREE.PlaneGeometry(5, 60), matOf('tile', 0x9A968E, [2, 20])); m.rotation.x = -Math.PI / 2; m.position.set(0, 0.012, -2); LV.g.add(m); }
@@ -1100,7 +1100,7 @@ LEVELS.push({ id: 'sohon', name: '弥勒山　本山', start: [0, 0, 24], yaw: 0
   extra(dt) { const s = this.state; const boss = EN.list.find(e => e.type === 'mz' && !e.dead); if (boss) { if (!s.p1 && boss.hp < boss.maxHp * 0.5) { s.p1 = true; radio('教主', '……偽りだァァァ！！', 2.0, 'mz'); zanSound({ gain: 1.2 }); P.trauma = 1; for (let i = 0; i < 2; i++) { const e = makeEnemy('monk', boss.pos.x + (i ? 6 : -6), boss.pos.z + 3); e.seen = true; e.state = 'chase'; } }
       if (!s.p2 && boss.hp < boss.maxHp * 0.3) { s.p2 = true; radio('高嶺', '久世さん！　一球、通します！', 1.8); setTimeout(() => { takanePitch(boss, 'ど真ん中'); radio('高嶺', '届いたら、ナイスボールです！', 2.0); radio('朔', '今だ。隙だ。撃て。', 2.0, 'sk'); }, 1200); } } },
   tick(dt, raw) { levelTick(this, dt, raw); },
-  outro(rank) { return `教主は膝をついたまま、起き上がらなかった。<br>杉の林から鳥が一斉に飛び立って、また静かになった。<br>久世は薙刀を見下ろして、頭を下げなかった。（評価 ${rank}）`; } });
+  outro(rank) { return `教主は膝をついたまま、起き上がらなかった。<br>門下は散った。杭と記録は石居が回収した。<br>久世は薙刀を見下ろして、頭を下げなかった。（評価 ${rank}）`; } });
 // ================= 進行：題・遊ぶ・止める・結果 =================
 const G = { mode: 'title', score: 0, time: 0, wave: 0, sakuUsed: 0, level: null, onKill: null, lastLand: 0 };
 function onDash() { dashSound(); flatDir(FWD); for (let i = 0; i < 6; i++) spawnPart(P_GEO.spark, 0xC8D4F0, P.pos.x - P.dashDir.x * 0.4 + rand(-0.3, 0.3), P.pos.y + rand(0.2, 1.2), P.pos.z - P.dashDir.z * 0.4 + rand(-0.3, 0.3), -P.dashDir.x * rand(2, 5), rand(-1, 1), -P.dashDir.z * rand(2, 5), 0.25, { add: true, stretch: true, sc: 0.8, g: 0 }); }
@@ -1137,10 +1137,10 @@ $('bQuit').addEventListener('click', () => { G.mode = 'title'; show('title'); mu
 $('bSound').addEventListener('click', () => { sound = !sound; $('bSound').textContent = sound ? '音：入' : '音：切'; if (sound) audioOn(); else if (AC) AC.suspend(); });
 $('bHow').addEventListener('click', () => { const k = $('keys'); k.hidden = !k.hidden; });
 $('keys').innerHTML = isTouch ? '<span>左の画面</span><span>なぞって移動</span><span>右の画面</span><span>なぞって視線</span><span>撃つ</span><span>押している間　撃つ</span><span>走る</span><span>押した瞬間に突進</span><span>朔</span><span>満ちたら押す。世界が遅くなる</span><span>警棒</span><span>近くの敵を打つ。刃を受ける</span><span>杭</span><span>打った内側では魔法が来ない</span>'
-  : '<kbd>W A S D</kbd><span>移動</span><kbd>マウス</kbd><span>視線・左で撃つ・右で構える</span><kbd>Shift</kbd><span>押した瞬間に突進、押し続けて走る</span><kbd>Space</kbd><span>跳ぶ（空中でもう一度）</span><kbd>C</kbd><span>走りながら滑る</span><kbd>F</kbd><span>警棒。刃を受ける</span><kbd>R</kbd><span>装填</span><kbd>Q / ホイール / 1 2 3</kbd><span>持ち替え</span><kbd>G</kbd><span>杭を打つ（内側では魔法が来ない）</span><kbd>E</kbd><span>朔（満ちたら）</span><kbd>Esc</kbd><span>止める</span>';
+  : '<kbd>W A S D</kbd><span>移動</span><kbd>マウス</kbd><span>視線・左で撃つ・右で構える（逆写機は右で溜めて放す）</span><kbd>Shift</kbd><span>押した瞬間に突進、押し続けて走る</span><kbd>Space</kbd><span>跳ぶ（空中でもう一度）</span><kbd>C</kbd><span>走りながら滑る</span><kbd>F</kbd><span>警棒。刃を受ける</span><kbd>R</kbd><span>装填</span><kbd>Q / ホイール / 1 2 3 4</kbd><span>持ち替え</span><kbd>G</kbd><span>杭を打つ（内側では魔法が来ない）</span><kbd>E</kbd><span>朔（満ちたら）</span><kbd>Esc</kbd><span>止める</span>';
 document.addEventListener('visibilitychange', () => { if (document.hidden && G.mode === 'play') pause(true); });
 resize(); requestAnimationFrame(loop);
 // 自動の点検用（外から覗く口）
-window.__fps = { P, EN, G, WP, IN, keys, T, HUD, ANC, PR, TEL, start: startGame, pause, renderAudioTest, GUN, HIT, sfx: { pinSound, sleepSound, bunScream, foxSound, bellToll, zanSound, stakeSound, hitTick, killSound, aBell, stepSound, reloadSound, batonSwing, batonHit, dashSound, slideSound, jumpSound, landSound, hurtSound, emptyClick, uiBlip, comboChime, waveSound, alarmSound, pickupSound, enemyBark, nailSound, sakuIn, sakuOut, heartbeat }, aimAt(x, y, z) { eyePos(TMP); const dx = x - TMP.x, dy = y - TMP.y, dz = z - TMP.z; P.yaw = Math.atan2(-dx, -dz); P.pitch = Math.atan2(dy, Math.hypot(dx, dz)); }, near() { let b = null, bd = 1e9; for (const e of EN.list) { if (e.dead) continue; const d = e.pos.distanceTo(P.pos); if (d < bd) { bd = d; b = e; } } return b ? { x: b.pos.x, y: b.pos.y + b.h * 0.75, z: b.pos.z, d: bd, type: b.type, hp: b.hp } : null; }, levels: () => LEVELS.map(l => l.id), dbg: () => ({ subT, radioN: RADIO.length, dirT, hudCalls: HUD.calls || 0 }), killAll() { for (const e of EN.list.slice()) if (!e.dead) killEnemy(e, e.pos.clone(), V3(0, -1, 0), false, 'debug'); }, noRender(v) { G.noRender = v; }, snap() { renderer.render(scene, camera); }, goto(id) { const L = LEVELS.find(l => l.id === id); if (L) { loadLevel(L); ammoText(); } }, god(v) { P.god = v; }, dmgK(v) { G.dmgK = v; }, state() { const L = G.level; return { level: L && L.id, wave: L && L.state.wave, queue: L && L.state.queue.length, alive: EN.list.filter(e => !e.dead).map(e => e.type + ':' + Math.round(e.hp)), anchors: ANC.list.length, charges: ANC.charges, hp: Math.round(P.hp), mode: G.mode, kills: EN.kills, sub: document.getElementById('sub').textContent }; } };
+window.__fps = { P, EN, G, WP, IN, keys, T, HUD, ANC, PR, TEL, start: startGame, pause, renderAudioTest, GUN, HIT, sfx: { pinSound, sleepSound, bunScream, foxSound, bellToll, zanSound, stakeSound, hitTick, killSound, aBell, stepSound, reloadSound, batonSwing, batonHit, dashSound, slideSound, jumpSound, landSound, hurtSound, emptyClick, uiBlip, comboChime, waveSound, alarmSound, pickupSound, enemyBark, nailSound, sakuIn, sakuOut, heartbeat }, aimAt(x, y, z) { eyePos(TMP); const dx = x - TMP.x, dy = y - TMP.y, dz = z - TMP.z; P.yaw = Math.atan2(-dx, -dz); P.pitch = Math.atan2(dy, Math.hypot(dx, dz)); }, near() { let b = null, bd = 1e9; for (const e of EN.list) { if (e.dead) continue; const d = e.pos.distanceTo(P.pos); if (d < bd) { bd = d; b = e; } } return b ? { x: b.pos.x, y: b.pos.y + b.h * 0.75, z: b.pos.z, d: bd, type: b.type, hp: b.hp } : null; }, levels: () => LEVELS.map(l => l.id), dbg: () => ({ subT, radioN: RADIO.length, dirT, hudCalls: HUD.calls || 0 }), mk(t, x, z) { const e = makeEnemy(t, x, z); return e; }, killAll() { for (const e of EN.list.slice()) if (!e.dead) killEnemy(e, e.pos.clone(), V3(0, -1, 0), false, 'debug'); }, noRender(v) { G.noRender = v; }, snap() { renderer.render(scene, camera); }, goto(id) { const L = LEVELS.find(l => l.id === id); if (L) { loadLevel(L); ammoText(); } }, god(v) { P.god = v; }, dmgK(v) { G.dmgK = v; }, state() { const L = G.level; return { level: L && L.id, wave: L && L.state.wave, queue: L && L.state.queue.length, alive: EN.list.filter(e => !e.dead).map(e => e.type + ':' + Math.round(e.hp)), anchors: ANC.list.length, charges: ANC.charges, hp: Math.round(P.hp), mode: G.mode, kills: EN.kills, sub: document.getElementById('sub').textContent }; } };
 })();
 </script>
