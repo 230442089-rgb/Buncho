@@ -642,7 +642,9 @@ const EDIR = V3(), ETMP = V3();
 function tickEnemies(dt) { eyePos(TMP); const ppos = P.pos;
   for (let i = EN.list.length - 1; i >= 0; i--) { const e = EN.list[i]; if (e.dead) { e.deadT -= dt; e.m.position.y -= dt * 0.6; e.m.rotation.x = Math.min(Math.PI / 2, e.m.rotation.x + dt * 5); if (e.deadT <= 0) { scene.remove(e.m); EN.list.splice(i, 1); } continue; }
     e.st += dt; e.ph += dt; e.stunned = Math.max(0, e.stunned - dt); e.flinch = Math.max(0, e.flinch - dt); if (e.gap > 0) { e.gap -= dt; if (e.gap <= 0 && e.gapS) e.gapS.visible = false; } e.inA = !!inAnchor(e.pos); if (e.aura) { e.aura.visible = !!e.d.alien && !e.inA; e.aura.material.opacity = 0.18 + Math.sin(e.ph * 5) * 0.06; }
-    EDIR.subVectors(ppos, e.pos); EDIR.y = 0; const dist = EDIR.length(); EDIR.divideScalar(dist || 1); const d = e.d;
+    EDIR.subVectors(ppos, e.pos); EDIR.y = 0; let dist = EDIR.length(); EDIR.divideScalar(dist || 1); const d = e.d;
+    // 体が重ならないように押し合う（敵は下がり、主人公も少し押される）
+    if (!e.fly && dist < e.r + P.r + 0.1 && Math.abs(e.pos.y - ppos.y) < 1.6) { const ov = e.r + P.r + 0.1 - dist; enemyMove(e, -EDIR.x * ov * 0.6, -EDIR.z * ov * 0.6, dt); P.vel.x += EDIR.x * ov * 6; P.vel.z += EDIR.z * ov * 6; dist = Math.max(dist, e.r + P.r); }
     // 見つける：近いか、撃たれたか、見える距離で正面
     if (!e.seen && (dist < d.sense || e.hurtT)) { e.seen = true; e.state = 'chase'; e.st = 0; if (typeof d.bark === 'function') d.bark(e); else if (d.bark) enemyBark(d.bark, e.pos); }
     // 仲間の勢いで流される分
