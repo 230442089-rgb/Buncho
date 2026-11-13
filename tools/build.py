@@ -20,6 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'src'
 FONT = ROOT / 'assets' / 'font' / 'DotGothic16-Regular.ttf'
 FONT_CSS = SRC / 'font.gen.css'
+PORTRAIT = ROOT / 'assets' / 'portrait'   # tools/make_portraits.py が元絵から作った減色画像
 TITLE = '事象のアトリエ'
 FAMILY = 'AtelierDot'   # DotGothic16 を位置合わせしたもの。別物なので名前を変えてある
 CELL = 62.5             # 1000 / 16
@@ -116,6 +117,15 @@ def font_css(chars):
     return css
 
 
+def images_js():
+    """減色画像を data URI にして、JS の定数 IMG として埋め込む。"""
+    items = []
+    for key, name in (('edelSplash', 'edel_splash.png'), ('edelBust', 'edel_bust.png'), ('aseraFace', 'asera_face.png')):
+        data = (PORTRAIT / name).read_bytes()
+        items.append("%s: 'data:image/png;base64,%s'" % (key, base64.b64encode(data).decode('ascii')))
+    return '// ── 元絵から作った減色画像 ──\nconst IMG = { ' + ', '.join(items) + ' };\n'
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--artifact', help='Artifact 用の断片を書き出す先')
@@ -124,7 +134,7 @@ def main():
     css = read(SRC / 'style.css')
     body = read(SRC / 'page.html')
     files = sorted((SRC / 'js').glob('*.js'))
-    js = '\n'.join('// ── %s ──\n%s' % (p.name, read(p)) for p in files)
+    js = images_js() + '\n'.join('// ── %s ──\n%s' % (p.name, read(p)) for p in files)
     if '</script' in js.lower():
         raise SystemExit('JS の中に </script> があります')
 
