@@ -1,0 +1,136 @@
+/* 事象のアトリエ: 2000年代のフリーソフトふうの見た目 */
+/* レイアウト: 雲の壁紙のデスクトップに灰色の窓が1枚。窓の中に 320x240 の画面。タッチ端末では下に十字ボタン。 */
+/* 見た目は1種類だけ（むかしの画面）。明暗テーマでは変えない。 */
+:root{
+  --face:#c9c5d3; --face-hi:#ffffff; --face-mid:#e6e3ec; --face-lo:#8b8598; --face-dk:#2a2432;
+  --ink:#17131d; --ink-dis:#8b8598; --paper:#ffffff; --note:#fffbd6;
+  --bar-a:#2f2259; --bar-b:#8f7cc4; --bar-ink:#ffffff;
+  --bar-off-a:#77727f; --bar-off-b:#aaa6b4;
+  --sel:#2f2259; --sel-ink:#ffffff;
+  --desk:#6f7fb5; --desk-ink:#ffffff; --desk-shade:#1b1b3a; --warn:#c2183f;
+  --font:"AtelierDot","DotGothic16","MS Gothic","Osaka-Mono","IPAGothic",monospace;
+  --px:1px;
+  color-scheme:light;
+}
+html{height:100%;box-sizing:border-box}
+body{height:100%;margin:0;box-sizing:border-box;overflow:hidden;background-color:var(--desk);color:var(--ink);
+  font:16px/16px var(--font);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;
+  image-rendering:pixelated;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button{font:inherit;color:inherit;margin:0;border:0;border-radius:0;background:none;padding:0;cursor:default;touch-action:manipulation}
+[hidden]{display:none!important}
+
+.desk{position:relative;height:100%}
+
+/* デスクトップのアイコン */
+.icons{position:absolute;left:0;top:10px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.dicon{width:104px;padding:2px 0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--desk-ink);text-shadow:1px 1px 0 var(--desk-shade)}
+.dicon i{display:block;width:32px;height:32px;background-size:32px 32px;background-repeat:no-repeat}
+.dicon span{padding:0 2px;max-width:104px;overflow:hidden;white-space:nowrap}
+.dicon:hover span,.dicon:focus-visible span{background:var(--sel);color:var(--sel-ink);text-shadow:none;outline:1px dotted var(--desk-ink)}
+.dicon:focus-visible{outline:none}
+
+/* 窓 */
+#wins{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none}
+.win,.menu,.blocker{pointer-events:auto}
+.win{position:absolute;left:0;top:0;background:var(--face);padding:2px;
+  box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-mid),inset -2px -2px 0 var(--face-lo),inset 2px 2px 0 var(--face-hi),3px 3px 0 rgba(20,16,40,.35)}
+.tb{display:flex;align-items:center;gap:4px;height:20px;padding:1px 2px 1px 3px;background:linear-gradient(90deg,var(--bar-a),var(--bar-b));color:var(--bar-ink)}
+.win.off .tb{background:linear-gradient(90deg,var(--bar-off-a),var(--bar-off-b))}
+.win.flash .tb{background:linear-gradient(90deg,var(--bar-off-a),var(--bar-off-b))}
+.tb-ic{flex:none;width:16px;height:16px;background-size:16px 16px;background-repeat:no-repeat}
+.tb-tx{flex:1;min-width:0;height:16px;white-space:nowrap;overflow:hidden}
+.tb-x{flex:none;width:18px;height:16px;background:var(--face);color:var(--ink);line-height:14px;text-align:center;
+  box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-hi),inset -2px -2px 0 var(--face-lo)}
+.tb-x:active{box-shadow:inset 1px 1px 0 var(--face-dk),inset -1px -1px 0 var(--face-hi)}
+.wb{padding:8px}
+.win.main .wb{padding:0}
+
+/* メニューバー */
+.mb{display:flex;height:22px;align-items:center}
+.mi{height:20px;padding:0 6px;line-height:20px}
+.mi u{text-decoration:underline}
+.mi.on{background:var(--sel);color:var(--sel-ink)}
+.mb.busy .mi{color:var(--ink-dis);text-shadow:1px 1px 0 var(--face-hi)}
+.menu{position:absolute;z-index:900;background:var(--face);padding:3px;min-width:176px;
+  box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-mid),inset -2px -2px 0 var(--face-lo),inset 2px 2px 0 var(--face-hi),3px 3px 0 rgba(20,16,40,.35)}
+.menu button{display:block;width:100%;text-align:left;height:24px;line-height:24px;padding:0 12px 0 24px;white-space:nowrap;position:relative}
+.menu button:hover,.menu button:focus-visible{background:var(--sel);color:var(--sel-ink);outline:none}
+.menu button[disabled]{color:var(--ink-dis);text-shadow:1px 1px 0 var(--face-hi);background:none}
+.menu button.chk::before{content:"●";position:absolute;left:4px;top:0}
+.menu hr{border:0;border-top:1px solid var(--face-lo);border-bottom:1px solid var(--face-hi);margin:3px 2px}
+
+/* 画面 */
+.cl{position:relative;padding:2px;background:#000;line-height:0;
+  box-shadow:inset 1px 1px 0 var(--face-lo),inset -1px -1px 0 var(--face-hi),inset 2px 2px 0 var(--face-dk)}
+.view{display:block;width:320px;height:240px;image-rendering:crisp-edges;image-rendering:pixelated;background:#000}
+.scan{position:absolute;left:2px;top:2px;right:2px;bottom:2px;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(10,6,24,.2) 0,rgba(10,6,24,.2) calc(var(--px)*.34),rgba(10,6,24,0) calc(var(--px)*.34),rgba(10,6,24,0) var(--px))}
+.scan.no{display:none}
+
+/* ステータスバー */
+.sb{display:grid;grid-template-columns:auto 1fr auto;gap:2px;padding-top:2px}
+.sb span{display:block;height:16px;padding:3px 5px;white-space:nowrap;overflow:hidden;
+  box-shadow:inset 1px 1px 0 var(--face-lo),inset -1px -1px 0 var(--face-hi)}
+.sb .sb-hint{grid-column:1 / 4;height:32px;white-space:normal}
+.sb .sb-st{min-width:0}
+.sb .warn{color:var(--warn)}
+
+/* ボタン・ダイアログ */
+.btn{min-width:84px;height:26px;padding:0 10px;background:var(--face);line-height:24px;
+  box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-hi),inset -2px -2px 0 var(--face-lo),inset 2px 2px 0 var(--face-mid)}
+.btn:active{box-shadow:inset 1px 1px 0 var(--face-dk),inset -1px -1px 0 var(--face-hi),inset 2px 2px 0 var(--face-lo)}
+.btn:focus-visible{outline:1px dotted var(--ink);outline-offset:-5px}
+.dlg{max-width:calc(100% - 8px)}
+.dlg .wb{display:flex;flex-direction:column;gap:10px;min-width:232px;max-width:340px;box-sizing:border-box}
+.dlg-row{display:flex;gap:10px;align-items:flex-start}
+.dlg-ic{flex:none;width:32px;height:32px;background-size:32px 32px;background-repeat:no-repeat}
+.dlg-tx{flex:1;min-width:0;white-space:pre-wrap;line-height:20px}
+.dlg-de{margin:0;padding:5px 6px;font:inherit;line-height:18px;white-space:pre-wrap;background:var(--paper);
+  box-shadow:inset 1px 1px 0 var(--face-lo),inset -1px -1px 0 var(--face-hi),inset 2px 2px 0 var(--face-dk)}
+.dlg-btns{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.blocker{position:absolute;left:-16px;right:-16px;top:0;bottom:0}
+
+/* テキストの窓 */
+.txt{margin:0;padding:6px 8px;width:336px;max-width:100%;height:300px;max-height:100%;box-sizing:border-box;overflow:auto;
+  font:inherit;line-height:20px;white-space:pre-wrap;background:var(--paper);-webkit-user-select:text;user-select:text;touch-action:pan-y;
+  box-shadow:inset 1px 1px 0 var(--face-lo),inset -1px -1px 0 var(--face-hi),inset 2px 2px 0 var(--face-dk)}
+.txt.note{background:var(--note)}
+.sheet .wb{display:flex;flex-direction:column;gap:8px;box-sizing:border-box}
+.sheet{max-width:calc(100% - 8px);max-height:calc(100% - 8px);display:flex;flex-direction:column}
+.sheet .wb{min-height:0;flex:1}
+
+/* 素材リスト */
+.list{width:336px;max-width:100%;max-height:360px;overflow:auto;background:var(--paper);touch-action:pan-y;box-sizing:border-box;
+  box-shadow:inset 1px 1px 0 var(--face-lo),inset -1px -1px 0 var(--face-hi),inset 2px 2px 0 var(--face-dk);padding:4px}
+.li{display:grid;grid-template-columns:20px 1fr auto;gap:0 6px;padding:3px 4px;border-bottom:1px dotted var(--face-lo);line-height:17px}
+.li:last-child{border-bottom:0}
+.li i{width:16px;height:16px;margin-top:1px;background-size:16px 16px;background-repeat:no-repeat}
+.li b{font-weight:400}
+.li em{font-style:normal;color:var(--ink-dis)}
+.li p{grid-column:2 / 4;margin:0;color:var(--ink-dis);white-space:normal}
+.li.got em{color:var(--ink)}
+.li.un em{color:var(--warn)}
+.txt::-webkit-scrollbar,.list::-webkit-scrollbar{width:16px;height:16px}
+.txt::-webkit-scrollbar-track,.list::-webkit-scrollbar-track{background:var(--face-mid)}
+.txt::-webkit-scrollbar-thumb,.list::-webkit-scrollbar-thumb{background:var(--face);box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-hi),inset -2px -2px 0 var(--face-lo)}
+.pic{display:block;background:var(--paper);image-rendering:crisp-edges;image-rendering:pixelated;max-width:100%;
+  box-shadow:0 0 0 1px var(--face-dk)}
+.cap{line-height:18px;white-space:pre-wrap}
+
+/* 十字ボタン */
+.pad{position:absolute;left:0;right:0;bottom:6px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;z-index:5}
+.dpad{position:relative;width:150px;height:150px;pointer-events:auto;touch-action:none}
+.pb{position:absolute;width:50px;height:50px;background:var(--face);display:flex;align-items:center;justify-content:center;pointer-events:none;
+  box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-hi),inset -2px -2px 0 var(--face-lo),inset 2px 2px 0 var(--face-mid)}
+.pb.up{left:50px;top:0}.pb.lf{left:0;top:50px}.pb.rt{left:100px;top:50px}.pb.dn{left:50px;top:100px}
+.pb.mid{left:50px;top:50px;box-shadow:none;background:var(--face)}
+.pb.on,.abtn.on{box-shadow:inset 1px 1px 0 var(--face-dk),inset -1px -1px 0 var(--face-hi),inset 2px 2px 0 var(--face-lo);background:var(--face-mid)}
+.abtn{width:84px;height:84px;margin:0 4px 30px 0;background:var(--face);pointer-events:auto;touch-action:none;font-size:32px;line-height:84px;text-align:center;
+  box-shadow:inset -1px -1px 0 var(--face-dk),inset 1px 1px 0 var(--face-hi),inset -2px -2px 0 var(--face-lo),inset 2px 2px 0 var(--face-mid)}
+
+/* ゆれ（つかまったとき） */
+@keyframes shake{0%{transform:translate(0,0)}20%{transform:translate(-5px,2px)}40%{transform:translate(4px,-3px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,3px)}100%{transform:translate(0,0)}}
+.shake{animation:shake .09s steps(5) infinite}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
