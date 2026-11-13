@@ -50,6 +50,10 @@ tools/make_portraits.py 元絵から assets/portrait/ の画像を作る
 
 アドレスの最後に `#debug` を付けて開くと、起動画面と「よんでね」の自動表示を飛ばし、F2 で来訪、F3 で視界の表示ができます。
 
+## もう 1 本: CALL IT ― 表か裏か
+
+`callit/` に、別のゲームが入っています（アントン・シガーに追いかけられる、非公式のファンゲーム）。説明は `callit/README.md` にあります。作り直すときは `python3 tools/build.py --game callit` です。
+
 ## フォント
 
 文字は [DotGothic16](https://github.com/fontworks-fonts/DotGothic16)（SIL Open Font License 1.1）を、16px でドットが画素にそろうように位置合わせして、使う文字だけ埋めこんでいます。ライセンスは `assets/font/OFL.txt` にあります。

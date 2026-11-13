@@ -4,6 +4,7 @@
 
   python3 tools/build.py                  -> index.html（そのまま開ける完成品）
   python3 tools/build.py --artifact PATH  -> Claude の Artifact 用（head なしの断片）も書き出す
+  python3 tools/build.py --game callit    -> callit/src/ から callit/index.html を作る（別のゲーム）
 
 フォントは assets/font/DotGothic16-Regular.ttf から、使っている文字だけを抜き出して埋め込む。
 そのとき、文字ごとの半ピクセルのずれを直して、16px でドットが画素にぴったり乗るようにする。
@@ -75,13 +76,13 @@ def align(font):
             g.recalcBounds(glyf)
 
 
-def font_css(chars):
+def font_css(chars, cache=FONT_CSS):
     try:
         from fontTools import subset
     except ImportError:
-        if FONT_CSS.exists():
+        if cache.exists():
             print('fonttools が無いので、前回の font.gen.css を使います', file=sys.stderr)
-            return read(FONT_CSS)
+            return read(cache)
         raise SystemExit('fonttools が必要です: pip install fonttools brotli')
     try:
         import brotli  # noqa: F401
@@ -112,7 +113,7 @@ def font_css(chars):
     data = buf.getvalue()
     css = ('@font-face{font-family:"%s";font-style:normal;font-weight:400;font-display:block;'
            'src:url(data:%s;base64,%s) format("%s")}\n') % (FAMILY, mime, base64.b64encode(data).decode('ascii'), fmt)
-    FONT_CSS.write_text(css, encoding='utf-8')
+    cache.write_text(css, encoding='utf-8')
     print('フォント: %d 文字 / %.1f KB' % (len(have), len(data) / 1024))
     return css
 
@@ -129,27 +130,32 @@ def images_js():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--artifact', help='Artifact 用の断片を書き出す先')
+    ap.add_argument('--game', help='別のゲームの入っているフォルダ名（例: callit）。省くと「事象のアトリエ」')
     args = ap.parse_args()
 
-    css = read(SRC / 'style.css')
-    body = read(SRC / 'page.html')
-    files = sorted((SRC / 'js').glob('*.js'))
-    js = images_js() + '\n'.join('// ── %s ──\n%s' % (p.name, read(p)) for p in files)
+    src = ROOT / args.game / 'src' if args.game else SRC
+    out_html = ROOT / args.game / 'index.html' if args.game else ROOT / 'index.html'
+    title_file = src / 'title.txt'
+    page_title = read(title_file).strip() if title_file.exists() else TITLE
+    css = read(src / 'style.css')
+    body = read(src / 'page.html')
+    files = sorted((src / 'js').glob('*.js'))
+    js = ('' if args.game else images_js()) + '\n'.join('// ── %s ──\n%s' % (p.name, read(p)) for p in files)
     if '</script' in js.lower():
         raise SystemExit('JS の中に </script> があります')
 
     chars = base_chars() | set(c for c in css + body + js if ord(c) >= 0x80 and not c.isspace())
-    fcss = font_css(chars)
+    fcss = font_css(chars, src / 'font.gen.css')
 
-    title = '<title>%s</title>\n' % TITLE
+    title = '<title>%s</title>\n' % page_title
     style = '<style>\n' + fcss + css + '\n</style>\n'
     script = '<script>\n(function(){\n"use strict";\n' + js + '\n})();\n</script>\n'
 
     full = ('<!DOCTYPE html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
             + title + style + '</head>\n<body>\n' + body + '\n' + script + '</body>\n</html>\n')
-    (ROOT / 'index.html').write_text(full, encoding='utf-8')
-    print('index.html: %.1f KB' % (len(full.encode('utf-8')) / 1024))
+    out_html.write_text(full, encoding='utf-8')
+    print('%s: %.1f KB' % (out_html.relative_to(ROOT), len(full.encode('utf-8')) / 1024))
 
     if args.artifact:
         frag = (title + '<meta name="claude:viewport-fit-sides" content="cover">\n'
