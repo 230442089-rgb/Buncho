@@ -1,0 +1,535 @@
+<title>籠 / 全て文鳥の所為です。</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho:wght@400;600;800&display=swap">
+<style>
+/* 配置: 1 列。いちばん上に「映像」に見立てた黒い枠、その下に操作、さらに下に譜割りつきの歌詞。
+   枠の中では小節線を籠の格子として引き、歌っている音だけを文鳥の嘴の赤で灯す。配色はこの 1 種類だけ。 */
+:root {
+  color-scheme: dark;
+  --ink: #060607;        /* 地 */
+  --void: #000000;       /* 枠の中 */
+  --paper: #ecebe5;      /* 文字 */
+  --dim: #9b9993;        /* 補助の文字 */
+  --mute: #55544f;       /* まだ歌われていない仮名 */
+  --faint: #2b2b2f;      /* 罫 */
+  --bar: #1d1d21;        /* 格子 (小節線) */
+  --ring: #de4b37;       /* 嘴と目の縁の赤 */
+  --scan: rgba(0, 0, 0, 0.26);
+  --mincho: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --dot: "DotGothic16", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mincho);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+
+.wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding-block: 1.25rem 3.5rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  font-family: var(--dot);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+}
+.masthead .by { color: var(--paper); }
+
+/* ---- 枠 ---- */
+.stage {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
+  overflow: hidden;
+  background: var(--void);
+  border: 1px solid var(--faint);
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--scan) 2px 3px);
+  pointer-events: none;
+}
+.hud {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.8rem;
+  right: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--dot);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+.lamp { width: 0.5rem; height: 0.5rem; background: var(--paper); opacity: 0; }
+.lamp.on { opacity: 1; }
+.inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  text-align: center;
+}
+.title {
+  margin: 0;
+  font-size: clamp(4.5rem, 24vw, 9.5rem);
+  font-weight: 800;
+  line-height: 1;
+}
+.line {
+  margin: 0;
+  font-size: clamp(1.2rem, 5.4vw, 2.5rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  text-wrap: balance;
+  text-shadow: 0 0 0.5em var(--void), 0 0 0.15em var(--void);
+}
+.kana {
+  margin: 0;
+  min-height: 1.4em;
+  font-family: var(--dot);
+  font-size: clamp(0.72rem, 2.7vw, 0.95rem);
+  letter-spacing: 0.22em;
+  color: var(--mute);
+  text-shadow: 0 0 0.4em var(--void);
+}
+.kana .on { color: var(--paper); }
+.kana .now { color: var(--ring); }
+.eye {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(2.6rem, 13vw, 5rem);
+  aspect-ratio: 1;
+  border: 0.42rem solid var(--ring);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+.eye.on { opacity: 1; }
+@keyframes skip {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-7px, 1px) skewX(-9deg); }
+  50% { transform: translate(6px, -1px); }
+  75% { transform: translate(-3px, 0) skewX(6deg); }
+  100% { transform: translate(0, 0); }
+}
+.stage.skip .inner, .stage.skip canvas { animation: skip 0.09s steps(2) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .stage.skip .inner, .stage.skip canvas { animation: none; }
+}
+
+/* ---- 操作 ---- */
+.transport { display: flex; align-items: center; gap: 0.9rem; font-family: var(--dot); }
+.play {
+  font: inherit;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  min-width: 5.4rem;
+  padding: 0.55rem 0.9rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+}
+.play:hover { background: var(--ring); color: var(--void); }
+.play:disabled { background: var(--faint); color: var(--dim); cursor: default; }
+.seek { position: relative; flex: 1; min-width: 0; }
+.seek input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 1.9rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.seek input::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(to right, var(--paper) var(--p, 0%), var(--faint) var(--p, 0%));
+}
+.seek input::-moz-range-track { height: 2px; background: var(--faint); }
+.seek input::-moz-range-progress { height: 2px; background: var(--paper); }
+.seek input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0.6rem;
+  height: 1.1rem;
+  margin-top: calc(-0.55rem + 1px);
+  background: var(--ring);
+  border: 0;
+  border-radius: 0;
+}
+.seek input::-moz-range-thumb { width: 0.6rem; height: 1.1rem; background: var(--ring); border: 0; border-radius: 0; }
+.marks { position: absolute; left: 0; right: 0; top: 50%; height: 0; pointer-events: none; }
+.marks i { position: absolute; top: 5px; width: 1px; height: 5px; background: var(--dim); opacity: 0.55; }
+.time { font-size: 0.85rem; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.msg { margin: 0; font-family: var(--dot); font-size: 0.85rem; color: var(--ring); }
+
+/* ---- 譜割りつきの歌詞 ---- */
+.sheet { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1.2rem; }
+.label {
+  margin: 0;
+  font-family: var(--dot);
+  font-weight: 400;
+  font-size: 0.8rem;
+  letter-spacing: 0.24em;
+  color: var(--dim);
+}
+.cue { display: flex; flex-direction: column; gap: 0.3rem; }
+.cue-head {
+  display: grid;
+  grid-template-columns: 3.1rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0 0;
+  text-align: left;
+  font-family: var(--dot);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--faint);
+  border-radius: 0;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.cue-head .name { font-family: var(--mincho); font-weight: 600; font-size: 1rem; letter-spacing: 0.12em; color: var(--paper); }
+.cue-head .meta { white-space: nowrap; }
+.cue.now .cue-head .t { color: var(--ring); }
+.lines { list-style: none; margin: 0; padding: 0 0 0 3.85rem; display: flex; flex-direction: column; }
+.lines button {
+  font: inherit;
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  line-height: 1.6;
+  padding: 0.18rem 0;
+  text-align: left;
+  color: var(--dim);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+}
+.lines button:hover, .cue-head:hover .name { color: var(--ring); }
+.lines button.now { color: var(--paper); }
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--faint);
+  font-size: 0.92rem;
+  color: var(--dim);
+}
+.about p { margin: 0; max-width: 34rem; }
+</style>
+
+<main class="wrap">
+  <div class="masthead">
+    <span class="by">全て文鳥の所為です。</span>
+    <span>チップチューン ・ 8ch ・ BPM 152</span>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="roll" aria-hidden="true"></canvas>
+    <div class="hud"><span id="sec">前奏</span><span class="lamp" id="lamp"></span></div>
+    <div class="inner" id="inner">
+      <h1 class="title" id="title">籠</h1>
+      <p class="line" id="line" hidden></p>
+      <p class="kana" id="kana" hidden></p>
+    </div>
+    <div class="eye" id="eye"></div>
+  </div>
+
+  <div class="transport">
+    <button class="play" id="play" type="button" disabled>読込中</button>
+    <div class="seek">
+      <input id="seek" type="range" min="0" max="1000" step="1" value="0" aria-label="再生位置">
+      <div class="marks" id="marks"></div>
+    </div>
+    <span class="time" id="time">0:00 / 0:00</span>
+  </div>
+  <p class="msg" id="msg" hidden>音声を読み込めませんでした。ページを開き直してみてください。</p>
+  <audio id="au" preload="auto"></audio>
+
+  <section class="sheet" id="sheet" aria-label="歌詞と構成">
+    <h2 class="label">歌詞</h2>
+  </section>
+
+  <section class="about">
+    <h2 class="label">音のこと</h2>
+    <p>ファミコンの音源と拡張音源 VRC6 に相当する 8 チャンネルだけで鳴らしています。歌は矩形波で、同じ旋律を 1 オクターブ下に重ねました。</p>
+    <p>サビのたびに調が変わります。間奏は 7/8 拍子、C メロは 3/4 拍子です。</p>
+    <p>C メロの裏で鳴る信号は欧文モールスで、枠の右上の灯りも同じ符号で点きます。</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  document.documentElement.lang = "ja";
+  var TL = __TIMELINE__;
+  var DUR = TL.duration;
+  var $ = function (id) { return document.getElementById(id); };
+  var au = $("au"), stage = $("stage"), inner = $("inner"), cv = $("roll"), ctx = cv.getContext("2d");
+  var elTitle = $("title"), elLine = $("line"), elKana = $("kana"), elSec = $("sec");
+  var elLamp = $("lamp"), elEye = $("eye"), elPlay = $("play"), elSeek = $("seek"), elTime = $("time");
+  var css = getComputedStyle(document.documentElement);
+  var tok = function (n) { return css.getPropertyValue(n).trim(); };
+  var C = { paper: tok("--paper"), dim: tok("--dim"), bar: tok("--bar"), ring: tok("--ring"), mute: tok("--mute") };
+
+  var fmt = function (s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); };
+
+  // ---- データの下ごしらえ ----
+  var pitched = [];
+  [["TRI", 0.5], ["SAW", 0.3], ["V2", 0.3], ["V1", 0.42], ["P2", 0.45], ["P1", 0.95]].forEach(function (c) {
+    TL.notes[c[0]].forEach(function (n) { pitched.push({ t: n[0], d: n[1], p: n[2], ch: c[0], a: c[1] }); });
+  });
+  var drums = [];
+  ["NOI", "DMC"].forEach(function (ch) {
+    TL.notes[ch].forEach(function (n) { drums.push({ t: n[0], v: n[3], ch: ch }); });
+  });
+  var within = function (name) { return TL.sections.filter(function (s) { return s.name === name; })[0]; };
+  var br = within("bridge");
+  var code = TL.notes.P2.filter(function (n) { return n[0] >= br.t0 && n[0] < br.t1 && n[2] === 86; });
+  var beeps = TL.notes.TRI.filter(function (n) { return n[2] >= 69; });
+  var L = TL.lyrics;
+  var bandIn = within("intro2").t0;
+  var fxOf = function (type) { return TL.fx.filter(function (f) { return f.type === type; }); };
+  var skips = fxOf("stutter").concat(fxOf("bitcrush")), stops = fxOf("tape_stop"), dead = fxOf("only_after")[0];
+
+  // ---- 歌詞と構成の一覧 ----
+  var sheet = $("sheet"), cues = [], lineBtns = [];
+  var seekTo = function (t) {
+    au.currentTime = Math.max(0, Math.min(DUR, t));
+    render(au.currentTime);
+  };
+  TL.sections.forEach(function (s) {
+    if (s.t1 - s.t0 < 1.5) return;
+    var cue = document.createElement("div");
+    cue.className = "cue";
+    var head = document.createElement("button");
+    head.type = "button";
+    head.className = "cue-head";
+    var meta = [s.key, s.meter, s.bars + "小節"].filter(Boolean).join(" ・ ");
+    [["t", fmt(s.t0)], ["name", s.label], ["meta", meta]].forEach(function (p) {
+      var sp = document.createElement("span");
+      sp.className = p[0];
+      sp.textContent = p[1];
+      head.appendChild(sp);
+    });
+    head.addEventListener("click", function () { seekTo(s.t0); });
+    cue.appendChild(head);
+    var mine = L.map(function (l, i) { return [l, i]; }).filter(function (p) { return p[0].t0 >= s.t0 && p[0].t0 < s.t1; });
+    if (mine.length) {
+      var ol = document.createElement("ol");
+      ol.className = "lines";
+      mine.forEach(function (p) {
+        var li = document.createElement("li"), b = document.createElement("button");
+        b.type = "button";
+        b.textContent = p[0].text;
+        b.addEventListener("click", function () { seekTo(p[0].t0 - 0.25); });
+        li.appendChild(b);
+        ol.appendChild(li);
+        lineBtns[p[1]] = b;
+      });
+      cue.appendChild(ol);
+    }
+    sheet.appendChild(cue);
+    cues.push({ el: cue, s: s });
+  });
+  var marks = $("marks");
+  TL.sections.forEach(function (s) {
+    if (s.t0 < 1) return;
+    var i = document.createElement("i");
+    i.style.left = (s.t0 / DUR * 100) + "%";
+    marks.appendChild(i);
+  });
+
+  // ---- 枠の中の描画 ----
+  var dpr = 1;
+  var fit = function () {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var r = cv.getBoundingClientRect();
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+  };
+  var draw = function (t) {
+    var w = cv.width, h = cv.height, span = 8, x0 = w * 0.3, pps = w / span;
+    var X = function (s) { return x0 + (s - t) * pps; };
+    ctx.clearRect(0, 0, w, h);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.bar;                              // 小節線 = 籠の格子
+    for (var i = 0; i < TL.bars.length; i++) {
+      var bx = X(TL.bars[i]);
+      if (bx > -2 && bx < w + 2) ctx.fillRect(Math.round(bx), 0, Math.max(1, dpr), h);
+    }
+    var lo = 31, hi = 99, pad = h * 0.1;
+    var unit = (h - 2 * pad) / (hi - lo), nh = Math.max(2 * dpr, unit * 0.85);
+    for (var k = 0; k < pitched.length; k++) {
+      var n = pitched[k], xa = X(n.t), xb = X(n.t + n.d);
+      if (xb < 0 || xa > w) continue;
+      var on = n.t <= t && t < n.t + n.d;
+      ctx.globalAlpha = on ? 1 : n.a * 0.5;
+      ctx.fillStyle = on ? (n.ch === "P1" ? C.ring : C.paper) : (n.ch === "P1" ? C.paper : C.dim);
+      ctx.fillRect(xa, h - pad - (n.p - lo) * unit - nh / 2, Math.max(dpr, xb - xa - dpr), nh);
+    }
+    for (var j = 0; j < drums.length; j++) {
+      var d = drums[j], dx = X(d.t);
+      if (dx < 0 || dx > w) continue;
+      var hit = d.t <= t && t < d.t + 0.06, dh = (2 + d.v / 15 * 5) * dpr;
+      ctx.globalAlpha = hit ? 1 : 0.35;
+      ctx.fillStyle = hit ? C.paper : C.dim;
+      ctx.fillRect(dx, h - (d.ch === "DMC" ? 4 : 13) * dpr - dh, 2 * dpr, dh);
+    }
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = C.ring;
+    ctx.fillRect(Math.round(x0), 0, Math.max(1, dpr), h);
+    ctx.globalAlpha = 1;
+  };
+
+  // ---- 歌詞 ----
+  var shown = -2, sung = -1;
+  var lineAt = function (t) {
+    var i = -1;
+    for (var k = 0; k < L.length; k++) { if (L[k].t0 - 0.12 <= t) i = k; else break; }
+    if (i < 0) return -1;
+    var gap = i + 1 < L.length ? L[i + 1].t0 - L[i].t1 : 1.2;
+    return t < L[i].t1 + Math.min(1.2, Math.max(0.2, gap)) ? i : -1;
+  };
+  var showLine = function (i, t) {
+    if (i !== shown) {
+      shown = i;
+      sung = -1;
+      lineBtns.forEach(function (b, k) { if (b) b.classList.toggle("now", k === i); });
+      elKana.textContent = "";
+      if (i >= 0) {
+        elLine.textContent = L[i].text;
+        L[i].kana.forEach(function (m) {
+          var sp = document.createElement("span");
+          sp.textContent = m[1];
+          elKana.appendChild(sp);
+        });
+      }
+    }
+    var titleCard = i < 0 && t < bandIn;
+    elTitle.hidden = !titleCard;
+    elLine.hidden = elKana.hidden = i < 0;
+    if (i >= 0) {
+      var c = -1, ks = L[i].kana;
+      for (var k = 0; k < ks.length; k++) { if (ks[k][0] <= t + 0.02) c = k; }
+      if (c !== sung) {
+        sung = c;
+        for (var q = 0; q < elKana.children.length; q++) {
+          elKana.children[q].className = q < c ? "on" : (q === c ? "now" : "");
+        }
+      }
+    }
+  };
+
+  var inAny = function (list, t) {
+    for (var i = 0; i < list.length; i++) { if (t >= list[i][0] && t < list[i][0] + list[i][1]) return true; }
+    return false;
+  };
+  var render = function (t) {
+    var sec = TL.sections[0];
+    for (var i = 0; i < TL.sections.length; i++) { if (TL.sections[i].t0 <= t) sec = TL.sections[i]; }
+    elSec.textContent = [sec.label, sec.key, sec.meter].filter(Boolean).join(" ・ ");
+    cues.forEach(function (c) { c.el.classList.toggle("now", c.s === sec); });
+
+    var isDead = !!dead && t >= dead.t0, fade = 1;
+    stops.forEach(function (f) { if (t >= f.t0 && t < f.t1) { var u = (t - f.t0) / (f.t1 - f.t0); fade = 1 - u * u; } });
+    var op = isDead ? 0 : fade;
+    inner.style.opacity = op;
+    cv.style.opacity = op;
+    elSec.style.opacity = op;
+    stage.classList.toggle("skip", skips.some(function (f) { return t >= f.t0 && t < f.t1; }));
+    elLamp.classList.toggle("on", !isDead && inAny(code, t));
+    elEye.classList.toggle("on", inAny(beeps, t));
+
+    showLine(isDead ? -1 : lineAt(t), isDead ? DUR : t);
+    draw(t);
+    elSeek.value = Math.round(t / DUR * 1000);
+    elSeek.style.setProperty("--p", (t / DUR * 100) + "%");
+    elTime.textContent = fmt(t) + " / " + fmt(DUR);
+  };
+
+  // ---- 再生まわり ----
+  // 音声はまるごと読み込んでから渡す (どんな置き場所でも頭出しが効くように)。だめなら直接つなぐ。
+  var SRC = "__AUDIO__", viaBlob = false;
+  var ready = function () { elPlay.disabled = false; if (au.paused) elPlay.textContent = "再生"; };
+  var direct = function () { viaBlob = false; au.src = SRC; ready(); };
+  if (window.fetch && /^https?:$/.test(location.protocol)) {
+    fetch(SRC).then(function (r) {
+      if (!r.ok) throw new Error("http " + r.status);
+      return r.blob();
+    }).then(function (b) {
+      viaBlob = true;
+      au.src = URL.createObjectURL(b);
+      ready();
+    }).catch(direct);
+  } else {
+    direct();
+  }
+  var loop = function () {
+    render(Math.min(au.currentTime, DUR));
+    if (!au.paused && !au.ended) requestAnimationFrame(loop);
+  };
+  elPlay.addEventListener("click", function () {
+    if (au.paused) {
+      var p = au.play();
+      if (p && p.catch) p.catch(function () { if (!viaBlob) $("msg").hidden = false; });
+    } else {
+      au.pause();
+    }
+  });
+  au.addEventListener("play", function () { elPlay.textContent = "停止"; $("msg").hidden = true; requestAnimationFrame(loop); });
+  au.addEventListener("pause", function () { elPlay.textContent = "再生"; });
+  au.addEventListener("ended", function () { au.currentTime = 0; elPlay.textContent = "再生"; render(0); });
+  au.addEventListener("seeked", function () { if (au.paused) render(au.currentTime); });
+  au.addEventListener("error", function () { if (viaBlob) direct(); else $("msg").hidden = false; });
+  elSeek.addEventListener("input", function () { seekTo(elSeek.value / 1000 * DUR); });
+  document.addEventListener("keydown", function (e) {
+    if (e.code !== "Space" || /^(BUTTON|INPUT|A|TEXTAREA)$/.test(e.target.tagName)) return;
+    e.preventDefault();
+    elPlay.click();
+  });
+  window.addEventListener("resize", function () { fit(); render(au.currentTime || 0); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { render(au.currentTime || 0); });
+  fit();
+  render(0);
+})();
+</script>
