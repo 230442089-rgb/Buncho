@@ -465,8 +465,10 @@ body {
     return false;
   };
   var render = function (t) {
-    var sec = TL.sections[0];
-    for (var i = 0; i < TL.sections.length; i++) { if (TL.sections[i].t0 <= t) sec = TL.sections[i]; }
+    var si = 0;
+    for (var i = 0; i < TL.sections.length; i++) { if (TL.sections[i].t0 <= t) si = i; }
+    var sec = TL.sections[si];
+    if (sec.t1 - sec.t0 < 1.5 && si + 1 < TL.sections.length) sec = TL.sections[si + 1];   // 頭の 2 拍は導入に含める
     elSec.textContent = [sec.label, sec.key, sec.meter].filter(Boolean).join(" ・ ");
     cues.forEach(function (c) { c.el.classList.toggle("now", c.s === sec); });
 
