@@ -1,0 +1,159 @@
+<title>溺愛迷宮</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* layout: one-screen board. HUD rail on top, 11x11 nest map, log + controls beside (desktop) or below (phone). */
+:root{
+  --bg:#f7f6fb; --surface:#ffffff; --ink:#2a2836; --muted:#77748a; --line:#e2dfee;
+  --vol:#4f93d6; --vol-soft:#dcebfa; --yuria:#c98a0a; --yuria-soft:#fdf0cf; --love:#d9608f; --love-soft:#fbe3ec;
+  --wall:#aab6dc; --floor:#ffffff; --floor-dim:#eceaf4; --unseen:#d9d6e6; --goo:#f6dc8e; --aroma:#e9d3f3;
+  --ent-l:36%; --shadow:0 1px 0 rgba(40,36,70,.06);
+  --f-disp:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-body:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+  --f-story:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#14131b; --surface:#1e1c28; --ink:#eceaf5; --muted:#9a97ad; --line:#322f42;
+  --vol:#86bdf2; --vol-soft:#1f3046; --yuria:#f0bd4a; --yuria-soft:#3a2f14; --love:#f08db3; --love-soft:#3d2030;
+  --wall:#3d486e; --floor:#2c2a3a; --floor-dim:#211f2c; --unseen:#17161f; --goo:#6a5416; --aroma:#46305a;
+  --ent-l:74%; --shadow:0 1px 0 rgba(0,0,0,.3); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#14131b; --surface:#1e1c28; --ink:#eceaf5; --muted:#9a97ad; --line:#322f42;
+  --vol:#86bdf2; --vol-soft:#1f3046; --yuria:#f0bd4a; --yuria-soft:#3a2f14; --love:#f08db3; --love-soft:#3d2030;
+  --wall:#3d486e; --floor:#2c2a3a; --floor-dim:#211f2c; --unseen:#17161f; --goo:#6a5416; --aroma:#46305a;
+  --ent-l:74%; --shadow:0 1px 0 rgba(0,0,0,.3); color-scheme:dark }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.6;
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:focus-visible{outline:2px solid var(--vol);outline-offset:2px}
+#app{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.top h1{font-family:var(--f-disp);font-weight:700;font-size:20px;margin:0;letter-spacing:.08em}
+.top .where{font-family:var(--f-disp);font-weight:700;color:var(--vol)}
+.top .turn{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+.top .sp{flex:1}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:12px;color:var(--muted)}
+.hud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px}
+.bar{min-width:0}
+.bar .lab{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);gap:4px}
+.bar .lab b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+.bar .tr{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar .fl{height:100%;width:0;border-radius:99px;transition:width .25s}
+.bar.st .fl{background:var(--yuria)} .bar.me .fl{background:var(--love)} .bar.vo .fl{background:var(--vol)}
+.chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;min-height:22px}
+.chip{font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);background:var(--surface);white-space:nowrap}
+.chip.wave{border-color:var(--yuria);color:var(--yuria)} .chip.mark{border-color:var(--vol);color:var(--vol)}
+.chip.bad{border-color:var(--love);color:var(--love);background:var(--love-soft)}
+.stage{display:grid;grid-template-columns:minmax(0,396px) minmax(0,1fr);gap:12px;align-items:start}
+.map{display:grid;grid-template-columns:repeat(11,1fr);gap:2px;width:100%;aspect-ratio:1;max-width:100%;
+  font-family:var(--f-disp);font-weight:700;font-size:clamp(11px,3.5vw,16px);user-select:none;-webkit-user-select:none;
+  border-radius:10px;padding:3px;background:var(--line);transition:box-shadow .2s}
+.map.caught{box-shadow:0 0 0 3px var(--love)}
+.map.volhere{box-shadow:0 0 0 3px var(--vol)}
+.c{aspect-ratio:1;display:grid;place-items:center;border-radius:4px;line-height:1;position:relative;overflow:hidden}
+.c.u{background:var(--unseen)} .c.w{background:var(--wall)} .c.f{background:var(--floor-dim);color:var(--muted)}
+.c.f.v{background:var(--floor)} .c.goo.v{background:var(--goo)} .c.aro.v{background:var(--aroma)}
+.c .t{font-size:.8em;color:var(--love)} .c .i{color:var(--yuria)} .c .s{color:var(--vol)} .c .d{color:var(--muted);font-size:.85em}
+.c .e{color:hsl(var(--h) 60% var(--ent-l))} .c .e.evo{text-decoration:underline double;text-underline-offset:2px}
+.c .p{background:var(--yuria);color:var(--surface);width:86%;height:86%;display:grid;place-items:center;border-radius:50%}
+.c .vl{background:var(--vol);color:var(--surface);width:86%;height:86%;display:grid;place-items:center;border-radius:50%}
+.side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.log{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;height:168px;overflow-y:auto;font-size:13px;min-width:0}
+.log p{margin:0 0 3px} .log .sys{color:var(--muted)} .log .bad{color:var(--love)} .log .good{color:var(--yuria)} .log .vol{color:var(--vol)}
+.log .big{font-weight:600}
+.pad{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
+.dpad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:3px}
+.dpad button,.acts button,.bind .opts button{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);font-family:var(--f-disp);font-weight:700}
+.dpad button{font-size:16px} .dpad .mid{font-size:11px;color:var(--muted)}
+.acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.acts button{padding:8px 2px;font-size:13px;min-height:44px}
+.acts button small,.bind .opts button small{display:block;font-family:var(--f-body);font-weight:400;font-size:10px;color:var(--muted)}
+.acts button.on{background:var(--yuria-soft);border-color:var(--yuria)}
+button:disabled{opacity:.4;cursor:default}
+.bind{background:var(--love-soft);border:1px solid var(--love);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.bind h2{margin:0;font-family:var(--f-disp);font-size:15px;color:var(--love)}
+.bind .scene{margin:0;font-family:var(--f-story);font-size:15px;line-height:1.8}
+.bind .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.bind .opts button{padding:8px 4px;min-height:44px;font-size:13px}
+.inv{display:flex;flex-direction:column;gap:5px}
+.inv button{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.inv button small{display:block;color:var(--muted);font-size:11px}
+.overlay{position:fixed;inset:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);overflow-y:auto;
+  padding:calc(18px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{max-width:620px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 20px 18px}
+.sheet h2{font-family:var(--f-disp);font-size:22px;margin:0 0 4px;letter-spacing:.06em;text-wrap:balance}
+.sheet h3{font-family:var(--f-disp);font-size:14px;margin:16px 0 6px;color:var(--vol)}
+.sheet .eyebrow{font-size:11px;letter-spacing:.2em;color:var(--muted);margin:0 0 2px}
+.sheet.over{border-color:var(--vol)} .sheet.over h2{color:var(--vol)} .sheet.win h2{color:var(--yuria)}
+.story p{font-family:var(--f-story);font-size:16px;line-height:2;margin:0 0 .9em;white-space:pre-wrap;animation:rise .5s both}
+.story p.fin{text-align:center;color:var(--vol);font-weight:600;margin-top:1.4em}
+.note p{font-family:var(--f-story);white-space:pre-wrap;margin:0 0 .8em;line-height:1.9}
+.letter{border-left:3px solid var(--vol);padding:2px 0 2px 12px;color:var(--ink);background:none}
+.rules{padding-left:1.2em;margin:0} .rules li{margin-bottom:3px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.cta{background:var(--vol);color:var(--surface);border:0;border-radius:999px;padding:9px 22px;font-family:var(--f-disp);font-weight:700;font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin:10px 0 0;font-size:12px;color:var(--muted)}
+.stats b{display:block;color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabs button{border:1px solid var(--line);background:none;border-radius:99px;padding:3px 12px;font-size:12px}
+.tabs button.on{background:var(--vol-soft);border-color:var(--vol)}
+.ent{display:grid;grid-template-columns:34px minmax(0,1fr);gap:4px 10px;padding:8px 0;border-top:1px solid var(--line)}
+.ent .g{font-family:var(--f-disp);font-weight:700;font-size:20px;color:hsl(var(--h) 60% var(--ent-l));text-align:center}
+.ent b{font-family:var(--f-disp)} .ent p{margin:0;font-size:13px} .ent .lock{color:var(--muted)}
+.pips{letter-spacing:2px;color:var(--love)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes shake{20%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+.map.shake{animation:shake .25s}
+@media (prefers-reduced-motion:reduce){.story p,.map.shake{animation:none}.bar .fl{transition:none}}
+@media (max-width:700px){
+  .stage{grid-template-columns:minmax(0,1fr)} .map{max-width:396px;margin:0 auto}
+  .log{height:104px} .top h1{font-size:17px}
+}
+</style>
+<div id="app">
+  <header class="top">
+    <h1>溺愛迷宮</h1><span class="where" id="floorLbl">地下5階</span><span class="turn" id="turnLbl"></span>
+    <span class="sp"></span>
+    <button class="ghost" id="btnBook" type="button">図鑑</button>
+    <button class="ghost" id="btnHelp" type="button">遊び方</button>
+  </header>
+  <section class="hud" aria-label="ユリアの状態">
+    <div class="bar st"><div class="lab"><span>気力</span><b id="stN">100</b></div><div class="tr"><div class="fl" id="stB"></div></div></div>
+    <div class="bar me"><div class="lab"><span id="meL">陥落度</span><b id="meN">0</b></div><div class="tr"><div class="fl" id="meB"></div></div></div>
+    <div class="bar vo"><div class="lab"><span>ヴォルの気配</span><b id="voN">0</b></div><div class="tr"><div class="fl" id="voB"></div></div></div>
+    <div class="chips" id="chips"></div>
+  </section>
+  <div class="stage">
+    <div class="map" id="map" role="img" aria-label="巣の地図"></div>
+    <div class="side">
+      <div class="log" id="log" aria-live="polite"></div>
+      <div class="pad" id="pad">
+        <div class="dpad">
+          <span></span><button type="button" data-d="0,-1" aria-label="上へ">▲</button><span></span>
+          <button type="button" data-d="-1,0" aria-label="左へ">◀</button><button type="button" class="mid" data-a="wait" aria-label="待機">待機</button><button type="button" data-d="1,0" aria-label="右へ">▶</button>
+          <span></span><button type="button" data-d="0,1" aria-label="下へ">▼</button><span></span>
+        </div>
+        <div class="acts">
+          <button type="button" id="aDash" data-a="dash">ダッシュ<small>3マス・気力12</small></button>
+          <button type="button" id="aWave" data-a="wave">波<small>周囲を消す</small></button>
+          <button type="button" id="aSearch" data-a="search">警戒<small>罠を探す</small></button>
+          <button type="button" id="aInv" data-a="inv">持ち物<small id="invN">0/6</small></button>
+          <button type="button" id="aDecoy" data-a="decoy">囮<small>カーディガン</small></button>
+          <button type="button" id="aWeak" data-a="weak">弱点<small>開発状況</small></button>
+        </div>
+      </div>
+      <div class="bind" id="bind" hidden>
+        <h2 id="bindT"></h2><p class="scene" id="bindS"></p>
+        <div class="opts">
+          <button type="button" data-b="struggle">もがく<small id="bChance"></small></button>
+          <button type="button" data-b="wave" id="bWave">波で消す<small id="bWaveS"></small></button>
+          <button type="button" data-b="yield">身を任せる<small>気力回復・陥落度↑</small></button>
+          <button type="button" data-b="inv">持ち物<small>1ターン使う</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
