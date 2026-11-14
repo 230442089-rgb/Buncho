@@ -1,0 +1,40 @@
+<div id="app" class="app">
+  <canvas id="cv" class="cv" role="img" aria-label="ゲームの画面"></canvas>
+  <div id="vig" class="fx vig"></div>
+  <div id="red" class="fx red"></div>
+  <div id="black" class="fx black"></div>
+  <div id="bars" class="bars"><i></i><i></i></div>
+  <div id="hud" class="hud" hidden>
+    <div id="h-day" class="day"></div>
+    <button type="button" id="b-pause" class="pause" aria-label="中断">Ⅱ</button>
+    <div id="h-home" class="home"><b>自宅</b><span id="h-dist"></span></div>
+    <div id="h-msg" class="msg"></div>
+    <div id="h-prompt" class="prompt" hidden><span id="h-ptx"></span><div class="pbar"><i id="h-pbar"></i></div></div>
+    <div class="stam" aria-label="息"><i id="h-stam"></i></div>
+  </div>
+  <div id="pad" class="pad" hidden>
+    <div id="stick" class="stick" role="group" aria-label="移動"><i id="knob" class="knob"></i></div>
+    <div class="btns">
+      <button type="button" id="b-act" class="pbtn" hidden>鍵</button>
+      <button type="button" id="b-back" class="pbtn">振り返る</button>
+    </div>
+  </div>
+  <div id="p-title" class="panel">
+    <h1>なぜか、<br>走ってくる。</h1>
+    <p class="sub">日本の、ふつうの 住宅街。夜。<br>アントン・シガーが、全力で 走ってくる。理由は ない。</p>
+    <div class="row"><button type="button" id="t-start" class="btn big">はじめる</button></div>
+    <div class="row">
+      <button type="button" id="t-snd" class="btn"></button>
+      <button type="button" id="t-skip" class="btn"></button>
+    </div>
+    <p class="help">彼の ほうが 速い。でも、角を 曲がると、彼は 見失って 立ち止まる。<br>家の 玄関で 鍵を 開ければ、その日は 終わり。</p>
+    <p class="help" id="t-help"></p>
+    <p class="note" id="t-best" hidden></p>
+    <p class="note">非公式の ファンゲーム。暴力的な 死亡場面が あります。</p>
+  </div>
+  <div id="p-card" class="panel card" hidden>
+    <div id="c-lines" class="lines"></div>
+    <div id="c-btns" class="row col"></div>
+  </div>
+</div>
+<script src="{{lib:three}}"></script>

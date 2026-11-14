@@ -14,6 +14,7 @@ import argparse
 import base64
 import collections
 import io
+import json
 import pathlib
 import sys
 
@@ -144,8 +145,20 @@ def main():
     if '</script' in js.lower():
         raise SystemExit('JS の中に </script> があります')
 
-    chars = base_chars() | set(c for c in css + body + js if ord(c) >= 0x80 and not c.isspace())
-    fcss = font_css(chars, src / 'font.gen.css')
+    # 外から読み込む部品（three.js など）。src/libs.json に { 名前: { local, cdn } } を書き、page.html には {{lib:名前}} と書く。
+    # そのまま開く index.html は手元の写し（local）を、Artifact 用は配布元（cdn）を読む。
+    libs_file = src / 'libs.json'
+    libs = json.loads(read(libs_file)) if libs_file.exists() else {}
+    body_art = body
+    for name, d in libs.items():
+        body_art = body_art.replace('{{lib:%s}}' % name, d['cdn'])
+        body = body.replace('{{lib:%s}}' % name, d['local'])
+    # ドット文字を使わないゲームは src/nofont を置く（フォントを埋め込まない）
+    if (src / 'nofont').exists():
+        fcss = ''
+    else:
+        chars = base_chars() | set(c for c in css + body + js if ord(c) >= 0x80 and not c.isspace())
+        fcss = font_css(chars, src / 'font.gen.css')
 
     title = '<title>%s</title>\n' % page_title
     style = '<style>\n' + fcss + css + '\n</style>\n'
@@ -159,7 +172,7 @@ def main():
 
     if args.artifact:
         frag = (title + '<meta name="claude:viewport-fit-sides" content="cover">\n'
-                + style + body + '\n' + script)
+                + style + body_art + '\n' + script)
         out = pathlib.Path(args.artifact)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(frag, encoding='utf-8')

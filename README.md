@@ -54,6 +54,10 @@ tools/make_portraits.py 元絵から assets/portrait/ の画像を作る
 
 `callit/` に、別のゲームが入っています（アントン・シガーに追いかけられる、非公式のファンゲーム）。説明は `callit/README.md` にあります。作り直すときは `python3 tools/build.py --game callit` です。
 
+## さらに 1 本: なぜか、走ってくる
+
+`nazeka/` に、3D のゲームが入っています（日本の住宅街で、なぜかアントン・シガーに追いかけられる、非公式のファンゲーム。暴力的な死亡場面があります）。説明は `nazeka/README.md` にあります。作り直すときは `python3 tools/build.py --game nazeka` です。
+
 ## フォント
 
 文字は [DotGothic16](https://github.com/fontworks-fonts/DotGothic16)（SIL Open Font License 1.1）を、16px でドットが画素にそろうように位置合わせして、使う文字だけ埋めこんでいます。ライセンスは `assets/font/OFL.txt` にあります。

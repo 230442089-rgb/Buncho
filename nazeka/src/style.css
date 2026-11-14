@@ -1,0 +1,89 @@
+/* なぜか、走ってくる: 画面いっぱいの 3D。その上に、ふちの暗がり・字・ボタンを重ねる。タッチ端末では下に、移動の棒とボタン。 */
+/* 見た目は 1 種類だけ（夜）。明暗テーマでは変えない。 */
+:root{
+  --bg:#05070c; --ink:#e6e2d8; --dim:#9a968c; --amber:#e8a838; --blood:#7a0c0c;
+  --glass:rgba(8,10,16,.72); --line:rgba(230,226,216,.28); --pad:rgba(20,22,30,.55); --pad-on:rgba(90,94,110,.6);
+  --font:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif CJK JP",serif;
+  --ui:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html{height:100%;box-sizing:border-box}
+body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.6 var(--ui);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button{font:inherit;color:inherit;margin:0;border:0;padding:0;background:none;cursor:pointer}
+[hidden]{display:none!important}
+.app{position:relative;height:100%;overflow:hidden;background:var(--bg)}
+.cv{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.fx{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none}
+.vig{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 42%,rgba(0,0,0,.82) 100%);opacity:.55}
+.red{background:var(--blood);opacity:0;transition:opacity .25s}
+.black{background:#000;opacity:0;transition:opacity .5s}
+.bars i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .45s}
+.bars i:first-child{top:0}.bars i:last-child{bottom:0}
+.bars.on i{height:11%}
+
+/* 画面の上の表示。左右は、端末のふちをよける */
+.hud{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.day{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:12px;color:var(--dim);letter-spacing:.12em}
+.pause{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:8px;width:40px;height:40px;color:var(--dim);pointer-events:auto;border-radius:6px}
+.pause:focus-visible,.btn:focus-visible,.pbtn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.home{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;line-height:1.15;color:var(--amber);text-shadow:0 1px 3px #000;will-change:transform}
+.home b{font-weight:600;font-size:13px;border:1px solid var(--amber);padding:1px 6px;border-radius:3px;background:rgba(0,0,0,.35)}
+.home span{font-size:12px;font-variant-numeric:tabular-nums}
+.msg{position:absolute;left:16px;right:16px;bottom:23%;text-align:center;font:17px/1.5 var(--font);text-shadow:0 1px 4px #000,0 0 12px #000;min-height:1.5em}
+.prompt{position:absolute;left:50%;bottom:34%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;color:var(--amber);text-shadow:0 1px 4px #000;white-space:nowrap}
+.pbar{width:150px;height:5px;background:rgba(0,0,0,.6);box-shadow:0 0 0 1px var(--line)}
+.pbar i{display:block;height:100%;width:0;background:var(--amber)}
+.stam{position:absolute;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(180px,40%);height:4px;background:rgba(0,0,0,.55);box-shadow:0 0 0 1px var(--line)}
+.stam::before{content:"息";position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:8px;font-size:12px;line-height:1;color:var(--dim);text-shadow:0 1px 3px #000}
+.stam i{display:block;height:100%;width:100%;background:var(--ink)}
+.stam i.low{background:var(--dim)}
+
+/* 題と、結果の札 */
+.panel{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+  padding-block:24px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));
+  background:linear-gradient(90deg,rgba(4,6,10,.9) 0,rgba(4,6,10,.62) 46%,rgba(4,6,10,.12) 100%);overflow:auto}
+/* 中身は上下の中央に。入りきらないときは、上から並べて、巻いて読めるようにする */
+.panel::before,.panel::after{content:"";flex:1 0 0}
+.panel p,.msg{word-break:keep-all;overflow-wrap:anywhere;line-break:strict}
+.panel h1{margin:0;font:600 clamp(30px,min(7.5vw,12vh),62px)/1.18 var(--font);letter-spacing:.04em;text-wrap:balance}
+.panel .sub{margin:0;max-width:30em;color:var(--ink);font:16px/1.75 var(--font)}
+.panel .help{margin:0;max-width:34em;color:var(--dim);font-size:13px;line-height:1.7}
+.panel .note{margin:0;color:var(--dim);font-size:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row.col{flex-direction:column;align-items:stretch;min-width:min(260px,80%)}
+.btn{min-height:42px;padding:6px 18px;border:1px solid var(--line);border-radius:4px;background:var(--glass);text-align:center}
+.btn:hover{border-color:var(--ink)}
+.btn.big{min-width:190px;font:600 18px/1.4 var(--font);border-color:var(--amber);color:var(--amber)}
+.card{align-items:center;text-align:center;background:rgba(0,0,0,.78)}
+.lines p{margin:0 0 8px;font:19px/1.6 var(--font)}
+.lines p:first-child{font-size:clamp(24px,5vw,34px);margin-bottom:14px}
+.lines p:last-child{color:var(--dim);font-size:15px}
+
+/* 移動の棒とボタン（タッチ端末）*/
+.pad{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;
+  padding:0 max(18px,env(safe-area-inset-right,0px)) max(30px,env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
+.stick{position:relative;width:140px;height:140px;border-radius:50%;background:var(--pad);box-shadow:inset 0 0 0 1px var(--line);pointer-events:auto;touch-action:none}
+.knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:var(--pad-on);pointer-events:none}
+.btns{display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:auto}
+.pbtn{min-width:92px;height:64px;padding:0 14px;border-radius:32px;background:var(--pad);box-shadow:inset 0 0 0 1px var(--line);touch-action:none}
+.pbtn.on{background:var(--pad-on)}
+/* 幅の狭い画面（縦持ちのスマホ）では、字が道の明るいところに重なるので、全体を暗くする */
+@media (max-width:600px){.panel{background:rgba(4,6,10,.7)}.card{background:rgba(0,0,0,.78)}}
+/* 背の低い画面（横持ちのスマホ）では、詰めて並べる */
+@media (max-height:480px){
+  .panel{gap:8px;padding-block:10px}
+  .panel h1{font-size:32px}
+  .panel h1 br{display:none}
+  .panel .sub{font-size:14px;line-height:1.6}
+  .panel .help{font-size:12px;line-height:1.55}
+  .btn{min-height:38px}
+  .lines p{margin-bottom:4px}
+  .lines p:first-child{margin-bottom:8px}
+  .stick{width:124px;height:124px}
+  .pbtn{height:54px}
+  .btns{gap:8px}
+  .pad{padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){.red,.black,.bars i{transition:none}}

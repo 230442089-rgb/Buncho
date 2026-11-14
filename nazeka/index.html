@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>なぜか、走ってくる</title>
+<style>
+/* なぜか、走ってくる: 画面いっぱいの 3D。その上に、ふちの暗がり・字・ボタンを重ねる。タッチ端末では下に、移動の棒とボタン。 */
+/* 見た目は 1 種類だけ（夜）。明暗テーマでは変えない。 */
+:root{
+  --bg:#05070c; --ink:#e6e2d8; --dim:#9a968c; --amber:#e8a838; --blood:#7a0c0c;
+  --glass:rgba(8,10,16,.72); --line:rgba(230,226,216,.28); --pad:rgba(20,22,30,.55); --pad-on:rgba(90,94,110,.6);
+  --font:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif CJK JP",serif;
+  --ui:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html{height:100%;box-sizing:border-box}
+body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.6 var(--ui);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button{font:inherit;color:inherit;margin:0;border:0;padding:0;background:none;cursor:pointer}
+[hidden]{display:none!important}
+.app{position:relative;height:100%;overflow:hidden;background:var(--bg)}
+.cv{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.fx{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none}
+.vig{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 42%,rgba(0,0,0,.82) 100%);opacity:.55}
+.red{background:var(--blood);opacity:0;transition:opacity .25s}
+.black{background:#000;opacity:0;transition:opacity .5s}
+.bars i{position:absolute;left:0;right:0;height:0;background:#000;transition:height .45s}
+.bars i:first-child{top:0}.bars i:last-child{bottom:0}
+.bars.on i{height:11%}
+
+/* 画面の上の表示。左右は、端末のふちをよける */
+.hud{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.day{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:12px;color:var(--dim);letter-spacing:.12em}
+.pause{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:8px;width:40px;height:40px;color:var(--dim);pointer-events:auto;border-radius:6px}
+.pause:focus-visible,.btn:focus-visible,.pbtn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.home{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;line-height:1.15;color:var(--amber);text-shadow:0 1px 3px #000;will-change:transform}
+.home b{font-weight:600;font-size:13px;border:1px solid var(--amber);padding:1px 6px;border-radius:3px;background:rgba(0,0,0,.35)}
+.home span{font-size:12px;font-variant-numeric:tabular-nums}
+.msg{position:absolute;left:16px;right:16px;bottom:23%;text-align:center;font:17px/1.5 var(--font);text-shadow:0 1px 4px #000,0 0 12px #000;min-height:1.5em}
+.prompt{position:absolute;left:50%;bottom:34%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;color:var(--amber);text-shadow:0 1px 4px #000;white-space:nowrap}
+.pbar{width:150px;height:5px;background:rgba(0,0,0,.6);box-shadow:0 0 0 1px var(--line)}
+.pbar i{display:block;height:100%;width:0;background:var(--amber)}
+.stam{position:absolute;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(180px,40%);height:4px;background:rgba(0,0,0,.55);box-shadow:0 0 0 1px var(--line)}
+.stam::before{content:"息";position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:8px;font-size:12px;line-height:1;color:var(--dim);text-shadow:0 1px 3px #000}
+.stam i{display:block;height:100%;width:100%;background:var(--ink)}
+.stam i.low{background:var(--dim)}
+
+/* 題と、結果の札 */
+.panel{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+  padding-block:24px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px));
+  background:linear-gradient(90deg,rgba(4,6,10,.9) 0,rgba(4,6,10,.62) 46%,rgba(4,6,10,.12) 100%);overflow:auto}
+/* 中身は上下の中央に。入りきらないときは、上から並べて、巻いて読めるようにする */
+.panel::before,.panel::after{content:"";flex:1 0 0}
+.panel p,.msg{word-break:keep-all;overflow-wrap:anywhere;line-break:strict}
+.panel h1{margin:0;font:600 clamp(30px,min(7.5vw,12vh),62px)/1.18 var(--font);letter-spacing:.04em;text-wrap:balance}
+.panel .sub{margin:0;max-width:30em;color:var(--ink);font:16px/1.75 var(--font)}
+.panel .help{margin:0;max-width:34em;color:var(--dim);font-size:13px;line-height:1.7}
+.panel .note{margin:0;color:var(--dim);font-size:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row.col{flex-direction:column;align-items:stretch;min-width:min(260px,80%)}
+.btn{min-height:42px;padding:6px 18px;border:1px solid var(--line);border-radius:4px;background:var(--glass);text-align:center}
+.btn:hover{border-color:var(--ink)}
+.btn.big{min-width:190px;font:600 18px/1.4 var(--font);border-color:var(--amber);color:var(--amber)}
+.card{align-items:center;text-align:center;background:rgba(0,0,0,.78)}
+.lines p{margin:0 0 8px;font:19px/1.6 var(--font)}
+.lines p:first-child{font-size:clamp(24px,5vw,34px);margin-bottom:14px}
+.lines p:last-child{color:var(--dim);font-size:15px}
+
+/* 移動の棒とボタン（タッチ端末）*/
+.pad{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;
+  padding:0 max(18px,env(safe-area-inset-right,0px)) max(30px,env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
+.stick{position:relative;width:140px;height:140px;border-radius:50%;background:var(--pad);box-shadow:inset 0 0 0 1px var(--line);pointer-events:auto;touch-action:none}
+.knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:var(--pad-on);pointer-events:none}
+.btns{display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:auto}
+.pbtn{min-width:92px;height:64px;padding:0 14px;border-radius:32px;background:var(--pad);box-shadow:inset 0 0 0 1px var(--line);touch-action:none}
+.pbtn.on{background:var(--pad-on)}
+/* 幅の狭い画面（縦持ちのスマホ）では、字が道の明るいところに重なるので、全体を暗くする */
+@media (max-width:600px){.panel{background:rgba(4,6,10,.7)}.card{background:rgba(0,0,0,.78)}}
+/* 背の低い画面（横持ちのスマホ）では、詰めて並べる */
+@media (max-height:480px){
+  .panel{gap:8px;padding-block:10px}
+  .panel h1{font-size:32px}
+  .panel h1 br{display:none}
+  .panel .sub{font-size:14px;line-height:1.6}
+  .panel .help{font-size:12px;line-height:1.55}
+  .btn{min-height:38px}
+  .lines p{margin-bottom:4px}
+  .lines p:first-child{margin-bottom:8px}
+  .stick{width:124px;height:124px}
+  .pbtn{height:54px}
+  .btns{gap:8px}
+  .pad{padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){.red,.black,.bars i{transition:none}}
+
+</style>
+</head>
+<body>
+<div id="app" class="app">
+  <canvas id="cv" class="cv" role="img" aria-label="ゲームの画面"></canvas>
+  <div id="vig" class="fx vig"></div>
+  <div id="red" class="fx red"></div>
+  <div id="black" class="fx black"></div>
+  <div id="bars" class="bars"><i></i><i></i></div>
+  <div id="hud" class="hud" hidden>
+    <div id="h-day" class="day"></div>
+    <button type="button" id="b-pause" class="pause" aria-label="中断">Ⅱ</button>
+    <div id="h-home" class="home"><b>自宅</b><span id="h-dist"></span></div>
+    <div id="h-msg" class="msg"></div>
+    <div id="h-prompt" class="prompt" hidden><span id="h-ptx"></span><div class="pbar"><i id="h-pbar"></i></div></div>
+    <div class="stam" aria-label="息"><i id="h-stam"></i></div>
+  </div>
+  <div id="pad" class="pad" hidden>
+    <div id="stick" class="stick" role="group" aria-label="移動"><i id="knob" class="knob"></i></div>
+    <div class="btns">
+      <button type="button" id="b-act" class="pbtn" hidden>鍵</button>
+      <button type="button" id="b-back" class="pbtn">振り返る</button>
+    </div>
+  </div>
+  <div id="p-title" class="panel">
+    <h1>なぜか、<br>走ってくる。</h1>
+    <p class="sub">日本の、ふつうの 住宅街。夜。<br>アントン・シガーが、全力で 走ってくる。理由は ない。</p>
+    <div class="row"><button type="button" id="t-start" class="btn big">はじめる</button></div>
+    <div class="row">
+      <button type="button" id="t-snd" class="btn"></button>
+      <button type="button" id="t-skip" class="btn"></button>
+    </div>
+    <p class="help">彼の ほうが 速い。でも、角を 曲がると、彼は 見失って 立ち止まる。<br>家の 玄関で 鍵を 開ければ、その日は 終わり。</p>
+    <p class="help" id="t-help"></p>
+    <p class="note" id="t-best" hidden></p>
+    <p class="note">非公式の ファンゲーム。暴力的な 死亡場面が あります。</p>
+  </div>
+  <div id="p-card" class="panel card" hidden>
+    <div id="c-lines" class="lines"></div>
+    <div id="c-btns" class="row col"></div>
+  </div>
+</div>
+<script src="vendor/three.min.js"></script>
+
+<script>
+(function(){
+"use strict";
+// ── 00_core.js ──
+// ───────── なぜか、走ってくる / 土台 ─────────
+// 日本のふつうの住宅街で、なぜかアントン・シガーに追いかけられる。非公式のファンゲーム。
+const DEBUG = location.hash === '#debug';
+
+// 調整用の数値。【】が仕様上の名前。距離は m、時間は秒。
+const PRM = {
+  tile: 5,              // 【1 区画の大きさ】道の幅も同じ
+  walk: 3.2,            // 【歩く速さ】m/s。歩く足音は、すぐそばでしか聞こえない
+  run: 6.7,             // 【走る速さ】m/s。走る足音は、遠くまで聞こえる
+  backMul: 0.88,        // 【振り返っているあいだの速さの倍率】
+  stamina: 8,           // 【走りつづけられる時間】
+  staminaRegen: 7,      // 【息が戻りきるまで】
+  staminaDelay: 0.8,    // 【息が戻りはじめるまで】
+  staminaMin: 0.22,     // 【走りなおせる息の量】0〜1
+  antonRun: 7.6,        // 【彼の走る速さ】m/s。こちらより速い
+  antonFar: 0.5,        // 【離れているときの速さの上乗せ】割合。遠いほど速く走ってくる（34m 以上で最大）
+  antonSearch: 5.2,     // 【見失って探しているときの速さ】
+  antonTurn: 4.4,       // 【彼が向きを変える速さ】rad/s。角では膨らんで遅くなる
+  antonDay: 0.04,       // 【1 日ごとの速さの上乗せ】割合
+  stand: 4,             // 【最初に、立ったままこちらを見ている時間】
+  standMove: 2.5,       // 【こちらがこれだけ動いたら、すぐ走りだす】
+  see: 46,              // 【彼に見える距離】
+  near: 8,              // 【見回さなくても気づく距離】
+  lose: 0.5,            // 【姿が見えなくなってから、見失うまで】そのあとは、最後に見た場所で見回すまで気づかない
+  hearRun: 8,           // 【走る足音が聞こえる距離】塀のむこうでも聞こえる
+  hearWalk: 3,          // 【歩く足音が聞こえる距離】
+  lookPause: 1.2,       // 【見失った場所で立ち止まって見回す時間】
+  guess: 0.45,          // 【見失ったあと、正しい方向を選ぶ確率】外れても、まぐれで当たることはある
+  guessDay: 0.05,       // 【1 日ごとの、その確率の上乗せ】
+  ping: 18,             // 【見失ったままでも、居場所に気づくまで】
+  catchDist: 1.0,       // 【つかまる距離】
+  antonStart: 7,        // 【最初の彼との間隔】区画
+  homeDist: 17,         // 【1 日目の、家までの道のり】区画
+  homeStep: 3,          // 【1 日ごとに遠くなる分】区画
+  unlock: 2.6,          // 【玄関の鍵を開けるのにかかる時間】
+  antonLight: 1.5,      // 【彼を照らす光の強さ】暗い道でも姿が分かるように
+  fov: 62,              // 【視野】度（縦。横長の画面での値。縦長の画面では、横が狭くなりすぎないように広げる）
+  fovRun: 6,            // 【走っているあいだ、視野が広がる分】
+  fovStand: 30,         // 【彼が立ってこちらを見ているあいだの視野】遠くの彼に、目が吸い寄せられる
+  eye: 1.62,            // 【目の高さ】
+};
+
+// 色。16 進の色は画面での見た目（sRGB）なので、光の計算に使う前に直す。直さないと、暗い色が白っぽく浮く
+const C3 = hex => new THREE.Color(hex).convertSRGBToLinear();
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);       // t が a〜b のどこにあるか（0〜1）
+const rnd = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
+// 種から決まる乱数（町を作るのに使う。同じ種なら同じ町）
+function mulberry(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+// 保存（何日目まで生きたか、音の設定、二通りの死にかたをそれぞれ何回見たか = nb, nn）。残らなくても遊べる。
+const Store = {
+  KEY: 'nazeka.v1', d: null,
+  load() { this.d = { best: 0, mute: 0, skip: 0, nb: 0, nn: 0 }; try { const s = localStorage.getItem(this.KEY); if (s) Object.assign(this.d, JSON.parse(s)); } catch (e) { /* 残っていなくてもよい */ } return this.d; },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) { /* 残せなくてもよい */ } },
+};
+
+// 入力。キーボード・マウス・タッチをまとめる。
+//   mvx 横（右が正）, mvy 前後（前が正）, run 走る, back 振り返る, act 決定（押しつづけ）, lookX/lookY 視点を動かした量（rad）
+const Input = {
+  held: {}, mvx: 0, mvy: 0, run: false, back: false, act: false, actHit: false, pauseHit: false, anyHit: false, lookX: 0, lookY: 0,
+  stick: { on: false, x: 0, y: 0 }, tBack: false, tAct: false,
+  KEYS: { KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down', KeyA: 'left', KeyD: 'right', ArrowLeft: 'tl', ArrowRight: 'tr',
+    ShiftLeft: 'run', ShiftRight: 'run', KeyQ: 'back', KeyC: 'back', KeyE: 'act', KeyF: 'act', Enter: 'act', Space: 'act', Escape: 'pause', KeyP: 'pause' },
+  press(k) { if (this.held[k]) return; this.held[k] = true; this.anyHit = true; if (k === 'act') this.actHit = true; else if (k === 'pause') this.pauseHit = true; },
+  release(k) { this.held[k] = false; },
+  clear() { this.held = {}; this.stick.on = false; this.tBack = this.tAct = false; },
+  update(dt) {
+    const h = this.held;
+    let x = (h.right ? 1 : 0) - (h.left ? 1 : 0), y = (h.up ? 1 : 0) - (h.down ? 1 : 0), run = !!h.run;
+    if (this.stick.on) { x = this.stick.x; y = -this.stick.y; const m = Math.hypot(x, y); if (m < 0.2) x = y = 0; else if (m > 0.86) run = true; }
+    const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
+    this.mvx = x; this.mvy = y; this.run = run; this.back = !!h.back || this.tBack; this.act = !!h.act || this.tAct;
+    this.lookX += ((h.tr ? 1 : 0) - (h.tl ? 1 : 0)) * 2.4 * dt;   // マウスが使えないときは、左右キーで向きを変える
+  },
+  endFrame() { this.actHit = this.pauseHit = this.anyHit = false; this.lookX = this.lookY = 0; },
+};
+
+// ── 01_audio.js ──
+// ───────── 音 ─────────
+// 音楽はない。夜の住宅街の虫の声と、足音と、心臓の音。彼の足音は、近いほど大きく、いる方向から聞こえる。
+// すべてその場で合成する。
+const Snd = (() => {
+  let ac = null, master, sfxB, ambB, nbuf = null, muted = false, bugT = 0, on = false;
+  function init() {
+    if (ac) return true;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    try { ac = new AC(); } catch (e) { ac = null; return false; }
+    master = ac.createGain(); master.gain.value = muted ? 0 : 0.85;
+    sfxB = ac.createGain(); sfxB.gain.value = 0.9; ambB = ac.createGain(); ambB.gain.value = on ? 1 : 0;
+    sfxB.connect(master); ambB.connect(master);
+    // 音が重なっても割れないように、大きすぎる山だけ丸める（半分の大きさまでは、そのまま通す）
+    const pre = ac.createGain(), sh = ac.createWaveShaper(), cv = new Float32Array(2048);
+    for (let i = 0; i < cv.length; i++) { const x = (i / (cv.length - 1) * 2 - 1) * 3, m = Math.abs(x); cv[i] = Math.sign(x) * (m <= 0.5 ? m : 0.5 + 0.5 * Math.tanh((m - 0.5) / 0.5)); }
+    pre.gain.value = 1 / 3; sh.curve = cv; master.connect(pre); pre.connect(sh); sh.connect(ac.destination);
+    const n = ac.sampleRate * 2; nbuf = ac.createBuffer(1, n, ac.sampleRate);
+    const d = nbuf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    // 遠くの街の、低いうなり
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = nbuf; s.loop = true; f.type = 'lowpass'; f.frequency.value = 320; g.gain.value = 0.42; s.connect(f); f.connect(g); g.connect(ambB); s.start();
+    return true;
+  }
+  function unlock() { if (!init()) return; if (ac.state !== 'running') { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); } }
+  const now = () => ac.currentTime, at = s => now() + s;
+  function out(g, o) {
+    let node = g;
+    if (o.pan != null && ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = clamp(o.pan, -1, 1); g.connect(p); node = p; }
+    node.connect(o.bus || sfxB);
+  }
+  // o: { t 開始, type 波形, to 終わりの高さ, v 大きさ, a 立ち上がり, hold のびる, pan 左右 }
+  function tone(f, d, o) {
+    o = o || {};
+    const t = o.t || now(), os = ac.createOscillator(), g = ac.createGain();
+    os.type = o.type || 'sine'; os.frequency.setValueAtTime(f, t);
+    if (o.to) os.frequency.exponentialRampToValueAtTime(Math.max(1, o.to), t + d);
+    const v = o.v == null ? 0.2 : o.v, a = o.a || 0.004;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + a);
+    if (o.hold) { g.gain.setValueAtTime(v, t + Math.max(a, d * 0.6)); g.gain.linearRampToValueAtTime(0.0001, t + d); } else g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    os.connect(g); out(g, o); os.start(t); os.stop(t + d + 0.03);
+  }
+  function noise(d, o) {
+    o = o || {};
+    const t = o.t || now(), s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = nbuf; s.loop = true; f.type = o.ft || 'bandpass'; f.frequency.setValueAtTime(o.f || 1000, t);
+    if (o.fto) f.frequency.exponentialRampToValueAtTime(o.fto, t + d);
+    f.Q.value = o.q || 1;
+    const v = o.v == null ? 0.2 : o.v;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + (o.a || 0.003)); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    s.connect(f); f.connect(g); out(g, o); s.start(t, Math.random() * 1.9); s.stop(t + d + 0.03);
+  }
+  // 低い音だけだと、スマホのスピーカーでは聞こえない。どの音にも、中くらいの高さの成分を入れてある
+  const SFX = {
+    step(o) { noise(0.045, { v: 0.42 * o.v, f: 1100 + Math.random() * 400, q: 1.6 }); },                                  // 自分の足音（アスファルト）
+    astep(o) {                                                                                                            // 彼の足音。重い靴が、路面を叩く
+      const v = o.v, pan = o.pan, j = 0.9 + Math.random() * 0.2;
+      noise(0.08, { v: 1.5 * v, f: 250, q: 0.8, ft: 'lowpass', pan }); noise(0.05, { v: 2.6 * v, f: 820 * j, q: 1.3, pan }); noise(0.028, { v: 0.9 * v, f: 2500 * j, q: 2, pan });
+    },
+    pant(o) { noise(0.28, { v: 0.3 * o.v, f: 1500, fto: 700, q: 0.7, a: 0.08 }); },                                       // 息が切れる
+    heart(o) {
+      tone(58, 0.14, { v: 0.42 * o.v, to: 40 }); tone(52, 0.16, { t: at(0.17), v: 0.3 * o.v, to: 38 });
+      tone(132, 0.09, { v: 0.16 * o.v, to: 80 }); tone(120, 0.1, { t: at(0.17), v: 0.11 * o.v, to: 74 });
+    },
+    sting(o) { for (const f of [98, 104, 147, 294]) tone(f, 1.6 * o.v, { v: (f > 200 ? 0.07 : 0.17) * o.v, type: 'sawtooth', a: 0.02 }); noise(0.9 * o.v, { v: 0.5 * o.v, f: 300, q: 0.5, ft: 'lowpass' }); },   // 走りだす・見つかる
+    grab() { noise(0.12, { v: 0.9, f: 500, q: 0.7 }); tone(110, 0.18, { v: 0.3, to: 60 }); },
+    hiss() { noise(0.9, { v: 0.32, f: 5200, q: 0.8, a: 0.25 }); },                                                        // 圧縮空気
+    bolt() { noise(0.05, { v: 1.4, f: 900, q: 0.8 }); tone(95, 0.35, { to: 42, v: 0.5 }); tone(190, 0.12, { to: 90, v: 0.3, type: 'square' }); noise(0.3, { t: at(0.03), v: 0.7, f: 3000, fto: 700, q: 1 }); },
+    wet() { noise(0.4, { v: 1.0, f: 420, fto: 160, q: 0.9 }); noise(0.18, { t: at(0.05), v: 0.6, f: 1900, fto: 700, q: 2 }); },
+    crack() { noise(0.035, { v: 1.4, f: 1700 + Math.random() * 600, q: 3 }); tone(210, 0.07, { v: 0.3, to: 120, type: 'square' }); },
+    thud() { tone(88, 0.22, { to: 44, v: 0.5 }); noise(0.14, { v: 1.2, f: 240, ft: 'lowpass' }); noise(0.06, { v: 0.6, f: 700, q: 1 }); },
+    key() { for (let i = 0; i < 3; i++) noise(0.02, { t: at(i * 0.07 + Math.random() * 0.03), v: 0.55, f: 3200 + Math.random() * 1600, q: 5 }); },
+    door() { noise(0.1, { v: 1.1, f: 500, q: 1.2 }); tone(150, 0.1, { v: 0.2 }); noise(0.05, { t: at(0.5), v: 0.9, f: 900, q: 2 }); },
+    card() { tone(55, 1.6, { v: 0.2 }); tone(82.5, 1.6, { v: 0.09 }); tone(110, 1.6, { v: 0.06 }); },
+    ui() { noise(0.012, { v: 0.5, f: 3000, q: 2 }); },
+  };
+  function sfx(n, o) { if (!ac || muted || ac.state !== 'running') return; try { SFX[n](Object.assign({ v: 1 }, o || {})); } catch (e) { if (DEBUG) console.warn('音', n, e); } }
+  // 夜の虫（リーリーリー）。毎フレーム呼ぶ
+  function tick(dt) {
+    if (!ac || muted || ac.state !== 'running' || !on) return;
+    bugT -= dt;
+    if (bugT <= 0) { bugT = 0.9 + Math.random() * 2.2; const f = 4100 + Math.random() * 500, n = 4 + Math.floor(Math.random() * 6), p = Math.random() * 1.6 - 0.8; for (let i = 0; i < n; i++) tone(f, 0.03, { t: at(i * 0.055), v: 0.024, bus: ambB, pan: p }); }
+  }
+  function ambient(b) { on = !!b; if (ac) ambB.gain.setTargetAtTime(b ? 1 : 0, now(), 0.5); }
+  function mute(b) { muted = !!b; if (ac) master.gain.setTargetAtTime(muted ? 0 : 0.85, now(), 0.03); }
+  function pause(b) { if (!ac) return; if (b) { if (ac.state === 'running') ac.suspend(); } else if (ac.state === 'suspended') ac.resume(); }
+  return { unlock, sfx, tick, ambient, mute, pause, get muted() { return muted; }, dbg: DEBUG ? { SFX } : null };
+})();
+
+// ── 02_town.js ──
+// ───────── 町（日本のふつうの住宅街）─────────
+// 5m ますの格子。道（1）と敷地（0）。道は碁盤の目から何本かを塞いで、丁字路と行き止まりを作る。
+// 敷地にはブロック塀と二階建ての家。電柱と電線、街灯、自販機、路面の「止まれ」。
+// 絵（テクスチャ）は画像を使わず、その場で描く。
+const Town = (() => {
+  const T = { N: 31, g: null, group: null, lamps: [], posts: null, home: null, start: null, antonStart: null, seed: 0 };
+  const ts = PRM.tile, D4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const idx = (x, z) => z * T.N + x;
+  const road = (x, z) => x >= 0 && z >= 0 && x < T.N && z < T.N && T.g[idx(x, z)] === 1;
+  const tileOf = v => Math.floor(v / ts);
+  let shared = null;
+
+  // ── 絵 ──
+  function mkTex(w, h, fn, rx, ry) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+    if (rx) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); }
+    return t;
+  }
+  const speck = (g, w, h, n, cols, s) => { for (let i = 0; i < n; i++) { g.fillStyle = cols[i % cols.length]; g.fillRect(Math.random() * w, Math.random() * h, s, s); } };
+  function mkShared() {
+    const S = {};
+    S.asphalt = mkTex(256, 256, (g, w, h) => {
+      g.fillStyle = '#34353a'; g.fillRect(0, 0, w, h); speck(g, w, h, 9000, ['#404147', '#2a2b2f', '#4a4b52', '#25262a'], 1.6);
+      g.strokeStyle = '#1e1f22'; g.lineWidth = 1; for (let i = 0; i < 5; i++) { g.beginPath(); let x = Math.random() * w, y = Math.random() * h; g.moveTo(x, y); for (let k = 0; k < 6; k++) { x += Math.random() * 30 - 15; y += Math.random() * 30 - 15; g.lineTo(x, y); } g.stroke(); }
+    }, T.N * 1.5, T.N * 1.5);
+    S.block = mkTex(256, 128, (g, w, h) => {
+      g.fillStyle = '#8f8e88'; g.fillRect(0, 0, w, h); speck(g, w, h, 5000, ['#9a9992', '#84837d', '#a3a29a', '#7b7a74'], 2);
+      g.fillStyle = '#5e5d58'; const ch = h / 7;
+      for (let r = 0; r <= 7; r++) g.fillRect(0, Math.round(r * ch) - 1, w, 2);
+      for (let r = 0; r < 7; r++) for (let c = 0; c < 4; c++) g.fillRect(Math.round((c + (r & 1) * 0.5) * 64) % w, Math.round(r * ch), 2, Math.ceil(ch));
+      const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(30,30,28,0.35)'); gr.addColorStop(0.25, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,24,18,0.3)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    }, 3, 1);
+    S.stop = mkTex(256, 512, (g, w, h) => {   // 路面の「止まれ」。運転席から読めるように、縦に長く描いてある
+      g.clearRect(0, 0, w, h); g.fillStyle = '#e8e6dc'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '900 150px "Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo","Noto Sans JP","Noto Sans CJK JP",sans-serif';
+      Array.from('止まれ').forEach((ch, i) => { g.save(); g.translate(w / 2, 86 + i * 170); g.scale(1.25, 1.12); g.fillText(ch, 0, 0); g.restore(); });
+      g.globalCompositeOperation = 'destination-out'; speck(g, w, h, 2600, ['rgba(0,0,0,0.8)'], 3); g.globalCompositeOperation = 'source-over';
+    });
+    S.vend = mkTex(128, 256, (g, w, h) => {
+      g.fillStyle = '#f4f6fb'; g.fillRect(0, 0, w, h); g.fillStyle = '#dfe6f2'; g.fillRect(6, 8, w - 12, 150);
+      const cols = ['#d83a30', '#2a6ad8', '#e8b020', '#28a060', '#f0f0f0', '#7a3ad0', '#e87020', '#30b8d0'];
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) { g.fillStyle = cols[(r * 3 + c * 5) % cols.length]; g.fillRect(12 + c * 18, 16 + r * 48, 12, 30); g.fillStyle = '#ffffff'; g.fillRect(12 + c * 18, 50 + r * 48, 12, 5); }
+      g.fillStyle = '#c8d0de'; g.fillRect(6, 166, w - 12, 34); g.fillStyle = '#20242c'; g.fillRect(14, 208, w - 28, 34); g.fillStyle = '#e8a020'; g.fillRect(90, 172, 20, 8);
+    });
+    S.glow = mkTex(128, 128, (g, w, h) => { const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.55)'); gr.addColorStop(0.7, 'rgba(255,255,255,0.16)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+    S.name = mkTex(128, 48, (g, w, h) => { g.fillStyle = '#e9e6dc'; g.fillRect(0, 0, w, h); g.fillStyle = '#1c1c1c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '700 30px "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif'; g.fillText('自 宅', w / 2, h / 2 + 2); });
+    const std = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.92, metalness: 0 }, o));
+    S.mRoad = std({ map: S.asphalt, roughness: 0.86 });
+    S.mLot = std({ color: C3(0x4c4a45) });
+    S.mWall = std({ map: S.block });
+    S.mHouse = std({ color: C3(0xffffff) });
+    S.mRoof = std({ color: C3(0x23252b), roughness: 0.7 });
+    S.mLine = new THREE.MeshBasicMaterial({ color: C3(0x8f8f86) });
+    S.mStop = new THREE.MeshBasicMaterial({ map: S.stop, transparent: true, alphaTest: 0.35, color: C3(0x9a9a92), depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    S.mPole = std({ color: C3(0x7c7a73) });
+    S.mMetal = std({ color: C3(0x555860), roughness: 0.5, metalness: 0.4 });
+    S.mWin = new THREE.MeshBasicMaterial({ color: C3(0xffffff) });
+    S.mBulb = new THREE.MeshBasicMaterial({ color: C3(0xfff0c8) });
+    S.mVendB = std({ color: C3(0xffffff), roughness: 0.5 });
+    S.mVendF = new THREE.MeshBasicMaterial({ map: S.vend });
+    S.mWire = new THREE.LineBasicMaterial({ color: C3(0x0c0d10) });
+    S.mDoor = std({ color: C3(0x5a3a22), roughness: 0.6 });
+    S.mName = new THREE.MeshBasicMaterial({ map: S.name });
+    S.mPorch = new THREE.MeshBasicMaterial({ color: C3(0xffd28a) });
+    S.mMirror = new THREE.MeshBasicMaterial({ color: C3(0x6f8494) });
+    S.mPool = new THREE.MeshBasicMaterial({ map: S.glow, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 });
+    S.mOrange = std({ color: C3(0xd8701c), roughness: 0.6 });
+    S.box = new THREE.BoxGeometry(1, 1, 1);
+    S.cyl = new THREE.CylinderGeometry(1, 1, 1, 10);
+    S.flat = new THREE.PlaneGeometry(1, 1); S.flat.rotateX(-Math.PI / 2);   // 地面に寝かせた板（上が -Z 向き）
+    S.quad = new THREE.PlaneGeometry(1, 1);                                  // 立てた板（+Z 向き）
+    return S;
+  }
+
+  // 同じ形をたくさん置くための入れ物（1 種類 1 回の描画で済む）
+  const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _e = new THREE.Euler(), _c = new THREE.Color();
+  function inst(geo, mat, cap) {
+    const mesh = new THREE.InstancedMesh(geo, mat, cap); let n = 0;
+    return {
+      add(x, y, z, sx, sy, sz, ry, col) {
+        if (n >= cap) return;
+        _e.set(0, ry || 0, 0); _q.setFromEuler(_e); _p.set(x, y, z); _s.set(sx, sy, sz); _m.compose(_p, _q, _s); mesh.setMatrixAt(n, _m);
+        mesh.setColorAt(n, _c.set(col === undefined ? 0xffffff : col).convertSRGBToLinear());   // 色なしは白（素材の色のまま）
+        n++;
+      },
+      done(group) { mesh.count = n; mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true; mesh.frustumCulled = false; group.add(mesh); },
+    };
+  }
+
+  // 道のりを、歩数で出す（道の上だけ）
+  function bfs(sx, sz) {
+    const d = new Int16Array(T.N * T.N).fill(-1), q = [sx, sz]; d[idx(sx, sz)] = 0;
+    for (let i = 0; i < q.length; i += 2) { const x = q[i], z = q[i + 1], c = d[idx(x, z)]; for (const v of D4) { const nx = x + v[0], nz = z + v[1]; if (road(nx, nz) && d[idx(nx, nz)] < 0) { d[idx(nx, nz)] = c + 1; q.push(nx, nz); } } }
+    return d;
+  }
+  const nbr = (x, z) => D4.filter(v => road(x + v[0], z + v[1])).length;
+
+  // ── 町を作る ──
+  function gen(seed, homeDist) {
+    if (!shared) shared = mkShared();
+    const S = shared, R = mulberry(seed), N = T.N, g = T.g = new Uint8Array(N * N);
+    T.seed = seed;
+    const lines = () => { const a = []; let p = 2 + Math.floor(R() * 2); while (p <= N - 3) { a.push(p); p += 3 + Math.floor(R() * 3); } return a; };
+    const rows = lines(), cols = lines();
+    for (const r of rows) for (let x = cols[0]; x <= cols[cols.length - 1]; x++) g[idx(x, r)] = 1;
+    for (const c of cols) for (let z = rows[0]; z <= rows[rows.length - 1]; z++) g[idx(c, z)] = 1;
+    const connected = () => { const d = bfs(cols[0], rows[0]); for (let i = 0; i < g.length; i++) if (g[i] && d[i] < 0) return false; return true; };
+    const segs = [];
+    for (const r of rows) for (let i = 0; i + 1 < cols.length; i++) segs.push({ h: 1, k: r, a: cols[i] + 1, b: cols[i + 1] - 1 });
+    for (const c of cols) for (let i = 0; i + 1 < rows.length; i++) segs.push({ h: 0, k: c, a: rows[i] + 1, b: rows[i + 1] - 1 });
+    for (let i = segs.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)), t = segs[i]; segs[i] = segs[j]; segs[j] = t; }
+    let cut = 0; const want = Math.floor(segs.length * 0.24);
+    for (const s of segs) {
+      if (cut >= want) break;
+      const b = R() < 0.35 ? Math.floor((s.a + s.b) / 2) : s.b, saved = [];   // 半分だけ塞ぐと、行き止まりになる
+      for (let k = s.a; k <= b; k++) { const i = s.h ? idx(k, s.k) : idx(s.k, k); saved.push(i); g[i] = 0; }
+      if (connected()) cut++; else for (const i of saved) g[i] = 1;
+    }
+    // はじまりの場所、彼の立つ場所、自宅
+    const sc = cols[cols.length >> 1], sr = rows[rows.length >> 1], dist = bfs(sc, sr);
+    T.start = { tx: sc, tz: sr };
+    let best = null;
+    for (const v of D4) { let k = 0; while (road(sc + v[0] * (k + 1), sr + v[1] * (k + 1)) && k < PRM.antonStart + 1) k++; if (!best || k > best.k) best = { k, v }; }
+    if (best.k >= 5) T.antonStart = { tx: sc + best.v[0] * best.k, tz: sr + best.v[1] * best.k };
+    else { let far = null; for (let z = 0; z < N; z++) for (let x = 0; x < N; x++) if (dist[idx(x, z)] === PRM.antonStart) far = { tx: x, tz: z }; T.antonStart = far || { tx: sc + best.v[0] * best.k, tz: sr + best.v[1] * best.k }; }
+    // 自宅は、彼の立つ場所より、こちらに近い側に置く（はじめから、彼の脇を抜けないと帰れない町にはしない）
+    const dA = bfs(T.antonStart.tx, T.antonStart.tz), cand = [], cand2 = []; let maxD = 0, maxT = null;
+    for (let z = 0; z < N; z++) for (let x = 0; x < N; x++) {
+      const d = dist[idx(x, z)]; if (d < 0) continue;
+      const lot = D4.find(v => !road(x + v[0], z + v[1]) && x + v[0] > 0 && z + v[1] > 0 && x + v[0] < N - 1 && z + v[1] < N - 1); if (!lot) continue;
+      const away = dA[idx(x, z)] - d;
+      if (away >= 0 && d <= homeDist + 2 && d > maxD) { maxD = d; maxT = { tx: x, tz: z, v: lot }; }
+      if (d >= homeDist - 1 && d <= homeDist + 2 && nbr(x, z) <= 2) { if (away >= 3) cand.push({ tx: x, tz: z, v: lot }); else if (away >= 0) cand2.push({ tx: x, tz: z, v: lot }); }
+    }
+    const pool = cand.length ? cand : cand2, h = pool.length ? pool[Math.floor(R() * pool.length)] : maxT;
+    T.home = { tx: h.tx, tz: h.tz, nx: h.v[0], nz: h.v[1], x: (h.tx + 0.5 + h.v[0] * 0.5) * ts, z: (h.tz + 0.5 + h.v[1] * 0.5) * ts, dist: dist[idx(h.tx, h.tz)] };
+
+    // ── 見た目を組む ──
+    if (T.group) { T.group.traverse(o => { if (o.isInstancedMesh) o.dispose(); else if (o.isLineSegments) o.geometry.dispose(); }); if (T.group.parent) T.group.parent.remove(T.group); }
+    const G = T.group = new THREE.Group(); T.lamps = []; T.posts = new Map();
+    const post = (x, z, r) => { const k = idx(tileOf(x), tileOf(z)); if (!T.posts.has(k)) T.posts.set(k, []); T.posts.get(k).push({ x, z, r }); };
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(N * ts, N * ts), S.mRoad); ground.rotation.x = -Math.PI / 2; ground.position.set(N * ts / 2, 0, N * ts / 2); G.add(ground);
+    const lots = inst(S.box, S.mLot, N * N), walls = inst(S.box, S.mWall, 1400), houses = inst(S.box, S.mHouse, N * N), roofs = inst(S.box, S.mRoof, N * N), balc = inst(S.box, S.mHouse, 500);
+    const wins = inst(S.quad, S.mWin, 3600), linesI = inst(S.box, S.mLine, 1600), stops = inst(S.flat, S.mStop, 80), poles = inst(S.cyl, S.mPole, 400), arms = inst(S.box, S.mMetal, 600), bulbs = inst(S.box, S.mBulb, 200);
+    const pools = inst(S.flat, S.mPool, 320);
+    const vendB = inst(S.box, S.mVendB, 40), vendF = inst(S.quad, S.mVendF, 40), mirP = inst(S.cyl, S.mOrange, 40), mirD = inst(S.box, S.mMirror, 40);
+    const HCOL = [0xb9b3a4, 0xa8a59c, 0xc4bca8, 0x9aa0a4, 0xb0a696, 0x8d8a84, 0xc9c5ba, 0xa39684], poleList = [];
+    const cx = x => (x + 0.5) * ts;
+    for (let z = 0; z < N; z++) for (let x = 0; x < N; x++) {
+      const wx = cx(x), wz = cx(z);
+      if (!road(x, z)) {
+        const faces = D4.filter(v => road(x + v[0], z + v[1])), near = faces.length > 0 || D4.some(v => D4.some(u => road(x + v[0] + u[0], z + v[1] + u[1])));
+        if (!near) continue;   // 道から見えない奥の敷地は作らない
+        lots.add(wx, 0.06, wz, ts, 0.12, ts, 0);
+        for (const v of faces) walls.add(wx + v[0] * (ts / 2 - 0.08), 0.67, wz + v[1] * (ts / 2 - 0.08), v[0] ? 0.15 : ts, 1.35, v[0] ? ts : 0.15, 0);
+        const isHome = T.home.tx + T.home.nx === x && T.home.tz + T.home.nz === z;
+        if (R() < 0.1 && !isHome) continue;   // 空き地
+        const w = 3.5 + R() * 0.6, d = 3.5 + R() * 0.6, hh = R() < 0.14 && !isHome ? 3.3 : 5.5 + R() * 1.3, ox = (R() - 0.5) * 0.5, oz = (R() - 0.5) * 0.5, col = HCOL[Math.floor(R() * HCOL.length)];
+        houses.add(wx + ox, 0.12 + hh / 2, wz + oz, w, hh, d, 0, col);
+        roofs.add(wx + ox, 0.12 + hh + 0.11, wz + oz, w + 0.5, 0.22, d + 0.5, 0);
+        roofs.add(wx + ox, 0.12 + hh + 0.32, wz + oz, w * 0.6, 0.22, d * 0.6, 0);
+        for (const v of faces) {
+          const ry = Math.atan2(v[0], v[1]), fx = wx + ox + v[0] * (v[0] ? w / 2 + 0.02 : 0), fz = wz + oz + v[1] * (v[1] ? d / 2 + 0.02 : 0), sx = v[1], sz = v[0], span = (v[0] ? d : w) * 0.27;
+          for (const fl of hh > 4 ? [1.75, 4.35] : [1.75]) for (const k of [-1, 1]) {
+            if (R() < 0.18) continue;
+            wins.add(fx + sx * span * k, 0.12 + fl, fz + sz * span * k, 1.05, 0.95, 1, ry, (isHome || R() < 0.3) ? [0xe0a050, 0xd89848, 0xeab868][Math.floor(R() * 3)] : 0x141a24);
+          }
+          if (hh > 4 && R() < 0.5) balc.add(fx + v[0] * 0.38, 3.35, fz + v[1] * 0.38, v[0] ? 0.76 : w * 0.7, 0.9, v[0] ? d * 0.7 : 0.76, 0, 0x9c9a94);
+        }
+        continue;
+      }
+      // 道: 端の白線、「止まれ」、電柱、自販機
+      const n = nbr(x, z);
+      for (const v of D4) if (!road(x + v[0], z + v[1])) linesI.add(wx + v[0] * (ts / 2 - 0.42), 0.008, wz + v[1] * (ts / 2 - 0.42), v[0] ? 0.11 : ts, 0.012, v[0] ? ts : 0.11, 0);
+      if (n >= 3) {
+        for (const v of D4) if (road(x + v[0], z + v[1]) && nbr(x + v[0], z + v[1]) === 2 && R() < 0.4) stops.add(wx + v[0] * ts * 0.82, 0.02, wz + v[1] * ts * 0.82, 1.9, 1, 3.2, Math.atan2(v[0], v[1]));
+        const c = [[1, 1], [1, -1], [-1, 1], [-1, -1]][Math.floor(R() * 4)];
+        poleList.push({ x: wx + c[0] * (ts / 2 - 0.42), z: wz + c[1] * (ts / 2 - 0.42), lamp: R() < 0.7, inx: -c[0], inz: -c[1] });
+        if (R() < 0.3) { const m = [[1, 1], [1, -1], [-1, 1], [-1, -1]][Math.floor(R() * 4)], mx = wx + m[0] * (ts / 2 - 0.3), mz = wz + m[1] * (ts / 2 - 0.3); mirP.add(mx, 1.35, mz, 0.04, 2.7, 0.04, 0); mirD.add(mx - m[0] * 0.1, 2.75, mz - m[1] * 0.1, 0.62, 0.62, 0.06, Math.atan2(-m[0], -m[1])); post(mx, mz, 0.1); }
+      } else if (n === 2) {
+        const side = D4.find(v => !road(x + v[0], z + v[1]));
+        if (side && (x + z) % 3 === 0) poleList.push({ x: wx + side[0] * (ts / 2 - 0.42), z: wz + side[1] * (ts / 2 - 0.42), lamp: R() < 0.45, inx: -side[0], inz: -side[1] });
+        else if (side && R() < 0.07 && !(x === T.home.tx && z === T.home.tz)) {
+          const vx = wx + side[0] * (ts / 2 - 0.42), vz = wz + side[1] * (ts / 2 - 0.42), ry = Math.atan2(-side[0], -side[1]);
+          vendB.add(vx, 0.92, vz, side[0] ? 0.72 : 1.0, 1.83, side[0] ? 1.0 : 0.72, 0, [0xf2f2f2, 0xc8322c, 0x2c5ac8][Math.floor(R() * 3)]);
+          vendF.add(vx - side[0] * 0.37, 0.95, vz - side[1] * 0.37, 0.9, 1.7, 1, ry);
+          T.lamps.push({ x: vx - side[0] * 0.9, y: 1.3, z: vz - side[1] * 0.9, c: 0xcfe2ff, p: 0.7 }); post(vx, vz, 0.55);
+        }
+      }
+    }
+    // 彼の立つ場所と、はじまりの場所は、かならず街灯で照らす
+    for (const q of [T.antonStart, T.start]) { const v = D4.find(u => !road(q.tx + u[0], q.tz + u[1])) || [1, 0], c = v[0] ? [v[0], 0.7] : [0.7, v[1]]; poleList.push({ x: cx(q.tx) + c[0] * (ts / 2 - 0.42), z: cx(q.tz) + c[1] * (ts / 2 - 0.42), lamp: true, inx: -Math.sign(c[0]), inz: -Math.sign(c[1]) }); }
+    for (const p of poleList) {
+      poles.add(p.x, 4.25, p.z, 0.13, 8.5, 0.13, 0); arms.add(p.x, 7.9, p.z, 1.5, 0.09, 0.09, R() * 3); post(p.x, p.z, 0.2);
+      if (R() < 0.3) poles.add(p.x + 0.25, 6.7, p.z, 0.26, 0.7, 0.26, 0, 0x8a8c90);
+      if (p.lamp) {
+        const m = Math.hypot(p.inx, p.inz) || 1, ix = p.inx / m, iz = p.inz / m, ry = Math.atan2(ix, iz);
+        arms.add(p.x + ix * 0.55, 5.7, p.z + iz * 0.55, 0.07, 0.07, 1.1, ry); bulbs.add(p.x + ix * 1.05, 5.62, p.z + iz * 1.05, 0.22, 0.1, 0.5, ry);
+        T.lamps.push({ x: p.x + ix * 1.05, y: 5.5, z: p.z + iz * 1.05, c: 0xffe0aa, p: 1 });
+      }
+    }
+    // 電線（近い電柱どうしを、少したるませてつなぐ）
+    const wp = [];
+    for (const a of poleList) for (const ax of [0, 1]) {
+      let bst = null, bd = 17;
+      for (const b of poleList) { const du = ax ? b.z - a.z : b.x - a.x, dv = ax ? Math.abs(b.x - a.x) : Math.abs(b.z - a.z); if (du > 1 && du < bd && dv < 4.5) { bd = du; bst = b; } }
+      if (bst) for (const y of [8.0, 7.35]) { const mx = (a.x + bst.x) / 2, mz = (a.z + bst.z) / 2; wp.push(a.x, y, a.z, mx, y - 0.4, mz, mx, y - 0.4, mz, bst.x, y, bst.z); }
+    }
+    const wg = new THREE.BufferGeometry(); wg.setAttribute('position', new THREE.Float32BufferAttribute(wp, 3)); G.add(new THREE.LineSegments(wg, S.mWire));
+    // 自宅: 門と、門灯と、表札
+    const hm = T.home, ry = Math.atan2(-hm.nx, -hm.nz), px = hm.nz, pz = hm.nx, gx = hm.x + hm.nx * 0.02, gz = hm.z + hm.nz * 0.02;
+    const door = new THREE.Mesh(S.box, S.mDoor); door.scale.set(hm.nx ? 0.12 : 1.1, 1.95, hm.nx ? 1.1 : 0.12); door.position.set(gx, 0.98, gz); G.add(door);
+    const knob = new THREE.Mesh(S.box, S.mMetal); knob.scale.set(hm.nx ? 0.07 : 0.045, 0.24, hm.nx ? 0.045 : 0.07); knob.position.set(gx + px * 0.4 - hm.nx * 0.09, 1.02, gz + pz * 0.4 - hm.nz * 0.09); G.add(knob);
+    const slot = new THREE.Mesh(S.box, S.mRoof); slot.scale.set(hm.nx ? 0.03 : 0.3, 0.05, hm.nx ? 0.3 : 0.03); slot.position.set(gx - hm.nx * 0.065, 1.1, gz - hm.nz * 0.065); G.add(slot);
+    for (const k of [-1, 1]) { const pp = new THREE.Mesh(S.box, S.mPole); pp.scale.set(0.26, 2.15, 0.26); pp.position.set(gx + px * 0.7 * k, 1.07, gz + pz * 0.7 * k); G.add(pp); }
+    const lampM = new THREE.Mesh(S.box, S.mPorch); lampM.scale.set(0.2, 0.26, 0.2); lampM.position.set(gx + px * 0.7, 2.3, gz + pz * 0.7); G.add(lampM);
+    const plate = new THREE.Mesh(S.quad, S.mName); plate.scale.set(0.42, 0.16, 1); plate.rotation.y = ry; plate.position.set(gx - px * 0.7 - hm.nx * 0.14, 1.5, gz - pz * 0.7 - hm.nz * 0.14); G.add(plate);
+    T.lamps.push({ x: gx - hm.nx * 0.9, y: 2.2, z: gz - hm.nz * 0.9, c: 0xffc070, p: 1.25, home: true });
+    // 明かりの下の路面は、遠くからでも明るく見える（ほんとうに光らせるのは近くの明かりだけなので、絵で足す）
+    for (const l of T.lamps) { const r = l.home ? 5 : l.y > 3 ? 11 : 5.5; pools.add(l.x, 0.013, l.z, r, 1, r, 0, l.home ? 0x6a4c22 : l.y > 3 ? 0x62502f : 0x2c3a50); }
+    for (const o of [lots, walls, houses, roofs, balc, wins, linesI, stops, pools, poles, arms, bulbs, vendB, vendF, mirP, mirD]) o.done(G);
+    return T;
+  }
+
+  // ── 当たり・見通し ──
+  const solidAt = (x, z) => !road(tileOf(x), tileOf(z));
+  // 半径 r の体を、敷地と電柱・自販機から押しだす
+  function collide(p, r) {
+    const x0 = tileOf(p.x - r), x1 = tileOf(p.x + r), z0 = tileOf(p.z - r), z1 = tileOf(p.z + r);
+    for (let tz = z0; tz <= z1; tz++) for (let tx = x0; tx <= x1; tx++) {
+      if (road(tx, tz)) continue;
+      const qx = clamp(p.x, tx * ts, (tx + 1) * ts), qz = clamp(p.z, tz * ts, (tz + 1) * ts), dx = p.x - qx, dz = p.z - qz, d2 = dx * dx + dz * dz;
+      if (d2 >= r * r) continue;
+      if (d2 > 1e-9) { const d = Math.sqrt(d2); p.x = qx + dx / d * r; p.z = qz + dz / d * r; }
+      else { const ex = Math.min(p.x - tx * ts, (tx + 1) * ts - p.x), ez = Math.min(p.z - tz * ts, (tz + 1) * ts - p.z); if (ex < ez) p.x += (p.x - (tx + 0.5) * ts < 0 ? -1 : 1) * (ex + r); else p.z += (p.z - (tz + 0.5) * ts < 0 ? -1 : 1) * (ez + r); }
+    }
+    const ps = T.posts.get(idx(tileOf(p.x), tileOf(p.z)));
+    if (ps) for (const o of ps) { const dx = p.x - o.x, dz = p.z - o.z, d = Math.hypot(dx, dz), m = o.r + r; if (d < m && d > 1e-6) { p.x = o.x + dx / d * m; p.z = o.z + dz / d * m; } }
+  }
+  function los(x0, z0, x1, z1) {
+    const dx = x1 - x0, dz = z1 - z0, n = Math.ceil(Math.hypot(dx, dz) / 0.6);
+    for (let i = 1; i < n; i++) if (solidAt(x0 + dx * i / n, z0 + dz * i / n)) return false;
+    return true;
+  }
+  // 近い順に n 個の明かり（街灯・自販機・門灯）。自宅の門灯はいつも入れる
+  function lampsNear(x, z, n) {
+    for (const l of T.lamps) l.d = (l.x - x) * (l.x - x) + (l.z - z) * (l.z - z) - (l.home ? 1e6 : 0);
+    return T.lamps.slice().sort((a, b) => a.d - b.d).slice(0, n);
+  }
+  return Object.assign(T, { gen, bfs, road, idx, tileOf, solidAt, collide, los, lampsNear, D4, ts });
+})();
+
+// ── 03_body.js ──
+// ───────── 人のかたち ─────────
+// 骨組み（腰 → 背 → 首 → 頭、肩 → ひじ、股 → ひざ）に、円柱と球を着せたもの。前は +Z、左手は +X 側。
+// 腕や脚は「下へ垂れた状態」が基準。x の回転が正なら後ろへ、負なら前へ振れる。
+const Body = (() => {
+  const std = (c, r) => new THREE.MeshStandardMaterial({ color: C3(c), roughness: r === undefined ? 0.85 : r, metalness: 0 });
+  const HIP = 0.975;
+  // 布のざらつき（上着とズボンに、うすく重ねる）
+  let cloth = null;
+  function clothTex() {
+    if (cloth) return cloth;
+    const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+    for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) { const v = 205 + Math.floor(Math.random() * 50) - ((x + y) % 4 === 0 ? 22 : 0); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.fillRect(x, y, 1, 1); }
+    cloth = new THREE.CanvasTexture(c); cloth.wrapS = cloth.wrapT = THREE.RepeatWrapping; cloth.repeat.set(4, 4); cloth.encoding = THREE.sRGBEncoding;
+    return cloth;
+  }
+  // o: { skin, top 上着, top2 えり・シャツ, pants, shoe, hair, bob 耳までかぶさる髪, open 上着の前をあける, long 上着の丈が腰まである, gun ボルト銃とボンベ }
+  function mk(o) {
+    const root = new THREE.Group(), J = { root, hipY: HIP };
+    const fab = c => { const m = std(c, 0.9); m.map = clothTex(); return m; };
+    const mSkin = std(o.skin, 0.68), mTop = fab(o.top), mTop2 = std(o.top2 || o.top), mPants = fab(o.pants), mShoe = std(o.shoe, 0.55), mHair = std(o.hair, 0.45), mDark = std(0x0c0c0e, 0.4), mEye = std(0xd8d4cc, 0.4), mLid = std(o.skin, 0.75);
+    mHair.side = THREE.DoubleSide;
+    const piv = (parent, x, y, z) => { const p = new THREE.Group(); p.position.set(x, y, z); parent.add(p); return p; };
+    const limb = (parent, rt, rb, len, m) => { const g = new THREE.CylinderGeometry(rt, rb, len, 12); g.translate(0, -len / 2, 0); const me = new THREE.Mesh(g, m); parent.add(me); return me; };
+    const ball = (parent, r, m, x, y, z, sx, sy, sz) => { const me = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), m); me.position.set(x, y, z); if (sx) me.scale.set(sx, sy, sz); parent.add(me); return me; };
+    const box = (parent, w, h, d, m, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); parent.add(me); return me; };
+    const tube = (parent, rt, rb, h, m, y, sz) => { const g = new THREE.CylinderGeometry(rt, rb, h, 18); g.scale(1, 1, sz); const me = new THREE.Mesh(g, m); me.position.y = y; parent.add(me); return me; };
+    J.hips = piv(root, 0, HIP, 0); tube(J.hips, 0.172, 0.165, 0.2, mPants, -0.02, 0.68);
+    J.spine = piv(J.hips, 0, 0.08, 0);
+    tube(J.spine, 0.215, 0.176, 0.5, mTop, 0.25, 0.64);                                   // 胸と腹
+    tube(J.spine, 0.19, o.long ? 0.205 : 0.185, o.long ? 0.24 : 0.1, mTop, o.long ? -0.1 : -0.03, 0.68);   // 上着のすそ
+    ball(J.spine, 0.078, mTop, -0.205, 0.445, 0); ball(J.spine, 0.078, mTop, 0.205, 0.445, 0);
+    tube(J.spine, 0.1, 0.13, 0.05, mTop2, 0.51, 0.75);                                    // えり
+    if (o.open) { box(J.spine, 0.1, 0.46, 0.02, mTop2, 0, 0.26, 0.132); for (const s of [-1, 1]) { const l = box(J.spine, 0.06, 0.2, 0.02, mTop, s * 0.062, 0.42, 0.138); l.rotation.z = -s * 0.32; } }
+    J.neck = piv(J.spine, 0, 0.53, 0);
+    const ng = new THREE.CylinderGeometry(0.056, 0.066, 0.12, 12); ng.translate(0, 0.035, 0); J.neckMesh = new THREE.Mesh(ng, mSkin); J.neckMesh.position.set(0, 0.53, 0); J.spine.add(J.neckMesh);
+    // 頭。目は奥まって小さく、まぶたが重い。眉は内がわへ下がる
+    J.head = piv(J.neck, 0, 0.07, 0);
+    ball(J.head, 0.1, mSkin, 0, 0.105, 0, 0.88, 1.12, 0.98);
+    ball(J.head, 0.078, mSkin, 0, 0.04, 0.018, 0.92, 0.9, 0.95);
+    ball(J.head, 0.018, mSkin, 0, 0.088, 0.098, 0.78, 1.7, 1.05); ball(J.head, 0.015, mSkin, 0, 0.066, 0.101, 1.35, 0.7, 0.9);
+    for (const s of [-1, 1]) {
+      ball(J.head, 0.013, mEye, s * 0.037, 0.113, 0.082, 1.55, 0.7, 0.45); ball(J.head, 0.0085, mDark, s * 0.036, 0.112, 0.0875, 1.1, 1, 0.5);
+      box(J.head, 0.05, 0.013, 0.02, mLid, s * 0.037, 0.1235, 0.088);
+      const br = box(J.head, 0.046, 0.011, 0.016, mHair, s * 0.037, 0.134, 0.093); br.rotation.z = -s * 0.14;
+      ball(J.head, 0.02, mSkin, s * 0.09, 0.09, -0.005, 0.5, 1.05, 0.8);
+    }
+    box(J.head, 0.044, 0.005, 0.008, mDark, 0, 0.039, 0.0905);
+    const cap = (th0, th1, ph0, phL) => { const g = new THREE.SphereGeometry(0.109, 20, 14, ph0, phL, th0, th1 - th0); const me = new THREE.Mesh(g, mHair); me.position.set(0, 0.105, -0.004); me.scale.set(0.93, 1.13, 1.04); J.head.add(me); };
+    if (o.bob) { cap(0, 1.2, 0, Math.PI * 2); cap(1.12, 2.15, Math.PI / 2 + 0.92, Math.PI * 2 - 1.84); }   // 前髪は眉まで、横とうしろは あごの下まで
+    else { cap(0, 0.98, 0, Math.PI * 2); cap(0.92, 1.55, Math.PI / 2 + 1.3, Math.PI * 2 - 2.6); }
+    for (const s of [-1, 1]) {
+      const n = s > 0 ? 'L' : 'R', sh = piv(J.spine, s * 0.235, 0.44, 0); limb(sh, 0.064, 0.054, 0.3, mTop);
+      const el = piv(sh, 0, -0.3, 0); limb(el, 0.052, 0.043, 0.27, mTop); ball(el, 0.054, mTop, 0, 0, 0); ball(el, 0.048, mSkin, 0, -0.31, 0, 0.85, 1.25, 0.55);
+      J['sh' + n] = sh; J['el' + n] = el;
+      const hp = piv(J.hips, s * 0.095, -0.04, 0); limb(hp, 0.1, 0.075, 0.45, mPants);
+      const kn = piv(hp, 0, -0.45, 0); limb(kn, 0.07, 0.052, 0.42, mPants); ball(kn, 0.074, mPants, 0, 0, 0); box(kn, 0.11, 0.1, 0.29, mShoe, 0, -0.44, 0.065);
+      J['hip' + n] = hp; J['kn' + n] = kn;
+    }
+    if (o.gun) {
+      // 家畜用のボルト銃（右手）。銃身は前腕の先へ伸びる。空気のボンベは左手にさげている
+      const mG = new THREE.MeshStandardMaterial({ color: C3(0x8c9098), roughness: 0.35, metalness: 0.8 }), mT = new THREE.MeshStandardMaterial({ color: C3(0x9a9c9a), roughness: 0.45, metalness: 0.6 });
+      const cyl = (parent, r, len, m, y) => { const me = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 12), m); me.position.set(0, y, 0); parent.add(me); return me; };
+      J.gun = piv(J.elR, 0, -0.3, 0.02); cyl(J.gun, 0.027, 0.26, mG, -0.1); cyl(J.gun, 0.04, 0.05, mG, -0.24); box(J.gun, 0.03, 0.09, 0.06, mDark, 0, -0.02, 0.05);
+      J.bolt = cyl(J.gun, 0.011, 0.1, mG, -0.25); J.bolt.scale.y = 0.01;
+      J.tank = piv(J.elL, 0, -0.34, 0); cyl(J.tank, 0.085, 0.42, mT, -0.24); cyl(J.tank, 0.03, 0.07, mG, -0.02); ball(J.tank, 0.085, mT, 0, -0.45, 0);
+      const hg = new THREE.BufferGeometry(); hg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(8 * 3), 3));
+      J.hose = new THREE.Line(hg, new THREE.LineBasicMaterial({ color: C3(0x0a0a0c) })); J.hose.frustumCulled = false; root.add(J.hose);
+    }
+    const sh = new THREE.Mesh(new THREE.CircleGeometry(0.38, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.015; root.add(sh); J.shadow = sh;
+    J.list = [J.hips, J.spine, J.neck, J.head, J.shL, J.shR, J.elL, J.elR, J.hipL, J.hipR, J.knL, J.knR];
+    return J;
+  }
+  function rest(J) { for (const j of J.list) j.rotation.set(0, 0, 0); J.hips.position.set(0, J.hipY, 0); J.neckMesh.rotation.set(0, 0, 0); J.neckMesh.scale.set(1, 1, 1); }
+  // 立っている（t で、かすかに息をする）
+  function stand(J, t) { rest(J); J.spine.rotation.x = Math.sin(t * 1.5) * 0.012; J.elL.rotation.x = -0.12; J.elR.rotation.x = -0.12; J.shL.rotation.z = 0.05; J.shR.rotation.z = -0.05; }
+  // 走る。ph 歩みの位相、amt 0 立ち〜1 全力、load 左手にボンベ・右手に銃を持っている
+  function run(J, ph, amt, load) {
+    rest(J);
+    const s = Math.sin(ph), c = Math.cos(ph);
+    J.hips.position.y = J.hipY - 0.045 * amt + Math.abs(c) * 0.06 * amt;
+    J.hips.rotation.y = s * 0.1 * amt;
+    J.spine.rotation.x = 0.3 * amt; J.spine.rotation.y = -s * 0.2 * amt; J.neck.rotation.x = -0.2 * amt;
+    J.hipL.rotation.x = -(s * 1.0 + 0.2) * amt; J.hipR.rotation.x = -(-s * 1.0 + 0.2) * amt;
+    J.knL.rotation.x = (0.22 + 1.35 * Math.max(0, c)) * amt; J.knR.rotation.x = (0.22 + 1.35 * Math.max(0, -c)) * amt;
+    if (load) { J.shL.rotation.x = s * 0.32 * amt; J.elL.rotation.x = -0.25 * amt; J.shL.rotation.z = 0.12; J.shR.rotation.x = -s * 0.85 * amt; J.elR.rotation.x = -1.2 * amt; }
+    else { J.shL.rotation.x = s * 0.95 * amt; J.shR.rotation.x = -s * 0.95 * amt; J.elL.rotation.x = -1.45 * amt; J.elR.rotation.x = -1.45 * amt; }
+  }
+  // 銃とボンベをつなぐ管（毎フレーム、両端の位置から たるませて引きなおす）
+  const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+  function hose(J) {
+    if (!J.hose) return;
+    J.gun.getWorldPosition(_a); J.tank.getWorldPosition(_b); J.root.worldToLocal(_a); J.root.worldToLocal(_b);
+    const p = J.hose.geometry.attributes.position;
+    for (let i = 0; i < 8; i++) { const u = i / 7; p.setXYZ(i, lerp(_a.x, _b.x, u), lerp(_a.y, _b.y, u) - Math.sin(u * Math.PI) * 0.22, lerp(_a.z, _b.z, u) - Math.sin(u * Math.PI) * 0.08); }
+    p.needsUpdate = true;
+  }
+  const ANTON = { skin: 0xcfa98c, top: 0x1b2536, top2: 0x30363f, pants: 0x1a1d24, shoe: 0x0b0b0c, hair: 0x140e0a, bob: true, open: true, long: true, gun: true };
+  const YOU = { skin: 0xd6ab8c, top: 0x8f9499, top2: 0xb8b8b4, pants: 0x343a46, shoe: 0x2a2a2e, hair: 0x15110e };
+  return { mk, rest, stand, run, hose, ANTON, YOU };
+})();
+
+// ── 04_anton.js ──
+// ───────── アントン・シガー ─────────
+// 理由は分からない。全力で走ってくる。こちらより速い。離れているほど、さらに速い。
+// 姿が見えているか、足音が聞こえているあいだは、まっすぐ追ってくる（chase）。
+// 角を曲がられて姿を見失うと、最後に見た場所まで走ってきて、立ち止まって見回す（look）。
+//   見回して姿があれば、また追う。なければ、ありそうな方へ探しに走る（search）。
+// 速いぶん、角では大きく膨らんで遅くなる。だから、角を曲がるたびに、間が開く。
+const Anton = (() => {
+  const A = { J: null, x: 0, z: 0, yaw: 0, st: 'stand', t: 0, ph: 0, v: 0, speed: 0, guess: 0, lkp: { x: 0, z: 0 }, lkpT: 0, blind: 0, lost: false, F: null, ft: -1, tgt: null, sees: false, d: 99, stuck: 0 };
+  const ts = PRM.tile, cx = t => (t + 0.5) * ts;
+  // 暗い道でも姿が分かるように、彼の少し前の上から、うすい光を当てつづける
+  function init(scene) { A.J = Body.mk(Body.ANTON); scene.add(A.J.root); A.light = new THREE.PointLight(C3(0xffe6c8), PRM.antonLight, 8, 1.5); scene.add(A.light); }
+  function reset(day) {
+    const s = Town.antonStart; A.x = cx(s.tx); A.z = cx(s.tz); A.st = 'stand'; A.t = 0; A.ph = 0; A.v = 0; A.lkpT = 0; A.blind = 0; A.lost = false; A.F = null; A.ft = -1; A.tgt = null; A.stuck = 0; A.px = cx(Town.start.tx); A.pz = cx(Town.start.tz);
+    A.speed = PRM.antonRun * (1 + PRM.antonDay * (day - 1));
+    A.guess = Math.min(0.85, PRM.guess + PRM.guessDay * (day - 1));
+    A.J.root.visible = true; A.J.root.rotation.set(0, 0, 0); if (A.J.bolt) A.J.bolt.scale.y = 0.01;
+  }
+  // 行き先の区画までの道のりを出しておく（行き先が変わったときだけ）
+  function fieldTo(tx, tz) { const k = Town.idx(tx, tz); if (k !== A.ft) { A.ft = k; A.F = Town.bfs(tx, tz); } return A.F; }
+  // (x, z) へ向かうとき、いま目指す点。同じ区画か、見通せるなら直接。そうでなければ道なりに、つぎの区画の中央
+  function waypoint(x, z) {
+    const tx = Town.tileOf(x), tz = Town.tileOf(z), ax = Town.tileOf(A.x), az = Town.tileOf(A.z);
+    if ((tx === ax && tz === az) || Town.los(A.x, A.z, x, z)) return { x, z };
+    const F = fieldTo(tx, tz); let best = null, bd = F[Town.idx(ax, az)]; if (bd < 0) bd = 1e9;
+    for (const v of Town.D4) { const nx = ax + v[0], nz = az + v[1]; if (!Town.road(nx, nz)) continue; const d = F[Town.idx(nx, nz)]; if (d >= 0 && d < bd) { bd = d; best = { x: cx(nx), z: cx(nz) }; } }
+    return best || { x: cx(ax), z: cx(az) };
+  }
+  function found(P) { A.lkp.x = P.x; A.lkp.z = P.z; A.lkpT = 0; A.blind = 0; A.st = 'chase'; if (A.lost) { A.lost = false; Game.onFound(); } }
+  function update(dt, P) {
+    const J = A.J, dx = P.x - A.x, dz = P.z - A.z, d = Math.hypot(dx, dz);
+    A.d = d;
+    const los = d < PRM.see && Town.los(A.x, A.z, P.x, P.z);
+    const hears = (P.running && d < PRM.hearRun) || (P.moving && d < PRM.hearWalk);
+    if (A.st === 'stand') {   // 街灯の下に立って、こちらを見ている。少しして、走りだす
+      A.sees = los; A.yaw = Math.atan2(dx, dz); A.t += dt; Body.stand(J, A.t);
+      if (A.t >= PRM.stand || d < 13 || Math.hypot(P.x - A.px, P.z - A.pz) > PRM.standMove) { A.st = 'chase'; A.lkp.x = P.x; A.lkp.z = P.z; A.blind = 0; Snd.sfx('sting'); Game.onRun(); }
+      place(); return;
+    }
+    // 夜なので、いちど姿を見失うと、最後に見た場所で見回すまでは、遠くの姿には気づかない。近ければ気づく。探して走っているあいだは、見えれば気づく
+    A.sees = los && (d < PRM.near || A.st === 'search' || (A.st === 'chase' && A.blind < PRM.lose));
+    if (A.sees || hears) found(P);
+    else { A.blind += dt; A.lkpT += dt; if (A.lkpT >= PRM.ping) { A.lkpT = 0; A.lkp.x = P.x; A.lkp.z = P.z; A.st = 'chase'; } }   // 見失ったままでも、やがて気配に気づいて、そこへ来る
+    let want = 0, goal = null;
+    if (A.st === 'chase') {
+      goal = waypoint(A.lkp.x, A.lkp.z); want = A.speed * (1 + PRM.antonFar * smooth((d - 14) / 20));
+      if (!A.sees && !hears && Math.hypot(A.lkp.x - A.x, A.lkp.z - A.z) < 1.5) { A.st = 'look'; A.t = 0; }
+    } else if (A.st === 'look') {
+      // 立ち止まって見回す。姿があれば、また追う。なければ、ありそうな道を選ぶ（こちらが実際に行った方を選ぶことが多い）
+      A.t += dt; A.yaw += Math.sin(A.t * 9) * 3.2 * dt;
+      if (A.t >= PRM.lookPause) {
+        if (los) found(P);
+        else {
+          const ax = Town.tileOf(A.x), az = Town.tileOf(A.z), opts = Town.D4.filter(v => Town.road(ax + v[0], az + v[1]));
+          let pickV = null;
+          if (Math.random() < A.guess) { let bs = -1e9; for (const v of opts) { const sc = v[0] * (P.x - A.x) + v[1] * (P.z - A.z); if (sc > bs) { bs = sc; pickV = v; } } }
+          if (!pickV) pickV = pick(opts.length ? opts : [[0, 1]]);
+          let k = 1; while (k < 4 && Town.road(ax + pickV[0] * (k + 1), az + pickV[1] * (k + 1))) k++;
+          A.tgt = { x: cx(ax + pickV[0] * k), z: cx(az + pickV[1] * k) }; A.st = 'search';
+          if (!A.lost) { A.lost = true; Game.onLost(); }
+        }
+      }
+    } else if (A.st === 'search') {
+      goal = waypoint(A.tgt.x, A.tgt.z); want = PRM.antonSearch;
+      if (Math.hypot(A.tgt.x - A.x, A.tgt.z - A.z) < 1.3) { A.st = 'look'; A.t = 0; }
+    }
+    // 向きを変えながら前へ走る。向きが合っていないほど遅い（＝角で膨らんで遅くなる）
+    if (goal) {
+      const wantYaw = Math.atan2(goal.x - A.x, goal.z - A.z), df = angDiff(wantYaw, A.yaw), turn = PRM.antonTurn * dt;
+      A.yaw += clamp(df, -turn, turn);
+      want *= 0.42 + 0.58 * Math.max(0, Math.cos(df));
+    }
+    A.v += (want - A.v) * Math.min(1, dt * (want > A.v ? 3.2 : 7));
+    const ox = A.x, oz = A.z;
+    A.x += Math.sin(A.yaw) * A.v * dt; A.z += Math.cos(A.yaw) * A.v * dt; Town.collide(A, 0.34);
+    // 壁に引っかかって進めていないときは、いまいる区画の中央へ寄る
+    const moved = Math.hypot(A.x - ox, A.z - oz);
+    if (want > 1 && moved < A.v * dt * 0.35) { A.stuck += dt; if (A.stuck > 0.3) { const qx = cx(Town.tileOf(A.x)), qz = cx(Town.tileOf(A.z)); A.x += (qx - A.x) * Math.min(1, dt * 4); A.z += (qz - A.z) * Math.min(1, dt * 4); } } else A.stuck = 0;
+    // 走る姿と、足音
+    const amt = clamp(A.v / 7, 0, 1.08), p0 = A.ph; A.ph += dt * (2.2 + A.v * 1.25);
+    if (A.v > 0.4) Body.run(J, A.ph, amt, true); else Body.stand(J, A.t + A.ph);
+    if (A.v > 1 && Math.floor(A.ph / Math.PI) !== Math.floor(p0 / Math.PI) && d < 40) {
+      const rel = angDiff(Math.atan2(A.x - P.x, A.z - P.z), P.yaw);
+      Snd.sfx('astep', { v: Math.pow(clamp(1.15 - d / 34, 0.03, 1), 1.6), pan: clamp(-Math.sin(rel) * 0.9, -1, 1) });   // 近づくほど、はっきり大きくなる
+    }
+    place();
+    if (d < PRM.catchDist && los) Game.caught();
+  }
+  function place() { const r = A.J.root; r.position.set(A.x, 0, A.z); r.rotation.y = A.yaw; Body.hose(A.J); A.light.position.set(A.x + Math.sin(A.yaw) * 1.2, 2.5, A.z + Math.cos(A.yaw) * 1.2); }
+  return Object.assign(A, { init, reset, update, place });
+})();
+
+// ── 05_death.js ──
+// ───────── 死にかた（二通り）─────────
+// つかまると、視点が体の外へ出て、あなたの最期を見ることになる。飛ばせる。
+//   bolt: 家畜用のボルト銃を額に当てられる。撃たれた瞬間、頭の中の断面に切り替わる（骨は透けて、脳が潰れる）。
+//   neck: うしろから頭をつかまれ、首を一回転させられる。
+// 彼の方を向いてつかまると bolt。背を向けていたときは、まだ見た回数の少ないほう（Game.caught で決める）。
+const Death = (() => {
+  const D = { on: false, kind: '', t: 0, V: null, xray: false, xr: null, end: 6.4, cue: {}, px: 0, pz: 0, fy: 0, cam: { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 } };
+  let scene, parts = [], pool = null;
+  const FIRE = 2.1, XEND = 3.8;
+  const cue = (name, t, fn) => { if (D.t >= t && !D.cue[name]) { D.cue[name] = 1; fn(); } };
+
+  function init(sc) {
+    scene = sc;
+    D.V = Body.mk(Body.YOU); D.V.root.visible = false; scene.add(D.V.root);
+    const pm = new THREE.MeshBasicMaterial({ color: C3(0x5a0a0a) }), pg = new THREE.SphereGeometry(0.02, 6, 5);
+    for (let i = 0; i < 26; i++) { const m = new THREE.Mesh(pg, pm); m.visible = false; scene.add(m); parts.push({ m, vx: 0, vy: 0, vz: 0, life: 0 }); }
+    pool = new THREE.Mesh(new THREE.CircleGeometry(0.5, 20), new THREE.MeshBasicMaterial({ color: C3(0x3a0606), transparent: true, opacity: 0.85, depthWrite: false })); pool.rotation.x = -Math.PI / 2; pool.visible = false; scene.add(pool);
+    mkXray();
+  }
+  // 頭の中の断面（別の場面として描く）。骨は半透明、脳はピンクのかたまり。ボルトは顔の側（+Z）から入る
+  function mkXray() {
+    const X = D.xr = { scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(38, 1, 0.1, 50), deb: [] };
+    X.scene.background = C3(0x04060a);
+    X.scene.add(new THREE.HemisphereLight(C3(0xcfe0ff), C3(0x201418), 0.8)); const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(2, 3, 2); X.scene.add(dl);
+    const glass = (c, o, side) => new THREE.MeshBasicMaterial({ color: C3(c), transparent: true, opacity: o, depthWrite: false, side: side || THREE.FrontSide });
+    const sk = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 20), glass(0xbcd4ff, 0.13)); sk.scale.set(0.86, 1.02, 1.0); X.scene.add(sk);
+    const sk2 = new THREE.Mesh(new THREE.SphereGeometry(0.95, 28, 20), glass(0x8fb0e8, 0.1, THREE.BackSide)); sk2.scale.set(0.86, 1.02, 1.0); X.scene.add(sk2);
+    const jaw = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.5, 1.0), glass(0xbcd4ff, 0.1)); jaw.position.set(0, -0.95, 0.25); X.scene.add(jaw);
+    for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), glass(0x0a1020, 0.75)); e.position.set(s * 0.36, -0.12, 0.8); X.scene.add(e); }
+    const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 1.1, 10), glass(0xbcd4ff, 0.14)); sp.position.set(0, -1.45, -0.25); X.scene.add(sp);
+    const g = new THREE.SphereGeometry(0.74, 44, 30), p = g.attributes.position, col = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) {   // しわ（脳溝）を付ける
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 1 + 0.05 * Math.sin(x * 21 + y * 9) * Math.sin(y * 17 + z * 13) + 0.03 * Math.sin(z * 31 + x * 7) - 0.07 * Math.exp(-x * x * 120);
+      p.setXYZ(i, x * k * 0.82, y * k * 0.8, z * k);
+    }
+    X.base = Float32Array.from(p.array); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
+    X.brain = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.5 })); X.brain.position.set(0, 0.14, -0.06); X.scene.add(X.brain);
+    X.rod = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 1.5, 12), new THREE.MeshStandardMaterial({ color: C3(0xa8aeb8), roughness: 0.3, metalness: 0.85 })); X.rod.rotation.x = Math.PI / 2; X.scene.add(X.rod);
+    X.cloud = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), glass(0x8a1010, 0.4)); X.scene.add(X.cloud);
+    const dg = new THREE.SphereGeometry(0.035, 6, 5), dm = new THREE.MeshBasicMaterial({ color: C3(0x7a1414) });
+    for (let i = 0; i < 34; i++) { const m = new THREE.Mesh(dg, dm); X.scene.add(m); X.deb.push({ m, vx: 0, vy: 0, vz: 0 }); }
+  }
+  // 断面を、時刻 xt（0 = 切り替わった瞬間）の状態にする
+  function poseXray(xt) {
+    const X = D.xr, IMP = 0.5, p = X.brain.geometry.attributes.position, c = X.brain.geometry.attributes.color, b = X.base;
+    const tip = xt < IMP ? lerp(2.2, 0.98, smooth(xt / IMP)) : lerp(0.98, 0.12, smooth(seg(xt, IMP, IMP + 0.09))) + 0.5 * smooth(seg(xt, 1.15, 1.5));   // ボルトの先の位置（z）
+    X.rod.position.set(0, 0.3, tip + 0.75);
+    const k = smooth(seg(xt, IMP, IMP + 0.22)), wob = k * Math.exp(-(xt - IMP) * 3) * Math.sin((xt - IMP) * 38) * 0.05;
+    for (let i = 0; i < p.count; i++) {
+      let x = b[i * 3], y = b[i * 3 + 1], z = b[i * 3 + 2];
+      const dr = Math.hypot(x, y - 0.16), near = Math.max(0, 1 - dr / 0.55) * Math.max(0, Math.min(1, (z + 0.5) / 0.9)), hurt = near * k;
+      if (dr > 1e-4) { x += x / dr * hurt * 0.34; y += (y - 0.16) / dr * hurt * 0.26; }     // 通り道のまわりが、外へ押しのけられる
+      z = z * (1 - 0.42 * k) - hurt * 0.34 + wob * (1 + z);                                   // 全体が、うしろへ潰れる
+      y -= 0.07 * k * (1 - near);
+      p.setXYZ(i, x, y, z);
+      const d = clamp(hurt * 1.7 + k * 0.22, 0, 1); c.setXYZ(i, Math.pow(lerp(0.86, 0.3, d), 2.2), Math.pow(lerp(0.6, 0.03, d), 2.2), Math.pow(lerp(0.62, 0.04, d), 2.2));
+    }
+    p.needsUpdate = true; c.needsUpdate = true; X.brain.geometry.computeVertexNormals();
+    const u = seg(xt, IMP, IMP + 0.9); X.cloud.visible = xt >= IMP; X.cloud.position.set(0, 0.3, 0.3 - u * 0.5); X.cloud.scale.setScalar(0.3 + u * 2.6); X.cloud.material.opacity = 0.45 * (1 - u);
+    for (const q of X.deb) {
+      const e = xt - IMP; q.m.visible = e >= 0;
+      if (e >= 0) q.m.position.set(q.vx * e, 0.3 + q.vy * e - 1.6 * e * e, 0.2 + q.vz * e);
+    }
+    const a = 0.5 + xt * 0.16; X.cam.position.set(Math.cos(a) * 4.6, 0.5, Math.sin(a) * 4.6 * 0.35 + 0.5); X.cam.lookAt(0, 0, 0.1);
+  }
+  function burst(x, y, z, n, sp) {
+    let k = 0;
+    for (const q of parts) { if (k >= n) break; if (q.life > 0) continue; q.life = 0.9 + Math.random() * 0.5; q.m.visible = true; q.m.position.set(x, y, z); q.vx = (Math.random() - 0.5) * sp; q.vy = Math.random() * sp * 0.8; q.vz = (Math.random() - 0.5) * sp; k++; }
+  }
+
+  function start(kind, P) {
+    const V = D.V, A = Anton.J;
+    D.on = true; D.kind = kind; D.t = 0; D.cue = {}; D.xray = false; D.end = kind === 'bolt' ? 6.6 : 5.6; D.px = P.x; D.pz = P.z;
+    for (const q of parts) { q.life = 0; q.m.visible = false; } pool.visible = false;
+    for (const q of D.xr.deb) { q.vx = (Math.random() - 0.5) * 2.2; q.vy = Math.random() * 1.6 - 0.2; q.vz = -Math.random() * 2.4 + 0.4; }
+    const toA = Math.atan2(Anton.x - P.x, Anton.z - P.z), fy = D.fy = kind === 'bolt' ? toA : toA + Math.PI;   // あなたの向き
+    V.root.visible = true; V.root.rotation.order = 'YXZ'; V.root.rotation.set(0, fy, 0); V.root.position.set(P.x, 0, P.z);
+    const fx = Math.sin(fy), fz = Math.cos(fy), lx = Math.cos(fy), lz = -Math.sin(fy);   // 前と、左
+    if (kind === 'bolt') { Anton.yaw = fy + Math.PI; Anton.x = P.x + fx * 0.86 - lx * 0.235; Anton.z = P.z + fz * 0.86 - lz * 0.235; }   // 彼の右肩が、あなたの正面に来るように立つ
+    else { Anton.yaw = fy; Anton.x = P.x - fx * 0.42; Anton.z = P.z - fz * 0.42; }
+    A.gun.visible = A.tank.visible = A.hose.visible = kind === 'bolt';
+    A.root.rotation.order = 'YXZ'; Anton.place();
+    // 視点: 二人を斜めから。壁にめりこまない側に置く
+    const fwd = kind === 'bolt' ? 0.45 : 1.75, sd = kind === 'bolt' ? 1.9 : 0.75;
+    const s = [1, -1].find(q => !Town.solidAt(P.x + fx * fwd + lx * sd * q, P.z + fz * fwd + lz * sd * q)) || 1, C = D.cam;
+    C.x = P.x + fx * fwd + lx * sd * s; C.z = P.z + fz * fwd + lz * sd * s; C.y = 1.52; C.tx = P.x + fx * 0.3; C.tz = P.z + fz * 0.3; C.ty = 1.5;
+    Snd.sfx('grab');
+  }
+  function update(dt, camera) {
+    const V = D.V, A = Anton.J, t = D.t += dt, C = D.cam;
+    const cf = Math.min(80, 46 * Math.max(1, 1.25 / camera.aspect)); if (camera.fov !== cf) { camera.fov = cf; camera.updateProjectionMatrix(); }   // 寄った画にする（縦長の画面では、二人が入るように広げる）
+    Body.stand(V, t); Body.stand(A, t);
+    if (D.kind === 'bolt') {
+      const up = smooth(seg(t, 0.2, 1.0)), aft = smooth(seg(t, 4.1, 5.0)), g = smooth(seg(t, 0.1, 0.6)), shot = t >= XEND ? 1 : 0;
+      A.shR.rotation.x = -1.98 * up * (1 - aft) + (t >= FIRE && t < FIRE + 0.2 ? 0.1 : 0); A.elR.rotation.x = -0.06; A.spine.rotation.x = 0.05 * up;
+      A.bolt.scale.y = t >= FIRE && t < XEND + 0.3 ? 1 : 0.01;
+      // あなた: 身をすくめて、両手を上げかける。撃たれると頭がのけぞり、うしろへ倒れる
+      const fall = smooth(seg(t, XEND + 0.05, XEND + 0.85));
+      V.spine.rotation.x = -0.1 * g - 0.25 * shot * (1 - fall); V.neck.rotation.x = -0.12 * g - 0.7 * shot;
+      V.shL.rotation.x = V.shR.rotation.x = -0.9 * g * (1 - shot); V.elL.rotation.x = V.elR.rotation.x = -1.7 * g * (1 - shot) - 0.2 * shot;
+      V.knL.rotation.x = 0.1 * g + 0.85 * fall; V.knR.rotation.x = 0.1 * g + 0.55 * fall; V.hipL.rotation.x = -0.45 * fall; V.hipR.rotation.x = -0.3 * fall;   // あおむけに倒れて、ひざが少し立つ
+      V.root.rotation.x = -1.5 * fall; V.root.position.y = 0.1 * fall;
+      if (t > 1.0 && t < FIRE) { V.spine.rotation.z = Math.sin(t * 40) * 0.008; V.neck.rotation.y = Math.sin(t * 31) * 0.02; }
+      cue('hiss', 1.05, () => Snd.sfx('hiss'));
+      cue('fire', FIRE + 0.5, () => { Snd.sfx('bolt'); Snd.sfx('wet'); Game.flash(0.25); });
+      cue('back', XEND, () => { const hx = D.px - Math.sin(D.fy) * 0.16, hz = D.pz - Math.cos(D.fy) * 0.16; burst(hx, 1.78, hz, 16, 2.2); });
+      cue('fall', XEND + 0.8, () => { Snd.sfx('thud'); Game.shake(0.25); pool.visible = true; pool.position.set(D.px - Math.sin(D.fy) * 1.65, 0.02, D.pz - Math.cos(D.fy) * 1.65); pool.scale.setScalar(0.1); });
+      if (pool.visible) pool.scale.setScalar(Math.min(1.25, pool.scale.x + dt * 0.35));
+      D.xray = t >= FIRE && t < XEND;
+      if (D.xray) poseXray(t - FIRE);
+    } else {
+      const g = smooth(seg(t, 0.1, 0.6)), tw = smooth(seg(t, 1.0, 1.9)), rel = smooth(seg(t, 1.95, 2.5)), fall = smooth(seg(t, 2.0, 2.8)), ang = tw * (Math.PI * 2 + 0.45);   // 一回転して、少し行きすぎて止まる
+      // 彼: うしろから、両手で頭をはさむ。ひねる
+      for (const [sh, el, s] of [[A.shL, A.elL, 1], [A.shR, A.elR, -1]]) { sh.rotation.order = 'YXZ'; sh.rotation.x = (-2.0 - Math.sin(ang) * 0.22 * s) * g * (1 - rel); sh.rotation.y = -0.32 * s * g * (1 - rel); el.rotation.x = -0.62 * g * (1 - rel) - 0.12; }
+      A.spine.rotation.x = 0.08 * g * (1 - rel); A.neck.rotation.y = smooth(seg(t, 3.3, 4.1)) * 0.5;
+      // あなた: 頭が一回転する。手は彼の手首をつかもうとして、途中で落ちる。ひざが折れて、前へ倒れる
+      V.neck.rotation.y = ang; V.neckMesh.rotation.y = ang * 0.5; V.neck.rotation.z = Math.sin(ang * 0.5) * 0.12 + 0.4 * smooth(seg(t, 1.85, 2.3)); V.neckMesh.scale.set(1 - 0.3 * tw, 1, 1 - 0.3 * tw);   // ねじれた首は細くなり、頭は横へ倒れたまま
+      const limp = smooth(seg(t, 1.35, 1.7));
+      V.shL.rotation.x = V.shR.rotation.x = -1.9 * g * (1 - limp); V.elL.rotation.x = V.elR.rotation.x = -2.1 * g * (1 - limp) - 0.1;
+      V.spine.rotation.x = -0.08 * g + 0.1 * limp; V.knL.rotation.x = V.knR.rotation.x = 0.55 * limp * (1 - fall) + 0.15 * fall;
+      V.root.rotation.x = 1.5 * fall; V.root.position.y = 0.12 * fall;
+      if (t > 0.6 && t < 1.0) V.neck.rotation.y = Math.sin(t * 46) * 0.05;
+      cue('c1', 1.2, () => Snd.sfx('crack')); cue('c2', 1.45, () => { Snd.sfx('crack'); Game.shake(0.15); }); cue('c3', 1.7, () => { Snd.sfx('crack'); Snd.sfx('wet'); Game.flash(0.12); });
+      cue('fall', 2.75, () => { Snd.sfx('thud'); Game.shake(0.25); });
+    }
+    Body.hose(A);
+    for (const q of parts) { if (q.life <= 0) continue; q.life -= dt; q.vy -= 9.8 * dt; q.m.position.x += q.vx * dt; q.m.position.y = Math.max(0.02, q.m.position.y + q.vy * dt); q.m.position.z += q.vz * dt; if (q.m.position.y <= 0.021) { q.vx = q.vz = 0; } if (q.life <= 0) q.m.visible = false; }
+    // 手持ちのような、かすかなゆれ
+    camera.position.set(C.x + Math.sin(t * 1.3) * 0.02, C.y + Math.sin(t * 1.9) * 0.015, C.z + Math.cos(t * 1.1) * 0.02);
+    // 倒れたあとは、倒れた体のほうへ目を落とす（銃ならうしろへ、首なら前へ倒れている）
+    const dn = D.kind === 'bolt' ? smooth(seg(t, XEND + 0.1, XEND + 1.0)) : smooth(seg(t, 2.1, 3.0)), along = (D.kind === 'bolt' ? -1.05 : 1.1) * dn;
+    camera.lookAt(C.tx + Math.sin(D.fy) * along, C.ty - dn * 1.15, C.tz + Math.cos(D.fy) * along);
+    if (t >= D.end) finish();
+  }
+  function finish() { if (!D.on) return; D.on = false; D.xray = false; Game.dead(D.kind); }
+  function hide() { D.V.root.visible = false; pool.visible = false; for (const q of parts) { q.life = 0; q.m.visible = false; } const A = Anton.J; A.gun.visible = A.tank.visible = A.hose.visible = true; A.shL.rotation.order = A.shR.rotation.order = 'XYZ'; }
+  return Object.assign(D, { init, start, update, finish, hide, poseXray });
+})();
+
+// ── 06_game.js ──
+// ───────── ゲーム本体 ─────────
+// 面白さの核: 彼はこちらより速い。まっすぐ逃げても、かならず追いつかれる。
+//   ただし彼は角を曲がるのが下手で、姿を見失うと、最後に見た場所で立ち止まって見回す。角を曲がるたびに、間が開く。
+//   走れば速いが、息が切れる。近くで走れば、足音で居場所が知れる。歩けば、音はしない。
+//   振り返れば彼との間が分かるが、前が見えず、少し遅くなる。
+//   家に着いても、鍵を開けるあいだは動けない。そのぶんの間を、先に作っておく。
+const Game = (() => {
+  const G = { mode: 'boot', t: 0, day: 1, time: 0, P: null, shakeT: 0, shakeA: 0, msgT: 0, unlock: 0, keyT: 0, heartT: 0, pantT: 0, lampT: 0, locked: false, touch: false, seed: 0, kind: '' };
+  let renderer, scene, camera, sky, lights = [], el = {};
+  const $ = id => document.getElementById(id);
+  const CALM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const _v = new THREE.Vector3();
+
+  function init() {
+    for (const id of ['app', 'cv', 'hud', 'h-day', 'h-home', 'h-dist', 'h-stam', 'h-msg', 'h-prompt', 'h-ptx', 'h-pbar', 'vig', 'red', 'black', 'bars', 'pad', 'p-title', 'p-card', 'c-lines', 'c-btns', 'b-act', 'b-pause']) el[id] = $(id);
+    G.touch = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    try { renderer = new THREE.WebGLRenderer({ canvas: el.cv, antialias: !G.touch, powerPreference: 'high-performance' }); } catch (e) { renderer = null; }
+    if (!renderer) { el['p-title'].querySelector('.sub').textContent = 'このブラウザでは 3D を 表示できません。'; return false; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, G.touch ? 1.25 : 1.5));
+    renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+    scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(C3(0x0d1322), 0.014);
+    camera = new THREE.PerspectiveCamera(PRM.fov, 1, 0.06, 320); camera.rotation.order = 'YXZ';
+    scene.add(new THREE.HemisphereLight(C3(0x90a4e0), C3(0x1c1c24), 0.36));
+    const moon = new THREE.DirectionalLight(C3(0x9fb4ea), 0.2); moon.position.set(-40, 80, 30); scene.add(moon);
+    for (let i = 0; i < (G.touch ? 4 : 7); i++) { const l = new THREE.PointLight(0xffffff, 0, 19, 1.8); scene.add(l); lights.push(l); }
+    // 空（上は濃い藍、地平は少し赤紫）
+    const c = document.createElement('canvas'); c.width = 4; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
+    gr.addColorStop(0, '#03050c'); gr.addColorStop(0.45, '#0a1026'); gr.addColorStop(0.5, '#1c1830'); gr.addColorStop(0.56, '#0a0d18'); gr.addColorStop(1, '#0a0d18'); g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
+    const st = new THREE.CanvasTexture(c); st.encoding = THREE.sRGBEncoding;
+    sky = new THREE.Mesh(new THREE.SphereGeometry(260, 16, 12), new THREE.MeshBasicMaterial({ map: st, side: THREE.BackSide, fog: false, depthWrite: false })); scene.add(sky);
+    Anton.init(scene); Death.init(scene);
+    resize(); window.addEventListener('resize', resize);
+    return true;
+  }
+  function resize() {
+    const w = el.app.clientWidth, h = el.app.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; G.fk = Math.max(1, 1.6 / (w / h)); camera.updateProjectionMatrix(); Death.xr.cam.aspect = w / h; Death.xr.cam.updateProjectionMatrix();
+    el.pad.hidden = !G.touch || G.mode !== 'play';
+  }
+  // 縦長の画面でも横の視野が狭くなりすぎないように、縦の視野を広げる（上限 100 度）
+  const vfov = deg => Math.min(100, 2 * Math.atan(Math.tan(deg * Math.PI / 360) * (G.fk || 1)) * 180 / Math.PI);
+  function say(text, sec) { el['h-msg'].textContent = text; G.msgT = sec || 3; }
+  function shake(a) { if (!CALM) { G.shakeA = a; G.shakeT = 0.35; } }
+  function flash(a) { el.red.style.opacity = String(CALM ? a * 0.4 : a); setTimeout(() => { el.red.style.opacity = '0'; }, 120); }
+  function panel(id) { el['p-title'].hidden = id !== 'title'; el['p-card'].hidden = id !== 'card'; }
+  function card(lines, btns) {
+    el['c-lines'].textContent = ''; el['c-btns'].textContent = '';
+    for (const t of lines) { const p = document.createElement('p'); p.textContent = t; el['c-lines'].append(p); }
+    btns.forEach((b, i) => { const e = document.createElement('button'); e.type = 'button'; e.className = 'btn'; e.textContent = b[0]; e.addEventListener('click', () => { Snd.sfx('ui'); b[1](); }); el['c-btns'].append(e); if (i === 0 && !G.touch) setTimeout(() => e.focus({ preventScroll: true }), 30); });
+    panel('card');
+  }
+
+  // ── 1 日のはじまり ──
+  function build(day) {
+    G.seed = Math.floor(Math.random() * 2e9);
+    Town.gen(G.seed, PRM.homeDist + PRM.homeStep * (day - 1)); scene.add(Town.group);
+    const s = Town.start, a = Town.antonStart, ts = PRM.tile;
+    G.P = { x: (s.tx + 0.5) * ts, z: (s.tz + 0.5) * ts, yaw: Math.atan2(a.tx - s.tx, a.tz - s.tz), pitch: 0, vx: 0, vz: 0, stamina: 1, stDelay: 0, running: false, moving: false, bob: 0, backK: 0, stepT: 0 };
+    Anton.reset(day); Death.hide(); Anton.update(0, G.P); G.lampT = 0;
+    camera.fov = vfov(PRM.fovStand); camera.updateProjectionMatrix();   // 一日のはじまりは、遠くに立つ彼に寄った画から
+  }
+  function title() {
+    G.mode = 'title'; G.day = 1; build(1); panel('title');
+    const tb = $('t-best'); tb.hidden = !Store.d.best; tb.textContent = 'これまでの 記録　' + Store.d.best + '日目まで 帰りついた。'; el.hud.hidden = true; el.bars.classList.remove('on'); el.black.style.opacity = '0'; el.pad.hidden = true;
+    Snd.ambient(true); unlockMouse();
+  }
+  function startDay(day, fresh) {
+    G.day = day; if (fresh) build(day);
+    G.mode = 'play'; G.time = 0; G.unlock = 0; G.heartT = 0; panel(null); el.hud.hidden = false; el.bars.classList.remove('on'); el.black.style.opacity = '0'; el.pad.hidden = !G.touch;
+    el['h-day'].textContent = day + '日目'; say('家へ 帰る。', 3.5); Snd.ambient(true); lock();
+  }
+  // マウスを画面に固定して見回す。固定できない環境（埋めこまれた枠の中など）では、押したまま動かして見回す（左右キーでもよい）
+  function lock() { if (G.touch) return; try { const p = el.cv.requestPointerLock(); if (p && p.catch) p.catch(() => { G.noLock = true; }); } catch (e) { G.noLock = true; } }
+  function onRun() { say('', 0.1); shake(0.12); }
+  function onLost() { say('見失った らしい。', 2.6); }
+  function onFound() { say('見つかった。', 1.8); Snd.sfx('sting', { v: 0.55 }); shake(0.08); }
+  const unlockMouse = () => { if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); };   // 札のボタンを押せるように、マウスを放す
+  function pause() { if (G.mode !== 'play') return; G.mode = 'pause'; el.pad.hidden = true; unlockMouse(); card(['中断'], [['つづける', () => { G.mode = 'play'; panel(null); el.pad.hidden = !G.touch; lock(); }], ['タイトルへ', title]]); }
+
+  // ── つかまる・死ぬ・帰る ──
+  function caught() {
+    if (G.mode !== 'play') return;
+    const P = G.P, rel = Math.abs(angDiff(Math.atan2(Anton.x - P.x, Anton.z - P.z), P.yaw + (P.backK > 0.5 ? Math.PI : 0))), d = Store.d;
+    // 彼の方を向いていたなら（振り返っていたときも）銃。背を向けていたなら、まだ見た回数の少ないほうの死にかた（二通りとも見られるように）
+    G.kind = rel < 1.25 || d.nb <= d.nn ? 'bolt' : 'neck';
+    if (G.kind === 'bolt') d.nb++; else d.nn++; Store.save();
+    el.hud.hidden = true; el.pad.hidden = true;
+    if (Store.d.skip) { dead(G.kind); return; }
+    G.mode = 'death'; el.bars.classList.add('on'); Death.start(G.kind, P);
+  }
+  function dead(kind) {
+    G.mode = 'dead'; Snd.ambient(false); Snd.sfx('card'); el.black.style.opacity = '1'; el.bars.classList.remove('on');
+    unlockMouse();
+    card([kind === 'bolt' ? '額に、穴が ひとつ。' : '首が、一回転した。', G.day + '日目　' + Math.floor(G.time) + '秒', '理由は、分からない。'], [['もう一度', () => startDay(G.day, true)], ['タイトルへ', title]]);
+  }
+  function clear() {
+    G.mode = 'clear'; Snd.sfx('door'); Snd.ambient(false); el.hud.hidden = true; el.pad.hidden = true; el.black.style.opacity = '1';
+    if (G.day > Store.d.best) { Store.d.best = G.day; Store.save(); }
+    unlockMouse();
+    card(['帰宅。', G.day + '日目　' + Math.floor(G.time) + '秒', '鍵を かけた。 外で、足音が 止まる。'], [['つぎの 日へ', () => startDay(G.day + 1, true)], ['タイトルへ', title]]);
+  }
+
+  // ── あなた ──
+  function updPlayer(dt) {
+    const P = G.P;
+    if (Input.lookX || Input.lookY) G.looked = true;
+    P.yaw -= Input.lookX; P.pitch = clamp(P.pitch - Input.lookY, -1.15, 1.15);
+    const back = Input.back; P.backK += ((back ? 1 : 0) - P.backK) * Math.min(1, dt * 11);
+    const fx = Math.sin(P.yaw), fz = Math.cos(P.yaw), rx = -Math.cos(P.yaw), rz = Math.sin(P.yaw);
+    let mx = fx * Input.mvy + rx * Input.mvx, mz = fz * Input.mvy + rz * Input.mvx; const m = Math.hypot(mx, mz), busy = G.unlock > 0 && Input.act;   // 鍵を回しているあいだは動けない（手を離せば、すぐ動ける）
+    const canRun = P.running ? P.stamina > 0 : P.stamina >= PRM.staminaMin;
+    P.running = m > 0.3 && Input.run && canRun && Input.mvy > -0.2 && !busy;
+    if (P.running) { P.stamina = Math.max(0, P.stamina - dt / PRM.stamina); P.stDelay = PRM.staminaDelay; if (P.stamina <= 0) say('息が 切れた。', 2.2); } else if (P.stDelay > 0) P.stDelay -= dt; else P.stamina = Math.min(1, P.stamina + dt / PRM.staminaRegen);
+    const sp = busy ? 0 : (P.running ? PRM.run : PRM.walk) * (back ? PRM.backMul : 1) * Math.min(1, m);
+    const tx = m > 0.01 ? mx / m * sp : 0, tz = m > 0.01 ? mz / m * sp : 0, k = Math.min(1, dt * 12);
+    P.vx += (tx - P.vx) * k; P.vz += (tz - P.vz) * k;
+    P.x += P.vx * dt; P.z += P.vz * dt; Town.collide(P, 0.3);
+    const v = Math.hypot(P.vx, P.vz); P.moving = v > 1;
+    P.bob += dt * v * 1.9; P.stepT -= dt * v;
+    if (P.stepT <= 0 && v > 1) { P.stepT = P.running ? 2.3 : 1.55; Snd.sfx('step', { v: P.running ? 1 : 0.55 }); }
+    if (P.stamina < 0.35) { G.pantT -= dt; if (G.pantT <= 0) { G.pantT = 0.62; Snd.sfx('pant', { v: 1 - P.stamina }); } }
+  }
+  function updHome(dt) {
+    const h = Town.home, P = G.P, d = Math.hypot(h.x - P.x, h.z - P.z), near = d < 1.9;
+    el['h-prompt'].hidden = !near; el['b-act'].hidden = !near;
+    if (near) {
+      el['h-ptx'].textContent = G.touch ? '「鍵」を 押しつづける' : 'E を 押しつづけて 鍵を 開ける';
+      if (Input.act) { G.unlock += dt; G.keyT -= dt; if (G.keyT <= 0) { G.keyT = 0.33; Snd.sfx('key'); } if (G.unlock >= PRM.unlock) { clear(); return; } } else G.unlock = Math.max(0, G.unlock - dt * 1.5);
+    } else G.unlock = 0;
+    el['h-pbar'].style.width = Math.round(G.unlock / PRM.unlock * 100) + '%';
+    // 自宅の方向と距離（画面の外なら、ふちに出す）
+    _v.set(h.x, 1.6, h.z).project(camera);
+    const behind = _v.z > 1, w = el.app.clientWidth, hh = el.app.clientHeight;
+    let sx = (_v.x * 0.5 + 0.5) * w, sy = (-_v.y * 0.5 + 0.5) * hh;
+    if (behind) { sx = w - sx; sy = hh - 40; }
+    sx = clamp(sx, 44, w - 44); sy = clamp(sy, 54, Math.max(60, hh - (G.touch ? 215 : 110)));   // 指で操作する部品には重ねない
+    el['h-home'].style.transform = 'translate(' + Math.round(sx) + 'px,' + Math.round(sy) + 'px) translate(-50%,-50%)'; el['h-dist'].textContent = Math.round(d) + 'm';
+    el['h-home'].hidden = near;
+  }
+  // 近くの明かりだけを、ほんとうに光らせる
+  function updLights(dt, x, z) {
+    G.lampT -= dt; if (G.lampT > 0) return; G.lampT = 0.25;
+    // 手もとに近い明かりと、彼にいちばん近い明かり（遠くにいても、街灯の下の彼が見えるように）
+    const ls = Town.lampsNear(x, z, lights.length - 1), near = Town.lampsNear(Anton.x, Anton.z, 2).find(q => ls.indexOf(q) < 0);
+    if (near) ls.push(near);
+    lights.forEach((l, i) => { const s = ls[i]; if (!s) { l.intensity = 0; return; } l.position.set(s.x, s.y, s.z); l.color.set(s.c).convertSRGBToLinear(); l.intensity = 1.25 * s.p; });
+  }
+  function view(dt) {
+    const P = G.P, v = Math.hypot(P.vx, P.vz);
+    let sx = 0, sy = 0; if (G.shakeT > 0) { G.shakeT -= dt; const a = G.shakeA * G.shakeT / 0.35; sx = (Math.random() - 0.5) * a; sy = (Math.random() - 0.5) * a; }
+    camera.position.set(P.x + sx, PRM.eye + Math.sin(P.bob * 2) * 0.035 * Math.min(1, v / 4) + sy, P.z);
+    camera.rotation.set(P.pitch * (1 - P.backK * 0.6), P.yaw + Math.PI + P.backK * Math.PI, Math.sin(P.bob) * 0.012 * Math.min(1, v / 5));
+    camera.fov += (vfov(Anton.st === 'stand' ? PRM.fovStand : P.running ? PRM.fov + PRM.fovRun : PRM.fov) - camera.fov) * Math.min(1, dt * 5); camera.updateProjectionMatrix();   // 彼が走りだすと、画が広がる
+  }
+
+  function frame(dt) {
+    G.t += dt; Input.update(dt);
+    const m = G.mode;
+    if (m === 'play') {
+      if (Input.pauseHit) pause();
+      else {
+        G.time += dt; updPlayer(dt); Anton.update(dt, G.P);
+        if (G.mode === 'play') {
+          updHome(dt); view(dt);
+          // 彼が近いほど、心臓が速く鳴り、画面のふちが暗くなる
+          const d = Anton.d, k = Anton.st === 'stand' ? 0 : clamp(1 - d / 32, 0, 1);
+          el.vig.style.opacity = String(0.55 + 0.45 * k);
+          if (k > 0.05) { G.heartT -= dt; if (G.heartT <= 0) { G.heartT = lerp(1.0, 0.36, k); Snd.sfx('heart', { v: 0.35 + 0.65 * k }); } }
+          el['h-stam'].style.width = Math.round(G.P.stamina * 100) + '%'; el['h-stam'].className = G.P.stamina < PRM.staminaMin && !G.P.running ? 'low' : '';
+          if (G.msgT > 0) { G.msgT -= dt; if (G.msgT <= 0) el['h-msg'].textContent = ''; }
+          if (!G.touch && !G.locked && !G.looked && G.msgT <= 0) say(G.noLock ? 'マウスを 押したまま 動かすと、見回せる。' : '画面を クリックすると、マウスで 見回せる。', 2);   // いちど見回したら、もう出さない
+        }
+      }
+    } else if (m === 'death') {
+      Death.update(dt, camera);
+      if (G.t > 0 && Death.on && Death.t > 0.8 && Input.anyHit) Death.finish();
+      if (Death.on) el.black.style.opacity = String(smooth(seg(Death.t, Death.end - 0.7, Death.end)));
+    } else if (m === 'title') {
+      // 題の背景: 通りの先、街灯の下に、彼が立っている
+      const P = G.P; Body.stand(Anton.J, G.t); Anton.yaw = Math.atan2(P.x - Anton.x, P.z - Anton.z); Anton.place();
+      const tf = vfov(PRM.fovStand + 4); if (camera.fov !== tf) { camera.fov = tf; camera.updateProjectionMatrix(); }
+      camera.position.set(P.x + Math.sin(G.t * 0.3) * 0.15, PRM.eye, P.z); camera.rotation.set(Math.sin(G.t * 0.23) * 0.015, P.yaw + Math.PI + Math.sin(G.t * 0.17) * 0.05, 0);
+    }
+    if (m !== 'boot') {
+      sky.position.copy(camera.position); updLights(dt, camera.position.x, camera.position.z); Snd.tick(dt);
+      if (G.noDraw) { /* 試験で早送りするときは描かない */ } else if (m === 'death' && Death.xray) renderer.render(Death.xr.scene, Death.xr.cam); else renderer.render(scene, camera);
+    }
+    Input.endFrame();
+  }
+  let last = 0;
+  function loop(now) { const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now; if (!G.hold) frame(dt); requestAnimationFrame(loop); }   // hold: 試験で、手動で進めるとき
+  function go() { last = performance.now(); requestAnimationFrame(loop); }
+  // 試験用: 止めたまま、決まった時間だけ進める
+  function step(dt, n, quiet) { G.noDraw = true; for (let i = 1; i < (n || 1); i++) frame(dt); G.noDraw = !!quiet; frame(dt); G.noDraw = false; }   // n 回進めて、最後の 1 回だけ描く（quiet なら描かない）
+  Object.assign(G, { init, go, title, startDay, pause, caught, dead, clear, say, shake, flash, onRun, onLost, onFound, lock, step });
+  for (const [k, f] of [['camera', () => camera], ['scene', () => scene], ['renderer', () => renderer]]) Object.defineProperty(G, k, { get: f });   // 試験から見えるように
+  return G;
+})();
+
+// ── 07_main.js ──
+// ───────── 起動と、入力のつなぎこみ ─────────
+function boot() {
+  Store.load(); Snd.mute(!!Store.d.mute);
+  if (typeof THREE === 'undefined') { document.querySelector('#p-title .sub').textContent = '3D の 部品を 読みこめませんでした。通信を 確かめて、開きなおして ください。'; return; }
+  if (!Game.init()) return;
+  const $ = id => document.getElementById(id), cv = $('cv'), stick = $('stick'), knob = $('knob');
+  // 題の画面
+  const lab = () => { $('t-snd').textContent = '音　' + (Store.d.mute ? '切' : '入'); $('t-skip').textContent = '死亡場面　' + (Store.d.skip ? '飛ばす' : '見る'); };
+  lab();
+  $('t-help').textContent = Game.touch ? '左下の 棒で 移動（大きく 倒すと 走る）。画面を なぞって 見回す。「振り返る」は 押している あいだ。'
+    : '移動 W A S D　見回す マウス（または ← →）　走る Shift　振り返る Q を 押している あいだ　鍵 E　中断 Esc';
+  $('t-start').addEventListener('click', () => { Snd.unlock(); Snd.sfx('ui'); Game.startDay(1, false); });
+  $('t-snd').addEventListener('click', () => { Store.d.mute = Store.d.mute ? 0 : 1; Store.save(); Snd.mute(Store.d.mute); lab(); });
+  $('t-skip').addEventListener('click', () => { Store.d.skip = Store.d.skip ? 0 : 1; Store.save(); lab(); });
+  $('b-pause').addEventListener('click', () => Game.pause());
+  // キーボード・マウス
+  window.addEventListener('keydown', e => { const k = Input.KEYS[e.code]; if (k && !e.ctrlKey && !e.metaKey && !e.altKey) { Input.press(k); if (Game.mode === 'play' || Game.mode === 'death') e.preventDefault(); } });
+  window.addEventListener('keyup', e => { const k = Input.KEYS[e.code]; if (k) Input.release(k); });
+  window.addEventListener('blur', () => Input.clear());
+  document.addEventListener('visibilitychange', () => { Snd.pause(document.hidden); Input.clear(); if (document.hidden) Game.pause(); });
+  for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) document.addEventListener(ev, () => Snd.unlock(), true);
+  document.addEventListener('pointerlockchange', () => { const was = Game.locked; Game.locked = document.pointerLockElement === cv; if (Game.locked) Game.noLock = false; if (was && !Game.locked) Game.pause(); });   // Esc で視点の固定が外れたら、中断にする
+  document.addEventListener('pointerlockerror', () => { Game.noLock = true; });
+  document.addEventListener('mousemove', e => { if (Game.locked) { Input.lookX += e.movementX * 0.0023; Input.lookY += e.movementY * 0.0023; } });
+  cv.addEventListener('contextmenu', e => e.preventDefault());
+  // 画面をなぞって見回す（タッチ）。マウスなら、クリックで視点を固定する
+  let lid = null, lx = 0, ly = 0;
+  cv.addEventListener('pointerdown', e => {
+    Input.anyHit = true;
+    if (e.pointerType === 'mouse' && Game.mode === 'play' && !Game.locked) Game.lock();   // 固定できなくても、押したまま動かせば見回せる
+    lid = e.pointerId; lx = e.clientX; ly = e.clientY; try { cv.setPointerCapture(e.pointerId); } catch (er) { /* なくても動く */ }
+  });
+  cv.addEventListener('pointermove', e => { if (e.pointerId !== lid) return; Input.lookX += (e.clientX - lx) * 0.0052; Input.lookY += (e.clientY - ly) * 0.0042; lx = e.clientX; ly = e.clientY; });
+  for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, e => { if (e.pointerId === lid) lid = null; });
+  // 移動の棒
+  let sid = null;
+  const setStick = e => {
+    const r = stick.getBoundingClientRect(), R0 = 44; let x = (e.clientX - (r.left + r.width / 2)) / R0, y = (e.clientY - (r.top + r.height / 2)) / R0;
+    const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
+    Input.stick.on = true; Input.stick.x = x; Input.stick.y = y; knob.style.transform = 'translate(' + Math.round(x * R0) + 'px,' + Math.round(y * R0) + 'px)';
+  };
+  const endStick = () => { sid = null; Input.stick.on = false; Input.stick.x = Input.stick.y = 0; knob.style.transform = ''; };
+  stick.addEventListener('pointerdown', e => { e.preventDefault(); sid = e.pointerId; try { stick.setPointerCapture(e.pointerId); } catch (er) { /* なくても動く */ } setStick(e); });
+  stick.addEventListener('pointermove', e => { if (e.pointerId === sid) setStick(e); });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) stick.addEventListener(ev, endStick);
+  for (const [id, key] of [['b-back', 'tBack'], ['b-act', 'tAct']]) {
+    const b = $(id), up = () => { Input[key] = false; b.classList.remove('on'); };
+    b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (er) { /* なくても動く */ } Input[key] = true; Input.anyHit = true; b.classList.add('on'); });
+    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, up);
+    b.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  window.addEventListener('touchstart', () => { if (!Game.touch) { Game.touch = true; } }, { passive: true });
+  Game.title(); Game.go();
+  if (DEBUG) window.ATL = { Game, Anton, Town, Death, Body, Snd, PRM, Input, Store };
+}
+boot();
+
+})();
+</script>
+</body>
+</html>
