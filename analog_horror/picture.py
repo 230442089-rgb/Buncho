@@ -1128,11 +1128,12 @@ def scene_endcard(tl, sc, t):
         "実在の人物・団体・放送局・災害とは関係ありません。",
         "",
         "音声",
-        "VOICEVOX:No.7　　VOICEVOX:春日部つむぎ　　VOICEVOX:玄野武宏",
-        "VOICEVOX:剣崎雌雄　　VOICEVOX:四国めたん　　VOICEVOX:九州そら",
-        "VOICEVOX:冥鳴ひまり　　VOICEVOX:雨晴はう　　VOICEVOX:波音リツ",
+        "VOICEVOX:No.7　VOICEVOX:春日部つむぎ　VOICEVOX:玄野武宏　VOICEVOX:剣崎雌雄",
+        "VOICEVOX:あんこもん　VOICEVOX:四国めたん　VOICEVOX:雨晴はう　VOICEVOX:満別花丸",
+        "VOICEVOX:東北イタコ　VOICEVOX:WhiteCUL　VOICEVOX:東北ずん子",
+        "VOICEVOX:冥鳴ひまり　VOICEVOX:波音リツ",
     ]):
-        d.text((320, 262 + k * 25), s_, font=font(F_BOLD, 15), fill=(c3, c3, c3), anchor="mm")
+        d.text((320, 250 + k * 25), s_, font=font(F_BOLD, 14), fill=(c3, c3, c3), anchor="mm")
     return to_f(img), dict(noise=0.03, dropout=0.08, wobble=0.3)
 
 

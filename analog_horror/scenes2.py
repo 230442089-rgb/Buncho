@@ -14,15 +14,15 @@ from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from scipy.ndimage import gaussian_filter
 
 from picture import (
-    AMBER, F_BOLD, F_MIN_BLACK, F_MIN_BOLD, FPS, GREEN, H, LAMP1, LAMP2, W, XX, YELLOW, YY,
+    F_PIX, AMBER, F_BOLD, F_MIN_BLACK, F_MIN_BOLD, FPS, GREEN, H, LAMP1, LAMP2, W, XX, YELLOW, YY,
     add_glow, band, blit_mask, broadcast_overlay, card_base, eyes_layer, font, grid_layer, heart_text,
     pix_mask, pix_text, put_glow_text, ramp, silhouette, smooth, street, telop_text, to_f, to_pil, typed,
 )
+from family import MEMBER, VOICE_MEMBER, member_card
+from tako import tako_front
 from timeline import DISTRICTS
 
 F_BRUSH = "/usr/share/fonts/truetype/kouzan-mouhitsu/kouzan-mouhitsu.ttf"
-ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "tako_sheet.png")
-POSE_X = [(66, 371), (458, 773), (871, 1200), (1304, 1697)]  # 4つの立ち絵の横位置
 JADE = np.array([0.25, 0.92, 0.64], np.float32)  # 結索の糸
 
 # 家族それぞれの色と、画面にあふれる言葉
@@ -54,22 +54,15 @@ MOJI = [_moji(x) for _, ls in MEMBERS for x in ls] + [
 ]
 
 
-# =============================================================== 立ち絵
-@lru_cache(maxsize=None)
-def tako_pose(k: int) -> Image.Image:
-    im = Image.open(ASSET).convert("RGBA")
-    x0, x1 = POSE_X[k]
-    return im.crop((x0 - 4, 10, x1 + 4, 896))
-
-
+# =============================================================== 立ち絵（tako.py で描き起こした正面）
 @lru_cache(maxsize=1024)
-def tako_img(k: int, h: int, flip: bool = False, rot: int = 0, squash: float = 1.0, head: bool = False) -> np.ndarray:
-    """立ち絵を高さ h にした RGBA 配列。head=True なら頭（髪と目のあたり）だけ。"""
-    im = tako_pose(k)
-    if head:
-        im = im.crop((0, 0, im.width, 240))
-    w = max(1, round(im.width * h / im.height))
-    im = im.resize((w, max(1, h)), Image.LANCZOS)
+def tako_img(pose: str, h: int, flip: bool = False, rot: int = 0, squash: float = 1.0, crop: str = "full",
+             face: str | None = None) -> np.ndarray:
+    """タコくんの絵を高さ h にした RGBA 配列。crop='head' なら頭と肩だけ。"""
+    arr = tako_front(pose, max(1, h), 0.0, face, crop)
+    if not (flip or rot or squash != 1.0):
+        return arr
+    im = Image.fromarray((arr * 255).astype(np.uint8))
     if flip:
         im = ImageOps.mirror(im)
     if rot:
@@ -116,9 +109,17 @@ def captions(a: np.ndarray, tl: dict, t: float, y_bottom: int = 452) -> np.ndarr
         return a
     img = to_pil(a)
     d = ImageDraw.Draw(img)
+    name = VOICE_MEMBER.get(c["who"])
+    col = tuple(int(255 * v) for v in MEMBER[name][2]) if name else (245, 245, 245)
+    fs = 22 if max(font(F_BOLD, 22).getlength(ln) for ln in lines) < 600 else 19
     for k, ln in enumerate(lines):
-        telop_text(d, (320, y_bottom - (len(lines) - k) * 30 + 12), ln, font(F_BOLD, 22), (245, 245, 245),
+        telop_text(d, (320, y_bottom - (len(lines) - k) * 30 + 12), ln, font(F_BOLD, fs), col,
                    stroke=3, stroke_fill=(0, 0, 0), anchor="mm", shadow=0)
+    if name:  # 名前の札
+        y = y_bottom - len(lines) * 30 - 14
+        w = font(F_BOLD, 15).getlength(name) + 14
+        d.rectangle([320 - w / 2, y - 10, 320 + w / 2, y + 10], fill=col)
+        d.text((320, y), name, font=font(F_BOLD, 15), fill=(10, 10, 14), anchor="mm")
     return to_f(img)
 
 
@@ -215,12 +216,12 @@ def scene_vend(tl, sc, t):
     hear, run = mk["vend_hear"], mk["vend_run"]
     fl = 1.0 + 0.03 * math.sin(tq * 31.0)
     if tq < hear:
-        pose, flip, cx = 2, True, 214.0
+        pose, flip, cx = ("can" if tq < hear - 0.8 or int(tq * 6) % 9 else "stand"), False, 214.0
     elif tq < run:
-        pose, flip, cx = (0 if tq < hear + 1.7 else 1), False, 214.0
+        pose, flip, cx = ("startle" if tq < hear + 1.2 else "fear"), False, 214.0
     else:
         u = (tq - run) / 1.3
-        pose, flip, cx = 3, False, 214.0 - 760.0 * u ** 1.4
+        pose, flip, cx = ("run1" if int(tq * 6) % 2 else "run2"), False, 214.0 - 760.0 * u ** 1.4
         img = to_pil(a)
         d = ImageDraw.Draw(img)
         for k, (x, y) in enumerate([(150, 452), (226, 458), (132, 404)]):  # 蹴とばされた缶
@@ -229,8 +230,8 @@ def scene_vend(tl, sc, t):
     a[420:440, max(0, int(cx) - 70) : max(0, int(cx) + 70)] *= 0.72  # 足もとの影
     if tq >= run:
         for off, al in [(130, 0.16), (65, 0.34)]:
-            put_img(a, tako_img(pose, 300, flip), cx + off, 432, bright=1.0, alpha=al)
-    put_img(a, tako_img(pose, 300, flip), cx, 432, bright=1.12 * fl)
+            put_img(a, tako_img(pose, 290, flip), cx + off, 436, bright=1.0, alpha=al)
+    put_img(a, tako_img(pose, 290, flip), cx, 436, bright=1.08 * fl)
     a = cctv_grade(a, 0.7)
     cctv_overlay(a, sc["args"]["cam"], sc["args"]["stamp"], lt)
     a = captions(a, tl, t, 456)
@@ -262,7 +263,7 @@ def notice_frame(tl: dict, te: float, rows: bool = True, extra=()) -> np.ndarray
         x0, y0, x1, y1 = 404, 92, 604, 396
         tmp = a.copy()
         band(tmp, x0, y0, x1, y1, (0.0, 0.06, 0.035), 0.9)
-        put_img(tmp, tako_img(0, 290), (x0 + x1) / 2, y1 - 6, bright=0.92)
+        put_img(tmp, tako_img("stand", 290), (x0 + x1) / 2, y1 - 6, bright=0.92)
         tmp[y0:y1:2, x0:x1] *= 0.74
         yr = int(y0 + (y1 - y0) * pk)
         a[y0:yr, x0:x1] = tmp[y0:yr, x0:x1]
@@ -290,13 +291,141 @@ def scene_notice(tl, sc, t):
                    bands=((H * ((lt * 0.31) % 1.0), 46, 14), (H * ((lt * 0.53 + 0.4) % 1.0), 24, -9)))
 
 
+# =============================================================== ご利用明細（レウネが読み上げる）
+# (区切りの印, 行の文字列)。印の行に来たら、その段落を表示する。区切りの印は timeline の marks。
+STATEMENT = [
+    ("st_head", ["＊＊　ご利用明細　＊＊　　口座名義　テルエス",
+                 "９日　１４：０２　引き出し　　　　３,１８０,０００円"]),
+    ("st_ramen", ["１３日　２２：４１　麺屋なぎ　駅前店",
+                  "　味噌バターコーン　大盛り　全部のせ",
+                  "　麺かため　味こいめ　油多め",
+                  "　ライスおかわり×２　　　　　　　　　２,４８０"]),
+    ("st_drink1", ["１３日　２３：５８　自販機　港町２丁目",
+                   "　コインランドリー横",
+                   "　ギガボルト　トロピカル×１２　　　２,６４０",
+                   "１４日　００：３１　自販機　汐入公園入口",
+                   "　ギガボルト　ゼロ×８　ブルーハワイ×４　２,６４０"]),
+    ("st_more", ["１４日　１３：０５　らーめん潮騒　港町店",
+                 "　塩とんこつ　背脂こってり　バリカタ",
+                 "　煮卵×２　替え玉×２　　　　　　　１,９５０",
+                 "１４日　１９：２０　中華そば灯台　本店",
+                 "　チャーシュー麺　特盛　ねぎ抜き　　１,３８０",
+                 "タクシー　凪浜→市外×３（３回とも市内へ）　１８,４００"]),
+    ("st_big", ["ホテル　スイート×２泊　　　　　　６８０,０００",
+                "ネットカフェ　ゆうなぎ　個室×３泊　　７,２００",
+                "ヘッドホン　６４,８００　服・スニーカー　４１２,０００",
+                "腕時計　４４０,０００　焼肉ひとり　３８,６００",
+                "回らない寿司　５２,０００　ゲームセンター　９６,０００",
+                "コンビニ　計４１回　４２,０６８",
+                "スマホゲーム　課金　　　　　　１,２８０,０００"]),
+    ("st_last", ["１４日　１５：００　ウィークリーアパート",
+                 "　港町２丁目　２０３号室　７泊前払い　３１,５００",
+                 "１４日　１６：１０　ドラッグ　ハマナス　港町店",
+                 "　ギガボルト　トロピカル　２４本ケース　４,９８０",
+                 "１５日　０２：４１　自販機　港町２丁目",
+                 "　ギガボルト　トロピカル×６　　　　１,３２０",
+                 "残り　　　　　　　　　　　　　　　　　　４２円"]),
+]
+
+
+def statement_frame(tl: dict, t: float) -> np.ndarray:
+    mk = tl["marks"]
+    a = np.zeros((H, W, 3), np.float32)
+    a[:] = (0.0, 0.018, 0.012)
+    # 今の段落と、ひとつ前の段落（薄く）
+    cur = None
+    for k, (mark, _) in enumerate(STATEMENT):
+        if t >= mk[mark]:
+            cur = k
+    if cur is None:
+        return a
+    items = []
+    row = 0
+    shown = [0, cur] if cur > 0 else [0]
+    for k in shown:
+        mark, lines = STATEMENT[k]
+        if k == 0:
+            items.append((0, 0, typed(lines[0], t, mk[mark], 30)))
+            items.append((0, 1, typed(lines[1], t, mk[mark] + 0.4, 30)))
+            row = 3
+            continue
+        for j, ln in enumerate(lines):
+            items.append((0, row + j, typed(ln, t, mk[mark] + 0.12 * j, 34)))
+    m = np.zeros((H, W), np.float32)
+    img = Image.new("L", (W, H), 0)
+    d = ImageDraw.Draw(img)
+    d.fontmode = "1"
+    f = font(F_PIX, 16)
+    for col, rw, text in items:
+        if text:
+            d.text((24 + col * 16, 30 + rw * 30), text, 255, font=f)  # 1行30px
+    m = (np.asarray(img) > 127).astype(np.float32)
+    put_glow_text(a, m, GREEN)
+    # 区切りの線
+    a[30 + 2 * 30 + 10 : 30 + 2 * 30 + 12, 24:616] = GREEN * 0.6
+    if cur == len(STATEMENT) - 1:
+        if t >= mk["st_last"] + 1.2 and int(t * 4) % 2 == 0:  # 残りがまたたく
+            y = 30 + (3 + 6) * 30
+            a[y - 4 : y + 22, 20:620] = a[y - 4 : y + 22, 20:620] * 0.3 + GREEN * 0.5
+        if t >= mk["st_room"]:  # 部屋番号の行を囲む
+            y = 30 + (3 + 1) * 30
+            k = 1.0 if int(t * 6) % 2 == 0 else 0.6
+            for ya, yb in [(y - 6, y - 4), (y + 22, y + 24)]:
+                a[ya:yb, 20:620] = YELLOW * k
+            for xa, xb in [(20, 22), (618, 620)]:
+                a[y - 6 : y + 24, xa:xb] = YELLOW * k
+    return a
+
+
+def member_inset(a: np.ndarray, name: str, appear: float) -> np.ndarray:
+    """右下に、話している家族の人影を小さく出す。"""
+    if appear <= 0.01:
+        return a
+    card = member_card(name, 0.0, 1.0)
+    im = Image.fromarray((card * 255).astype(np.uint8)).resize((176, 132), Image.BILINEAR)
+    c = np.asarray(im, np.float32) / 255.0
+    x0, y0 = W - 196, 236
+    reg = a[y0 : y0 + 132, x0 : x0 + 176]
+    reg[:] = reg * (1 - appear) + c * appear
+    col = np.asarray(MEMBER[name][2], np.float32)
+    for xa, ya, xb, yb in [(x0 - 2, y0 - 2, x0 + 178, y0), (x0 - 2, y0 + 132, x0 + 178, y0 + 134),
+                           (x0 - 2, y0, x0, y0 + 132), (x0 + 176, y0, x0 + 178, y0 + 132)]:
+        a[ya:yb, xa:xb] = col * appear
+    pix_text(a, name, x0 + 6, y0 + 136, col * appear, 1)
+    return a
+
+
+def speaking_member(tl: dict, t: float) -> tuple[str | None, float]:
+    for sy in tl["says"]:
+        if sy["voice"] in VOICE_MEMBER and sy["t0"] - 0.2 <= t < sy["t1"] + 0.4:
+            k = min(1.0, (t - sy["t0"] + 0.2) / 0.25, (sy["t1"] + 0.4 - t) / 0.25)
+            return VOICE_MEMBER[sy["voice"]], max(0.0, k)
+    return None, 0.0
+
+
+def scene_statement(tl, sc, t):
+    a = statement_frame(tl, t)
+    name, k = speaking_member(tl, t)
+    if name and name != "レウネ":
+        a = member_inset(a, name, k)
+    a = captions(a, tl, t, 470)
+    lt = t - sc["t0"]
+    fx = dict(noise=0.07, cnoise=0.05, wobble=1.4, jitter=0.6, dropout=0.8, bloom=0.6,
+              bands=((H * ((lt * 0.23) % 1.0), 30, 10),))
+    if lt < 0.4:
+        k = 1 - lt / 0.4
+        fx.update(noise=0.07 + 0.3 * k, dropout=10 * k, bands=((H * (1 - k), 90, 50 * k),))
+    return a, fx
+
+
 # =============================================================== さがしている：文字とノイズの嵐
 BIG = [  # (時刻, 長さ, 文字, 誰の色, 大きさ)
     (2.2, 0.16, "どこ", 0, 7), (4.6, 0.14, "タコくん", 10, 5), (6.3, 0.16, "どこ", 8, 8), (8.6, 0.20, "大好き♡", 0, 6),
     (9.9, 0.20, "結婚しよ♡", 0, 4), (12.4, 0.16, "どこ", 7, 9), (13.0, 0.14, "いない", 7, 6), (14.9, 0.20, "タコくん♡", 0, 4),
     (15.6, 0.22, "愛♡", 8, 11), (16.5, 0.40, "どこ", 0, 12),
 ]
-FLASH = [("CAM 11　港町", "03:12", False, "wide"), ("CAM 07　駅前通り", "03:26", False, "cctv"), ("CAM 02　団地前", "03:41", True, "wide")]
+# 嵐の中で一瞬だけ映る、少し前の録画（自販機から逃げて、港町のアパートへ戻っていく）
+FLASH = [("CAM 07　駅前通り", "02:44", False, "cctv"), ("CAM 11　港町", "02:49", False, "wide"), ("CAM 05　港町２丁目", "02:55", True, "wide")]
 
 
 def _over(a: np.ndarray, m: np.ndarray, x: int, y: int, col) -> None:
@@ -317,13 +446,13 @@ def storm_flash(tl, sc, t, i):
     X, Z = [(-3.2 + 6.0 * u, 30.0 - 2.0 * u), (-1.2 + 0.6 * u, 38.0 - 9.0 * u), (0.5 + 4.6 * u, 18.0 - 2.5 * u)][i]
     px, py = st.P(X, 0.0, Z)
     h = max(14, int(1.72 * st.f / Z))
-    put_img(a, tako_img([3, 0][int(tq * 8) % 2], h, i == 2), px, py + 2, bright=0.85)
+    put_img(a, tako_img(["run1", "run2"][int(tq * 8) % 2], h), px, py + 2, bright=0.95)
     if mirror:
         a = a[:, ::-1].copy()
         px = W - px
     bx = max(22, h // 2 + 12)
     reticle(a, int(px - bx), int(py - h - 12), int(px + bx), int(py + 10), GREEN)
-    pix_text(a, ["？", "照合中……", "一致　９１％"][i], int(px - bx), int(py + 14), GREEN, 1)
+    pix_text(a, ["照合中……", "一致　９１％", "追跡　港町２丁目"][i], int(px - bx), int(py + 14), GREEN, 1)
     a = cctv_grade(a, 0.7)
     cctv_overlay(a, cam, stamp, tq, 31 + 9 * i)
     return a, dict(noise=0.08, wobble=1.2, jitter=0.5, dropout=2.0, bloom=0.75,
@@ -477,7 +606,8 @@ def room_frame(tl: dict, te: float) -> np.ndarray:
     r = np.random.default_rng(int(te * 12) + 5)
     duck = 15.0 * smooth(ramp(te, mk["hold0"], mk["hold0"] + 0.35))
     hx = 330.0 + float(r.integers(-1, 2))
-    put_img(a, tako_img(1, 150, head=True), hx, 290.0 + duck, anchor="center", bright=1.0, tint=(0.94, 0.97, 1.06))
+    face = "panic" if te >= mk["room_found"] else "fear"
+    put_img(a, tako_img("fear", 178, crop="head", face=face), hx, 268.0 + duck, anchor="center", bright=1.0, tint=(0.94, 0.97, 1.06))
     a = a * (1 - front[..., 3:4]) + front[..., :3] * front[..., 3:4]
     for x in (hx - 96, hx + 96):  # ちゃぶ台のふちをつかむ手
         add_glow(a, x, 331 + duck * 0.2, 10, 6, (0.50, 0.31, 0.19), 0.9)
@@ -522,6 +652,159 @@ def scene_room(tl, sc, t):
         hold = 1 + int(k * 9)
         fi = int(round(t * FPS))
         fx.update(seed=900000 + (fi // hold) * hold, wobble=0.8 + 9 * k, noise=0.085 + 0.07 * k, bands=((H * (0.2 + 0.6 * k), 60, 28 * k),))
+    return a, fx
+
+
+# =============================================================== 飛び出す（部屋 → 廊下 → 外階段 → 通り）
+@lru_cache(maxsize=None)
+def hall_base() -> np.ndarray:
+    """古いアパートの外廊下。奥が外階段。手すりの向こうに、止まった雨。"""
+    rng = np.random.default_rng(91)
+    a = np.zeros((H, W, 3), np.float32)
+    a[:] = (0.05, 0.055, 0.075)
+    img = to_pil(a)
+    d = ImageDraw.Draw(img)
+    vx, vy = 330, 210  # 消失点
+    d.polygon([(0, 0), (640, 0), (vx + 40, vy - 40), (vx - 40, vy - 40)], fill=(24, 25, 30))  # 天井
+    d.polygon([(0, 480), (640, 480), (vx + 40, vy + 30), (vx - 40, vy + 30)], fill=(44, 44, 48))  # 床
+    d.polygon([(0, 0), (vx - 40, vy - 40), (vx - 40, vy + 30), (0, 480)], fill=(58, 56, 52))  # 壁（ドアの側）
+    d.polygon([(640, 0), (vx + 40, vy - 40), (vx + 40, vy + 30), (640, 480)], fill=(12, 14, 22))  # 外（手すり側）
+    for k in range(5):  # ドア
+        u0, u1 = 0.08 + k * 0.17, 0.08 + k * 0.17 + 0.08
+        x0, x1 = (vx - 40) * u0, (vx - 40) * u1
+        top0, bot0 = vy - 40 - (vy - 40) * (1 - u0) + 40 * u0, vy + 30 + (480 - vy - 30) * (1 - u0)
+        top1, bot1 = vy - 40 - (vy - 40) * (1 - u1) + 40 * u1, vy + 30 + (480 - vy - 30) * (1 - u1)
+        top0, top1 = top0 * 0.55 + 70 * u0, top1 * 0.55 + 70 * u1
+        d.polygon([(x0, top0 + 40), (x1, top1 + 40), (x1, bot1 - 10), (x0, bot0 - 10)], fill=(92, 84, 70), outline=(30, 28, 24))
+    for k in range(9):  # 手すり
+        x = 640 - k * 34
+        y0_, y1_ = 220 + k * 2, 480 - k * 30
+        d.line([(x, y0_), (x - 4, y1_)], fill=(30, 30, 34), width=max(1, 6 - k // 2))
+    d.line([(640, 236), (vx + 40, vy + 4)], fill=(36, 36, 40), width=8)
+    for k in range(4):  # 天井の蛍光灯
+        u = 0.15 + k * 0.22
+        x = 640 * (1 - u) * 0.5 + vx * u * 0.5 + (1 - u) * 160
+        y = 40 * (1 - u) + (vy - 40) * u
+        d.rectangle([x - 34 * (1 - u) - 4, y, x + 34 * (1 - u) + 4, y + 6 * (1 - u) + 2], fill=(232, 240, 236))
+    a = to_f(img)
+    for k in range(4):
+        u = 0.15 + k * 0.22
+        x = 640 * (1 - u) * 0.5 + vx * u * 0.5 + (1 - u) * 160
+        y = 40 * (1 - u) + (vy - 40) * u
+        add_glow(a, x, y + 4, 90 * (1 - u) + 10, 50 * (1 - u) + 6, (0.85, 1.0, 0.9), 0.12)
+    n = 900  # 手すりの向こうの止まった雨
+    px, py = rng.uniform(vx + 50, 640, n), rng.uniform(0, 470, n)
+    br = rng.uniform(0.1, 0.7, n) ** 2
+    for k in range(n):
+        if py[k] < 480 - (640 - px[k]) * 0.2:
+            a[int(py[k]), int(px[k])] += br[k] * np.array([1.0, 0.86, 0.5], np.float32)
+    return a
+
+
+def scene_bolt(tl, sc, t):
+    """「みーつけた」から逃げて、部屋を飛び出す（防犯カメラ・コマ送り）。"""
+    mk = tl["marks"]
+    tq = math.floor(t * 8) / 8
+    lt = tq - sc["t0"]
+    door, out_, gone = mk["bolt_door"] - sc["t0"], mk["bolt_out"] - sc["t0"], mk["bolt_gone"] - sc["t0"]
+    a = hall_base().copy()
+    # ドア（手前の左）が、内側から勢いよく開く
+    img = to_pil(a)
+    d = ImageDraw.Draw(img)
+    op = smooth(ramp(lt, door, door + 0.25))
+    d.polygon([(30, 70), (176, 112), (176, 430), (30, 470)], fill=(10, 10, 14))  # 開いた戸口の暗がり
+    dx = 146 * (1 - 0.9 * op)
+    d.polygon([(30, 70), (30 + dx, 112 - 10 * op), (30 + dx, 430 + 14 * op), (30, 470)], fill=(96, 88, 72), outline=(30, 28, 24))
+    if op < 0.5:
+        d.ellipse([30 + dx - 22, 270, 30 + dx - 10, 282], fill=(190, 190, 180))
+    pix = "203"
+    d.rectangle([186, 110, 228, 128], fill=(220, 216, 200))
+    d.text((207, 119), pix, font=font(F_BOLD, 13), fill=(30, 30, 30), anchor="mm")
+    a = to_f(img)
+    if lt >= door:
+        add_glow(a, 100, 260, 50, 110, (0.55, 0.7, 1.0), 0.20 * op)  # 部屋のテレビの明かりがもれる
+    # 走ってくる → 手前を横切って、外階段へ
+    if door + 0.1 <= lt < gone:
+        u = (lt - (door + 0.1)) / (gone - door - 0.1)
+        x = 120 + 520 * u ** 1.25
+        y = 470 - 30 * u
+        h = int(330 - 140 * u)
+        pose = ["run1", "run2"][int(tq * 8) % 2]
+        put_img(a, tako_img(pose, h, True), x, y - 4 * (int(tq * 8) % 2), bright=0.95)
+        if u < 0.3:  # ドアの縁に肩をぶつける
+            a[:, :] *= 1.0
+    a = cctv_grade(a, 0.66)
+    cctv_overlay(a, "CAM 01　あおば荘　２階廊下", "03:57", lt, 42)
+    a = captions(a, tl, t, 456)
+    fx = dict(noise=0.07, wobble=0.6, jitter=0.4, dropout=0.6, bloom=0.6)
+    if lt < 0.35:  # 動きだした直後の乱れ
+        k = 1 - lt / 0.35
+        fx.update(noise=0.07 + 0.4 * k, dropout=12 * k, roll=0.2 * k, bands=((H * (1 - k), 120, 70 * k),))
+    if abs(lt - door) < 0.15:
+        fx.update(dropout=6, bands=((260, 80, 30),))
+    return a, fx
+
+
+def scene_burst(tl, sc, t):
+    """駅前カメラ：止まった雨の中を走ってくる → 見えない壁にぶつかる → 右の路地へ。"""
+    mk = tl["marks"]
+    say = {x["id"]: x for x in tl["says"]}
+    tq = math.floor(t * 10) / 10
+    lt = tq - sc["t0"]
+    st = street("wide")
+    a = st.bg.copy()
+    a += AMBER * (0.085 * np.exp(-YY / 150.0))[..., None]
+    a += st.beads + st.beads_sky + st.blink_amt(tq) * (st.beads_blink + st.blink)
+    t_hit = say["S02"]["t0"] + 0.7 - sc["t0"]  # 「行き止まり」で、壁にぶつかる
+    t_turn = say["R07"]["t0"] + 1.0 - sc["t0"]  # 「次の角、右」で、右へ
+    t_gone = say["R07"]["t1"] + 0.6 - sc["t0"]
+    flip, pose, face = False, ["run1", "run2"][int(tq * 10) % 2], None
+    if lt < t_hit:
+        u = smooth(min(1.0, lt / t_hit)) * 0.85 + 0.15 * min(1.0, lt / t_hit)
+        X, Z = -5.0 + 5.4 * min(1.0, u * 1.6), 34.0 - 21.0 * u
+    elif lt < t_turn:
+        k = min(1.0, (lt - t_hit) / 0.5)
+        X, Z = 0.4, 13.0 + 2.0 * math.sin(k * math.pi / 2)
+        pose = "fear" if lt - t_hit > 0.4 else "startle"
+        face = "panic"
+    else:
+        u = min(1.0, (lt - t_turn) / max(0.1, t_gone - t_turn))
+        X, Z = 0.4 + 7.5 * u ** 1.3, 15.0 + 1.0 * u
+        flip = True
+    if lt < t_gone:
+        px, py = st.P(X, 0.0, Z)
+        h = int(1.72 * st.f / Z)
+        put_img(a, tako_img(pose, h, flip, face=face), px, py + 2, bright=1.0)
+        for k in range(8):  # 体に当たった雨粒がはじける
+            r = np.random.default_rng(int(tq * 10) * 31 + k)
+            add_glow(a, px + r.normal(0, h * 0.18), py - h * r.uniform(0.2, 0.9), 2.0, 2.0, (1.0, 0.9, 0.6), 0.6)
+    # 燐の結界：ぶつかった所に、翡翠色の波紋が広がる
+    if lt >= t_hit - 0.05:
+        k = lt - t_hit
+        wx, wy = st.P(0.4, 0.9, 12.0)
+        lay = Image.new("L", (W, H), 0)
+        ld = ImageDraw.Draw(lay)
+        for ring in range(3):
+            r = 18 + 80 * max(0.0, k - ring * 0.25)
+            g = math.exp(-max(0.0, k - ring * 0.25) * 1.1)
+            if r > 18 and g > 0.03:
+                ld.ellipse([wx - r, wy - r * 0.7, wx + r, wy + r * 0.7], outline=int(255 * g), width=3)
+        rip = np.asarray(lay.filter(ImageFilter.GaussianBlur(1.2)), np.float32) / 255.0
+        a += rip[..., None] * JADE * 0.9
+        sh = 0.05 + 0.04 * math.sin(lt * 7.0)  # 道をふさぐ、うっすらとした壁
+        x0, _ = st.P(-3.5, 0, 12.0)
+        x1, _ = st.P(3.5, 0, 12.0)
+        _, y0 = st.P(0, 6.0, 12.0)
+        _, y1 = st.P(0, 0, 12.0)
+        a[int(max(0, y0)) : int(min(H, y1)), int(max(0, x0)) : int(min(W, x1))] += JADE * sh
+    a = broadcast_overlay(tl, sc, t, a)
+    a = captions(a, tl, t, 456)
+    fx = dict(noise=0.07, bloom=0.75, wobble=0.8)
+    if lt < 0.3:
+        k = 1 - lt / 0.3
+        fx.update(noise=0.07 + 0.3 * k, dropout=8 * k, bands=((H * (1 - k), 90, 40 * k),))
+    if abs(lt - t_hit) < 0.2:
+        fx.update(dropout=6, jitter=2.0, bands=((H * 0.6, 60, 30),))
     return a, fx
 
 
@@ -665,11 +948,11 @@ def scene_capture(tl, sc, t):
     if not gone:
         lit = 0.55 + 0.45 * min(1.0, 40.0 / ((X - LAMP1[0]) ** 2 + (Z - LAMP1[2]) ** 2 + 20.0))
         if lt < fall:  # 走ってくる
-            pose = [3, 0][int(lt * 8) % 2]
-            put_img(a, tako_img(pose, h, False), px, py + 2 - 3 * (int(lt * 8) % 2), bright=lit)
+            pose = ["run1", "run2"][int(lt * 8) % 2]
+            put_img(a, tako_img(pose, h), px, py + 2 - 3 * (int(lt * 8) % 2), bright=lit)
         else:  # 倒れている／引きずられる（足が奥、頭が手前）
             rot = int(180 * smooth(ramp(lt, fall, fall + 0.25))) + int(np.random.default_rng(int(lt * 8)).integers(-6, 7))
-            sp = tako_img(1, int(h * 1.3), False, rot, 0.6)
+            sp = tako_img("down", int(h * 1.1), False, rot, 0.6, face=("grit" if int(lt * 4) % 2 else None))
             body_cy, body_h = py + sp.shape[0] * 0.25, float(sp.shape[0])
             put_img(a, sp, px, body_cy, anchor="center", bright=min(1.15, lit * 1.2))
     img = to_pil(a)
@@ -869,7 +1152,7 @@ def draw_dragged(st, a: np.ndarray, lt: float) -> np.ndarray:
     h = int(1.72 * st.f / Z)
     r = np.random.default_rng(int(lt * 10))
     rot = 180 + int(r.integers(-9, 10))
-    sp = tako_img(1, int(h * 1.3), False, rot, 0.6)
+    sp = tako_img("bound" if int(lt * 3) % 3 else "bound_grit", int(h * 1.1), False, rot, 0.6)
     hh = sp.shape[0]
     img = to_pil(a)
     d = ImageDraw.Draw(img)
@@ -915,6 +1198,7 @@ def scene_umbrella(tl, sc, t):
 
 
 SCENES2 = {
+    "bolt": scene_bolt, "burst": scene_burst, "statement": scene_statement,
     "vend": scene_vend, "notice": scene_notice, "storm": scene_storm, "room": scene_room, "freeze": scene_freeze,
     "capture": scene_capture, "form": scene_form, "found": scene_found, "umbrella": scene_umbrella,
 }

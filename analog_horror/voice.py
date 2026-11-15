@@ -28,6 +28,17 @@ NO7_ANNOUNCE, KENZAKI, TSUMUGI = 30, 21, 8
 TAKE, TAKE_JOY, TAKE_ANGRY, TAKE_SAD = 11, 39, 40, 41  # 玄野武宏：ノーマル／喜び／ツンギレ／悲しみ
 METAN_SWEET, METAN_TSUN, METAN_HISO = 0, 6, 37
 SORA_SWEET, SORA_WHISPER, HIMARI, HAU, RITSU = 15, 19, 14, 10, 9
+# 家族の声（一人ずつ別の声にする）
+VOL, VOL_HISO = 0, 37  # ヴォル：四国めたん（あまあま／ヒソヒソ）
+MIRIA = 72  # ミリア：満別花丸（ぶりっ子）
+RIN = 109  # 燐：東北イタコ
+RURIKA = 10  # ルリカ：雨晴はう
+REUNE, REUNE_HISO = 116, 117  # レウネ：あんこもん（けだるげ／ささやき）
+TERUES, TERUES_SAD = 23, 25  # テルエス：WhiteCUL（ノーマル／かなしい）
+FURURU = 107  # フルル：東北ずん子
+NIRUME = 14  # ニルメ：冥鳴ひまり
+ZAINA = 9  # ザイナ：波音リツ
+ASERA = 70  # アセラ：満別花丸（元気）
 
 # 声ごとの基本の調子
 TUNE = {
@@ -36,6 +47,12 @@ TUNE = {
     "Y": dict(speaker=TSUMUGI, speedScale=0.98, pitchScale=0.0, intonationScale=1.2),
     "T": dict(speaker=TAKE, speedScale=1.08, pitchScale=0.0, intonationScale=1.25),
     "C": dict(speaker=SORA_WHISPER, speedScale=0.9, pitchScale=0.0, intonationScale=1.0),
+    "V": dict(speaker=VOL, speedScale=1.0, pitchScale=0.0, intonationScale=1.15, pauseLengthScale=0.6),
+    "M": dict(speaker=MIRIA, speedScale=1.08, pitchScale=0.0, intonationScale=1.35, pauseLengthScale=0.6),
+    "S": dict(speaker=RIN, speedScale=1.0, pitchScale=0.0, intonationScale=1.0, pauseLengthScale=0.7),
+    "L": dict(speaker=RURIKA, speedScale=1.1, pitchScale=0.0, intonationScale=1.3, pauseLengthScale=0.6),
+    "R": dict(speaker=REUNE, speedScale=1.3, pitchScale=0.0, intonationScale=0.85, pauseLengthScale=0.45),
+    "X": dict(speaker=TERUES, speedScale=0.95, pitchScale=0.0, intonationScale=0.9, pauseLengthScale=0.8),
 }
 
 # (id, 声, 読み上げ原稿, 上書きする設定)
@@ -66,11 +83,12 @@ LINES: list[tuple[str, str, str, dict]] = [
     ("A25", "A", "人影は、いずれも、白い髪をしていた、ということです。", {}),
     ("A26", "A", "男性は、最後まで、何かを叫んでいたということです。", {}),
     # ---- 防災無線（「、」ごとに区切って間をあける）
-    ("B01", "B", "こちらは、防災、ナギハマ、です。", {}),
-    ("B02", "B", "排水口や、用水路を、のぞきこまないでください。", {}),
-    ("B04", "B", "走っていく影を、追いかけないでください。", {}),
-    ("B05", "B", "市の外へ、出ようとしないでください。道は、もとの場所に、戻ります。", {}),
-    ("B06", "B", "理由のない恐怖を感じても、それは、異常では、ありません。", {}),
+    ("B01", "B", "こちらは、防災ナギハマです。", {}),
+    ("B02", "B", "ただいま、市内全域で、雨が、空中で止まる現象が、発生しています。", {}),
+    ("B03", "B", "現在のところ、けが人などの情報は、入っていません。落ち着いて、行動してください。", {}),
+    ("B04", "B", "市民の皆さんは、ふようふきゅうの外出を控え、建物の中に、とどまってください。", {}),
+    ("B05", "B", "様子を見に、外へ出たり、窓を開けたりしないでください。外にいるかたは、近くの建物に、入ってください。", {}),
+    ("B06", "B", "新しい情報が入りしだい、またお知らせします。", {}),
     # ---- ユリア
     ("Y01", "Y", "教えてね", {}),
     ("Y02", "Y", "タコくーん。どこー？", dict(speedScale=0.85)),
@@ -92,19 +110,39 @@ LINES: list[tuple[str, str, str, dict]] = [
     ("T06", "T", "誰が結婚なんかするか！　ブス！　ブスども！", dict(speaker=TAKE_ANGRY, speedScale=1.15, intonationScale=1.6, pitchScale=0.08)),
     ("T07", "T", "ブスどもおおおおおお", dict(speaker=TAKE_ANGRY, scream=True, scream_shift=1.28)),
     ("T08", "T", "やめろ、やめろって", dict(speaker=TAKE_SAD, speedScale=1.3, intonationScale=1.5, pitchScale=0.07)),
+    # ---- ご利用明細（レウネが読み上げ、家族が口をはさむ）
+    ("R01", "R", "はい、明細ね。テルの口座から、サンビャクジューハチマンエン。……ぜんぶ、追えてるし。", {}),
+    ("R02", "R", "ジューサンニチ、夜のジュージヨンジューイップン。麺屋なぎ、駅前店。味噌バターコーン、大盛り、全部乗せ。麺かため、味こいめ、油多め。ライス、お代わり二回。", {}),
+    ("V01", "V", "味噌バターコーン、全部のせ、麺かため、ですね。……覚えましたからー。おうちで毎日、作ってさしあげますねぇ。", {}),
+    ("L01", "L", "もう！　油多めで、ライス、お代わり二回！？　体こわすでしょ！　……胃薬、出しとくからね。", {}),
+    ("R03", "R", "ジューイチジゴジューハップン。みなとまち二丁目、コインランドリー横の自販機で、ギガボルトのトロピカル、じゅうにほん。……日付が変わって、汐入公園の自販機で、ゼロを八本、ブルーハワイを四本。", {}),
+    ("M01", "M", "はぁ？　一晩でにじゅうよんほんとか、バカじゃん。あたしが心臓マッサージ、してあげよっか？", {}),
+    ("R04", "R", "十四日。お昼は、らーめん潮騒。塩とんこつ、背脂こってり、バリカタ、ニタマゴ二個、替え玉二回。夜は、中華そば灯台。チャーシュー麺、特盛、ねぎ抜き。", {}),
+    ("S01", "S", "タクシーで三回、市の外へ。……三回とも、ここに戻ってきはったなぁ。うちが結んだ街やさかい、出られへんよ。", {}),
+    ("R05", "R", "ホテルのスイート、二泊。……で、ネットカフェの個室、三泊。ヘッドホンも、買い替えてるし。ロクマンヨンセンハッピャクエン。……スマホのガチャ、ヒャクニジューハチマンエン。", {}),
+    ("X01", "X", "……ガチャ、ヒャクニジューハチマン……。その、僕に言ってくれたら……全部、買ってあげたのに。", dict(speaker=TERUES_SAD)),
+    ("R06", "R", "残り、ヨンジューニエン。……で、今いるの、みなとまち二丁目のアパート、ニーマルサン号室。テレビの前っしょ。", {}),
+    # ---- 追いかける
+    ("T09", "T", "くそっ、くそっ！　なんで部屋までバレてんだよ！　あのブスども！", dict(speaker=TAKE_ANGRY, speedScale=1.2, intonationScale=1.5, pitchScale=0.05)),
+    ("M02", "M", "あはっ、逃げた逃げた。いいよ、走りなよ。どこ行っても、あたしの前に出るけどねぇ。", {}),
+    ("S02", "S", "……そっちは、行き止まりやで。", {}),
+    ("R07", "R", "次の角、右。……はい、るりか。そこ。", {}),
+    ("L02", "L", "もう！　走らないの！　転んだら危ないでしょ！　……ヴォルネエサマ、お願い！", {}),
+    ("V02", "V", "承知しました。では、おうちへ、お連れしますねぇ。", {}),
     # ---- さがしている家族の声
-    ("C01", "C", "お茶、二人分、用意してありますからぁ。もう、離しませんよぉ", dict(speaker=METAN_SWEET)),
-    ("C02", "C", "おいでぇ。こわくないよぉ", dict(speaker=SORA_SWEET, speedScale=0.82)),
-    ("C03", "C", "にあの、となり。ずっと", dict(speaker=HIMARI, speedScale=0.72)),
-    ("C04", "C", "もう！　お金は、ちゃんと返しなさい！", dict(speaker=HAU, speedScale=1.05, intonationScale=1.3)),
-    ("C05", "C", "いた？", dict(speaker=RITSU, speedScale=0.85)),
-    ("C06", "C", "よわーい。逃げ足だけじゃん", dict(speaker=METAN_TSUN, speedScale=1.0, intonationScale=1.3)),
-    ("C07", "C", "タコくん。どこ。どこにいるの", dict(speaker=SORA_WHISPER, speedScale=0.8)),
-    ("C08", "C", "いない。いない。ここにも、いない", dict(speaker=METAN_HISO, speedScale=0.85)),
-    ("C09", "C", "お金は、いい。帰ってきて", dict(speaker=RITSU, speedScale=0.82)),
-    ("C10", "C", "かけっこ？　あたしの勝ち！", dict(speaker=HAU, speedScale=1.1, pitchScale=0.04, intonationScale=1.4)),
-    ("C11", "C", "だいすき。だいすき。だいすき", dict(speaker=SORA_WHISPER, speedScale=0.85)),
-    ("C12", "C", "結婚しよ。ね。結婚しよ", dict(speaker=METAN_HISO, speedScale=0.9)),
+    ("C01", "V", "お茶、二人分、用意してありますからー。もう、離しませんよー", {}),
+    ("C02", "C", "おいでぇ。こわくないよー", dict(speaker=FURURU, speedScale=0.82)),
+    ("C03", "C", "ニアの、となり。ずっと", dict(speaker=NIRUME, speedScale=0.72)),
+    ("C04", "L", "もう！　お金は、ちゃんと返しなさい！", {}),
+    ("C05", "C", "いた？", dict(speaker=ZAINA, speedScale=0.85)),
+    ("C06", "M", "ヨワーイ。逃げ足だけじゃん", {}),
+    ("C07", "V", "タコくん。どこですかぁ。どこに、いらっしゃるんですかぁ", dict(speaker=VOL_HISO, speedScale=0.8)),
+    ("C08", "R", "いない、いない。……なんて、うそ。ぜんぶ、見えてるし", dict(speaker=REUNE_HISO, speedScale=0.85)),
+    ("C09", "X", "お金は、いい。帰ってきて", dict(speaker=TERUES_SAD, speedScale=0.82)),
+    ("C10", "C", "かけっこ？　あたしの勝ち！", dict(speaker=ASERA, speedScale=1.1, pitchScale=0.04, intonationScale=1.4)),
+    ("C11", "C", "だいすき。だいすき。だいすき", dict(speaker=NIRUME, speedScale=0.85)),
+    ("C12", "Y", "結婚しよ。ね。結婚しよ", dict(speedScale=0.9, volumeScale=0.8)),
+    ("C13", "S", "逃げ道、もうあらへんよ", dict(speedScale=0.85)),
 ]
 VOICE_OF = {lid: v for lid, v, _, _ in LINES}
 
@@ -167,8 +205,8 @@ def _say(text: str, voice: str, over: dict) -> tuple[np.ndarray, str]:
 def synth_line(text: str, voice: str, over: dict) -> tuple[np.ndarray, str]:
     if voice == "B":
         # 屋外スピーカー：句ごとに区切り、長めの間を入れる
-        gap = np.zeros(int(0.5 * SR), dtype=np.float32)
-        long_gap = np.zeros(int(0.95 * SR), dtype=np.float32)
+        gap = np.zeros(int(0.4 * SR), dtype=np.float32)
+        long_gap = np.zeros(int(0.8 * SR), dtype=np.float32)
         out: list[np.ndarray] = []
         kana: list[str] = []
         sentences = [s for s in text.split("。") if s]
