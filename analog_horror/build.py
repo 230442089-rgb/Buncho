@@ -43,9 +43,9 @@ def main() -> None:
     ap.add_argument("--start", type=float, default=0.0)
     ap.add_argument("--end", type=float, default=None)
     ap.add_argument("--scale", default="640:480")
-    ap.add_argument("--crf", default="29")
+    ap.add_argument("--crf", default="31")
     ap.add_argument("--x264", default="psy-rd=0.4,0")
-    ap.add_argument("--maxrate", default="1700k")
+    ap.add_argument("--maxrate", default="1300k")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     a = ap.parse_args()
 
@@ -72,7 +72,7 @@ def main() -> None:
         "-ss", f"{a.start:.3f}", "-t", f"{end - a.start:.3f}", "-i", wav,
         "-vf", f"scale={a.scale}:flags=bicubic,setsar=1", "-c:v", "libx264", "-preset", "slow", "-crf", a.crf,
         *(["-x264-params", a.x264] if a.x264 else []),
-        "-maxrate", a.maxrate, "-bufsize", "3400k",
+        "-maxrate", a.maxrate, "-bufsize", "2600k",
         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", "-shortest", a.out,
     ]
     print(f"映像を描いています…（{f1 - f0} フレーム）", flush=True)
