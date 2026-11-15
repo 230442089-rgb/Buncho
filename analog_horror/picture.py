@@ -12,7 +12,6 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from scipy.ndimage import gaussian_filter, uniform_filter1d
 
-from timeline import DISTRICTS_FAST, DISTRICTS_SLOW
 
 W, H, FPS = 640, 480, 30
 XX = np.arange(W)[None, :].repeat(H, 0)
@@ -245,11 +244,12 @@ def scene_blue(tl, sc, t):
 
 LABEL_LINES = [
     (0.3, "資料映像"),
-    (1.0, "家庭用ビデオテープより複製"),
-    (1.6, "録画日時　不明"),
-    (2.0, "放送局　　不明"),
-    (2.9, "※一部に映像・音声の"),
-    (2.9, "　乱れがあります"),
+    (1.0, "放送の録画と"),
+    (1.0, "防犯カメラの映像を編集"),
+    (1.8, "録画日時　不明"),
+    (2.2, "放送局　　不明"),
+    (3.0, "※一部に映像・音声の"),
+    (3.0, "　乱れがあります"),
 ]
 
 
@@ -257,7 +257,7 @@ def scene_label(tl, sc, t):
     a = np.zeros((H, W, 3), np.float32)
     a[:] = (0.012, 0.012, 0.016)
     lt = t - sc["t0"]
-    ys = [70, 150, 190, 230, 310, 350]
+    ys = [60, 130, 166, 222, 258, 330, 366]
     for (t0, text), y in zip(LABEL_LINES, ys):
         if lt >= t0:
             pix_text(a, text, 64, y, (0.82, 0.82, 0.80), shadow=False)
@@ -437,6 +437,7 @@ VIEWS = {
     # 名前: (焦点距離, 画面中心x, 地平線y, カメラの高さ)
     "wide": (520.0, 320.0, 190.0, 4.5),
     "tele": (1250.0, 278.0, 129.0, 4.5),
+    "cctv": (900.0, 320.0, 150.0, 4.5),
 }
 LAMP1 = (3.0, 6.35, 15.0)
 LAMP2 = (-3.0, 6.35, 34.0)
@@ -652,7 +653,7 @@ class Street:
     def _beads(self):
         """空中で止まった雨粒。"""
         rng = np.random.default_rng(77)
-        n = 8500 if self.view == "wide" else 16000
+        n = {"wide": 8500, "tele": 16000, "cctv": 12000}[self.view]
         X = rng.uniform(-5.3, 5.3, n)
         Y = rng.uniform(0.05, 17.0, n)
         Z = rng.uniform(5.0, 85.0, n)
@@ -676,7 +677,7 @@ class Street:
 
     def _rain_seed(self):
         rng = np.random.default_rng(78)
-        n = 1300 if self.view == "wide" else 1700
+        n = {"wide": 1300, "tele": 1700, "cctv": 1500}[self.view]
         return (rng.uniform(-5.3, 5.3, n), rng.uniform(0, 17.0, n), rng.uniform(5.0, 70.0, n), rng.uniform(0.85, 1.15, n))
 
     def rain_layer(self, lt: float) -> np.ndarray:
@@ -714,6 +715,10 @@ def broadcast_overlay(tl, sc, t, a: np.ndarray, live: bool = True) -> np.ndarray
     warns = [x for x in tl["telops"] if x["kind"] == "warn" and x["t0"] <= t < x["t1"]]
     bous = [x for x in tl["telops"] if x["kind"] == "bousai" and x["t0"] <= t < x["t1"]]
     tick = next((x for x in tl["tickers"] if x["t0"] <= t < x["t1"]), None)
+    bous_y = [x for x in tl["telops"] if x["kind"] == "bousai_y" and x["t0"] <= t < x["t1"]]
+    if bous_y:
+        band(a, 70, 296, 570, 368, (0.05, 0.03, 0.0), 0.78)
+        band(a, 70, 272, 172, 296, (0.75, 0.56, 0.05), 0.95)
     if heads:
         band(a, 40, 378, 600, 418, (0.02, 0.05, 0.22), 0.80)
         band(a, 40, 378, 600, 380, (0.9, 0.9, 0.95), 0.9)
@@ -752,6 +757,10 @@ def broadcast_overlay(tl, sc, t, a: np.ndarray, live: bool = True) -> np.ndarray
         yc = (y0 + 368) / 2 - (len(lines) - 1) * 15
         for k, ln in enumerate(lines):
             telop_text(d, (320, yc + k * 30), ln, font(F_MARU, 24), (245, 245, 245), stroke=1, stroke_fill=(245, 245, 245), anchor="mm", shadow=0)
+    if bous_y:
+        d.text((121, 283), "？？？", font=font(F_BOLD, 18), fill=(20, 14, 0), anchor="mm")
+        for k, ln in enumerate(bous_y[-1]["text"].split("\n")):
+            telop_text(d, (320, 317 + k * 30), ln, font(F_MARU, 24), (255, 222, 60), stroke=1, stroke_fill=(255, 222, 60), anchor="mm", shadow=0)
     if sc["args"].get("clock"):
         draw_clock(d, sc["args"]["clock"])
     if live and sc["args"].get("cam"):
@@ -784,92 +793,6 @@ def scene_street(tl, sc, t):
         a[240:] *= (0.93 + 0.14 * rip[240:])[..., None]
     a = broadcast_overlay(tl, sc, t, a)
     return a, dict(noise=0.05, bloom=0.75)
-
-
-# 傘の列。後ろ姿なので、見えるのは傘の色と白い髪だけ。
-# (横位置X, 奥行きZ, 背丈, 傘の色, 髪型, 歩調のずれ)
-WALKERS = [
-    (-0.25, 27.0, 1.66, (236, 232, 222), "short", 0.0),
-    (0.95, 28.2, 1.63, (240, 205, 40), "sideup", 1.1),
-    (1.60, 28.4, 1.62, (150, 205, 240), "pony", 2.3),
-    (2.75, 29.7, 1.79, (120, 22, 30), "bob", 0.6),
-    (-0.10, 30.0, 1.53, (92, 80, 200), "bob", 1.7),
-    (-0.80, 30.3, 1.45, (176, 230, 70), "twin", 2.9),
-    (0.60, 30.4, 1.68, (245, 180, 200), "long", 0.3),
-    (-1.70, 31.3, 1.47, (40, 170, 130), "tie", 1.4),
-    (1.75, 31.7, 1.58, (240, 140, 40), "short", 2.0),
-    (2.35, 31.9, 1.65, (30, 190, 120), "short", 0.9),
-    (0.20, 33.8, 1.50, (150, 80, 200), "messy", 2.6),
-]
-
-
-def draw_walkers(st: Street, a: np.ndarray, lt: float, alpha: float) -> np.ndarray:
-    img = to_pil(a)
-    lay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    d = ImageDraw.Draw(lay)
-    for X, Z0, hgt, ucol, hair, ph in sorted(WALKERS, key=lambda w: -w[1]):
-        Z = Z0 + 0.36 * lt
-        s = st.f / Z
-        step = math.sin(2 * math.pi * 1.55 * lt + ph)
-        bob = 0.025 * abs(step) * (2.2 if hair == "messy" else 1.0)
-        gx, gy = st.P(X, 0, Z)
-        lit = 0.35 + 0.65 * min(1.0, 60.0 / ((X - LAMP2[0]) ** 2 + (Z - LAMP2[2]) ** 2 + 30.0))
-
-        def pt(dx, y):
-            return gx + dx * s, gy - (y + bob) * s
-
-        body = (int(13 + 14 * lit), int(13 + 14 * lit), int(17 + 16 * lit), 255)
-        # 脚
-        for sg in (-1, 1):
-            d.line([pt(sg * 0.07, 0.80), pt(sg * 0.07 + sg * 0.05 * step, 0.0)], fill=body, width=max(1, int(0.11 * s)))
-        # 胴
-        d.polygon([pt(-0.20, 0.72), pt(-0.23, hgt - 0.36), pt(0.23, hgt - 0.36), pt(0.20, 0.72)], fill=body)
-        # 髪（白）
-        hc = (int(200 * lit + 25), int(200 * lit + 25), int(208 * lit + 28), 255)
-        cx, cy = pt(0, hgt - 0.14)
-        r = 0.125 * s
-        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=hc)
-        if hair == "long":
-            d.polygon([pt(-0.14, hgt - 0.16), pt(-0.17, hgt - 0.85), pt(0.17, hgt - 0.85), pt(0.14, hgt - 0.16)], fill=hc)
-        elif hair == "bob":
-            d.rectangle([cx - r * 1.15, cy - r * 0.2, cx + r * 1.15, cy + r * 1.15], fill=hc)
-        elif hair == "twin":
-            for sg in (-1, 1):
-                d.polygon([pt(sg * 0.10, hgt - 0.08), pt(sg * 0.30, hgt - 0.30), pt(sg * 0.27, hgt - 0.78), pt(sg * 0.15, hgt - 0.40)], fill=hc)
-        elif hair == "pony":
-            d.polygon([pt(-0.05, hgt - 0.10), pt(-0.07, hgt - 0.62), pt(0.07, hgt - 0.62), pt(0.05, hgt - 0.10)], fill=hc)
-        elif hair == "tie":
-            d.polygon([pt(-0.04, hgt + 0.02), pt(-0.06, hgt - 0.50), pt(0.06, hgt - 0.50), pt(0.04, hgt + 0.02)], fill=hc)
-        elif hair == "sideup":
-            d.polygon([pt(0.08, hgt - 0.02), pt(0.25, hgt - 0.12), pt(0.24, hgt - 0.58), pt(0.13, hgt - 0.30)], fill=hc)
-        elif hair == "messy":
-            d.line([pt(0, hgt - 0.03), pt(0.05, hgt + 0.10)], fill=hc, width=max(1, int(0.04 * s)))
-        # 傘
-        uc = tuple(int(c * (0.30 + 0.60 * lit)) for c in ucol) + (255,)
-        ut = tuple(min(255, int(c * (0.55 + 0.75 * lit))) for c in ucol) + (255,)
-        ux, uy = pt(0.04, hgt + 0.02)
-        rw, rh = 0.50 * s, 0.34 * s
-        d.pieslice([ux - rw, uy - rh, ux + rw, uy + rh], 180, 360, fill=uc)
-        d.pieslice([ux - rw * 0.55, uy - rh, ux + rw * 0.55, uy + rh * 0.3], 180, 360, fill=ut)
-        d.line([(ux, uy - rh), (ux, uy - rh - 0.06 * s)], fill=uc, width=1)
-    if alpha < 1:
-        lay.putalpha(lay.getchannel("A").point(lambda v: int(v * alpha)))
-    img.paste(lay, (0, 0), lay)
-    return to_f(img)
-
-
-def scene_umbrella(tl, sc, t):
-    lt = t - sc["t0"]
-    st = street("tele")
-    a = st.bg.copy()
-    a += st.blink_amt(lt) * st.blink
-    a = draw_walkers(st, a, lt, smooth(ramp(lt, 0.0, 1.2)))
-    a += st.rain_layer(lt)
-    rng = np.random.default_rng(int(lt * 15) + 5)
-    rip = np.repeat(np.repeat(rng.random((H // 4, W // 8), dtype=np.float32), 4, 0), 8, 1)
-    a *= (0.94 + 0.12 * rip)[..., None]
-    a = broadcast_overlay(tl, sc, t, a)
-    return a, dict(noise=0.075, bloom=0.75)
 
 
 # =============================================================== 空の光
@@ -1100,23 +1023,6 @@ def put_glow_text(a: np.ndarray, m: np.ndarray, color: np.ndarray, strength: flo
     a += (m * strength)[..., None] * color + (0.55 * g * strength)[..., None] * color
 
 
-def hijack_rows(mk: dict, t: float):
-    """地区名の一覧。(文字列のリスト)を返す。新しい行ほど下。"""
-    rows = []
-    for k, name in enumerate(DISTRICTS_SLOW):
-        t0 = mk["hj_rows0"] + k * 1.05
-        if t >= t0:
-            s = typed(name + "　……", t, t0, 16)
-            if t >= t0 + 0.62:
-                s = name + "　……　いない"
-            rows.append(s)
-    if t >= mk["hj_fast0"]:
-        n = int((t - mk["hj_fast0"]) / 0.085) + 1
-        for k in range(n):
-            rows.append(DISTRICTS_FAST[k % len(DISTRICTS_FAST)] + "　……　いない")
-    return rows
-
-
 @lru_cache(maxsize=None)
 def silhouette() -> tuple[np.ndarray, np.ndarray]:
     """止まった砂嵐の中の人影（ワンサイドアップ）と、髪の黄色い筋。"""
@@ -1143,7 +1049,7 @@ def silhouette() -> tuple[np.ndarray, np.ndarray]:
     return sil, streak
 
 
-def eyes_layer(a: np.ndarray, open_amt: float, look: float, slit: float, power: float) -> None:
+def eyes_layer(a: np.ndarray, open_amt: float, look: float, slit: float, power: float, smile: float = 0.0) -> None:
     """金色の、縦に割れた瞳。"""
     if open_amt <= 0.02 or power <= 0.0:
         return
@@ -1160,7 +1066,7 @@ def eyes_layer(a: np.ndarray, open_amt: float, look: float, slit: float, power: 
         aa = 44.0
         u = np.clip(1 - (xr / aa) ** 2, 0, 1)
         upper = -24.0 * open_amt * u ** 0.75
-        lower = 13.0 * open_amt * u ** 0.9
+        lower = 13.0 * open_amt * (1 - 1.35 * smile) * u ** 0.9
         m = np.clip(np.minimum(yr - upper, lower - yr) / 1.6, 0, 1) * (np.abs(xr) < aa)
         ix, iy = look, -3.0
         rr = np.hypot(xr - ix, yr - iy)
@@ -1182,105 +1088,6 @@ def eyes_layer(a: np.ndarray, open_amt: float, look: float, slit: float, power: 
         reg += glow[..., None] * AMBER
 
 
-def scene_hijack(tl, sc, t):
-    mk = tl["marks"]
-    f0, r0 = mk["freeze0"], mk["release0"]
-    frozen = f0 <= t < r0
-    te = f0 if frozen else t  # 止まっている間、放送の絵は f0 のまま
-
-    # ---- 放送の絵（カード＋緑の文字）
-    found = te >= mk["hj_found"]
-    if found:
-        a = np.zeros((H, W, 3), np.float32)
-        a[:] = (0.0, 0.012, 0.008)
-    else:
-        img = to_pil(card_base("studio"))
-        draw_clock(ImageDraw.Draw(img), sc["args"]["clock"])
-        a = to_f(img)
-        dim = 0.20 + 0.80 * (1 - smooth(ramp(te, mk["hijack0"], mk["hijack0"] + 1.6)))
-        gray = a.mean(axis=2, keepdims=True)
-        a = (a * dim + gray * (1 - dim)) * dim  # 色が抜けて、暗く沈む
-        a[..., 1] += 0.012 * (1 - dim)
-    items = []
-    if not found:
-        items.append((4, 1, typed("＊＊　たずね人　＊＊", te, mk["hj_title"], 14)))
-        items.append((2, 3, typed("白い髪の子を", te, mk["hj_ask1"], 9)))
-        items.append((2, 4, typed("さがしています", te, mk["hj_ask2"], 9)))
-        rows = hijack_rows(mk, te)
-        for k, s in enumerate(rows[-6:]):
-            items.append((2, 6 + k, s))
-        if te >= mk["hj_here"]:
-            s = typed("このテレビの前　……", te, mk["hj_here"], 9)
-            if te >= r0 + 0.45:
-                s = "このテレビの前　……　いない"
-            if te < mk["hj_fast0"]:
-                if int(te * 3) % 2 == 0 and te < r0 + 0.45 and not frozen:
-                    s += "■"
-                items.append((2, 13, s))
-    if items:
-        put_glow_text(a, grid_layer(items), GREEN)
-    if found and te < mk["hj_clear"]:
-        m = pix_mask("みつけた", 5)
-        big = np.zeros((H, W), np.float32)
-        x0, y0 = 320 - m.shape[1] // 2, 150
-        big[y0 : y0 + m.shape[0], x0 : x0 + m.shape[1]] = m
-        put_glow_text(a, big, GREEN, smooth(ramp(te, mk["hj_found"], mk["hj_found"] + 0.15)))
-        s = typed("はい、おしまい", te, mk["hj_bye"], 8)
-        if s:
-            put_glow_text(a, grid_layer([(6, 10, s)]), GREEN, 0.8)
-
-    fx = dict(noise=0.09, cnoise=0.06, wobble=2.2, jitter=0.8, dropout=1.2)
-    lt = t - sc["t0"]
-    if t < mk["stop0"] and not found:
-        fx["bands"] = ((H * ((lt * 0.31) % 1.0), 46, 14), (H * ((lt * 0.53 + 0.4) % 1.0), 24, -9))
-    if found:
-        fx = dict(noise=0.04, cnoise=0.03, wobble=0.4, jitter=0.2, dropout=0.1)
-
-    # ---- テープが止まっていく
-    if mk["stop0"] <= t < f0:
-        k = (t - mk["stop0"]) / (f0 - mk["stop0"])
-        hold = 1 + int(k * 9)
-        fi = int(round(t * FPS))
-        fx.update(seed=900000 + (fi // hold) * hold, wobble=2.2 + 10 * k, noise=0.09 + 0.08 * k,
-                  bands=((H * (0.2 + 0.6 * k), 60, 30 * k),))
-
-    # ---- 完全に止まっている
-    if frozen:
-        ft = t - f0
-        sil, streak = silhouette()
-        mix = smooth(ramp(ft, 1.4, 4.4))
-        sm = sil * mix
-        gray = np.full((H, W, 3), 0.30, np.float32)
-        b = a * (1 - mix) + gray * mix
-        b *= (1 - 0.80 * sm)[..., None]
-        b += (streak * sm * 0.30)[..., None] * YELLOW
-        op = smooth(ramp(t, mk["fz_eyes_open"], mk["fz_eyes_open"] + 0.9)) * (1 - smooth(ramp(t, mk["fz_eyes_close"], mk["fz_eyes_close"] + 0.55)))
-        look = (-12.0 * smooth(ramp(t, mk["fz_look1"], mk["fz_look1"] + 0.3))
-                + 24.0 * smooth(ramp(t, mk["fz_look2"], mk["fz_look2"] + 0.35))
-                - 12.0 * smooth(ramp(t, mk["fz_look3"], mk["fz_look3"] + 0.3)))
-        slit = 4.6 - 2.6 * smooth(ramp(t, mk["fz_look3"] + 0.2, mk["fz_look3"] + 0.8))
-        eyes_layer(b, op, look, slit, mix)
-        # 黄色い文字
-        if t < mk["fz_text2"] - 0.5:
-            s = typed("ごめんね。ちょっとだけ、うごかないで", t, mk["fz_text1"], 6.5)
-        else:
-            s = typed("……ちがうか", t, mk["fz_text2"], 5)
-        if s:
-            m = pix_mask(s, 2)
-            big = np.zeros((H, W), np.float32)
-            x0 = 320 - pix_mask("ごめんね。ちょっとだけ、うごかないで" if t < mk["fz_text2"] - 0.5 else "……ちがうか", 2).shape[1] // 2
-            big[392 : 392 + m.shape[0], x0 : x0 + m.shape[1]] = m
-            put_glow_text(b, big, YELLOW)
-        a = b
-        fx = dict(seed=424242, noise=0.07 + 0.075 * mix, cnoise=0.03, wobble=0.0, jitter=0.0, dropout=0.0,
-                  headswitch=9, bloom=0.7, sat=1.0)
-    elif r0 <= t < r0 + 0.4:
-        k = 1 - (t - r0) / 0.4
-        a = a + 0.5 * k
-        fx.update(noise=0.09 + 0.5 * k, dropout=14 * k, roll=0.22 * k, bands=((H * (1 - k), 120, 70 * k),))
-    return a, fx
-
-
 # =============================================================== おわり
 def scene_endcard(tl, sc, t):
     lt = t - sc["t0"]
@@ -1289,44 +1096,25 @@ def scene_endcard(tl, sc, t):
     img = to_pil(a)
     d = ImageDraw.Draw(img)
     c = int(235 * smooth(ramp(lt, 0.6, 2.2)))
-    d.text((320, 148), "停　波", font=font(F_MIN_BLACK, 84), fill=(c, c, c), anchor="mm")
+    d.text((320, 120), "停　波", font=font(F_MIN_BLACK, 84), fill=(c, c, c), anchor="mm")
     c2 = int(170 * smooth(ramp(lt, 2.2, 3.4)))
-    d.text((320, 232), "外神竜一族　深層の見本", font=font(F_MIN_BOLD, 22), fill=(c2, c2, c2), anchor="mm")
+    d.text((320, 200), "外神竜一族　深層の見本", font=font(F_MIN_BOLD, 22), fill=(c2, c2, c2), anchor="mm")
     c3 = int(150 * smooth(ramp(lt, 3.6, 4.8)))
-    for k, s in enumerate([
+    for k, s_ in enumerate([
         "この映像はフィクションです。",
         "実在の人物・団体・放送局・災害とは関係ありません。",
         "",
-        "音声合成　Open JTalk",
-        "HTS voice「tohoku-f01」(c) 東北大学 伊藤・能勢研究室　CC BY 4.0",
-        "HTS voice「nitech_jp_atr503_m001」(c) 名古屋工業大学　CC BY 3.0",
+        "音声",
+        "VOICEVOX:No.7　　VOICEVOX:春日部つむぎ　　VOICEVOX:玄野武宏",
+        "VOICEVOX:剣崎雌雄　　VOICEVOX:四国めたん　　VOICEVOX:九州そら",
+        "VOICEVOX:冥鳴ひまり　　VOICEVOX:雨晴はう　　VOICEVOX:波音リツ",
     ]):
-        d.text((320, 300 + k * 24), s, font=font(F_BOLD, 15), fill=(c3, c3, c3), anchor="mm")
+        d.text((320, 262 + k * 25), s_, font=font(F_BOLD, 15), fill=(c3, c3, c3), anchor="mm")
     return to_f(img), dict(noise=0.03, dropout=0.08, wobble=0.3)
 
 
 SCENES = {
     "blue": scene_blue, "label": scene_label, "closing": scene_closing, "bars": scene_bars,
     "snow": scene_snow, "black": scene_black, "rinji": scene_rinji, "studio": scene_studio,
-    "street": scene_street, "umbrella": scene_umbrella, "sky": scene_sky, "bousai": scene_bousai,
-    "hijack": scene_hijack, "endcard": scene_endcard,
+    "street": scene_street, "sky": scene_sky, "bousai": scene_bousai, "endcard": scene_endcard,
 }
-
-
-def render(tl: dict, frame_index: int) -> np.ndarray:
-    t = frame_index / FPS
-    sc = next((s for s in tl["scenes"] if s["t0"] <= t < s["t1"]), tl["scenes"][-1])
-    a, fx = SCENES[sc["name"]](tl, sc, t)
-    fx = dict(fx)
-    # テープの継ぎ目の乱れ
-    for c in tl["cuts"]:
-        if -0.1 <= t - c < 0.7 and fx.get("seed") is None:
-            g = math.exp(-max(0.0, t - c) / 0.2) if t >= c else 0.5
-            fx["noise"] = fx.get("noise", FX0["noise"]) + 0.3 * g
-            fx["dropout"] = fx.get("dropout", FX0["dropout"]) + 9 * g
-            fx["bands"] = tuple(fx.get("bands", ())) + ((H * min(1.0, max(0.0, (t - c) / 0.5)), 80, 60 * g),)
-            fx["flag"] = 34 * g
-            fx["sat"] = FX0["sat"] * (1 - 0.7 * g)
-            fx["roll"] = 0.12 * g * math.sin((t - c) * 30) if t >= c else 0.0
-    out = vhs(a, t, fx, frame_index)
-    return (out * 255).astype(np.uint8)

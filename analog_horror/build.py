@@ -16,6 +16,7 @@ from multiprocessing import Pool
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import film  # noqa: E402
 import picture  # noqa: E402
 import sound  # noqa: E402
 import timeline  # noqa: E402
@@ -30,21 +31,21 @@ def _init(tl: dict) -> None:
 
 
 def _frame(i: int) -> bytes:
-    return picture.render(_TL, i).tobytes()
+    return film.render(_TL, i).tobytes()
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--work", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--backend", default="openjtalk", choices=["openjtalk", "voicevox"])
+    ap.add_argument("--backend", default="voicevox", choices=["voicevox"])
     ap.add_argument("--reuse-voice", action="store_true", help="合成済みのナレーションを使い回す")
     ap.add_argument("--start", type=float, default=0.0)
     ap.add_argument("--end", type=float, default=None)
     ap.add_argument("--scale", default="640:480")
-    ap.add_argument("--crf", default="28")
+    ap.add_argument("--crf", default="29")
     ap.add_argument("--x264", default="psy-rd=0.4,0")
-    ap.add_argument("--maxrate", default="1900k")
+    ap.add_argument("--maxrate", default="1700k")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     a = ap.parse_args()
 
@@ -71,7 +72,7 @@ def main() -> None:
         "-ss", f"{a.start:.3f}", "-t", f"{end - a.start:.3f}", "-i", wav,
         "-vf", f"scale={a.scale}:flags=bicubic,setsar=1", "-c:v", "libx264", "-preset", "slow", "-crf", a.crf,
         *(["-x264-params", a.x264] if a.x264 else []),
-        "-maxrate", a.maxrate, "-bufsize", "3800k",
+        "-maxrate", a.maxrate, "-bufsize", "3400k",
         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", "-shortest", a.out,
     ]
     print(f"映像を描いています…（{f1 - f0} フレーム）", flush=True)
