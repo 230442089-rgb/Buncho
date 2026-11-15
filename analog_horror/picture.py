@@ -93,6 +93,28 @@ def telop_text(d: ImageDraw.ImageDraw, xy, text: str, fnt, fill, stroke: int = 3
     d.text((x, y), text, font=fnt, fill=fill, anchor=anchor, stroke_width=stroke, stroke_fill=stroke_fill)
 
 
+def heart_text(d: ImageDraw.ImageDraw, xy, text: str, fnt, fill, heart_font=None, stroke: int = 0, stroke_fill=None) -> None:
+    """中央そろえで文字を書く。♡ だけは、それを持っている書体（Noto）で書く。
+
+    丸ゴシック（モトヤLマルベリ）や毛筆（衡山毛筆）には ♡ の字形がなく、そのままでは
+    「・」になったり、何も描かれなかったりするため。
+    """
+    hf = heart_font or font(F_BOLD, int(round(fnt.size * 0.95)))
+    parts = [(seg, fnt) for seg in text.split("♡")]
+    seq: list[tuple[str, object]] = []
+    for k, (seg, f) in enumerate(parts):
+        if seg:
+            seq.append((seg, f))
+        if k < len(parts) - 1:
+            seq.append(("♡", hf))
+    widths = [f.getlength(seg) for seg, f in seq]
+    x = xy[0] - sum(widths) / 2
+    for (seg, f), w in zip(seq, widths):
+        d.text((x, xy[1]), seg, font=f, fill=fill, anchor="lm", stroke_width=stroke if f is fnt else 0,
+               stroke_fill=stroke_fill if f is fnt else None)
+        x += w
+
+
 def band(a: np.ndarray, x0: int, y0: int, x1: int, y1: int, color, alpha: float) -> None:
     a[y0:y1, x0:x1] = a[y0:y1, x0:x1] * (1 - alpha) + np.asarray(color, np.float32) * alpha
 
@@ -238,7 +260,8 @@ def scene_blue(tl, sc, t):
     else:
         pix_text(a, "停止 ■", 44, 36)
         pix_text(a, "SP", 44, 410)
-        pix_text(a, "0:04:11", 470, 410)
+        m_, s_ = divmod(int(sc["t0"]), 60)  # テープの残り時間ではなく、再生した長さ
+        pix_text(a, f"0:{m_:02d}:{s_:02d}", 470, 410)
     return a, dict(noise=0.02, cnoise=0.012, dropout=0.03, jitter=0.15, wobble=0.2)
 
 
@@ -760,7 +783,7 @@ def broadcast_overlay(tl, sc, t, a: np.ndarray, live: bool = True) -> np.ndarray
     if bous_y:
         d.text((121, 283), "？？？", font=font(F_BOLD, 18), fill=(20, 14, 0), anchor="mm")
         for k, ln in enumerate(bous_y[-1]["text"].split("\n")):
-            telop_text(d, (320, 317 + k * 30), ln, font(F_MARU, 24), (255, 222, 60), stroke=1, stroke_fill=(255, 222, 60), anchor="mm", shadow=0)
+            heart_text(d, (320, 317 + k * 30), ln, font(F_MARU, 24), (255, 222, 60), stroke=1, stroke_fill=(255, 222, 60))
     if sc["args"].get("clock"):
         draw_clock(d, sc["args"]["clock"])
     if live and sc["args"].get("cam"):

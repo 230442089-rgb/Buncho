@@ -418,14 +418,19 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     t03 = load("T03")
     place(over, close(t03 * 0.6 + 0.25 * bp(white(len(t03) / SR, 33), 900, 4500)[: len(t03)] * np.abs(t03)), say["T03"]["t0"], 0.75)
     place(over, scream_fx(load("T04")), say["T04"]["t0"], 0.85)
-    place(main, street_mic(load("T08"), 0.1), say["T08"]["t0"], 1.0)
+    place(main, street_mic(load("T08"), 0.1), say["T08"]["t0"], 1.4)
     place(main, street_mic(scream_fx(load("T05")) * 0.9, 0.2), say["T05"]["t0"], 1.0)
     place(main, street_mic(load("T06"), 0.55), say["T06"]["t0"], 0.85)
     t07 = street_mic(scream_fx(load("T07")), 0.6)
     place(main, t07 * np.linspace(1.0, 0.25, len(t07)), say["T07"]["t0"], 0.5)
 
     # ---- 放送終了のオルゴール、カラーバー、砂嵐、テープの継ぎ目
-    place(main, music(0.652), mk["music1"], 0.30)
+    mb = music(0.652)  # オルゴールは、アナウンスの間だけ下げる
+    env = np.ones(len(mb))
+    for lid in ("A01", "A02"):
+        a, b = _n(say[lid]["t0"] - mk["music1"] - 0.2), _n(say[lid]["t1"] - mk["music1"] + 0.15)
+        env[max(0, a) : max(0, b)] = 0.33
+    place(main, mb * np.convolve(env, np.ones(9600) / 9600, mode="same"), mk["music1"], 0.30)
     d = sc["bars"][0]
     place(main, fade(np.sin(2 * np.pi * 1000 * tt(d["t1"] - d["t0"])), 0.002, 0.002), d["t0"], 0.16)
     for k, d in enumerate(sc["snow"]):
@@ -575,14 +580,14 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     a, b = _n(t3["t0"] - (r0m + 0.3) - 0.1), _n(t3["t1"] - (r0m + 0.3) + 0.1)
     env[max(0, a) : b] = 0.25
     place(over, fade(b1 * np.convolve(env, np.ones(2400) / 2400, mode="same"), 0.3, 0.02), r0m + 0.3, 0.55)
-    place(over, gasp(301), hold0 - 0.25, 0.5)  # 息をのんで、止める
+    place(over, gasp(301), hold0 - 0.05, 0.5)  # 名前を呼ばれてから、息をのんで、止める
     place(main, blip(330, 0.09), found, 0.07)
     place(main, blip(247, 0.14), found + 0.12, 0.07)
     place(over, gasp(302), found + 0.25, 0.75)
     f0, y05, y06, y07, sc0, rel = mk["freeze0"], mk["y05"], mk["y06"], mk["y07"], mk["scream0"], mk["release0"]
     b2 = breath(y05 - (found + 0.6), 2.9, 303, 0.9, 0.22, swell_to=1.3)
     place(over, fade(b2, 0.0, 0.05), found + 0.6, 0.70)
-    place(over, gasp(304), y05 + 0.55, 0.6)
+    place(over, gasp(304), say["Y05"]["t1"] + 0.05, 0.6)  # 「みーつけた」を聞き終えてから
     b3 = breath(sc0 - (y06 - 0.3), 3.3, 305, 1.0, 0.45, swell_to=1.6)
     place(over, fade(b3, 0.2, 0.0), y06 - 0.3, 0.50)
     hb = heartbeat(sc0 - hold0, 0.56, 0.36)
@@ -630,7 +635,11 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     place(main, ping(1500, 422), fall + 0.12, 0.10, 0.4)  # ヘッドホンが落ちる
     place(main, ping(2400, 423), fall + 0.26, 0.06, 0.45)
     br = breath(dg0 - (fall + 0.3), 3.4, 424, 1.0, 0.5)
-    place(main, street_mic(br, 0.15), fall + 0.3, 0.45)
+    env = np.ones(len(br))  # 「やめろ」の間は息を下げて、声を立たせる
+    t8 = say["T08"]
+    a, b = _n(t8["t0"] - (fall + 0.3) - 0.08), _n(t8["t1"] - (fall + 0.3) + 0.08)
+    env[max(0, a) : max(0, b)] = 0.38
+    place(main, street_mic(br * np.convolve(env, np.ones(1200) / 1200, mode="same"), 0.15), fall + 0.3, 0.45)
     for j in range(5):  # 巻きつく糸
         place(main, whip(430 + j), fall + 0.3 + j * 0.28, 0.16, 0.5 - 0.25 * j)
     sd2 = dg1 - dg0

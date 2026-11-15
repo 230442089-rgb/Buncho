@@ -15,7 +15,7 @@ from scipy.ndimage import gaussian_filter
 
 from picture import (
     AMBER, F_BOLD, F_MIN_BLACK, F_MIN_BOLD, FPS, GREEN, H, LAMP1, LAMP2, W, XX, YELLOW, YY,
-    add_glow, band, blit_mask, broadcast_overlay, card_base, draw_clock, eyes_layer, font, grid_layer,
+    add_glow, band, blit_mask, broadcast_overlay, card_base, eyes_layer, font, grid_layer, heart_text,
     pix_mask, pix_text, put_glow_text, ramp, silhouette, smooth, street, telop_text, to_f, to_pil, typed,
 )
 from timeline import DISTRICTS
@@ -247,9 +247,7 @@ NOTICE_ROWS = [
 
 def notice_frame(tl: dict, te: float, rows: bool = True, extra=()) -> np.ndarray:
     hj = tl["marks"]["hijack0"]
-    img = to_pil(card_base("studio"))
-    draw_clock(ImageDraw.Draw(img), "3:07")
-    a = to_f(img)
+    a = card_base("studio").copy()
     dim = 0.16 + 0.84 * (1 - smooth(ramp(te, hj, hj + 1.4)))
     gray = a.mean(axis=2, keepdims=True)
     a = (a * dim + gray * (1 - dim)) * dim
@@ -295,10 +293,10 @@ def scene_notice(tl, sc, t):
 # =============================================================== さがしている：文字とノイズの嵐
 BIG = [  # (時刻, 長さ, 文字, 誰の色, 大きさ)
     (2.2, 0.16, "どこ", 0, 7), (4.6, 0.14, "タコくん", 10, 5), (6.3, 0.16, "どこ", 8, 8), (8.6, 0.20, "大好き♡", 0, 6),
-    (9.9, 0.20, "結婚しよ♡", 1, 4), (12.4, 0.16, "どこ", 7, 9), (13.0, 0.14, "いない", 7, 6), (14.9, 0.20, "タコくん♡", 0, 4),
+    (9.9, 0.20, "結婚しよ♡", 0, 4), (12.4, 0.16, "どこ", 7, 9), (13.0, 0.14, "いない", 7, 6), (14.9, 0.20, "タコくん♡", 0, 4),
     (15.6, 0.22, "愛♡", 8, 11), (16.5, 0.40, "どこ", 0, 12),
 ]
-FLASH = [("CAM 11　港町", "03:12", False), ("CAM 07　駅前通り", "03:26", True), ("CAM 02　団地前", "03:41", False)]
+FLASH = [("CAM 11　港町", "03:12", False, "wide"), ("CAM 07　駅前通り", "03:26", False, "cctv"), ("CAM 02　団地前", "03:41", True, "wide")]
 
 
 def _over(a: np.ndarray, m: np.ndarray, x: int, y: int, col) -> None:
@@ -311,15 +309,15 @@ def storm_flash(tl, sc, t, i):
     f = tl["marks"][f"flash{i}"]
     tq = math.floor((t - f) * 8) / 8
     u = tq / 0.95
-    st = street("wide")
+    cam, stamp, mirror, view = FLASH[i]
+    st = street(view)
     a = st.bg.copy()
     a += AMBER * (0.085 * np.exp(-YY / 150.0))[..., None]
     a += st.beads + st.beads_sky + st.blink_amt(t) * (st.beads_blink + st.blink)
-    X, Z = [(-3.2 + 6.0 * u, 30.0 - 2.0 * u), (1.2 - 0.6 * u, 27.0 - 7.0 * u), (0.5 + 4.6 * u, 18.0 - 2.5 * u)][i]
+    X, Z = [(-3.2 + 6.0 * u, 30.0 - 2.0 * u), (-1.2 + 0.6 * u, 38.0 - 9.0 * u), (0.5 + 4.6 * u, 18.0 - 2.5 * u)][i]
     px, py = st.P(X, 0.0, Z)
     h = max(14, int(1.72 * st.f / Z))
-    put_img(a, tako_img([3, 0][int(tq * 8) % 2], h, i != 1), px, py + 2, bright=0.85)
-    cam, stamp, mirror = FLASH[i]
+    put_img(a, tako_img([3, 0][int(tq * 8) % 2], h, i == 2), px, py + 2, bright=0.85)
     if mirror:
         a = a[:, ::-1].copy()
         px = W - px
@@ -584,9 +582,21 @@ def scene_freeze(tl, sc, t):
 
 
 # =============================================================== 防犯カメラ：つかまる
-EYES = [  # 通りの奥の暗がりで光る目（x, y, 間隔, 家族の番号）
-    (318, 168, 12, 0), (262, 178, 9, 1), (378, 176, 9, 8), (226, 194, 8, 3), (414, 192, 8, 6),
-    (292, 146, 7, 5), (350, 144, 7, 7), (184, 208, 7, 4), (458, 206, 7, 9), (136, 226, 6, 2), (506, 224, 6, 10),
+# 通りの奥の暗がりで光る目（x, y, 間隔, 瞳の色）。色は設定資料 2-2 の瞳の色。
+# 瞳の色が未設定の家族（ザイナ・燐・ニルメ）は、色を決めないように、くすんだ白にする。
+# フルルは前髪で目が隠れているので、ここには出さない。
+EYE_UNSET = (0.80, 0.78, 0.72)
+EYES = [
+    (318, 168, 12, (1.00, 0.76, 0.28)),  # ユリア　琥珀金
+    (262, 178, 9, (0.62, 0.85, 1.00)),  # ヴォル　淡青
+    (378, 176, 9, EYE_UNSET),  # ニルメ
+    (226, 194, 8, (0.74, 0.70, 0.95)),  # ルリカ　淡い紫〜青灰
+    (414, 192, 8, (1.00, 0.86, 0.48)),  # テルエス　淡い金〜琥珀
+    (292, 146, 7, EYE_UNSET),  # 燐
+    (350, 144, 7, (0.30, 0.90, 0.80)),  # レウネ　青緑
+    (184, 208, 7, (0.70, 1.00, 0.30)),  # ミリア　黄緑
+    (458, 206, 7, (1.00, 0.42, 0.16)),  # アセラ　赤橙
+    (136, 226, 6, EYE_UNSET),  # ザイナ
 ]
 
 
@@ -643,12 +653,15 @@ def scene_capture(tl, sc, t):
     a = to_f(img)
 
     # 暗がりの目
-    for k, (ex, ey, gap, who) in enumerate(EYES):
+    for k, (ex, ey, gap, col) in enumerate(EYES):
         on = smooth(ramp(lt, fall + 0.5 + 0.22 * k, fall + 1.1 + 0.22 * k)) * (1 - smooth(ramp(lt, d1 + 0.5 + 0.12 * k, d1 + 1.0 + 0.12 * k)))
         if on > 0.01:
+            g = 1.3 if col is not EYE_UNSET else 0.8
             for sg in (-1, 1):
-                add_glow(a, ex + sg * gap / 2, ey, gap * 0.28, gap * 0.2, MEMBERS[who][0], 1.3 * on)
+                add_glow(a, ex + sg * gap / 2, ey, gap * 0.28, gap * 0.2, col, g * on)
 
+    # 体の中心と高さ（糸と光を、絵の上の体に合わせるため）
+    body_cy, body_h = py - h * 0.5, float(h)
     if not gone:
         lit = 0.55 + 0.45 * min(1.0, 40.0 / ((X - LAMP1[0]) ** 2 + (Z - LAMP1[2]) ** 2 + 20.0))
         if lt < fall:  # 走ってくる
@@ -657,24 +670,24 @@ def scene_capture(tl, sc, t):
         else:  # 倒れている／引きずられる（足が奥、頭が手前）
             rot = int(180 * smooth(ramp(lt, fall, fall + 0.25))) + int(np.random.default_rng(int(lt * 8)).integers(-6, 7))
             sp = tako_img(1, int(h * 1.3), False, rot, 0.6)
-            put_img(a, sp, px, py + sp.shape[0] * 0.25, anchor="center", bright=min(1.15, lit * 1.2))
+            body_cy, body_h = py + sp.shape[0] * 0.25, float(sp.shape[0])
+            put_img(a, sp, px, body_cy, anchor="center", bright=min(1.15, lit * 1.2))
     img = to_pil(a)
     d = ImageDraw.Draw(img)
     jade = tuple(int(c * 255) for c in JADE)
     if lt >= hit - 0.25 and not gone:  # 糸
         p = smooth(ramp(lt, hit - 0.25, hit))
         srcs = [st.P(-5.5, 3.0, 62.0), st.P(5.5, 4.0, 56.0), st.P(0.2, 9.0, 80.0), st.P(-2.0, 0.3, 50.0), st.P(2.4, 0.3, 66.0)]
-        hh = h * (0.78 if lt >= fall else 1.0)
         for k, (sx, sy) in enumerate(srcs):
-            tx, ty = px + (k - 2) * h * 0.07, py - hh * (0.15 + 0.14 * k)
+            tx, ty = px + (k - 2) * h * 0.07, body_cy + (k - 2) * body_h * 0.15
             jit = float(np.random.default_rng(int(lt * 8) * 7 + k).normal(0, 1.2))
             d.line([(sx, sy), (sx + (tx - sx) * p + jit, sy + (ty - sy) * p)], fill=jade, width=1 if Z > 30 else 2)
         if lt >= fall:  # 体に巻きつく
             n = int(1 + 5 * smooth(ramp(lt, fall, fall + 1.6)))
-            _bound(d, px, py - hh * 0.25, h * 0.26, hh, n, max(1, h // 30))
+            _bound(d, px, body_cy, h * 0.26, body_h, n, max(1, h // 30))
     a = to_f(img)
     if lt >= hit - 0.25 and not gone:
-        add_glow(a, px, py - h * 0.25, h * 0.4, h * 0.3, JADE, 0.12)
+        add_glow(a, px, body_cy, h * 0.4, body_h * 0.3, JADE, 0.12)
     a = cctv_grade(a, 0.72)
     cctv_overlay(a, sc["args"]["cam"], sc["args"]["stamp"], lt, 21)
     a = captions(a, tl, t, 456)
@@ -720,7 +733,7 @@ def form_paper() -> Image.Image:
            stroke_width=2, stroke_fill=(150, 84, 0, 255))
     d.text(((xl + xm) // 2, 251), "（逃走中）", font=font(F_BRUSH, 28), fill=(30, 30, 44, 255), anchor="mm")
     d.text(((xm + x1) // 2, 251), "うちゅうの外", font=font(F_BRUSH, 28), fill=(150, 84, 0, 255), anchor="mm")
-    d.text(((xl + x1) // 2, 303), "ママ　♡", font=font(F_BRUSH, 30), fill=(120, 110, 110, 255), anchor="mm")
+    heart_text(d, ((xl + x1) // 2, 303), "ママ　♡", font(F_BRUSH, 30), (120, 110, 110, 255), heart_font=font(F_MIN_BOLD, 26))
     for _ in range(11):  # 妻の側の印は、もう押してある
         cx, cy = int(rng.integers(xm + 30, x1 - 30)), int(rng.integers(340, 356))
         d.ellipse([cx - 13, cy - 13, cx + 13, cy + 13], outline=(196, 40, 36, 230), width=3)
@@ -728,7 +741,7 @@ def form_paper() -> Image.Image:
     for k in range(12):
         d.arc([cx - 14, cy - 14, cx + 14, cy + 14], k * 30, k * 30 + 16, fill=(150, 60, 50, 255), width=2)
     note = Image.new("RGBA", (124, 30), (250, 226, 90, 255))
-    ImageDraw.Draw(note).text((62, 15), "ここにハンコ♡", font=font(F_BRUSH, 18), fill=(60, 40, 10, 255), anchor="mm")
+    heart_text(ImageDraw.Draw(note), (62, 15), "ここにハンコ♡", font(F_BRUSH, 18), (60, 40, 10, 255), heart_font=font(F_MIN_BOLD, 16))
     note = note.rotate(4, expand=True)
     p.paste(note, (xl + 6, 330), note)
     return p
