@@ -25,7 +25,7 @@
 ## 作り直す
 
 ```
-apt-get install fonts-noto-cjk fonts-noto-cjk-extra fonts-motoya-l-maruberi unifont ffmpeg
+apt-get install fonts-noto-cjk fonts-noto-cjk-extra fonts-motoya-l-maruberi fonts-unifont ffmpeg
 pip install numpy scipy pillow soundfile pyopenjtalk-plus
 python3 build.py --work /tmp/teiha --out 停波.mp4
 ```
