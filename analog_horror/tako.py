@@ -488,9 +488,10 @@ def _render(pose_name: str, look: float, face_override: str | None) -> Image.Ima
         _arm_sleeve(pen, sh, ang)
         if hand == "pocket":  # 手首から先はポケットの中
             w = _limb(_limb(sh, ang[0], 148), ang[0] + ang[1], 110)
-            pen.poly([(w[0] - 26, w[1] - 4), (w[0] + 26, w[1] - 12), (w[0] + 30, w[1] + 22), (w[0] - 24, w[1] + 26)], PANTS, None)
-            pen.line([(w[0] - 26, w[1] - 4), (w[0] + 26, w[1] - 12)], LINE, 3.0)
-            pen.line([(w[0] - 20, w[1] + 2), (w[0] + 20, w[1] - 6)], PANTS_HI, 2.0)
+            top = max(w[1] - 8, ty + 276)  # シャツのすそ（ty+272）より上には描かない
+            pen.poly([(w[0] - 26, top + 4), (w[0] + 26, top - 4), (w[0] + 30, top + 30), (w[0] - 24, top + 34)], PANTS, None)
+            pen.line([(w[0] - 26, top + 4), (w[0] + 26, top - 4)], LINE, 3.0)
+            pen.line([(w[0] - 20, top + 10), (w[0] + 20, top + 2)], PANTS_HI, 2.0)
     # 頭（少し傾ける）
     pen.T = (lambda c, a: (lambda q: _rot(q, c, a)))((CX, hy + 90), tilt)
     _face(pen, hy, face, p.get("sweat", 0.0), look)

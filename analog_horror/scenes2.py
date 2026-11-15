@@ -191,9 +191,10 @@ def vend_base() -> np.ndarray:
     for x, y, lying in [(70, 402, 0), (88, 420, 1), (104, 398, 0), (118, 436, 1), (132, 404, 0), (56, 440, 1), (252, 404, 0),
                         (268, 426, 1), (284, 398, 0), (246, 446, 1), (150, 452, 0), (226, 458, 0), (96, 458, 1), (300, 444, 0)]:
         _can(d, x, y, CAN_COLS[int(rng.integers(0, 6))], bool(lying))
-    for x, y, r in [(170, 440, -12), (214, 444, 8), (120, 464, 20)]:
-        bill = Image.new("RGBA", (34, 15), (205, 196, 150, 255))
-        ImageDraw.Draw(bill).rectangle([12, 3, 21, 11], fill=(150, 140, 100, 255))
+    for x, y, r in [(170, 440, -12), (214, 444, 8), (120, 464, 20)]:  # 丸めたレシート
+        bill = Image.new("RGBA", (16, 26), (232, 230, 222, 255))
+        for k in range(4):
+            ImageDraw.Draw(bill).line([(3, 5 + 5 * k), (12, 5 + 5 * k)], fill=(150, 150, 150, 255))
         bill = bill.rotate(r, expand=True)
         img.paste(bill, (x, y), bill)
     a = to_f(img)
@@ -211,7 +212,7 @@ def vend_base() -> np.ndarray:
 def scene_vend(tl, sc, t):
     mk = tl["marks"]
     tq = math.floor(t * 6) / 6  # 防犯カメラはコマ送り
-    lt = tq - sc["t0"]
+    lt = max(0.0, tq - sc["t0"])
     a = vend_base().copy()
     hear, run = mk["vend_hear"], mk["vend_run"]
     fl = 1.0 + 0.03 * math.sin(tq * 31.0)
@@ -307,17 +308,17 @@ STATEMENT = [
                    "　ギガボルト　ゼロ×８　ブルーハワイ×４　２,６４０"]),
     ("st_more", ["１４日　１３：０５　らーめん潮騒　港町店",
                  "　塩とんこつ　背脂こってり　バリカタ",
-                 "　煮卵×２　替え玉×２　　　　　　　１,９５０",
+                 "　煮卵×２　替え玉×２　　　　１,９５０",
                  "１４日　１９：２０　中華そば灯台　本店",
-                 "　チャーシュー麺　特盛　ねぎ抜き　　１,３８０",
-                 "タクシー　凪浜→市外×３（３回とも市内へ）　１８,４００"]),
-    ("st_big", ["ホテル　スイート×２泊　　　　　　６８０,０００",
-                "ネットカフェ　ゆうなぎ　個室×３泊　　７,２００",
-                "ヘッドホン　６４,８００　服・スニーカー　４１２,０００",
-                "腕時計　４４０,０００　焼肉ひとり　３８,６００",
-                "回らない寿司　５２,０００　ゲームセンター　９６,０００",
-                "コンビニ　計４１回　４２,０６８",
-                "スマホゲーム　課金　　　　　　１,２８０,０００"]),
+                 "　チャーシュー麺　特盛　ねぎ抜き　１,３８０",
+                 "タクシー×３　市外へ（全部戻る）１８,４００"]),
+    ("st_big", ["ホテル　スイート×２泊　　６８０,０００",
+                "ネットカフェ　個室×３泊　　　７,２００",
+                "服・靴　４１２,０００　腕時計　４４０,０００",
+                "ヘッドホン　６４,８００　焼肉　３８,６００",
+                "寿司　５２,０００　ゲーセン　９６,０００",
+                "コンビニ×４１回　　　　　４２,０６８",
+                "スマホゲーム　課金　　１,２８０,０００"]),
     ("st_last", ["１４日　１５：００　ウィークリーアパート",
                  "　港町２丁目　２０３号室　７泊前払い　３１,５００",
                  "１４日　１６：１０　ドラッグ　ハマナス　港町店",
@@ -436,7 +437,7 @@ def _over(a: np.ndarray, m: np.ndarray, x: int, y: int, col) -> None:
 def storm_flash(tl, sc, t, i):
     """街頭のカメラが、逃げる彼を一瞬だけとらえる。"""
     f = tl["marks"][f"flash{i}"]
-    tq = math.floor((t - f) * 8) / 8
+    tq = max(0.0, math.floor((t - f) * 8) / 8)
     u = tq / 0.95
     cam, stamp, mirror, view = FLASH[i]
     st = street(view)
@@ -593,13 +594,14 @@ def room_static():
     for k, (x, y, lying) in enumerate([(300, 384, 0), (318, 378, 0), (338, 388, 0), (358, 376, 0), (384, 398, 1),
                                         (276, 402, 1), (470, 400, 1), (152, 372, 0), (492, 378, 0)]):
         _can(d, x, y, CAN_COLS[k % 6] + (255,), bool(lying), 1.15)
-    for x, y in [(146, 398), (150, 392), (512, 400), (516, 394), (520, 388)]:  # 札束
-        d.rectangle([x - 20, y - 8, x + 20, y + 8], fill=(204, 196, 152, 255), outline=(120, 112, 80, 255))
-        d.rectangle([x - 5, y - 8, x + 5, y + 8], fill=(150, 56, 46, 255))
+    for x, y, r in [(146, 398, -8), (512, 400, 12), (530, 386, -20), (470, 412, 5)]:  # レシートの山と、からの財布
+        d.rectangle([x - 9, y - 14, x + 9, y + 14], fill=(236, 234, 226, 255), outline=(150, 150, 150, 255))
+    d.rectangle([118, 404, 160, 420], fill=(60, 44, 34, 255), outline=(30, 22, 16, 255))
+    d.line([(122, 412), (156, 412)], fill=(90, 70, 50, 255), width=2)
     return back, np.asarray(front, np.float32) / 255.0
 
 
-def room_frame(tl: dict, te: float) -> np.ndarray:
+def room_frame(tl: dict, te: float, show_found: bool = True) -> np.ndarray:
     mk = tl["marks"]
     back, front = room_static()
     a = back.copy()
@@ -622,7 +624,7 @@ def room_frame(tl: dict, te: float) -> np.ndarray:
     t03 = next(s for s in tl["says"] if s["id"] == "T03")
     label = "照合中……" if te < t03["t0"] + 1.4 else "一致　９７％"
     pix_text(a, label, 224, int(184 + duck), col, 1)
-    if found:
+    if found and show_found:
         m = pix_mask("……いた", 3)
         big = np.zeros((H, W), np.float32)
         big[398:446, 30 : 30 + m.shape[1]] = m
@@ -702,46 +704,48 @@ def hall_base() -> np.ndarray:
 
 
 def scene_bolt(tl, sc, t):
-    """「みーつけた」から逃げて、部屋を飛び出す（防犯カメラ・コマ送り）。"""
+    """「みーつけた」から逃げて、２０３号室を飛び出す（外廊下の防犯カメラ・コマ送り）。
+
+    カメラは外階段の上から廊下を見ている。ドアは廊下の中ほど。彼はカメラへ向かって走り、
+    すぐ横の階段へ消える。
+    """
     mk = tl["marks"]
     tq = math.floor(t * 8) / 8
-    lt = tq - sc["t0"]
-    door, out_, gone = mk["bolt_door"] - sc["t0"], mk["bolt_out"] - sc["t0"], mk["bolt_gone"] - sc["t0"]
+    lt = max(0.0, tq - sc["t0"])
+    door, gone = mk["bolt_door"] - sc["t0"], mk["bolt_gone"] - sc["t0"]
     a = hall_base().copy()
-    # ドア（手前の左）が、内側から勢いよく開く
     img = to_pil(a)
     d = ImageDraw.Draw(img)
+    # ２０３号室のドア（廊下の中ほど、左の壁）。内側へ勢いよく開く
+    dl, dr, dt, db = 158, 214, 150, 318
     op = smooth(ramp(lt, door, door + 0.25))
-    d.polygon([(30, 70), (176, 112), (176, 430), (30, 470)], fill=(10, 10, 14))  # 開いた戸口の暗がり
-    dx = 146 * (1 - 0.9 * op)
-    d.polygon([(30, 70), (30 + dx, 112 - 10 * op), (30 + dx, 430 + 14 * op), (30, 470)], fill=(96, 88, 72), outline=(30, 28, 24))
+    d.polygon([(dl, dt), (dr, dt + 12), (dr, db - 8), (dl, db)], fill=(10, 10, 14))  # 開いた戸口の暗がり
+    dx = (dr - dl) * (1 - 0.85 * op)
+    d.polygon([(dl, dt), (dl + dx, dt + 12 - 6 * op), (dl + dx, db - 8 + 8 * op), (dl, db)], fill=(104, 94, 76), outline=(30, 28, 24))
     if op < 0.5:
-        d.ellipse([30 + dx - 22, 270, 30 + dx - 10, 282], fill=(190, 190, 180))
-    pix = "203"
-    d.rectangle([186, 110, 228, 128], fill=(220, 216, 200))
-    d.text((207, 119), pix, font=font(F_BOLD, 13), fill=(30, 30, 30), anchor="mm")
+        d.ellipse([dl + dx - 12, 232, dl + dx - 5, 239], fill=(190, 190, 180))
+    d.rectangle([dl + 8, dt - 22, dl + 44, dt - 6], fill=(220, 216, 200))
+    d.text((dl + 26, dt - 14), "203", font=font(F_BOLD, 12), fill=(30, 30, 30), anchor="mm")
     a = to_f(img)
     if lt >= door:
-        add_glow(a, 100, 260, 50, 110, (0.55, 0.7, 1.0), 0.20 * op)  # 部屋のテレビの明かりがもれる
-    # 走ってくる → 手前を横切って、外階段へ
-    if door + 0.1 <= lt < gone:
-        u = (lt - (door + 0.1)) / (gone - door - 0.1)
-        x = 120 + 520 * u ** 1.25
-        y = 470 - 30 * u
-        h = int(330 - 140 * u)
+        add_glow(a, (dl + dr) / 2, 240, 30, 70, (0.55, 0.7, 1.0), 0.22 * op)  # 部屋のテレビの明かりがもれる
+    # ドアから飛び出して、カメラのほうへ（だんだん大きく）→ 右下へ外れて、外階段へ
+    if door + 0.05 <= lt < gone:
+        u = (lt - (door + 0.05)) / (gone - door - 0.05)
+        x = 200 + 420 * u ** 1.6
+        y = 322 + 230 * u ** 1.3
+        h = int(150 + 330 * u ** 1.3)
         pose = ["run1", "run2"][int(tq * 8) % 2]
-        put_img(a, tako_img(pose, h, True), x, y - 4 * (int(tq * 8) % 2), bright=0.95)
-        if u < 0.3:  # ドアの縁に肩をぶつける
-            a[:, :] *= 1.0
+        put_img(a, tako_img(pose, h), x, y - 5 * (int(tq * 8) % 2), bright=0.95)
     a = cctv_grade(a, 0.66)
-    cctv_overlay(a, "CAM 01　あおば荘　２階廊下", "03:57", lt, 42)
+    cctv_overlay(a, "CAM 01　あおば荘　２階廊下", "03:09", lt, 42)
     a = captions(a, tl, t, 456)
     fx = dict(noise=0.07, wobble=0.6, jitter=0.4, dropout=0.6, bloom=0.6)
     if lt < 0.35:  # 動きだした直後の乱れ
         k = 1 - lt / 0.35
         fx.update(noise=0.07 + 0.4 * k, dropout=12 * k, roll=0.2 * k, bands=((H * (1 - k), 120, 70 * k),))
-    if abs(lt - door) < 0.15:
-        fx.update(dropout=6, bands=((260, 80, 30),))
+    if door - 0.2 <= lt < door - 0.05:  # ドアが開く直前に一度だけ乱れる
+        fx.update(dropout=5, bands=((420, 60, 24),))
     return a, fx
 
 
@@ -750,7 +754,7 @@ def scene_burst(tl, sc, t):
     mk = tl["marks"]
     say = {x["id"]: x for x in tl["says"]}
     tq = math.floor(t * 10) / 10
-    lt = tq - sc["t0"]
+    lt = max(0.0, tq - sc["t0"])
     st = street("wide")
     a = st.bg.copy()
     a += AMBER * (0.085 * np.exp(-YY / 150.0))[..., None]
@@ -822,7 +826,7 @@ def scene_freeze(tl, sc, t):
         return a, dict(noise=0.3 + 0.4 * k, dropout=14, roll=0.3 * k, sat=0.0, bands=((H * (1 - k), 120, 70),))
     sil, streak = silhouette()
     mix = smooth(ramp(ft, 1.0, 3.6))
-    b = room_frame(tl, f0) * (1 - mix) + np.full((H, W, 3), 0.30, np.float32) * mix
+    b = room_frame(tl, f0, show_found=ft < 0.6) * (1 - mix) + np.full((H, W, 3), 0.30, np.float32) * mix
     sm = sil * mix
     b *= (1 - 0.80 * sm)[..., None]
     b += (streak * sm * 0.30)[..., None] * YELLOW
@@ -876,7 +880,6 @@ EYES = [
     (226, 194, 8, (0.74, 0.70, 0.95)),  # ルリカ　淡い紫〜青灰
     (414, 192, 8, (1.00, 0.86, 0.48)),  # テルエス　淡い金〜琥珀
     (292, 146, 7, EYE_UNSET),  # 燐
-    (350, 144, 7, (0.30, 0.90, 0.80)),  # レウネ　青緑
     (184, 208, 7, (0.70, 1.00, 0.30)),  # ミリア　黄緑
     (458, 206, 7, (1.00, 0.42, 0.16)),  # アセラ　赤橙
     (136, 226, 6, EYE_UNSET),  # ザイナ
@@ -903,7 +906,7 @@ def scene_capture(tl, sc, t):
     mk = tl["marks"]
     c0 = mk["capture0"]
     tq = math.floor(t * 8) / 8
-    lt = tq - c0
+    lt = max(0.0, tq - c0)
     hit, fall, d0, d1 = mk["cap_hit"] - c0, mk["cap_fall"] - c0, mk["drag0"] - c0, mk["drag1"] - c0
     st = street("cctv")
     a = st.bg.copy()
@@ -1087,7 +1090,6 @@ WALKERS = [
     (0.60, 30.4, 1.68, (245, 180, 200), "long", 0.3),
     (-1.70, 31.3, 1.47, (40, 170, 130), "tie", 1.4),
     (1.75, 31.7, 1.58, (240, 140, 40), "short", 2.0),
-    (2.35, 31.9, 1.65, (30, 190, 120), "short", 0.9),
     (0.20, 33.8, 1.50, (150, 80, 200), "messy", 2.6),
 ]
 WALK_SPEED = 0.23

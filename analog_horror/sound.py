@@ -230,8 +230,11 @@ def heartbeat(dur: float, p0: float, p1: float, seed: int = 7) -> np.ndarray:
     while t < dur - 0.3:
         p = p0 + (p1 - p0) * t / dur
         p *= 1 + 0.04 * rng.standard_normal()  # 乱れる
-        put(buf, thud(58, 0.18), t, 1.0)
-        put(buf, thud(47, 0.15), t + p * 0.32, 0.75)
+        put(buf, thud(66, 0.18), t, 1.0)
+        put(buf, thud(54, 0.15), t + p * 0.32, 0.75)
+        knock = bp(white(0.05, int(t * 1000) + seed), 140, 520) * decay(0.05, 0.012)
+        put(buf, knock, t, 0.9)
+        put(buf, knock, t + p * 0.32, 0.6)
         t += max(0.28, p)
     blood = bp(white(dur, seed + 1), 30, 160) * 0.15  # 血のめぐる低いざわめき
     return buf + 0.4 * bp(buf, 90, 420) + blood
@@ -465,8 +468,8 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
             put(dbl, bp(x, 600, 4000), 0.019, 0.35)
             place(main, dbl, s_["t0"], 1.0, PAN[v_] * 0.5)
         else:
-            x = reverb(bp(wav, 140, 8000), 1.1, 0.35, seed=20 + ord(v_), lo=250, hi=5000)
-            place(main, x, s_["t0"], 0.95, PAN[v_])
+            x = reverb(bp(wav, 140, 8000), 0.9, 0.22, seed=20 + ord(v_), lo=250, hi=5000)
+            place(main, x, s_["t0"], 1.35, PAN[v_])
 
     # ---- ユリアとタコくん
     y01 = tv_voice(load("Y01"))
@@ -489,9 +492,9 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     place(main, alcove(load("T01")), say["T01"]["t0"], 1.40)
     place(main, alcove(load("T02")), say["T02"]["t0"], 1.15)
     t03 = load("T03")
-    place(over, close(t03 * 0.6 + 0.25 * bp(white(len(t03) / SR, 33), 900, 4500)[: len(t03)] * np.abs(t03)), say["T03"]["t0"], 0.75)
+    place(over, close(t03 * 0.6 + 0.25 * bp(white(len(t03) / SR, 33), 900, 4500)[: len(t03)] * np.abs(t03)), say["T03"]["t0"], 1.1)
     place(over, scream_fx(load("T04")), say["T04"]["t0"], 0.85)
-    place(main, street_mic(load("T08"), 0.1), say["T08"]["t0"], 1.4)
+    place(main, street_mic(load("T08"), 0.1), say["T08"]["t0"], 1.75)
     place(main, street_mic(scream_fx(load("T05")) * 0.9, 0.2), say["T05"]["t0"], 1.0)
     place(main, street_mic(load("T06"), 0.55), say["T06"]["t0"], 0.85)
     t07 = street_mic(scream_fx(load("T07")), 0.6)
@@ -653,8 +656,9 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     p0 = r0m - 1.0
     b1 = panic_breath(hold0 - p0, 300, 2.4, 3.6, sob=0.35)
     env = np.ones(len(b1))
-    a, b = _n(t3["t0"] - p0 - 0.1), _n(t3["t1"] - p0 + 0.1)
-    env[max(0, a) : b] = 0.3
+    for lid, g in (("T03", 0.15), ("Y04", 0.25)):
+        a, b = _n(say[lid]["t0"] - p0 - 0.1), _n(say[lid]["t1"] - p0 + 0.1)
+        env[max(0, a) : max(0, b)] = g
     place(over, fade(b1 * np.convolve(env, np.ones(2400) / 2400, mode="same"), 0.6, 0.02), p0, 0.95)
     place(over, gasp(301) * 1.3, hold0 - 0.05, 0.85)  # 名前を呼ばれて、息をのみ、止める
     # 息を止めている間：鼻からもれる、こらえきれない細い息
@@ -671,7 +675,7 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     env = np.ones(len(b3))  # ユリアが話す間は、少し下げる
     for lid in ("Y06", "Y07"):
         a, b = _n(say[lid]["t0"] - (say["Y05"]["t1"] + 0.4)), _n(say[lid]["t1"] - (say["Y05"]["t1"] + 0.4))
-        env[max(0, a) : max(0, b)] = 0.45
+        env[max(0, a) : max(0, b)] = 0.25
     place(over, fade(b3 * np.convolve(env, np.ones(4800) / 4800, mode="same"), 0.2, 0.0), say["Y05"]["t1"] + 0.4, 1.0)
     # 心音：部屋が映った時から、どんどん速く強く（およそ毎分120 → 200）
     hb = heartbeat(sc0 - p0, 0.5, 0.3, seed=11)
@@ -734,8 +738,9 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     env[max(0, a) : max(0, b)] = 0.3
     place(main, street_mic(pb * np.convolve(env, np.ones(1200) / 1200, mode="same"), 0.15), bo, 0.7)
     place(main, street_mic(scream_fx(load("T09")) * 0.6 + load("T09") * 0.6, 0.15), say["T09"]["t0"], 0.85)
-    hb2 = heartbeat(mk["capture0"] - bo, 0.31, 0.29, seed=17)
-    place(over, hb2, bo, 0.32)
+    hb2 = heartbeat(mk["drag1"] - bo, 0.31, 0.27, seed=17)
+    env = np.interp(tt(mk["drag1"] - bo) + bo, [bo, mk["cap_fall"], mk["cap_fall"] + 0.5, mk["drag1"] - 2.0, mk["drag1"]], [1.0, 1.0, 1.5, 1.2, 0.0])
+    place(over, hb2 * env, bo, 0.32)
 
     # ---- 駅前カメラ：止まった雨の中を走る
     b0_, c0_ = mk["burst0"], mk["capture0"]
@@ -753,7 +758,7 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     for s_ in tl["says"]:
         if b0_ <= s_["t0"] < c0_:
             a, b = _n(s_["t0"] - b0_), _n(s_["t1"] - b0_)
-            env[max(0, a) : max(0, b)] = 0.45
+            env[max(0, a) : max(0, b)] = 0.13
     place(main, street_mic(pb2 * np.convolve(env, np.ones(2400) / 2400, mode="same"), 0.25), b0_, 0.85)
 
     # ---- 防犯カメラ：つかまる
@@ -776,9 +781,9 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     place(main, ping(2400, 423), fall + 0.26, 0.06, 0.45)
     br = panic_breath(dg0 - (fall + 0.3), 424, 5.4, 6.0, sob=0.8)
     env = np.ones(len(br))  # 「やめろ」の間は息を下げて、声を立たせる
-    t8 = say["T08"]
-    a, b = _n(t8["t0"] - (fall + 0.3) - 0.08), _n(t8["t1"] - (fall + 0.3) + 0.08)
-    env[max(0, a) : max(0, b)] = 0.38
+    for lid, g in (("T08", 0.38), ("Y08", 0.15)):
+        a, b = _n(say[lid]["t0"] - (fall + 0.3) - 0.08), _n(say[lid]["t1"] - (fall + 0.3) + 0.08)
+        env[max(0, a) : max(0, b)] = g
     place(main, street_mic(br * np.convolve(env, np.ones(1200) / 1200, mode="same"), 0.15), fall + 0.3, 0.8)
     for j in range(5):  # 巻きつく糸
         place(main, whip(430 + j), fall + 0.3 + j * 0.28, 0.16, 0.5 - 0.25 * j)
@@ -810,8 +815,9 @@ def build(tl: dict, voice_dir: str, out_wav: str) -> None:
     scr = scrape(r_b - r_a, 460)
     env = np.interp(tt(r_b - r_a) + r_a, [r_a, r_a + 1.0, r_b - 6.0, r_b], [0.0, 1.0, 0.7, 0.45])
     place(main, bp(scr, None, 1500) * env, r_a, 0.05, 0.1)
-    brd = panic_breath(say["T06"]["t0"] - (r_a + 1.0), 461, 3.6, 4.4, sob=0.7)
-    place(main, street_mic(brd, 0.5), r_a + 1.0, 0.32)
+    b_start = say["A26"]["t1"] + 0.1
+    brd = panic_breath(say["T06"]["t0"] - b_start + 0.2, 461, 3.6, 4.4, sob=0.7)
+    place(main, street_mic(fade(brd, 0.4, 0.1), 0.5), b_start, 0.32)
 
     # ---- 停止ボタン
     place(over, thud(55, 0.3), mk["vcr_stop"], 0.3)
