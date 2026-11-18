@@ -1722,7 +1722,7 @@ const putCh = (m, i) => cloudPut('cs' + i, { s: m['ch' + i], done: m['ch' + i + 
 function setMeta(o) { const m = Object.assign(meta(), o, { t: Date.now() }); writeJSON(META_KEY, m); for (const k in o) { const r = CH_RE.exec(k); if (r && !r[2]) putCh(m, +r[1]); } cloudPut('meta', slimMeta(m)); }
 function packS() { return { cover: S.cover, warm: S.warm, cold: S.cold, notes: S.notes, ev: [...S.ev], flags: S.flags, seen: [...S.seen], caught: S.caught, chapter: S.chapter, playT: Math.round(S.playT || 0) }; }
 function unpackS(d) { S.cover = d.cover ?? 100; S.warm = d.warm || 0; S.cold = d.cold || 0; S.notes = d.notes || []; S.ev = new Set(d.ev || []); S.flags = d.flags || {}; S.seen = new Set(d.seen || []); S.caught = d.caught || 0; S.chapter = d.chapter || 1; S.playT = d.playT || 0; }
-const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '5.5章　幕間1', '5.5章　幕間2', '第六章　上', '第六章　中', '第六章　下', '6.5章　幕間1', 'とある未来', '第七章　Intro', '第七章　序', '第七章　中編', '第七章　下編', '7.5章　幕間1', '第八章　Intro', '第八章　序', '第八章　中編', '第八章　下編', '第八章　完結編', '8.5章　幕間1', '第九章　Intro', '第九章　序', '第九章　中編', '第九章　下編', '特殊章', '第十章　Intro', '第十章　序', '第十章　中編', '第十章　幕間', '第十章　下編', '第十章　終', '10.5章　幕間1', '第十一章　Intro', '第十一章　序', '第十一章　中編', '第十一章　下編', '第十一章　終', '第十一章　結', 'IF', 'IF　続'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井のいちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景', '競売', '額縁の外', '止まり木', 'ヒトトキ', 'ほつれ', '保護', '底と空', '是非', '見守り', '宝物', '矮小', '好機', '天賦', 'なまえをよぶ', '断偽', '同意', '血肉', '揺らぎ', '断空', '帰る場所', '箍', '人面', '写し', '紅塵', '物量', '魂心', '主権', '偽りなき世界', '精真'];
+const CHN = ['序章', '第一章', '第二章', '第三章', '第四章', '第五章　上', '第五章　下', '5.5章　幕間1', '5.5章　幕間2', '第六章　上', '第六章　中', '第六章　下', '6.5章　幕間1', 'とある未来', '第七章　Intro', '第七章　序', '第七章　中編', '第七章　下編', '7.5章　幕間1', '第八章　Intro', '第八章　序', '第八章　中編', '第八章　下編', '第八章　完結編', '8.5章　幕間1', '第九章　Intro', '第九章　序', '第九章　中編', '第九章　下編', '特殊章', '第十章　Intro', '第十章　序', '第十章　中編', '第十章　幕間', '第十章　下編', '第十章　終', '10.5章　幕間1', '第十一章　Intro', '第十一章　序', '第十一章　中編', '第十一章　下編', '第十一章　終', '第十一章　結', 'IF', 'IF　続', '11.5章　幕間1'], CHT = ['この国を決めている者たち', '微笑む課長', '二つの顔', '人間の代表', '救われた者たち', '朔', '鬼は嘘をつかない', '春日井のいちばん長い夜', '娶るということ', '旗', '餌', '奪還', '生きとし生けるもの', '天殺', '未完画廊へ', '点景', '競売', '額縁の外', '止まり木', 'ヒトトキ', 'ほつれ', '保護', '底と空', '是非', '見守り', '宝物', '矮小', '好機', '天賦', 'なまえをよぶ', '断偽', '同意', '血肉', '揺らぎ', '断空', '帰る場所', '箍', '人面', '写し', '紅塵', '物量', '魂心', '主権', '偽りなき世界', '精真', '一羽'];
 // ---- 記録ファイル：自動記録 1 冊と、手で記録する 3 冊 ----
 const SLOTS = [['auto', '自動記録'], ['f1', 'FILE 01'], ['f2', 'FILE 02'], ['f3', 'FILE 03']];
 function readFiles() { const f = readJSON(FILES_KEY) || {}; if (!f.auto) { const old = readJSON(SAVE_KEY); if (old) { f.auto = old; writeJSON(FILES_KEY, f); try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* 消せなくても困らない */ } } } return f; }
@@ -1853,10 +1853,11 @@ const CHSYN = [
   '恵那の結界中継所で、カシアたちは T.C.O と六本の腕を相手に死闘を始める。瀬戸では留保が杭を抱えて探照灯の下をくぐるが、No.3 ザ・コシに見つかる。乾は発信機を見抜かれ、紅塵に閉じこめられた。押されはじめた異種族の線に、ヴォルの紫の眷属が降り、憎むものほど操り人形に変わっていく。炉心を止めたあと、教主が現れ、カ・エレが立った。瀬戸の山道には、ベルトを巻いた红尘飞。',
   '紫の光が消えた朝、街の全員の頭の中でヴォルの声がした。恵那の広い雪原で、カ・エレは断偽の一派と教主をひとりで斬り伏せる。そのあいだに、T.C.O の炉にもう一度火が入る。瀬戸の山道では、红尘飞の紅い装甲と No.3 ザ・コシ。原本の杭を手にした久世は、それをどこにも渡さないと決める。',
   '観測艇の記録結晶に残る、隣の世界の記録。恵那の雪原で、空間は折れなかった。カシアたちを巻き込み、竜の娘たちに敗れた教主は、雪の上で経を唱えつづけ、ひとつの解脱に至る。竜の家へ、街へ、記録局へ、北口広場へ。そして十年後、久世が語る人間の社会。',
-  '閉じたはずの隣の世界の記録が、まだ書き足されていた。恵那の杭を削った精真釘。適わなかった者は全身から血を噴くか、痛みで息が止まって死ぬ。適った者は老いと病が遅れ、痛みは決して引かない。本数が増えるほど効き、何十本にも達した者は死ななくなる。配られた釘と、叫び声で埋まる街と、釘を打たなかった最後の一人。'];
+  '閉じたはずの隣の世界の記録が、まだ書き足されていた。恵那の杭を削った精真釘。適わなかった者は全身から血を噴くか、痛みで息が止まって死ぬ。適った者は老いと病が遅れ、痛みは決して引かない。本数が増えるほど効き、何十本にも達した者は死ななくなる。配られた釘と、叫び声で埋まる街と、釘を打たなかった最後の一人。',
+  '春日井から引いた文鳥のうち二十九万八千羽が、弥富の鍋田で空への便を待っている。B.U.N から「撤収完了確認書に人間の印をひとつ」と頼まれた久世は、百円の認印を持って、人より文鳥の多い町へ向かう。'];
 // 記録ファイルが進んでいる章までは開く（章のクリアの印が残らなかったときの受け皿）
-const fileCh = () => Object.values(readFiles()).reduce((a, d) => Math.max(a, (d && d.s && d.s.chapter) || 0), 0);
-const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh();
+const fileCh = () => Object.values(readFiles()).reduce((a, d) => { const c = (d && d.s && d.s.chapter) || 0; return Math.max(a, c === 45 ? 42 : c); }, 0);
+const chapOpen = (m, i) => i <= 1 || !!m['ch' + (i - 1) + 'Clear'] || i <= fileCh() || (i === 45 && !!m.ch42Clear);
 function renderChaps() { const m = meta(), L = $('chapList'); L.innerHTML = '';
   CHN.forEach((nm, i) => { const open = chapOpen(m, i), el = document.createElement('div'); el.className = 'ccard' + (/幕間|未来|特殊|IF/.test(nm) ? ' inter' : '') + (open ? '' : ' lock') + (open && m['ch' + i + 'Clear'] ? ' done' : '');
     const cl = document.createElement('div'); cl.className = 'cl'; const sp = document.createElement('span'); sp.textContent = nm.replace('　', ' '); const b = document.createElement('b'); b.textContent = open ? CHT[i] : '？？？'; cl.append(sp, b); el.appendChild(cl);
@@ -1867,7 +1868,7 @@ function openChaps() { const rev = !!meta().revealed; $('chapEye').textContent =
 function closeChaps() { $('chap').hidden = true; }
 // タイトル画面（真のタイトルが明かされたあとは、ずっとこちら）
 // 続きから：最後の記録より先の章まで終えていれば、その次の章の始まりから
-function nextCh() { const m = meta(), l = latestFile(), c = l ? (l.d.s.chapter || 1) : -1; let h = -1; CHN.forEach((_, i) => { if (m['ch' + i + 'Clear']) h = i; }); return l && h >= c && h + 1 < CHN.length ? h + 1 : null; }
+function nextCh() { const m = meta(), l = latestFile(), c = l ? ((l.d.s.chapter === 45 ? (m.ch45Clear ? 42 : 99) : l.d.s.chapter) || 1) : -1; let h = -1; CHN.forEach((_, i) => { if (i !== 45 && m['ch' + i + 'Clear']) h = i; }); return l && h >= c && h + 1 < CHN.length ? h + 1 : null; }
 function refreshTitle() { const m = meta(), l = latestFile(), d = l && l.d, rev = !!m.revealed, nx = nextCh();
   $('title').classList.toggle('rev', rev); document.title = rev ? 'RÉSERVE ― 留保班' : '主権留保';
   $('tEye').textContent = rev ? '内閣 留保班　機密ファイル' : '春日井　外神竜一族の街';
@@ -23853,6 +23854,589 @@ async function startCh44() { const m = meta(); if (m.ch43) unpackS(m.ch43); else
 RESUME[44] = { kiroku: goKiroku44, kugi: goKugi44, haifu: goHaifu44, bun: goBun44, ryuho: goRyuho44, shinsei: goShinsei44, gojuu: goGojuu44, saigo: goSaigo44, kyoshu: goKyoshu44, tojiru: goTojiru44 };
 { const r0 = showReport43; showReport43 = function () { r0(); const row = $('titleBtn43') && $('titleBtn43').parentNode; if (row && !$('ch44Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost'; b.id = 'ch44Go'; b.textContent = 'IF　続　精真'; row.appendChild(b); b.addEventListener('click', () => run(chapter44)); } }; }
 
+// ================= 11.5章　幕間1　弥富：素材（文鳥の型・小さな文鳥・籠と巣・金魚・音） =================
+// 文鳥のさえずり（短い「チッ」、二声「チチッ」、雄のさえずり、群れのざわめき）と、B.U.N の町の音
+SFX.chiYat = () => { tone(3900, 0, 0.045, 'sine', 0.063, { f1: 2900 }); noise(0, 0.02, 0.0144, 5200, 'bandpass'); };
+SFX.chichiYat = () => { SFX.chiYat(); tone(4200, 0.1, 0.045, 'sine', 0.054, { f1: 3000 }); noise(0.1, 0.02, 0.0108, 5200, 'bandpass'); };
+SFX.songYat = () => { for (let i = 0; i < 7; i++) tone(2200 + (i % 2) * 350, i * 0.075, 0.035, 'sine', 0.0432, { f1: 1900 }); tone(2500, 0.56, 0.34, 'sine', 0.054, { f1: 4400, a: 0.05 }); tone(3900, 0.92, 0.14, 'sine', 0.0396, { f1: 2900 }); tone(3100, 1.1, 0.06, 'sine', 0.0324, { f1: 3600 }); };
+SFX.flockYat = () => { for (let i = 0; i < 26; i++) { const f = 2700 + Math.random() * 1900; tone(f, Math.random() * 1.1, 0.04, 'sine', 0.005 + Math.random() * 0.008, { f1: f * (0.72 + Math.random() * 0.16) }); } };
+SFX.oshYat = () => { noise(0, 0.24, 0.18, 420, 'bandpass'); noise(0.02, 0.2, 0.12, 900, 'bandpass'); tone(130, 0, 0.22, 'sawtooth', 0.06, { lp: 600, f1: 96 }); tone(196, 0.01, 0.18, 'sawtooth', 0.032, { lp: 800, f1: 150 }); };
+SFX.stampYat = () => { noise(0, 0.05, 0.21, 260, 'lowpass'); tone(92, 0, 0.12, 'sine', 0.105, { f1: 58 }); noise(0.03, 0.04, 0.045, 2400, 'bandpass'); };
+SFX.splashYat = () => { for (let i = 0; i < 9; i++) noise(i * 0.045 + Math.random() * 0.03, 0.12, 0.0448, 1400 + Math.random() * 2600, 'bandpass'); };
+SFX.fishYat = () => { noise(0, 0.06, 0.032, 1800, 'bandpass'); tone(700, 0.01, 0.05, 'sine', 0.0192, { f1: 420 }); };
+// 夕方五時の町の音（弥富の町内放送。旋律はこの章のために作ったもの）
+SFX.chimeYat = () => { [67, 72, 71, 69, 67, 64, 65, 67, 72].forEach((m, i) => { tone(mf(m), i * 0.42, 0.9, 'sine', 0.032, { a: 0.02 }); tone(mf(m + 12), i * 0.42, 0.5, 'triangle', 0.006); }); };
+
+// 曲：町（明るい行進の手前）、静かな昼（田と池と碑）、夜（堤防と風）、総出（押忍の行進）
+BGM.yatTown = { bpm: 112, f(s, t, sp) { const bar = (s >> 4) & 3, ch = [[53, 57, 60], [58, 62, 65], [55, 58, 62], [60, 64, 67]][bar];
+  if (s % 4 === 0) tone(mf(ch[0] - 12), t, sp * 2.5, 'triangle', 0.0464); if (s % 8 === 4) { ch.forEach(m => tone(mf(m), t, sp * 1.2, 'sawtooth', 0.0101, { lp: 1400 })); noise(t, 0.04, 0.0174, 300, 'lowpass'); }
+  if (s % 2 === 1 && Math.random() < 0.5) tone(3600 + Math.random() * 600, t, 0.03, 'sine', 0.0087, { f1: 2900 });
+  const mel = [72, 0, 69, 72, 74, 0, 72, 69, 70, 0, 72, 70, 69, 67, 65, 0]; if (bar < 3 && mel[s % 16]) tone(mf(mel[s % 16]), t, sp * 1.6, 'square', 0.013, { lp: 2400 }); } };
+BGM.yatQuiet = { bpm: 72, f(s, t, sp) { if (s % 32 === 0) [50, 57, 62, 66].forEach(m => tone(mf(m), t, sp * 30, 'sine', 0.0159, { a: 1.2 })); if (s % 8 === 2 && Math.random() < 0.55) tone(mf(pick([74, 76, 78, 81, 83])), t, sp * 6, 'sine', 0.015);
+  if (s % 32 === 20) { tone(4000, t, 0.04, 'sine', 0.0116, { f1: 3000 }); tone(4200, t + 0.1, 0.04, 'sine', 0.0101, { f1: 3100 }); } } };
+BGM.yatNight = { bpm: 84, f(s, t, sp) { if (s % 16 === 0) tone(mf(38), t, sp * 15, 'sine', 0.04, { a: 0.6 }); if (s % 64 === 0) noise(t, 3.6, 0.012, 380, 'lowpass'); if (s % 16 === 10) tone(mf(pick([62, 65, 69])), t, sp * 5, 'sine', 0.01); if (s % 64 === 44) tone(3700, t, 0.04, 'sine', 0.006, { f1: 2800 }); } };
+BGM.yatMarch = { bpm: 132, f(s, t, sp) { const bar = (s >> 4) & 3, root = [50, 46, 48, 45][bar];
+  if (s % 4 === 0) { noise(t, 0.08, 0.13, 160, 'lowpass'); tone(mf(root - 12), t, sp * 1.8, 'sawtooth', 0.052, { lp: 500 }); } if (s % 8 === 4) noise(t, 0.06, 0.078, 1800, 'bandpass'); if (s % 2 === 1) noise(t, 0.02, 0.0156, 7000, 'highpass');
+  if (s % 16 === 0) [root, root + 7, root + 12].forEach(m => tone(mf(m + 12), t, sp * 3, 'sawtooth', 0.026, { lp: 1800 })); if (s % 16 === 14) [root + 3, root + 10].forEach(m => tone(mf(m + 12), t, sp * 1.5, 'sawtooth', 0.0208, { lp: 1800 }));
+  if (s % 32 === 30) { noise(t, 0.2, 0.13, 420, 'bandpass'); tone(130, t, 0.2, 'sawtooth', 0.0364, { lp: 600, f1: 96 }); } } };
+// 白文鳥：頭と体を白に、灰色の胸当ても白に替える。嘴は淡い桃色がかった赤
+const YAT_CHEST = toon(0x7A8088);
+function yatChest(m, hex) { m.torso.traverse(x => { if (x.isMesh && x.material === YAT_CHEST) x.material = toon(hex); }); return m; }
+function yatWhite(o = {}) { const m = makeBird(Object.assign({ cap: 0xF8F8F4, coat: 0xF2F0EA, sleeve: 0xF2F0EA, pants: 0x2A2A30, beak: 0xF0707E }, o)); return yatChest(m, o.chest || 0xF4F2EC); }
+// 桜文鳥（ふつうの柄）：黒い頭、灰色の体。シナモン：茶の頭と淡い茶の体
+function yatSakura(o = {}) { return yatChest(makeBird(Object.assign({ coat: 0x8A8C94, sleeve: 0x8A8C94, pants: 0x2A2A30 }, o)), o.chest || 0xC8B8B4); }
+function yatCinna(o = {}) { return yatChest(makeBird(Object.assign({ cap: 0x7A5E4C, coat: 0xB8A08E, sleeve: 0xB8A08E, pants: 0x3A3028, beak: 0xEA6A72 }, o)), o.chest || 0xD8C4B4); }
+
+// 小さな、ふつうの文鳥（人の手に乗る大きさ）。kind: 'normal' 'white' 'cinna'。tick で首をかしげ、ときどき跳ねる
+function yatPet(kind = 'normal', s = 1) { const g = new THREE.Group(), w = kind === 'white', c = kind === 'cinna';
+  const body = w ? 0xF6F4F0 : c ? 0xC8B0A0 : 0x8E9098, belly = w ? 0xF6F4F0 : c ? 0xE2D2C6 : 0xD2C2C0, head = w ? 0xF8F8F4 : c ? 0x7A5E4C : 0x16161A, tail = w ? 0xF0EEEA : c ? 0x6A5040 : 0x1A1A1E;
+  const k = 0.16 * s; const b = new THREE.Group(); g.add(b);
+  part(sph(0.5, 12, 10), body, 0, 0.55, 0, b, { s: [0.82, 0.78, 1.12], ol: 1.06 }); part(sph(0.42, 10, 8), belly, 0, 0.42, 0.18, b, { s: [0.78, 0.7, 0.9], outline: false });
+  for (const sx of [-1, 1]) part(sph(0.34, 10, 8), w ? 0xEDEBE6 : c ? 0xB09888 : 0x7E8088, sx * 0.3, 0.6, -0.08, b, { s: [0.35, 0.62, 1.2], outline: false });
+  part(box(0.36, 0.06, 0.62), tail, 0, 0.58, -0.78, b, { rx: -0.35 });
+  const hd = new THREE.Group(); hd.position.set(0, 0.98, 0.32); b.add(hd); part(sph(0.34, 12, 10), head, 0, 0, 0, hd, { ol: 1.06 });
+  if (!w) for (const sx of [-1, 1]) part(sph(0.16, 8, 6), 0xF8F8F8, sx * 0.24, -0.08, 0.12, hd, { s: [0.55, 0.9, 0.9], outline: false });
+  for (const sx of [-1, 1]) { part(sph(0.055, 8, 6), 0x101010, sx * 0.21, 0.06, 0.2, hd, { outline: false }); part(G_('ering', () => new THREE.TorusGeometry(0.065, 0.02, 6, 12)), 0xE2505B, sx * 0.21, 0.06, 0.21, hd, { outline: false, ry: sx * 0.6 }); }
+  { const bk = part(G_('pbeak', () => new THREE.ConeGeometry(0.19, 0.4, 10)), w ? 0xF4808C : 0xE2505B, 0, -0.06, 0.4, hd, { ol: 1.06 }); bk.rotation.x = Math.PI / 2; }
+  for (const sx of [-1, 1]) { part(cyl(0.035, 0.035, 0.26, 6), 0xE8A0A8, sx * 0.14, 0.13, 0.05, b, { outline: false }); part(box(0.16, 0.03, 0.2), 0xE8A0A8, sx * 0.14, 0.01, 0.1, b, { outline: false }); }
+  g.scale.setScalar(k); const o = { root: g, g: b, head: hd, ph: rand(0, 6), hop: 0, pet: true, kind };
+  o.tick = dt => { o.ph += dt; hd.rotation.z = Math.sin(o.ph * 0.9) > 0.85 ? 0.35 : 0; hd.rotation.x = Math.sin(o.ph * 0.6) * 0.08; if (o.hop <= 0 && Math.random() < dt * 0.25) o.hop = 0.25; if (o.hop > 0) { o.hop -= dt; b.position.y = Math.sin((0.25 - o.hop) / 0.25 * Math.PI) * 0.5; } else b.position.y = 0; };
+  return o; }
+// 竹の籠（四角い、昔ながらの）と、わらのつぼ巣
+// 箱を何本もまとめて1回で描く（大きさ・位置・色は1本ずつ）。list: [[w,h,d,x,y,z,col],…]
+function yatBoxes(parent, list) { const im = new THREE.InstancedMesh(box(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0xFFFFFF }), list.length), M = new THREE.Matrix4(), C = new THREE.Color(); list.forEach(([w, h, d, x, y, z, col], i) => { M.makeScale(w, h, d); M.setPosition(x, y, z); im.setMatrixAt(i, M); im.setColorAt(i, C.set(col)); }); im.instanceColor.needsUpdate = true; parent.add(im); return im; }
+function yatCage(parent, x, y, z, s = 1, ry = 0) { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; g.scale.setScalar(s); parent.add(g); const L = [[0.46, 0.03, 0.36, 0, 0.015, 0, 0xC8A870], [0.46, 0.03, 0.36, 0, 0.5, 0, 0xB89860], [0.42, 0.012, 0.012, 0, 0.18, 0, 0x9A7A48]];
+  for (let i = 0; i <= 11; i++) { const t = i / 11; L.push([0.008, 0.48, 0.008, -0.23 + t * 0.46, 0.25, 0.18, 0xD8BC84], [0.008, 0.48, 0.008, -0.23 + t * 0.46, 0.25, -0.18, 0xD8BC84]); }
+  for (let i = 0; i <= 8; i++) { const t = i / 8; L.push([0.008, 0.48, 0.008, -0.23, 0.25, -0.18 + t * 0.36, 0xD8BC84], [0.008, 0.48, 0.008, 0.23, 0.25, -0.18 + t * 0.36, 0xD8BC84]); }
+  yatBoxes(g, L); return g; }
+function yatNest(parent, x, y, z, s = 1) { const g = new THREE.Group(); g.position.set(x, y, z); g.scale.setScalar(s); parent.add(g); part(sph(0.12, 10, 8), 0xC8A464, 0, 0.1, 0, g, { s: [1, 1.15, 1], ol: 1.05 }); part(cyl(0.05, 0.05, 0.02, 10), 0x3A2A18, 0, 0.12, 0.115, g, { rx: Math.PI / 2, outline: false }); return g; }
+// 金魚：池の中をゆっくり回る。pond は { x, z, w, d, y } の範囲
+function yatFish(parent, n, pond, cols = [0xE8482A, 0xF07A2A, 0xF4F0E8, 0xD83A2A]) { const fish = []; for (let i = 0; i < n; i++) { const g = new THREE.Group(), col = pick(cols); part(sph(0.08, 8, 6), col, 0, 0, 0, g, { s: [0.7, 0.6, 1.3], outline: false }); part(box(0.12, 0.006, 0.1), col, 0, 0.01, -0.13, g, { outline: false }); if (col === 0xF4F0E8) part(sph(0.04, 6, 4), 0xE8482A, 0, 0.04, 0.02, g, { outline: false }); g.position.set(pond.x + rand(-pond.w / 2, pond.w / 2), pond.y, pond.z + rand(-pond.d / 2, pond.d / 2)); parent.add(g); fish.push({ g, a: rand(0, TAU), sp: rand(0.15, 0.4), t: rand(0, 6) }); }
+  return dt => { for (const f of fish) { f.t += dt; f.a += Math.sin(f.t * 0.7) * dt * 0.8; const nx = f.g.position.x + Math.sin(f.a) * f.sp * dt, nz = f.g.position.z + Math.cos(f.a) * f.sp * dt; if (Math.abs(nx - pond.x) > pond.w / 2 - 0.1 || Math.abs(nz - pond.z) > pond.d / 2 - 0.1) f.a += Math.PI * 0.7; else f.g.position.set(nx, pond.y + Math.sin(f.t * 2) * 0.01, nz); f.g.rotation.y = f.a; } }; }
+// 水面：やわらかい青緑の板。tick で光をゆらす
+function yatWater(parent, x, y, z, w, d, col = 0x5A7A7A) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshLambertMaterial({ color: col, transparent: true, opacity: 0.86 })); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); parent.add(m); return m; }
+// レートの掲示板（数字が多い、黒地に白と赤）
+function yatRateBoard(parent, x, y, z, ry, rows, title = '本日のレート　弥富') { const t = canvasTex(1024, 640, (c, w, h) => { c.fillStyle = '#121216'; c.fillRect(0, 0, w, h); c.fillStyle = '#C8323C'; c.fillRect(0, 0, w, 96); c.fillStyle = '#FFFFFF'; c.font = `900 56px ${GOTHIC}`; c.textAlign = 'center'; c.textBaseline = 'middle'; fitText(c, title, w / 2, 50, w - 60);
+  c.textAlign = 'left'; rows.forEach((r, i) => { const yy = 150 + i * 62; c.fillStyle = i % 2 ? '#1C1C22' : '#16161A'; c.fillRect(20, yy - 28, w - 40, 56); c.fillStyle = '#E8E4DA'; c.font = `800 38px ${GOTHIC}`; fitText(c, r[0], 40, yy, 220); fitText(c, r[1], 280, yy, 470); c.fillStyle = r[3] || '#FFD8A0'; c.textAlign = 'right'; fitText(c, r[2], w - 40, yy, 240); c.textAlign = 'left'; }); });
+  return plane(4.2, 2.6, t, x, y, z, parent, { ry }); }
+
+
+// ---- 話し手 ----
+Object.assign(SPK, { juriYat: ['ジュ・リ', '#E8E4DA'], fumiYat: ['水谷フミ', '#E8D0B0'], seriYat: ['せり場の人', '#B8C8D8'], ekiinYat: ['駅員', '#B8C8E8'], bunYat: ['弥富の文鳥たち', '#F2F0EA'], upYat: ['撤収組の文鳥たち', '#FF9A7A'] });
+// ---- 人の見た目：水谷フミ（割烹着、まとめ髪、長靴）、せり場の人、駅員 ----
+LK.fumiYat = { skin: SK2, hair: 0xD4D2CC, eye: 0x2A2A2A, top: 0x6A7A8A, sleeve: 0xEDE8DE, smock: 0xEDE8DE, bottom: 'skirt', bc: 0x4A4A52, leg: SK2, shoe: 0x3A3030, boots: 0x3A5A4A, s: 0.84, w: 0.98, st: ['bun'] };
+LK.seriYat = { skin: SK2, hair: 0x2A2A2A, eye: 0x2A2A2A, top: 0x2A4A6A, sleeve: 0x2A4A6A, smock: 0x3A4A5A, bc: 0x3A3A44, leg: 0x3A3A44, shoe: 0x2A2A20, boots: 0x22262C, s: 1.0, w: 1.06, st: ['short', 'cap'], capCol: 0xE8E4DA };
+LK.ekiinYat = { skin: SK, hair: 0x1A1A1A, eye: 0x2A2A2A, top: 0x2A3A5A, sleeve: 0x2A3A5A, tie: 0x8A2A2A, bc: 0x2A3A5A, leg: 0x2A3A5A, shoe: 0x1A1A1A, s: 0.98, w: 1.0, st: ['short', 'cap'], capCol: 0x2A3A5A };
+// ジュ・リ：会館の降下受付。灰青の作業着に赤い腕章、名札、右手に判子
+function juriYat() { const m = makeBird({ coat: 0x5A6A7A, pants: 0x2A2A30, sleeve: 0x5A6A7A, armMark: 0xC8323C, badge: 0xF2F0EA, s: 1.05 }); yatChest(m, 0xC8B8B4); part(cyl(0.08, 0.08, 0.16, 10), 0x8A5A3A, 0, -0.74, 0.04, m.arms[1]); part(cyl(0.09, 0.09, 0.04, 10), 0xC8323C, 0, -0.84, 0.04, m.arms[1], { outline: false }); return m; }
+// 老いた文鳥（とまり木団地。第一期の一羽）。7392行と同じ形
+const toribYat = () => makeBird({ coat: 0x8A8A90, pants: 0x5A5A60, cap: 0x3A3A40, s: 0.96 });
+// 自転車（フミの）と軽トラ（会館の）
+function yatBike(g, x, z, ry = 0) { const b = new THREE.Group(); b.position.set(x, 0, z); b.rotation.y = ry; g.add(b); for (const zz of [-0.55, 0.55]) part(G_('bikeW', () => new THREE.TorusGeometry(0.34, 0.03, 6, 18)), 0x1A1A1E, 0, 0.36, zz, b, { ry: Math.PI / 2, outline: false });
+  part(box(0.04, 0.04, 1.0), 0x5A7A9A, 0, 0.6, 0, b, { rx: 0.12, outline: false }); part(box(0.04, 0.5, 0.04), 0x5A7A9A, 0, 0.62, -0.25, b, { outline: false }); part(box(0.3, 0.05, 0.16), 0x2A2A2A, 0, 0.9, -0.22, b, { outline: false }); part(box(0.5, 0.04, 0.04), 0x3A3A3A, 0, 1.0, 0.5, b, { outline: false }); part(box(0.36, 0.2, 0.3), 0xB8B8B0, 0, 0.84, 0.66, b, { outline: false }); return b; }
+function yatTruck(g, x, z, ry = 0) { const t = new THREE.Group(); t.position.set(x, 0, z); t.rotation.y = ry; g.add(t); block(1.5, 1.3, 1.3, 0xF2F2EE, 0, 1.0, 1.0, t); block(1.4, 0.5, 1.1, 0x3A4A5A, 0, 1.35, 1.66, t); block(1.5, 0.3, 2.0, 0xD8D8D2, 0, 0.55, -0.8, t); for (const x2 of [-0.75, 0.75]) block(0.06, 0.4, 2.0, 0xD8D8D2, x2, 0.85, -0.8, t); block(1.5, 0.4, 0.06, 0xD8D8D2, 0, 0.85, -1.8, t);
+  for (const [x2, z2] of [[-0.72, 1.2], [0.72, 1.2], [-0.72, -1.2], [0.72, -1.2]]) part(cyl(0.28, 0.28, 0.2, 12), 0x1A1A1E, x2, 0.28, z2, t, { rz: Math.PI / 2, outline: false }); plane(1.0, 0.3, signTex(320, 96, [{ t: '弥富文鳥会館', size: 52, f: MINCHO, w: 800 }], { bg: '#F2F2EE', fg: '#2A2A30' }), 0.76, 1.0, 1.0, t, { ry: Math.PI / 2 }); return t; }
+// 縦書きの幟（字数に合わせて字を小さくする）
+function yatBanner(g, x, z, ry, text, col = '#B01020', h = 5.2) { const n = [...text].length, fs = Math.min(92, Math.floor(520 / n)); const t = canvasTex(140, 600, (c, w, hh) => { c.fillStyle = col; c.fillRect(0, 0, w, hh); c.fillStyle = col === '#F4F0E8' ? '#B01020' : '#F4F0E8'; c.font = `800 ${fs}px ${MINCHO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; [...text].forEach((ch, i) => c.fillText(ch, w / 2, 40 + (i + 0.5) * Math.min(fs * 1.08, 520 / n))); });
+  const p = plane(h * 0.233, h, t, x, h / 2 + 0.3, z, g, { ry, double: true }); block(0.06, h + 0.6, 0.06, 0x3A3A3A, x - Math.cos(ry) * h * 0.12, (h + 0.6) / 2, z + Math.sin(ry) * h * 0.12, g); return p; }
+// ガントリークレーン（赤白）。boom は海側へ張り出す
+function yatCrane(g, x, z, s = 1, ry = 0) { const c = new THREE.Group(); c.position.set(x, 0, z); c.rotation.y = ry; c.scale.setScalar(s); g.add(c); const R = 0xC8323C, W = 0xF2F0EA, L = [];
+  for (const [lx, lz] of [[-3, -2.4], [3, -2.4], [-3, 2.4], [3, 2.4]]) for (let k = 0; k < 6; k++) L.push([0.5, 2.0, 0.5, lx, 1.0 + k * 2.0, lz, k % 2 ? W : R]);
+  for (const lz of [-2.4, 2.4]) L.push([6.6, 0.6, 0.6, 0, 6, lz, R]); L.push([0.6, 0.6, 5.4, -3, 6, 0, W], [0.6, 0.6, 5.4, 3, 6, 0, W]);
+  for (let k = 0; k < 8; k++) L.push([3.2, 1.1, 1.0, -8 + k * 3.2, 12.6, 0, k % 2 ? W : R]); L.push([2.4, 1.6, 2.2, 0.5, 13.9, 0, 0xE8E4DA]); for (const lx of [-1.5, 1.5]) L.push([0.3, 3.2, 0.3, lx, 15.2, 0, R]);
+  yatBoxes(c, L); return c; }
+// 湾岸道路の高架（細長い桁と柱）
+function yatHighway(g, x, z0, z1, y = 11) { const L = Math.abs(z1 - z0), zc = (z0 + z1) / 2; block(5, 1.0, L, 0xA8A8A4, x, y, zc, g); block(5.2, 0.5, L, 0xC8C8C4, x, y + 0.75, zc, g); for (let zz = Math.min(z0, z1); zz <= Math.max(z0, z1); zz += 12) block(1.2, y, 1.2, 0x9A9A96, x, y / 2, zz, g); }
+// 堤防の断面（台形）を x 方向に伸ばす
+function yatLevee(g, x0, x1, z, hh = 3.2, base = 10, top = 3, col = 0x7A8A5A) { const sh = new THREE.Shape(); sh.moveTo(-base / 2, 0); sh.lineTo(-top / 2, hh); sh.lineTo(top / 2, hh); sh.lineTo(base / 2, 0); sh.lineTo(-base / 2, 0);
+  const geo = new THREE.ExtrudeGeometry(sh, { depth: x1 - x0, bevelEnabled: false }); const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col })); m.rotation.y = Math.PI / 2; m.position.set(x0, 0, z); g.add(m); block(x1 - x0, 0.06, top, 0x8A8A86, (x0 + x1) / 2, hh + 0.03, z, g); return m; }
+// 白文鳥の碑（石の碑と台）。字は縦書き
+function yatStele(g, x, z, ry = 0) { const st = new THREE.Group(); st.position.set(x, 0, z); st.rotation.y = ry; g.add(st); block(1.6, 0.3, 1.0, 0x8A8A86, 0, 0.15, 0, st); block(1.2, 0.3, 0.8, 0x9A9A94, 0, 0.45, 0, st); block(0.9, 2.2, 0.32, 0x8C8E8A, 0, 1.7, 0, st);
+  const t = canvasTex(160, 420, (c, w, h) => { c.fillStyle = '#8C8E8A'; c.fillRect(0, 0, w, h); c.fillStyle = '#3A3C3A'; c.font = `800 62px ${MINCHO}`; c.textAlign = 'center'; c.textBaseline = 'middle'; [...'白文鳥之碑'].forEach((ch, i) => c.fillText(ch, w / 2, 50 + i * 78)); }); plane(0.62, 1.6, t, 0, 1.75, 0.17, st);
+  const t2 = canvasTex(256, 420, (c, w, h) => { c.fillStyle = '#8C8E8A'; c.fillRect(0, 0, w, h); c.fillStyle = '#3A3C3A'; c.font = `700 30px ${MINCHO}`; c.textAlign = 'center'; [...'昭和四十五年十一月'].forEach((ch, i) => c.fillText(ch, w * 0.66, 34 + i * 40)); [...'弥富町文鳥組合'].forEach((ch, i) => c.fillText(ch, w * 0.34, 74 + i * 40)); }); plane(0.62, 1.0, t2, 0, 1.55, -0.17, st, { ry: Math.PI });
+  return st; }
+// 炊飯器の列（インスタンス描画）と湯気
+function yatCookers(g, n, x0, z0, cols, dx = 0.7, dz = 1.6) { const body = new THREE.InstancedMesh(cyl(0.22, 0.24, 0.36, 10), toon(0xF4F2EE), n), lid = new THREE.InstancedMesh(cyl(0.2, 0.22, 0.08, 10), toon(0xC8C8C4), n), M = new THREE.Matrix4(); for (let i = 0; i < n; i++) { const x = x0 + (i % cols) * dx, z = z0 + Math.floor(i / cols) * dz; M.makeTranslation(x, 0.98, z); body.setMatrixAt(i, M); M.makeTranslation(x, 1.2, z); lid.setMatrixAt(i, M); } g.add(body); g.add(lid); return { body, lid }; }
+
+// ================= 11.5章　幕間1　弥富：場所 =================
+const ON45 = () => S.chapter === 45;
+// 舗装・土・田の地面
+const yatGround = (g, w, d, col, x = 0, z = 0, y = 0, grid) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshLambertMaterial(grid ? { map: (() => { const t = canvasTex(256, 256, (c, W, H) => { c.fillStyle = grid[0]; c.fillRect(0, 0, W, H); c.strokeStyle = grid[1]; c.lineWidth = 2; for (let i = 0; i <= W; i += 32) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, H); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(W, i); c.stroke(); } }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(w / 8, d / 8); return t; })() } : { color: col })); m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); g.add(m); return m; };
+// 小さな文鳥を区域に置く（tick で動かす一覧に足す）
+const yatPetAt = (a, kind, x, y, z, s = 1, ry = 0) => { const p = yatPet(kind, s); p.root.position.set(x, y, z); p.root.rotation.y = ry; a.g.add(p.root); (a.pets || (a.pets = [])).push(p); return p; };
+// 小鳥を ms ミリ秒かけて弧を描いて動かす（skip のときは瞬時）
+function yatFly(a, p, to, ms = 2400, arc = 1.2) { const fr = p.root.position.clone(), t0 = T.now; a.flyTw = { p, fr, to: to.clone(), dur: Math.max(0.01, ms / 1000), t0, arc }; if (G.skip || G.ffwd) { p.root.position.copy(to); a.flyTw = null; } return z22(ms); }
+function yatFlyTick(a) { const w = a.flyTw; if (!w) return; const k = Math.min(1, (T.now - w.t0) / w.dur); w.p.root.position.lerpVectors(w.fr, w.to, k); w.p.root.position.y += Math.sin(k * Math.PI) * w.arc; w.p.root.rotation.y = Math.atan2(w.to.x - w.fr.x, w.to.z - w.fr.z); if (k >= 1) a.flyTw = null; }
+
+// ---- 弥富駅前：白く塗られた表示、撤収順の板、プロテインの自販機、出勤の列 ----
+makeArea('yatEki', { noPlayer: true, place: '弥富駅前', bounds: [-14, 14, -10, 10], spawn: [0, 999], cam: [0, 6, 10], music: '', bg: 0xC8D8E4, fog: [26, 90], light: 0.9, sun: 0.6,
+  build(a) { const g = a.g; yatGround(g, 70, 50, 0, 0, 0, 0, ['#A8A8A2', '#9A9A94']);
+    block(26, 5, 4, 0xE8E4DA, 0, 2.5, -9, g); block(27, 0.4, 5, 0x4A4E58, 0, 5.2, -9, g); block(6, 3, 0.2, 0x2A2E36, 0, 1.5, -6.95, g); a.obs.push({ x: 0, z: -9, hx: 13, hz: 2 });
+    plane(6, 1.0, signTex(720, 120, [{ t: '弥富駅', size: 84, f: MINCHO, w: 800 }], { bg: '#2A3A5A', fg: '#F4F2EC' }), 0, 4.1, -6.88, g);
+    for (const x of [-7.4, -4.6]) block(0.12, 2.6, 0.12, 0x3A3A44, x, 1.3, -5.4, g);
+    plane(3.2, 1.0, signTex(640, 200, [{ t: '弥富', size: 96, f: MINCHO, w: 800 }, { t: 'やとみ　YATOMI', size: 34 }], { bg: '#F4F5F7', fg: '#1A2238' }), -6, 2.4, -5.34, g);
+    plane(1.5, 0.42, signTex(300, 84, [{ t: '海抜 −0.93m', size: 46, w: 800 }], { bg: '#E8F0F8', fg: '#1A3A6A' }), -6.75, 1.55, -5.34, g);
+    a.white = plane(1.2, 0.42, signTex(240, 84, [], { bg: '#FBFBF8' }), -5.35, 1.55, -5.33, g);
+    yatRateBoard(g, 6.0, 2.6, -6.6, 0, [['第一便', 'No.7　クロ・バルク隊（バルク家）', '06:10'], ['第二便', '辻　第三中隊', '06:40'], ['第三便', '千路ハブ守備隊', '07:10'], ['…', '…', '…'], ['第九便', '地上扇動班　ド・ゴウほか', '17:30'], ['―', '地表常住　九万二千羽', '残留', '#8AD0FF']], '本日の撤収順　鍋田降下場');
+    plane(2.0, 1.1, signTex(400, 220, [{ t: '弥富地区　本日の rate（参考値）', size: 26, w: 800, c: '#C8323C' }, { t: '一位　炊飯誤差 〇・〇グラム', size: 30 }, { t: '会館食堂　当番', size: 26 }], { bg: '#F4F0E8', fg: '#2A2A30', border: '#C8323C' }), 10.2, 2.0, -6.4, g);
+    [['黒ゴマ', 0x2A2A2E], ['シナモン', 0x8A5E44], ['ココア', 0x5A3A2A]].forEach(([t, col], i) => { const x = -12.4 + i * 1.2; block(1.05, 1.9, 0.8, col, x, 0.95, -5.0, g); plane(0.9, 0.36, signTex(220, 90, [{ t: 'プロテイン', size: 26, w: 800 }, { t, size: 30, w: 900 }], { bg: '#F4F0E8', fg: '#2A2A30' }), x, 1.55, -4.59, g); });
+    [['文鳥のまち弥富', '#B01020'], ['地表第一降下点', '#F4F0E8'], ['米は正確に炊け', '#B01020'], ['飯はみんなで食う', '#F4F0E8'], ['兄弟を見捨てない', '#B01020'], ['一日一万回', '#F4F0E8']].forEach(([t, col], i) => yatBanner(g, -10.5 + i * 4.6, -3.4 - (i % 2) * 0.3, 0, t, col, 4.2));
+    a.rows = [0, 1, 2].map(k => { const list = []; for (let i = 0; i < 24; i++) list.push([-17 + i * 1.45 + k * 0.5, 0, 0.4 + k * 1.4, k % 2 ? -Math.PI / 2 : Math.PI / 2]); return { list, cr: birdCrowd(g, list, { s: 0.92, coat: [0x5A6A7A, 0xF2F0EA, 0x8A8C94][k], cap: k === 1 ? 0xF8F8F4 : 0x16161A, beak: k === 1 ? 0xF0707E : 0xE2505B, pants: 0x2A2A30 }), dir: k % 2 ? -1 : 1 }; });
+    { const list = []; for (let i = 0; i < 14; i++) list.push([-4.0 + i * 0.95, 0, -4.7, -Math.PI / 2]); a.queue = birdCrowd(g, list, { s: 0.9, coat: 0x5A6A7A, pants: 0x2A2A30 }); }
+    for (const x of [-16, 16]) tree(g, x, -4, 1.2); },
+  tick(a, dt) { if (!ON45() || !a.rows) return; for (const r of a.rows) { for (const p of r.list) { p[0] += r.dir * dt * 1.15; if (p[0] > 18) p[0] -= 35; if (p[0] < -18) p[0] += 35; } r.cr.set(); } } });
+
+// ---- 弥富文鳥会館：十三の窓口、赤い背表紙の棚、開いた地表着任簿 ----
+const yatPageTex = () => canvasTex(512, 360, (c, w, h) => { c.fillStyle = '#F4EEDC'; c.fillRect(0, 0, w, h); c.strokeStyle = '#C8B89A'; c.lineWidth = 2; for (let x = 40; x < w; x += 46) { c.beginPath(); c.moveTo(x, 24); c.lineTo(x, h - 20); c.stroke(); }
+  c.fillStyle = '#2A2A30'; c.font = `700 22px ${MINCHO}`; c.textAlign = 'center'; const nm = ['水谷', '伊藤', '加藤', '山田', '佐藤', '鈴木', '森', '林', '近藤', '長谷川'];
+  nm.forEach((n, i) => { const x = w - 40 - i * 46 - 23; [...('〇〇' + (i + 1))].slice(-3).forEach((ch, k) => c.fillText(ch, x, 48 + k * 24)); [...n].forEach((ch, k) => c.fillText(ch, x, 140 + k * 26)); });
+  c.fillStyle = '#B01020'; c.font = `800 22px ${MINCHO}`; [...'備考　落下'].forEach((ch, k) => c.fillText(ch, 26, 60 + k * 30)); c.fillStyle = '#2A2A30'; c.font = `700 18px ${MINCHO}`; [...'担当No.4'].forEach((ch, k) => c.fillText(ch, 26, 220 + k * 22)); });
+makeArea('yatKaikan', { noPlayer: true, place: '弥富文鳥会館', bounds: [-10, 10, -7, 7], spawn: [0, 999], cam: [0, 6, 8], music: '', bg: 0xD8D0C0, fog: [18, 50], light: 0.85, sun: 0.4,
+  build(a) { const g = a.g; yatGround(g, 24, 18, 0, 0, 0, 0, ['#9A7A56', '#8A6A48']);
+    block(22, 6, 0.3, 0xE8E0D0, 0, 3, -7.3, g); for (const x of [-10.6, 10.6]) { block(0.3, 6, 16, 0xE8E0D0, x, 3, 0, g); for (const z of [-3, 2]) plane(2.4, 1.6, signTex(64, 64, [], { bg: '#CFE4F2' }), x * 0.985, 3.0, z, g, { ry: x > 0 ? -Math.PI / 2 : Math.PI / 2 }); }
+    block(18, 3.4, 0.6, 0x5A4030, 0, 1.7, -6.8, g); plane(17.6, 3.0, canvasTex(512, 96, (c, w, h) => { c.fillStyle = '#3A2A20'; c.fillRect(0, 0, w, h); for (let x = 0; x < w; x += 6) { c.fillStyle = Math.random() < 0.8 ? '#B01828' : '#E8E0D0'; c.fillRect(x, 6 + (x % 3), 5, h / 2 - 10); c.fillRect(x, h / 2 + 4, 5, h / 2 - 10); } }), 0, 1.7, -6.48, g);
+    plane(5.6, 0.8, signTex(800, 112, [{ t: '様式第七号　撤収完了確認書　受付', size: 52, f: MINCHO, w: 800 }], { bg: '#F4F0E8', fg: '#2A2A30', border: '#C8323C' }), 0, 4.4, -7.1, g);
+    for (const [x, t] of [[-8.4, '承認'], [8.4, '原本']]) yatBanner(g, x, -6.2, 0, t, '#B01020', 3.4);
+    const desks = []; for (let i = 0; i < 13; i++) { const x = -9 + i * 1.5; block(1.2, 0.75, 0.6, 0x8A6A44, x, 0.375, -2.4, g); plane(0.36, 0.26, signTex(72, 52, [{ t: '承認', size: 24, w: 900, c: '#C8323C' }], { bg: '#F4F2EC' }), x + 0.2, 0.76, -2.3, g, { rx: -Math.PI / 2 }); desks.push([x, 0, -3.25, 0]); }
+    a.clerks = birdCrowd(g, desks, { s: 0.92, coat: 0x5A6A7A, pants: 0x2A2A30 }); a.obs.push({ x: 0, z: -2.6, hx: 10, hz: 0.6 });
+    block(2.6, 0.8, 1.3, 0x6A4A2A, 0, 0.4, 0.9, g); a.page = plane(1.2, 0.84, yatPageTex(), 0, 0.81, 0.9, g, { rx: -Math.PI / 2 }); block(0.62, 0.05, 0.9, 0xB01828, -0.95, 0.82, 0.9, g); block(0.62, 0.05, 0.9, 0xB01828, 0.95, 0.82, 0.9, g); },
+  tick(a, dt) { if (!ON45() || !a.clerks) return; haloTick(dt); a.tt = (a.tt || 0) + dt; const s = Math.sin(a.tt * 8); a.clerks.set(Math.max(0, s) * 0.42); if (a.stampOn && s > 0.97 && (a.last || 0) < a.tt - 0.3) { a.last = a.tt; sfx('stampYat'); } } });
+
+// ---- 輪中の堤防と、旧養魚池の水浴び場：川面が家並みより高い ----
+makeArea('yatTeibou', { noPlayer: true, place: '弥富　輪中の堤防', bounds: [-16, 16, -12, 12], spawn: [0, 999], cam: [0, 7, 10], music: '', bg: 0xC8D8E4, fog: [30, 120], light: 0.9, sun: 0.6,
+  build(a) { const g = a.g; yatGround(g, 90, 40, 0x8A9A6A, 0, 10); yatLevee(g, -45, 45, -7, 3.2, 10, 3);
+    yatWater(g, 0, 2.3, -46, 120, 68, 0x5A7A86); block(120, 1.2, 4, 0x6A7A5A, 0, 2.6, -80, g);
+    for (const [x, z] of [[13, 4.4], [17.5, 4.8], [14, 9.8], [18.5, 10.2], [-16, 11]]) { block(3.6, 2.6, 3.0, 0xD8D0C0, x, 1.3, z, g); part(G_('yatRoof', () => new THREE.ConeGeometry(3.0, 1.3, 4)), 0x4A4A52, x, 3.25, z, g, { ry: Math.PI / 4, s: [1.05, 1, 0.9] }); }
+    for (const [w, d, x, z] of [[12.6, 0.4, -5, -1.6], [12.6, 0.4, -5, 6.2], [0.4, 8.2, -11.3, 2.3], [0.4, 8.2, 1.3, 2.3]]) block(w, 0.36, d, 0x8A8A80, x, 0.18, z, g);
+    yatWater(g, -5, 0.06, 2.3, 12.2, 7.4, 0x6A8A90);
+    plane(2.6, 0.7, signTex(520, 140, [{ t: '水浴び場（旧第七養魚池）', size: 40, w: 800 }, { t: '文鳥専用　点呼は水の中', size: 30 }], { bg: '#F4F0E8', fg: '#2A2A30', border: '#5A6A7A' }), 3.6, 1.5, 6.4, g); for (const x of [2.5, 4.7]) block(0.08, 1.4, 0.08, 0x5A5A5A, x, 0.7, 6.36, g);
+    plane(2.6, 0.5, signTex(560, 100, [{ t: '生きている金魚の池には入りません　弥富文鳥会館', size: 30, w: 800 }], { bg: '#FFFFFF', fg: '#B01020' }), 3.6, 0.85, 6.42, g);
+    { const list = []; for (let r = 0; r < 6; r++) for (let i = 0; i < 8; i++) list.push([-9.6 + i * 1.2 + (r % 2) * 0.3, -0.95, -0.6 + r * 1.1, Math.PI]); a.bathL = list; a.bath = birdCrowd(g, list, { s: 0.9, coat: 0xF2F0EA, pants: 0x2A2A30 }); }
+    { const list = []; for (let i = 0; i < 22; i++) list.push([1.5 + i * 0.75, 3.2, -7 + (i % 2) * 0.6, 0]); a.top = birdCrowd(g, list, { s: 0.85, coat: 0x3A3A42, pants: 0x22222A }); }
+    a.bike = yatBike(g, 9.4, -1.0, Math.PI / 2); for (const x of [-20, 18]) tree(g, x, 6, 1.4); },
+  tick(a, dt) { if (!ON45()) return; a.tt = (a.tt || 0) + dt; if (a.bathL) { a.bathL.forEach((p, i) => { p[1] = -0.95 + Math.sin(a.tt * 2.4 + i * 0.7) * 0.07; }); a.bath.set(); } if (a.top) a.top.set(a.squat ? Math.max(0, Math.sin(a.tt * 5)) * 0.7 : 0); } });
+
+// ---- 又八：水谷家の鳥小屋、田、金魚池とせり場、白文鳥の碑、堤防と野鳥園の看板（歩ける） ----
+makeArea('yatMata', { place: '弥富　又八', bounds: [-14.5, 14.5, -10.5, 8.6], spawn: [0, 0], spawnFace: Math.PI, cam: [0, 8, 9], music: '', bg: 0xC8D8E4, fog: [34, 150], light: 0.9, sun: 0.6,
+  build(a) { const g = a.g; yatGround(g, 120, 120, 0x8A9A6A);
+    for (let i = -3; i <= 2; i++) for (let k = -2; k <= 1; k++) { const x = i * 5 + 2.5, z = k * 5 + 2.5; if (x > 5 && z < 4) continue; if (x < -4 && z < -3) continue; yatWater(g, x, 0.03, z, 4.4, 4.4, 0x7A9A72); }
+    block(80, 0.05, 2.4, 0x9A9A94, 0, 0.04, 0, g); block(2.4, 0.05, 22, 0x9A9A94, 0, 0.045, 0, g);
+    // 水谷家と鳥小屋
+    block(5, 3, 4, 0xD8CCB4, -12, 1.5, -8.6, g); part(G_('yatRoof2', () => new THREE.ConeGeometry(4.0, 1.6, 4)), 0x3A3A42, -12, 3.8, -8.6, g, { ry: Math.PI / 4, s: [1.1, 1, 0.95] }); a.obs.push({ x: -12, z: -8.6, hx: 2.6, hz: 2.1 });
+    block(4.6, 2.6, 0.2, 0x8A6A44, -7, 1.3, -8.4, g); for (const x of [-9.3, -4.7]) block(0.2, 2.6, 1.8, 0x8A6A44, x, 1.3, -7.5, g); block(5.0, 0.16, 2.2, 0x5A4A3A, -7, 2.7, -7.4, g); a.obs.push({ x: -7, z: -7.6, hx: 2.4, hz: 1.0 });
+    for (const y of [0.9, 1.65]) block(4.2, 0.06, 0.62, 0x9A7A50, -7, y, -7.9, g);
+    a.cages = []; for (let r = 0; r < 2; r++) for (let i = 0; i < 9; i++) a.cages.push(yatCage(g, -9.0 + i * 0.5, r ? 1.68 : 0.93, -7.9, 0.95));
+    a.mata = yatPetAt(a, 'white', -7.0, 1.0, -7.9, 0.9, 0.4); yatPetAt(a, 'normal', -8.0, 1.0, -7.9, 0.9, -0.3); yatPetAt(a, 'white', -6.0, 1.75, -7.9, 0.9, 0.2);
+    for (let i = 0; i < 5; i++) yatNest(g, -8.6 + i * 0.8, 2.45, -8.1, 1.0); a.bell = part(sph(0.07, 8, 6), 0xD8B040, -4.9, 2.3, -6.5, g, { outline: false });
+    // 金魚池とせり場
+    a.fishT = []; for (const [x, z] of [[8, -6.8], [12.4, -6.8], [10.2, -2.6]]) { for (const [w, d, dx, dz] of [[4.4, 0.3, 0, -1.6], [4.4, 0.3, 0, 1.6], [0.3, 3.2, -2.2, 0], [0.3, 3.2, 2.2, 0]]) block(w, 0.3, d, 0x7A7A70, x + dx, 0.15, z + dz, g); yatWater(g, x, 0.08, z, 4.1, 2.9, 0x6A8A7A); a.fishT.push(yatFish(g, 10, { x, z, w: 3.8, d: 2.6, y: 0.1 })); a.obs.push({ x, z, hx: 2.3, hz: 1.7 }); }
+    block(6.4, 0.2, 3.8, 0x5A6068, 11, 3.0, 4.2, g); for (const [x, z] of [[8.0, 2.4], [14.0, 2.4], [8.0, 6.0], [14.0, 6.0]]) block(0.2, 3.0, 0.2, 0x6A6A6A, x, 1.5, z, g);
+    for (let i = 0; i < 8; i++) { const x = 8.8 + (i % 4) * 1.4, z = 3.4 + Math.floor(i / 4) * 1.6; part(cyl(0.5, 0.42, 0.5, 14), 0x3A5A7A, x, 0.25, z, g, { ol: 1.04 }); yatWater(g, x, 0.52, z, 0.8, 0.8, 0x8AB0C0); a.fishT.push(yatFish(g, 3, { x, z, w: 0.5, d: 0.5, y: 0.54 })); } a.obs.push({ x: 11, z: 4.2, hx: 3.2, hz: 1.9 });
+    plane(1.8, 0.5, signTex(360, 100, [{ t: '金魚　せり場', size: 52, f: MINCHO, w: 800 }], { bg: '#F4F0E8', fg: '#2A2A30' }), 11, 2.6, 2.28, g);
+    // お宮の隅の碑
+    block(3.2, 1.9, 2.4, 0x8A5A3A, 6.4, 0.95, -10.2, g); part(G_('shrRoof', () => new THREE.ConeGeometry(3.6, 1.4, 4)), 0x3A3A3A, 6.4, 2.6, -10.2, g, { ry: Math.PI / 4, s: [0.9, 1, 0.75] }); a.obs.push({ x: 6.4, z: -10.2, hx: 1.7, hz: 1.3 });
+    yatStele(g, 2.6, -9.4, 0); a.obs.push({ x: 2.6, z: -9.4, hx: 0.9, hz: 0.6 }); plane(0.9, 0.5, canvasTex(90, 50, (c, w, h) => { c.fillStyle = '#9A9A94'; c.fillRect(0, 0, w, h); c.fillStyle = '#E8C860'; for (let i = 0; i < 160; i++) c.fillRect(Math.random() * w, Math.random() * h, 2, 2); }), 2.6, 0.62, -9.0, g, { rx: -Math.PI / 2 });
+    a.feather = part(box(0.08, 0.01, 0.22), 0xFFFFFF, 2.75, 0.64, -9.0, g, { outline: false }); for (const [x, z] of [[0.4, -10.6], [4.6, -11], [-1.2, -9.6], [9, -9.8]]) tree(g, x, z, 1.3);
+    // 南の堤防、野鳥園の看板、港のクレーンと高架
+    yatLevee(g, -60, 60, 13, 2.4, 7.5, 2.4);
+    for (const x of [-4.2, -1.8]) block(0.1, 1.6, 0.1, 0x4A4A4A, x, 0.8, 8.9, g); plane(2.6, 1.0, signTex(520, 200, [{ t: '愛知県弥富野鳥園　この先', size: 40, w: 800 }, { t: '野鳥を驚かせないでください', size: 30 }], { bg: '#E8F0E0', fg: '#2A4A2A', border: '#4A6A4A' }), -3, 1.6, 8.84, g, { ry: Math.PI });
+    for (const x of [-16, 10]) yatCrane(g, x, 110, 1.5, Math.PI / 2); block(200, 1.0, 5, 0xA8A8A4, 0, 13, 82, g); for (let x = -90; x <= 90; x += 15) block(1.2, 13, 1.2, 0x9A9A96, x, 6.5, 82, g);
+    // 声を殺して田を渡る一万羽の列（手前の一段だけを描く）
+    { const list = []; for (let i = 0; i < 44; i++) list.push([i < 22 ? -22.6 + i * 0.34 : 15.6 + (i - 22) * 0.4, 0, -24 + (i % 2) * 0.2, 0]); a.lineL = list; a.line = birdCrowd(g, list, { s: 0.9, coat: 0x8A8C94, pants: 0x2A2A30 }); } },
+  tick(a, dt) { if (!ON45()) return; if (a.pets) for (const p of a.pets) p.tick(dt); if (a.fishT) for (const f of a.fishT) f(dt); yatFlyTick(a);
+    if (a.lineOn && a.lineL) { for (const p of a.lineL) { p[2] += dt * 1.6; if (p[2] > 7) p[2] = -30; } a.line.set(); } } });
+
+// ---- 鍋田：降下場の広場、隊列、幟、港のクレーン、高架、回収便の光の柱、夜の炊き出し ----
+makeArea('yatNabeta', { noPlayer: true, place: '鍋田　降下場', bounds: [-30, 30, -30, 30], spawn: [0, 999], cam: [0, 8, 12], music: '', bg: 0xC8D4E0, fog: [40, 190], light: 0.85, sun: 0.55,
+  build(a) { const g = a.g; yatGround(g, 320, 320, 0xB8B4A0); block(10.4, 0.8, 3.2, 0x8A2A2A, 0, 0.4, 6, g); block(10.6, 0.12, 3.4, 0xF4F0E8, 0, 0.82, 6, g);
+    a.ranks = [0, 1, 2].map(k => { const list = []; for (let r = k; r < 30; r += 3) for (let i = 0; i < 29; i++) list.push([-16.8 + i * 1.2 + (r % 2) * 0.5, 0, -1.2 - r * 1.35, 0]); return birdCrowd(g, list, { s: 0.92, coat: [0xF2F0EA, 0x1C1C22, 0x8A8C94][k], cap: k === 0 ? 0xF8F8F4 : 0x16161A, beak: k === 0 ? 0xF0707E : 0xE2505B, pants: 0x2A2A30 }); });
+    const T6 = ['兄弟を見捨てない', '飯はみんなで食う', '一日一万回', '米は正確に炊け', '撤収', '鍋田降下場']; a.bann = new THREE.Group(); g.add(a.bann); for (let i = 0; i < 9; i++) for (const sx of [-1, 1]) yatBanner(a.bann, sx * 19.5, 4 - i * 5.5, sx > 0 ? -Math.PI / 2 : Math.PI / 2, T6[(i + (sx > 0 ? 3 : 0)) % 6], (i + (sx > 0 ? 1 : 0)) % 2 ? '#F4F0E8' : '#B01020', 5.6);
+    for (const x of [-34, -14, 6]) yatCrane(g, x, -86, 1.4, 0); a.crane = yatCrane(g, 22, -14, 1.0, 0); block(60, 1.2, 70, 0xA8A8A0, 52, -0.6, -20, g); yatWater(g, 120, -0.5, -20, 140, 220, 0x4A6A7A);
+    for (let i = 0; i < 14; i++) { const x = 14 + (i % 4) * 3.0, z = -28 + Math.floor(i / 4) * 3.4; block(2.6, 2.4, 6.0, [0xA03A2A, 0x2A5A8A, 0x2A6A4A, 0xC88A2A, 0x5A5A62][i % 5], x - 30, 1.2 + (i % 3 === 0 ? 2.4 : 0), z - 30, g); }
+    yatHighway(g, -48, -150, 60, 12);
+    a.pillar = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 90, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0xCFE4FF, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); a.pillar.position.set(0, 45, -74); g.add(a.pillar); a.pillarG = glowSprite(0xCFE4FF, 18, 0.6); a.pillarG.position.set(0, 3, -74); g.add(a.pillarG);
+    a.sw = swarm40(a, 220, 0, -40, 30, 18); a.sw.g.visible = false;
+    { const list = []; for (let i = 0; i < 90; i++) { const r = 11 + (i % 5) * 1.4, an = -1.15 + (Math.floor(i / 5) / 18) * 2.3, x = 22 - Math.sin(an) * r, z = -14 + Math.cos(an) * r; list.push([x, 0, z, Math.atan2(22 - x, -14 - z)]); } a.ring = birdCrowd(g, list, { s: 0.92, coat: 0x8A8C94, pants: 0x2A2A30 }); }
+    a.mata = yatPetAt(a, 'white', 30.5, 13.18, -14, 1.0, -Math.PI / 2); a.mata.root.visible = false;
+    a.night = new THREE.Group(); g.add(a.night); for (let r = 0; r < 4; r++) { block(26, 0.8, 1.0, 0x8A6A44, 0, 0.4, 10 + r * 2.4, a.night); } a.ck = yatCookers(a.night, 300, -12.6, 10, 75, 0.34, 2.4); { const Z = new THREE.Matrix4().makeScale(0.0001, 0.0001, 0.0001); for (const i of [22, 23, 24, 25, 26]) { a.ck.body.setMatrixAt(i, Z); a.ck.lid.setMatrixAt(i, Z); } a.ck.body.instanceMatrix.needsUpdate = a.ck.lid.instanceMatrix.needsUpdate = true; } for (let i = 0; i < 16; i++) { const s = glowSprite(0xFFFFFF, 1.6, 0.18); s.position.set(rand(-12, 12), 1.6, 10 + (i % 4) * 2.4); a.night.add(s); }
+    for (let i = 0; i < 22; i++) { const l = glowSprite(0xFFD890, 1.4, 0.7); l.position.set(-13 + i * 1.24, 4.2 + Math.sin(i) * 0.2, 8.6); a.night.add(l); } a.truck = yatTruck(a.night, -6, 13.5, -Math.PI / 2); a.night.visible = false; },
+  tick(a, dt) { if (!ON45()) return; a.tt = (a.tt || 0) + dt; if (a.pillar) { a.pillar.material.opacity = 0.2 + Math.sin(a.tt * 2) * 0.06 + (a.pillarK || 0); a.pillar.scale.x = a.pillar.scale.z = 1 + Math.sin(a.tt * 3) * 0.04; }
+    if (a.sw) { if (a.rise) for (const p of a.sw.P0) p.y += dt * 5; a.sw.tick(dt); } if (a.pets) for (const p of a.pets) p.tick(dt); yatFlyTick(a);
+    if (a.bowGoal !== undefined) { a.bowK += (a.bowGoal - a.bowK) * Math.min(1, dt * 2.5); if (Math.abs(a.bowGoal - a.bowK) < 0.005) a.bowK = a.bowGoal; }
+    if (a.ranks && a.bowK !== a.bowK0) { a.bowK0 = a.bowK; for (const r of a.ranks) if (r.meshes[0].visible) r.set(a.bowK); if (a.ring.meshes[0].visible) a.ring.set(a.bowK); } } });
+
+// ================= 11.5章　幕間1　一羽：台本 =================
+const CH45 = '11.5章　幕間1　一羽';
+function volley45(list) { for (const [ms, f] of list) setTimeout(() => { if (ON45()) f(); }, ms); }
+// 群れの大声：押忍。k が大きいほど揺れと白い閃き
+function osh45(k = 1) { sfx('oshYat'); if (k > 1) { sfx('roar'); flash40('#FFFFFF', 0.22, 160); } G.shake = 0.22 * k; }
+// 小さな仕掛け：漏れそうな押忍を、出る前に押さえる（押す）。n 回で終わる。auto や skip のときはすぐ通る
+function shh45(n = 8, onMiss) { return new Promise(res => { if (G.skip || G.autoFight || S.flags.autoFightAll) { res(0); return; }
+  let L = $('shh45'); if (!L) { L = document.createElement('div'); L.id = 'shh45'; Object.assign(L.style, { position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, zIndex: 14, pointerEvents: 'none' }); document.body.appendChild(L); }
+  L.innerHTML = ''; L.style.display = 'block'; const info = document.createElement('div'); Object.assign(info.style, { position: 'absolute', left: '50%', top: 'calc(env(safe-area-inset-top, 0px) + 14px)', transform: 'translateX(-50%)', background: 'rgba(14,18,28,.88)', color: '#F4F2EC', font: `800 14px ${GOTHIC}`, padding: '8px 14px', borderTop: '2px solid #C8323C', whiteSpace: 'nowrap', letterSpacing: '.06em' }); L.appendChild(info);
+  const W = ['押…', 'ォ…', 'ハッ…', '押忍…', 'ブン…', 'ァ…', 'ッ…'], show = () => { info.textContent = '漏れそうな声を、出る前に押さえる　' + ok + '／' + n; };
+  let ok = 0, miss = 0, tries = 0; show();
+  const next = () => { if (ok >= n || tries >= n + 6 || !ON45() || G.mode !== 'cine') { L.style.display = 'none'; L.innerHTML = ''; res(miss); return; } tries++;
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = pick(W); Object.assign(b.style, { position: 'absolute', left: rand(14, 80) + '%', top: rand(24, 64) + '%', transform: 'translate(-50%,-50%) scale(0.55)', minWidth: '92px', minHeight: '68px', padding: '8px 16px', font: `900 26px ${GOTHIC}`, color: '#C8323C', background: 'rgba(244,240,232,.95)', border: '3px solid #C8323C', borderRadius: '40px', pointerEvents: 'auto', transition: 'transform 1.1s linear, opacity .2s', touchAction: 'manipulation', cursor: 'pointer' });
+    L.appendChild(b); requestAnimationFrame(() => { b.style.transform = 'translate(-50%,-50%) scale(1.3)'; }); sfx('chiYat'); let done = false;
+    const t = setTimeout(() => { if (done) return; done = true; miss++; b.remove(); if (onMiss) onMiss(); setTimeout(next, 420); }, 1350);
+    b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; done = true; clearTimeout(t); ok++; show(); b.style.opacity = '0'; sfx('blip'); setTimeout(() => b.remove(), 200); setTimeout(next, 260); }); };
+  next(); }); }
+// 小鳥を、ある人物の頭の上へ置く位置
+const yatHead45 = (n, up = 0.5) => { const r = n.model.root; r.position.set(n.pos.x, n.y || 0, n.pos.z); r.rotation.y = n.facing; r.updateMatrixWorld(true); const v = new THREE.Vector3(); n.model.head.getWorldPosition(v); v.y += up; return v; };
+const faceTo45 = (n, x, z) => { n.facing = Math.atan2(x - n.pos.x, z - n.pos.z); };
+// 斜めの寄り：facing から side ずらした方向に d 離れて、頭の高さを撮る（鳥は体の大きさで頭の高さを決める）
+function sh45(n, d = 2.6, side = 0.7, dy = 0) { const M = n.model || n, st = n.st || {}, hy = (n.y || 0) + (M.bird ? (st.kneel || st.sit ? 1.3 : 1.8) * M.g.scale.y : (st.kneel || st.sit ? 0.95 : 1.45) * ((M.g && M.g.scale.y) || 1)) + dy, f = n.facing + side; cut18(n.pos.x + Math.sin(f) * d, hy + 0.2, n.pos.z + Math.cos(f) * d, n.pos.x, hy, n.pos.z); }
+
+async function chapter45() { G.mode = 'cine'; S.chapter = 45; $('report').hidden = true; nameCard(null); setObj(''); applySaku(); playAsCassia31(false); playAsZaina32(false); playAsInui39(false); P.model.root.visible = true; CAST.kuze = P.model; GL.base = 0; news22off(); galHud(false); bgm(''); P.st = {}; P.spdK = 1; fear20(0); kuu34(false);
+  red43(0); loc43(''); CH44.on = false; PON.on = false; PB.on = false; MEL.on = false; VB.on = false; S39.on = false; TC41.on = false; S41.on = false; if (KE.n) keUnbind45(); KE.test = null; act42(null); camf42(null);
+  S.flags.c45look = []; await goRyumon45(); }
+
+// 1. 留文堂 地下
+async function yatHq45() { $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; const a = await stage42('hq', '留文堂　地下', { bg: 0x1A1C22, hi: 0.6 }); bgm('');
+  // 机（x -2.2〜2.2、z -1.2〜1.6）のまわりに立たせる。久世は手前の辺、室長は奥の辺
+  const kr = Q42(a, 'kuroiwa', () => makeChar(LK.kuroiwa), 0, -2.6, 0), kz = Q42(a, 'kuze', () => makeChar(LK.kuze), 0, 2.3, Math.PI), sa = Q42(a, 'saegusa', () => makeChar(LK.saegusa), 2.9, -0.6, -Math.PI * 0.5);
+  const is = Q42(a, 'ishii', () => makeChar(LK.ishii), -2.9, -0.4, Math.PI * 0.5), ta = Q42(a, 'takane', () => takaneModel28(), 1.6, 2.5, -Math.PI * 0.9), po = Q42(a, 'ponpu', () => ponpuModel(), -1.4, 2.4, Math.PI * 0.9);
+  return { a, kr, kz, sa, is, ta, po }; }
+async function goRyumon45() { G.mode = 'cine'; S.flags.c45st = 'ryumon'; setObj(''); const { kr, kz, sa, is, ta, po } = await yatHq45(); ckSave();
+  cine(3.4, 2.6, 3.8, 0, 1.2, -1.2); await fade(false); await card(CH45, '留文堂　地下　四月十四日　午前八時', 2000);
+  fc22(sa, 2.2, 0.2, -0.3); await say('saegusa', '弥富の鍋田に文鳥が集まっています。春日井から引いた分です。');
+  await say('saegusa', '二十九万八千羽です。それと弥富にもとから住んでいる文鳥が九万二千羽います。');
+  await say('saegusa', '弥富の人口が四万三千人なので……人ひとりに文鳥が九羽です。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', '九羽！？　一人ひとチーム組めるっす。');
+  fc22(kr, 2.4, 0.2, 0.3); await narr('黒岩は机に一枚の紙を置いた。上の欄に朱で「様式第七号」と刷ってあった。');
+  await say('kuroiwa', 'B.U.N から書面が来た。撤収完了確認書だ。地表からの撤収には人間側の確認印がひとつ要るそうだ。');
+  await say('kuroiwa', '指名がある。杭を折った人間、と書いてある。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '私の認印でいいんでしょうか。百円のですが。');
+  fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '向こうの様式だ。認印でいいと書いてある。');
+  fc30(po, 2.4, 0.2, 0.3); await say('ponpu', '兄貴たちも鍋田にいるっす。空に上がる前に地上で最後の水浴び点呼をやるって。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', 'ポ・ンプが行くなら僕も行きます。巾着の係なので。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', 'おれも行きます！　報告書は帰ってから書くっす。');
+  fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '三日分だ。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', '……三日分、持っていくっす。');
+  fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '久世。押す前に全部見てこい。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'はい。');
+  cine(0.8, 2.0, 1.4, 0, 1.0, -1.8); sfx('chiYat'); await narr('書面の隅に小さな判が押してあった。丸い頭に嘴のついた、文鳥の形の判だった。');
+  for (const n of [kr, kz, sa, is, ta, po]) n.hidden = true; await fade(true); await goEki45(); }
+
+// 2. 弥富駅前
+async function goEki45() { G.mode = 'cine'; S.flags.c45st = 'eki'; setObj(''); const a = await stage42('yatEki', '弥富駅前', { music: 'yatTown', bg: 0xC8D8E4, hi: 0.9, fog0: 26, fog1: 90 }); ckSave();
+  const kz = Q42(a, 'kuze', () => makeChar(LK.kuze), 0.2, 6.4, Math.PI), is = Q42(a, 'ishii', () => makeChar(LK.ishii), -1.4, 6.8, Math.PI * 0.9), ta = Q42(a, 'takane', () => takaneModel28(), 1.6, 6.9, -Math.PI * 0.9), po = Q42(a, 'ponpu', () => ponpuModel(), -0.6, 7.7, Math.PI);
+  const jr = Q42(a, 'juriYat', () => juriYat(), 0.6, 4.7, 0), ek = Q42(a, 'ekiinYat', () => makeChar(LK.ekiinYat), -3.4, -3.6, -Math.PI * 0.75), tb = Q42(a, 'touchYat', () => yatSakura({ coat: 0x5A6A7A, sleeve: 0x5A6A7A }), -4.75, -4.7, -Math.PI / 2, { point: true });
+  cut18(0.4, 2.4, 12.5, 0, 1.6, 0); await fade(false); await card('愛知県　弥富市', '弥富駅前　午前十時', 1400);
+  loc('愛知県　弥富市', '弥富駅前', 'YATOMI'); sfx('flockYat'); await z22(1600); loc(null);
+  cine(-2, 5.5, 13, 0, 1.0, -2); await narr('改札を出ると駅前は文鳥で埋まっていた。同じ丸い頭が同じ高さで、ずっと先まで並んでいた。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', 'え、これ全部っすか。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', '駅前だけで四百十二羽です。向こうの道を入れたら数えるのをやめます。');
+  cut18(-2.2, 1.9, -1.2, -5.4, 1.5, -5.3); await narr('文鳥たちは改札の横に一列に並んで、順番に壁の白いところへ触ってから歩いていった。');
+  cut18(-5.7, 1.75, -3.0, -6.0, 1.55, -5.35); await narr('駅の名前の板の下に「海抜 −0.93m」とあった。その横が四角く白く塗ってあった。');
+  fc22(ek, 2.2, 0.2, 0.3); await say('ekiinYat', 'そこの白いとこは触らんでね。毎朝何百羽も触ってくで、ペンキが薄うなってまったんだわ。');
+  fc30(tb, 2.4, 0.2, 0.3); await say('bunYat', '申し訳ございませェん！　縁起物でありますのでェ！');
+  sh45(jr, 2.8, 0.75, 0); sfx('chiYat'); nameCard({ s: '弥富文鳥会館　降下受付', b: 'ジュ・リ', e: 'JU・RI', col: '#E8E4DA', p: '弥富に常住する更生文鳥。来た者にはまず承認を押す。' });
+  await say('juriYat', 'チ……失礼しました。弥富文鳥会館の降下受付です。ジュ・リと申します。');
+  await say('juriYat', '久世躁一郎様ですね。来訪票に承認を押します。'); sfx('stampYat'); nameCard(null); await say('bunYat', '承認ォォ！！'); sh45(jr, 2.8, 0.75, 0); await say('juriYat', '……駅前ですので、お静かに。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', 'あの白いとこ、なんすか。');
+  sh45(jr, 2.8, 0.75, 0); await say('juriYat', '前は「地上で日本一低い駅」と書いてありました。根拠が足りなくて白く塗られました。');
+  await say('juriYat', '根拠のない順位は載せない。rate の掲示板と同じ決まりです。私どもはあの白いところが好きです。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '（……それで触っていくのか）');
+  cut18(3.6, 2.6, -1.8, 6.0, 2.4, -6.6); await narr('撤収の順番を書いた板が立っていた。いちばん上の行はバルク家だった。');
+  fc30(po, 2.4, 0.2, -0.3); await say('ponpu', '兄貴たちが第一便っす。おれは載ってないっす。残るんで。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', 'いちばん下の行が地表常住。九万二千羽で、残留。');
+  sh45(jr, 2.8, 0.75, 0); await say('juriYat', '常住の者は見送りに出ます。仕事は休みませんが。');
+  cut18(-12.2, 1.9, -1.4, -11.2, 1.3, -5.0); await say('ponpu', '兄貴。プロテインの自販機っす。おれがおごるっす。');
+  const pr = await choose([{ k: '選ぶ', t: '黒ゴマ' }, { k: '選ぶ', t: 'シナモン' }, { k: '選ぶ', t: 'ココア' }]); S.flags.c45pro = pr; sfx('blip');
+  if (pr === 0) { sh45(jr, 2.8, 0.75, 0); await say('juriYat', '黒ゴマは地上組でいちばん売れています。'); fc30(po, 2.4, 0.2, -0.3); await say('ponpu', '渋いっす。'); }
+  else if (pr === 1) { sh45(jr, 2.8, 0.75, 0); await say('juriYat', 'シナモンは上の方の色です。……飲んでいいんでしょうか。'); fc30(po, 2.4, 0.2, -0.3); await say('ponpu', 'カ・エレ様は気にしないっす。'); }
+  else { fc30(po, 2.4, 0.2, -0.3); await say('ponpu', '兄貴！　それおれのいちばん好きなやつっす！'); }
+  sh45(jr, 2.8, 0.75, 0); await say('juriYat', '会館で記録官がお待ちです。……チ。失礼しました。こちらです。');
+  for (const n of [kz, is, ta, po, jr, ek, tb]) n.hidden = true; await fade(true); await goKaikan45(); }
+
+// 3. 弥富文鳥会館
+async function goKaikan45() { G.mode = 'cine'; S.flags.c45st = 'kaikan'; setObj(''); const a = await stage42('yatKaikan', '弥富文鳥会館', { music: '', bg: 0xD8D0C0, hi: 0.85, fog0: 18, fog1: 50 }); ckSave(); a.stampOn = true;
+  const kz = Q42(a, 'kuze', () => makeChar(LK.kuze), 0.9, 3.0, Math.PI), ta = Q42(a, 'takane', () => takaneModel28(), 2.4, 3.4, -Math.PI * 0.85), jr = Q42(a, 'juriYat', () => juriYat(), -1.7, 1.7, Math.PI * 0.4), ch = Q42(a, 'chanyu', () => chanyuBird(), 0, -0.6, 0);
+  if (!a.halo45) { a.halo45 = true; crystalHalo(ch.model.root, 6, 1.6, 1.6); }
+  cut18(0, 3.6, 7.8, 0, 1.2, -2.4); await fade(false); await card('弥富文鳥会館', '午前十一時半', 1200);
+  await narr('広間に机が十三並んでいた。机ごとに文鳥が一羽座って、同じ速さで判を押していた。');
+  cut18(-4.4, 1.7, 0.4, -6.0, 1.2, -3.0); await say('bunYat', '承認ッ！　承認ッ！　承認ッ！');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', 'これ、一羽で何回押すんすか。');
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '一羽で一万回です。届けは家族ごとに一枚なので、十三羽で今日の分が全部通ります。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', '一日一万回って判子のことだったんすか。');
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', 'スクワットは夜にやります。');
+  a.stampOn = false; fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', 'お待ちしていました。久世躁一郎さん。……胃が痛いので先に用件を言います。');
+  await say('chanyu', 'ここに印をひとつ。それで二十九万八千羽の撤収が地表の側でも完了になります。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '杭を折った人間、と指名されていました。');
+  fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '絶尊様が書かせました。理由は書いてありません。私も聞いていません。');
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', 'こちらが地表着任簿の原本です。保存区分は永年。四十年分あります。');
+  cut18(0.4, 2.0, 2.3, 0, 0.8, 0.9); await narr('赤い表紙の帳面だった。一頁目に二百の番号が並んでいた。番号の横に人の名字が手書きで書いてあった。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'この名字は。');
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '預かってくださった家です。一軒に一羽です。');
+  fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '第一期の降下予定地は春日井でした。降下地は弥富の鍋田です。担当は No.4。備考の欄は「落下」。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '落とした、ということですか。');
+  fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '本人がそう書いています。二百羽ほど、と。');
+  fc22(kz, 2.2, 0, -0.4); await saku('押したら終わりだぞ。見てからにしろ。');
+  const c = await choose([{ k: '表', t: '「今、押します」' }, { k: '裏声', t: '「押すのは、町を見てからだ」' }]); S.flags.c45in = c ? 'after' : 'now';
+  if (!c) { cut18(0.4, 1.9, 2.1, 0, 0.8, 0.9); sfx('stampYat'); await narr('久世は認印を押した。朱の丸が文鳥の判の隣に残った。'); fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '助かります。……胃が少し楽になりました。'); }
+  else { fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '……わかりました。胃薬を飲んで待ちます。'); fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '確認書は会館でお預かりします。夜の式のあとでも受け付けます。'); }
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', 'もうすぐ堤防の水浴び場で点呼が始まります。バルク家の、地上での最後の点呼です。');
+  for (const n of [kz, ta, jr, ch]) n.hidden = true; await fade(true); await goTeibou45(); }
+
+// 4. 輪中の堤防と水浴び場
+async function goTeibou45() { G.mode = 'cine'; S.flags.c45st = 'teibou'; setObj(''); const a = await stage42('yatTeibou', '弥富　輪中の堤防', { music: '', bg: 0xC8D8E4, hi: 0.9, fog0: 30, fog1: 120 }); ckSave(); a.squat = false;
+  const kz = Q42(a, 'kuze', () => makeChar(LK.kuze), -3.6, 7.9, Math.PI), is = Q42(a, 'ishii', () => makeChar(LK.ishii), -2.2, 8.1, Math.PI * 0.95), po = Q42(a, 'ponpu', () => ponpuModel(), -4.9, 7.5, Math.PI), jr = Q42(a, 'juriYat', () => juriYat(), -0.6, 7.6, -Math.PI * 0.8);
+  const fk = Q42(a, 'fukkin', () => fukkinBird(), -5, -1.9, 0), kb = Q42(a, 'kuro', () => kuroBulk(), -12.8, 2.3, Math.PI / 2), hk = Q42(a, 'haikin', () => haikinBird(), 2.6, 1.0, -Math.PI / 2);
+  const dg = Q42(a, 'dogou', () => dogouBird(), 6.2, -7.2, 0), fm = Q42(a, 'fumiYat', () => makeChar(LK.fumiYat), 8.6, 0.8, Math.PI); dg.y = 3.2; fm.hidden = true; po.y = 0;
+  cut18(-4.6, 3.4, 11.8, -5, 0.4, 1.0); await fade(false); await card('弥富　輪中の堤防', '正午', 1200); bgm('nest18');
+  await narr('堤防の内側に四角い池があった。看板に「水浴び場（旧第七養魚池）」とあった。');
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '金魚の池だったところです。やめた家から会館が借りています。生きている金魚の池には入りません。昔からの決まりです。');
+  fc30(fk, 3.0, 0.3, 0.3); await say('fukkin', '水浴び点呼ォォォ！！　番号ォォ！！', { cls: 'shout24' });
+  cut18(-5, 2.6, -3.8, -5, 0, 3.0); sfx('splashYat'); await say('upYat', '一ィィ！　二ィィ！　三ィィ！');
+  await narr('番号は池の端から順に続いた。');
+  fc30(fk, 3.0, 0.3, 0.3); await say('fukkin', '四十八番ンン！！'); await say('upYat', '四十八ィィ！！');
+  await say('fukkin', '四十九番ンン！！'); bgm(''); await z22(900);
+  fc30(po, 2.4, 0.2, 0.3); await say('ponpu', '……いるっす！');
+  fc30(kb, 3.2, 0.3, 0.3); await say('kuro', '入れェェ！！　点呼は水の中だァァ！！', { cls: 'shout24' });
+  cine(-3.0, 2.6, 9.8, -4.6, 0.4, 5.0); await walk22(po, -4.7, 5.6, 2.6, 900); po.y = -0.7; sfx('splashYat'); G.shake = 0.15;
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', '……入っちゃったよ。');
+  fc30(hk, 2.8, 0.3, 0.3); await say('haikin', '四十九番は毎朝呼んでいる。……全員いる。'); bgm('nest18');
+  cut18(3.0, 4.8, 2.4, 6.2, 3.8, -7.2); a.squat = true; await narr('同じころ、堤防の上では別の文鳥たちがスクワットを始めていた。先頭に拡声器を持った文鳥がいた。');
+  fc30(dg, 3.0, 0.3, 0.3); await say('dogou', 'rate 三千二百位ィ！　ド・ゴウだァァ！！　凱旋の前の鍛錬だァァ！！　堤防の上で一万回ィィ！！');
+  G.shake = 0.3; await say('saegusa', '（無線）堤防の振動値が上がっています。止めてもらえますか。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'ド・ゴウさん。ここは……');
+  fm.hidden = false; cut18(10.4, 2.2, -2.4, 8.6, 1.3, 0.8); nameCard({ s: '又八　文鳥農家', b: '水谷フミ', e: 'MIZUTANI FUMI', col: '#E8D0B0', p: '八十二歳。又八に残る二軒の文鳥農家の一軒。' });
+  await say('fumiYat', 'あんたら！　堤防の上で跳んだらいかんて何べん言ったらわかるの！'); nameCard(null);
+  a.squat = false; cut18(3.0, 4.8, 2.4, 6.2, 3.8, -7.2); await say('upYat', '申し訳ございませェェェん！！！', { cls: 'shout24' });
+  kz.pos.set(6.4, 0, -0.8); faceTo45(kz, fm.pos.x, fm.pos.z); face34(fm, kz);
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', 'ここは川より下に家があるでね。'); bgm('');
+  await say('fumiYat', 'あの台風の年はうちも水に浸かって、父さんが籠を二つだけ屋根に上げたの。');
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '弥富の文鳥は堤防の上でスクワットをしません。地表の決まりです。');
+  fc30(dg, 3.0, 0.3, 0.3); await say('dogou', '……では下で数える！！　全羽降りろォォ！！');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', 'あんたが人間の印の人？');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '久世です。認印を持たされています。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', 'そう。……うちに寄ってきゃあ。お茶くらい出すで。');
+  for (const n of [kz, is, po, jr, fk, kb, hk, dg, fm]) n.hidden = true; po.y = 0; dg.y = 0; a.squat = false; await fade(true); await goMata45(); }
+
+// 5. 又八　水谷家の鳥小屋
+async function goMata45() { G.mode = 'cine'; S.flags.c45st = 'mata'; setObj(''); const a = await stage42('yatMata', '弥富　又八', { music: 'yatQuiet', bg: 0xC8D8E4, hi: 0.9, fog0: 34, fog1: 150 }); ckSave(); a.lineOn = false; a.flyTw = null; a.mata.root.visible = true; a.mata.root.position.set(-7.0, 1.0, -7.9);
+  const fm = Q42(a, 'fumiYat', () => makeChar(LK.fumiYat), -8.6, -5.0, Math.PI * 0.4), kz = Q42(a, 'kuze', () => makeChar(LK.kuze), -6.0, -4.4, -Math.PI * 0.6), ta = Q42(a, 'takane', () => takaneModel28(), -4.4, -3.6, -Math.PI * 0.72);
+  const tr = Q42(a, 'torib', () => toribYat(), -1.0, -0.4, -Math.PI * 0.7), sr = Q42(a, 'shirobun', () => shirobunBird(), 1.0, -1.2, -Math.PI / 2); tr.hidden = true; sr.hidden = true;
+  cut18(-3.6, 2.6, -1.2, -7.2, 1.2, -7.6); await fade(false); await card('又八　水谷家', '午後二時', 1200);
+  await narr('棚に竹の籠が十八並んでいた。文鳥が入っているのは三つだけだった。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '昔はこの辺、どこの家の裏にも鳥小屋があったんだわ。二百軒からあったよ。');
+  await say('fumiYat', 'いまはうちともう一軒だけ。うちは今年でやめるでね。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'やめるんですか。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '足が言うこと聞かんでね。籠の掃除がしんどいの。');
+  cine(-6.0, 1.9, -5.2, -7.4, 1.4, -7.9); await say('fumiYat', '元治のころにね、八重さんいう人が桜文鳥のつがいを抱いて又八へ嫁いできたんだって。それが始まりだと言われとる。');
+  await say('fumiYat', '明治になって雛の中にまっ白いのが一羽出たの。最初は体が弱かったって。');
+  cut18(-6.65, 1.25, -6.85, -7.0, 1.08, -7.9); sfx('chichiYat'); await say('fumiYat', 'マタ。この春に巣立った子だわ。売る子には名前つけんけど、これだけはつけた。');
+  sh45(ta, 2.2, -0.7, -0.05); await say('takane', 'ちっちゃ……。');
+  tr.hidden = false; cine(-2.8, 2.4, -0.8, -4.0, 1.2, -3.2); await walk22(tr, -6.2, -3.6, 1.2, 2400); face34(tr, fm); face34(fm, tr);
+  fc30(tr, 2.4, 0.2, 0.3); await say('torib', '……フミさん。わしじゃ。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '……あんた。春日井へ行ったきり、ちっとも顔見せんで。');
+  fc30(tr, 2.4, 0.2, 0.3); await say('torib', '四十年前、わしは田んぼに落ちとった。源三さんが米を炊いてくれたんじゃ。食い方を知らんで釜ごと食うた。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '覚えとるよ。釜が一個だめになった。');
+  await say('fumiYat', 'まだ二百軒近くあったでね。組合で決めて、一軒に一羽ずつ預かったの。');
+  face34(fm, kz); fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'どうして文鳥を家に入れたんですか。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '文鳥なら見慣れとったでね。でかかったけど。');
+  sr.hidden = false; cine(-2.2, 2.6, -0.8, -3.6, 1.6, -3.8); await walk22(sr, -3.6, -4.6, 1.3, 2200); face34(sr, fm); face34(fm, sr);
+  fc30(sr, 2.6, 0.3, 0.3); await say('shirobun', 'ごめんください。おまんじゅう、まだありますか？');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '白さん。今年も来たの。');
+  fc22(ta, 2.0, 0.2, -0.3); await say('takane', '（小声）……No.4っすよ。あれ。');
+  fc22(kz, 2.2, 0, -0.4); await saku('刀は腰のままだ。食いに来ただけだ。動くな。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '毎年この時期に来て、まんじゅう食べてお宮の碑に粟を置いてくの。近所の人だと思っとった。');
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '着任簿の備考を拝見しました。「落下」と。');
+  fc30(sr, 2.6, 0.3, 0.3); await say('shirobun', '私です。……落としました。二百羽ほど。');
+  await say('shirobun', '拾いに戻ったら、みんなどこかの家でごはんを食べていました。それでそのままにしました。');
+  fc30(tr, 2.4, 0.2, 0.3); await say('torib', '……わしは釜ごと食うとった。');
+  fc30(sr, 2.6, 0.3, 0.3); await say('shirobun', 'でしょうねぇ。');
+  await say('shirobun', '毎年お礼を言うつもりで来て、おまんじゅうを食べて帰っていました。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '知っとる。');
+  fc30(sr, 2.6, 0.3, 0.3); await say('shirobun', '夕方に撤収の式があります。うるさくなりますので先に謝っておきます。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '籠の子らがびっくりするで、ほどほどにね。');
+  fc30(sr, 2.6, 0.3, 0.3); await say('shirobun', 'はいはい。');
+  for (const n of [fm, kz, ta, tr, sr]) n.hidden = true; await fade(true); await goShiki45(); }
+
+// 6. 鍋田降下場　撤収式
+async function yatNabetaSet45(o) { $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; const a = await stage42('yatNabeta', o.place || '鍋田　降下場', { music: '', bg: o.bg, hi: o.hi, fog0: o.f0 || 40, fog1: o.f1 || 190 }); a.night.visible = !!o.night; a.sw.g.visible = !!o.sky; for (const r of a.ranks) r.meshes.forEach(m => { m.visible = !!o.ranks; }); a.ring.meshes.forEach(m => { m.visible = !!o.ring; }); a.bann.visible = o.banners !== false; a.bowK = 0; a.bowGoal = 0; a.bowK0 = undefined; a.pillarK = 0; a.rise = false; a.flyTw = null; a.mata.root.visible = false; if (!a.swY0) a.swY0 = a.sw.P0.map(p => p.y); a.sw.P0.forEach((p, i) => { p.y = a.swY0[i]; }); if (a.cage45) a.cage45.visible = false; return a; }
+async function goShiki45() { G.mode = 'cine'; S.flags.c45st = 'shiki'; setObj(''); const a = await yatNabetaSet45({ bg: 0xE8D0B0, hi: 0.85, ranks: true, sky: true }); ckSave();
+  const P6 = () => { const sr = Q42(a, 'shirobun', () => shirobunBird(), 0, 6.0, Math.PI), ch = Q42(a, 'chanyu', () => chanyuBird(), -3.2, 6.2, Math.PI), dg = Q42(a, 'dogou', () => dogouBird(), 3.3, 6.2, Math.PI), kb = Q42(a, 'kuro', () => kuroBulk(), 5.9, 5.4, Math.PI);
+    for (const n of [sr, ch, dg]) n.y = 0.82; const kz = Q42(a, 'kuze', () => makeChar(LK.kuze), 7.4, 8.6, -Math.PI * 0.7), is = Q42(a, 'ishii', () => makeChar(LK.ishii), 8.6, 9.0, -Math.PI * 0.7), ta = Q42(a, 'takane', () => takaneModel28(), 6.4, 9.4, -Math.PI * 0.75), po = Q42(a, 'ponpu', () => ponpuModel(), 9.4, 8.2, -Math.PI * 0.7); return { sr, ch, dg, kb, kz, is, ta, po }; };
+  let { sr, ch, dg, kb, kz, is, ta, po } = P6();
+  cut18(0, 9, 22, 0, 1.0, -14); await fade(false); await card('鍋田　降下場', '午後五時　撤収式', 1300); bgm('yatMarch');
+  await narr('干拓地の広場に赤と白の幟が地平線まで並んでいた。そのあいだを文鳥の隊列が埋めていた。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', '隊列の端が見えません。……二十九万八千、たぶん全部います。');
+  cut18(-6, 6, 14, 10, 8, -60); await narr('遠くに鍋田ふ頭のクレーンが並んでいた。その向こうを湾岸道路の高架が横切っていた。');
+  fc30(dg, 3.0, 0.3, 0.3); await say('dogou', '凱旋だァァ！！　胸を張れェェ！！', { cls: 'shout24' });
+  cut18(0, 3.2, 10.5, 0, 1.6, -8); await say('upYat', '大胸筋、張りましたァァ！！', { cls: 'shout24' });
+  fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '書類の上では撤収です。様式第七号、撤収。');
+  sh45(sr, 3.2, 0, 0.1); await say('shirobun', 'はいはい。どっちでもいいので早く済ませてごはんにしましょう。');
+  fc30(kb, 3.2, 0.3, 0.3); await say('kuro', '掟ェェ！！　唱和ァァ！！', { cls: 'shout24' });
+  cut18(0, 3.2, 10.5, 0, 1.6, -8); osh45(1); await say('upYat', '兄弟を見捨てないィィ！！', { cls: 'shout24' }); osh45(1); await say('upYat', '飯はみんなで食うゥゥ！！', { cls: 'shout24' }); osh45(1); await say('upYat', '一日一万回ィィ！！', { cls: 'shout24' });
+  sh45(sr, 3.2, 0, 0.1); await say('shirobun', 'では。押忍。');
+  cut18(0, 12, 26, 0, 1, -20); osh45(3); await say('upYat', 'オォォォォォス！！！', { cls: 'shout24' }); G.shake = 0.8;
+  await say('saegusa', '（無線）……計測器が振り切れました。すみません、桁が足りません。');
+  for (const n of [sr, ch, dg, kb, kz, is, ta, po]) n.hidden = true; bgm(''); await fade(true);
+  { const m = await stage42('yatMata', '弥富　又八', { music: '', bg: 0xE8D0B0, hi: 0.85, fog0: 34, fog1: 150 }); m.flyTw = null; m.lineOn = false; m.mata.root.visible = true; m.mata.root.position.set(-7.0, 1.0, -7.9); m.mata.root.rotation.y = 0.4;
+    cut18(-6.4, 1.35, -6.4, -7.0, 1.1, -7.9); await fade(false); G.shake = 0.4; sfx('chichiYat');
+    await narr('声は干拓地を越えて又八まで届いた。水浴びのために開けてあった籠の戸から、白い小鳥が一羽、外へ出た。');
+    cine(-4.6, 2.4, -3.0, -6.0, 2.6, -6.6); await yatFly(m, m.mata, new THREE.Vector3(-2.6, 4.8, -2.4), 1600, 1.8); m.mata.root.visible = false; await fade(true); }
+  await yatNabetaSet45({ bg: 0xE8C8A0, hi: 0.8, ranks: true, sky: true }); ({ sr, ch, dg, kb, kz, is, ta, po } = P6());
+  fc22(kz, 2.2, 0.1, -0.3); await fade(false); await say('fumiYat', '（電話）久世さん？　マタが出てってまった。すごい声がして、籠の戸のとこから……');
+  await say('kuze', 'すぐ探します。');
+  sh45(sr, 3.2, 0, 0.1); await say('shirobun', '……いまの、私たちの声ですね。');
+  fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '……記録します。');
+  for (const n of [sr, ch, dg, kb, kz, is, ta, po]) n.hidden = true; await fade(true); await goSagasu45(); }
+
+// 7. 捜索（歩いて、3か所のうち2か所を調べる）
+const YAT_SPOTS = [['seri', 11, 1.4, 'せり場の人に聞く'], ['hi', 2.6, -7.8, '白文鳥の碑を見る'], ['yacho', -3.0, 7.7, '堤防の上から見る']];
+function yatSpots45() { const a = AREAS.yatMata; if (!a.built) { a.build(a); a.built = true; } if (a.spots45) return; a.spots45 = true;
+  for (const [k, x, z, l] of YAT_SPOTS) addItem(a, { id: 'y45' + k, x, z, r: 1.7, label: l, col: 0xE3B428, avail: () => ON45() && S.flags.c45st === 'sagasu' && !(S.flags.c45look || []).includes(k), on: () => evSpot45(k) }); }
+const objSagasu45 = () => setObj('白い小鳥を探す（' + Math.min(2, (S.flags.c45look || []).length) + '／2）');
+async function goSagasu45() { G.mode = 'cine'; S.flags.c45st = 'sagasu'; setObj(''); yatSpots45(); S.flags.c45look = S.flags.c45look || []; AREAS.yatMata.mata.root.visible = false; cut18(4, 7, 14, 0, 0, -6); await goArea('yatMata', [0.4, -1.6], Math.PI); const a = AREAS.yatMata; for (const n of a.npcs) n.hidden = true; CAST.kuze = P.model; P.model.root.visible = true; P.st = {}; ckSave(); bgm('yatQuiet'); a.mata.root.visible = false; a.flyTw = null;
+  const is = put31(a, 'ishii', () => makeChar(LK.ishii), 1.8, -0.6, Math.PI), po = put31(a, 'ponpu', () => ponpuModel(), -1.4, -0.4, Math.PI), jr = put31(a, 'juriYat', () => juriYat(), 4.0, -7.6, -Math.PI * 0.6), se = put31(a, 'seriYat', () => makeChar(LK.seriYat), 11, 2.9, Math.PI);
+  for (const [k, n] of Object.entries({ ishii: is, ponpu: po, juriYat: jr, seriYat: se })) { n.hidden = false; n.goal = null; CAST[k] = n.model; } a.lineOn = true;
+  if (S.flags.c45look.length >= 2) { a.lineOn = false; await fade(true); await goFutou45(); return; }
+  if (S.flags.c45look.length) { objSagasu45(); playOn(); return; }
+  cut18(4, 7, 14, 0, 0, -6); await card('又八', '夕方', 1200);
+  await say('shirobun', '（無線）全羽に通達します。小さい白い文鳥を一羽探してください。声は出さないこと。');
+  await narr('一万羽の横一列が口を押さえて田んぼを渡っていった。足音しかしなかった。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', '横一列で一万羽。田んぼ一枚を八秒で抜けてる。');
+  fc30(po, 2.4, 0.2, 0.3); await say('ponpu', 'みんな息止めてるっす。止めすぎて顔が赤い兄貴もいるっす。');
+  await say('kuro', '（遠くから）……探せェ……'); G.shake = 0.12; sfx('door'); await narr('ささやいただけで近くの家のシャッターが鳴った。'); await narr('クロ・バルクはあぜに正座して、用水路を一本ずつのぞいていた。');
+  await say('dogou', '（無線）籠の鳥一羽に三十万羽で探すものか。籠の鳥は文鳥の恥だァ。');
+  await say('shirobun', '（無線）ド・ゴウくん。黙って探しなさい。あの子の家が第一期の一羽を預かった家です。');
+  await say('dogou', '（無線）……押忍。');
+  sfx('chimeYat'); await narr('夕方五時の町内放送が鳴った。誰も帰らなかった。');
+  objSagasu45(); playOn(); }
+async function evSpot45(k) { const a = AREAS.yatMata; G.mode = 'cine'; S.flags.c45look = [...(S.flags.c45look || []), k]; ckSave();
+  if (k === 'seri') { const se = a.e31.seriYat; face34(se, P); fc22(se, 2.2, 0.2, 0.3); await say('seriYat', '白い小鳥なら見たよ。池の上を南へ飛んでったわ。'); await say('seriYat', '今日は市の片づけで遅うまでおったで、みんな見とった。'); fc22(P, 2.2, 0.1, -0.3); await say('kuze', 'ありがとうございます。'); fc22(se, 2.2, 0.2, 0.3); await say('seriYat', '文鳥さんらは金魚の池には入らんでね。探すんなら池のまわりを見たってちょうだい。'); }
+  if (k === 'hi') { cut18(2.6, 1.7, -6.4, 2.6, 1.3, -9.4); await narr('お宮の隅に石の碑があった。「白文鳥之碑」。裏に「昭和四十五年十一月　弥富町文鳥組合」と刻んであった。'); cut18(3.0, 1.3, -8.0, 2.6, 0.6, -9.0); await narr('台の上に粟が並んでいた。ひと粒ずつ、数えきれないくらい置いてあった。');
+    const jr = a.e31.juriYat; face34(jr, P); fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '地表の文鳥が毎朝ひと粒ずつ置いていきます。届けは出ていません。'); cut18(3.0, 1.2, -8.2, 2.75, 0.64, -9.0); await narr('粟の上に白い羽が一枚のっていた。'); }
+  if (k === 'yacho') { cut18(-3.0, 3.8, 6.2, 4, 8, 60); await narr('堤防に上がると南の空に鍋田ふ頭のクレーンが見えた。灯りがつきはじめていた。'); const po = a.e31.ponpu; po.pos.set(-1.6, 0, 7.0); face34(po, P); fc30(po, 2.4, 0.2, 0.3); await say('ponpu', '兄貴。あのクレーン、この辺でいちばん高いっす。'); }
+  objSagasu45();
+  if (S.flags.c45look.length >= 2) { fc22(P, 2.2, 0, -0.4); await saku('南だ。高いところへ逃げたなら港のクレーンだ。'); setObj(''); a.lineOn = false; await fade(true); await goFutou45(); return; }
+  playOn(); }
+
+// 8. 鍋田ふ頭
+async function yatBell45(po) { sh45(po, 2.2, 0.1, 0); await say('ponpu', 'この鈴、春日井の小鳥屋のおばあちゃんにもらったっす。鳴らしたら誰かが来てくれるって。'); po.st = { armsUp: true }; sfx('bell18'); await z22(1000); po.st = {}; cut18(29.4, 13.7, -12.3, 30.5, 13.25, -14); await narr('白い小鳥が首をかしげた。'); }
+async function yatHush45() { cut18(16, 3.2, 4.0, 24, 3.2, -12); await narr('小鳥が梁の上を歩きはじめた。三十万羽が押忍をこらえていた。'); setObj('漏れそうな声を押さえる');
+  const miss = await shh45(8, () => { G.shake = 0.12; }); setObj(''); S.flags.c45miss = miss;
+  if (miss >= 3) await narr('押忍が何度か漏れかけた。小鳥はそのたびに梁の上で一歩さがった。'); else await narr('三十万羽は声を飲みこんだ。'); }
+async function goFutou45() { G.mode = 'cine'; S.flags.c45st = 'futou'; setObj(''); $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; const a = await yatNabetaSet45({ place: '鍋田ふ頭', bg: 0xE89A6A, hi: 0.7, f0: 30, f1: 160, ring: true, banners: false }); ckSave();
+  const m = a.mata; m.root.visible = true; m.root.position.set(30.5, 13.18, -14); m.root.rotation.y = -Math.PI / 2;
+  const row = k => [21.4 + k * 1.5 * 0.59, -7.2 + k * 1.5 * 0.81];
+  const sr = Q42(a, 'shirobun', () => shirobunBird(), ...row(0.6), 0), kz = Q42(a, 'kuze', () => makeChar(LK.kuze), ...row(-0.6), 0), is = Q42(a, 'ishii', () => makeChar(LK.ishii), ...row(-1.8), 0), ta = Q42(a, 'takane', () => takaneModel28(), ...row(1.8), 0), po = Q42(a, 'ponpu', () => ponpuModel(), ...row(-2.9), 0), dg = Q42(a, 'dogou', () => dogouBird(), ...row(3.1), 0);
+  for (const n of [sr, kz, is, ta, po, dg]) n.facing = Math.atan2(0.81, -0.59);
+  cut18(14, 2.0, 2.0, 30, 11, -14); await fade(false); await card('鍋田ふ頭', '日没', 1200); bgm('yatNight');
+  await narr('白い小鳥はガントリークレーンのいちばん上の梁にいた。岸壁のまわりを文鳥が囲んで、黙って見上げていた。');
+  cut18(29.4, 13.7, -12.3, 30.5, 13.25, -14); sfx('chiYat'); await z22(1400);
+  sh45(dg, 3.0, 0.15, 0.1); await say('dogou', '……組むか。一万羽で塔を組めば届く。');
+  sh45(is, 2.3, 0.15); await say('ishii', '届く前に逃げます。大きいのが寄ってきたら小さいのは逃げる。');
+  await phoneMsg('ミリア', '文鳥三十万羽が小鳥一羽に負けてんの？　ざぁこ♡\nクレーン止めといたげる。あたしの港だし。貸しね。', '18:12');
+  sh45(ta, 2.3, -0.15); await say('takane', '止まったっす。クレーンが全部。');
+  sh45(kz, 2.3, -0.2); await saku('大声の文鳥が三十万。黙らせるほうが骨だぞ。');
+  const c = await choose([{ k: '表', t: '「ポ・ンプくん。鈴を鳴らしてください」' }, { k: '裏声', t: '「全員止めろ。息もするな」' }]); S.flags.c45call = c ? 'quiet' : 'bell';
+  if (!c) { await yatBell45(po); await yatHush45(); }
+  else { sh45(kz, 2.3, -0.2); await saku('全員止めろ。息もするな。'); await yatHush45(); sh45(kz, 2.3, -0.2); await saku('……鈴だ。あいつが持ってる。'); await yatBell45(po); }
+  const v = yatHead45(sr, 0.55); cine(20.6, 4.6, -1.6, 25.5, 6.5, -11); await yatFly(a, m, v, 3400, 2.6);
+  await narr('小鳥は梁の上を二歩歩いてから降りてきた。とまったのはシ・ロブンの頭の上だった。');
+  sh45(sr, 3.2, 0.2, 0.25); await say('shirobun', '……動けません。', { nod: false }); await say('shirobun', '……お腹が空きました。', { nod: false });
+  sh45(ta, 2.3, -0.15); await say('takane', '（小声）がまんしてください。いま日本でいちばん静かな三十万羽っすよ。');
+  sh45(kz, 2.3, -0.2); await say('kuze', '（……誰も動かない）');
+  for (const n of [sr, kz, is, ta, po, dg]) n.hidden = true; await fade(true); await goKaeru45(); }
+
+// 9. 鍋田　夜
+async function goKaeru45() { G.mode = 'cine'; S.flags.c45st = 'kaeru'; setObj(''); const a = await yatNabetaSet45({ bg: 0x141A2A, hi: 0.5, f0: 30, f1: 150, night: true, ranks: true, sky: true }); ckSave();
+  if (!a.cage45) { a.cage45 = yatCage(a.night, -4.4, 0.8, 10.0, 1.2); a.cloth45 = block(0.62, 0.66, 0.5, 0xEDE8DE, 0, 0.32, 0, a.cage45); a.cloth45.scale.set(0.95, 0.95, 0.95); } a.cage45.visible = true; a.cloth45.visible = false;
+  const fm = Q42(a, 'fumiYat', () => makeChar(LK.fumiYat), -3.6, 9.0, Math.PI / 2), sr = Q42(a, 'shirobun', () => shirobunBird(), -1.0, 8.8, -Math.PI / 2), kz = Q42(a, 'kuze', () => makeChar(LK.kuze), -2.2, 11.2, Math.PI * 0.9), dg = Q42(a, 'dogou', () => dogouBird(), 1.2, 8.6, -Math.PI * 0.7);
+  const tr = Q42(a, 'torib', () => toribYat(), -4.8, 11.0, Math.PI * 0.6), jr = Q42(a, 'juriYat', () => juriYat(), -6.6, 11.8, Math.PI / 2), ch = Q42(a, 'chanyu', () => chanyuBird(), 1.6, 11.2, -Math.PI * 0.6), kb = Q42(a, 'kuro', () => kuroBulk(), 4.6, 8.4, -Math.PI * 0.6);
+  const po = Q42(a, 'ponpu', () => ponpuModel(), 0.4, 13.6, Math.PI), is = Q42(a, 'ishii', () => makeChar(LK.ishii), 2.4, 13.6, Math.PI), ta = Q42(a, 'takane', () => takaneModel28(), -0.8, 13.6, Math.PI);
+  const m = a.mata; m.root.visible = true; m.root.position.copy(yatHead45(sr, 0.55)); m.root.rotation.y = Math.PI / 2;
+  cut18(-2.4, 3.0, 17, -1.4, 1.2, 8); await fade(false); await card('鍋田　降下場', '夜', 1200);
+  await narr('ジュ・リの軽トラが着いた。助手席からフミが降りてきた。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', 'マタ。おいで。');
+  cut18(-2.2, 2.2, 11.8, -2.3, 1.5, 9.1); await yatFly(a, m, new THREE.Vector3(-3.05, 1.32, 9.15), 1200, 0.5); fm.st = { carry: true };
+  fc30(sr, 2.4, 0.3, 0.3); await say('shirobun', '……ふう。首が固まりました。');
+  m.root.visible = false; a.cloth45.visible = true; fm.st = {}; cut18(-2.8, 1.9, 12.6, -4.4, 1.1, 10.0); await narr('フミは小鳥を竹籠に入れて布をかけた。');
+  fc30(dg, 3.0, 0.3, 0.3); await say('dogou', '水谷殿。……籠の鳥と言った。取り消させてくれ。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', 'ええよ。あんたらも大きい声出さんと探してくれたで。');
+  cut18(0, 10, 28, 0, 1, -20); a.bowGoal = 0.6; if (G.skip) a.bowK = 0.6; await narr('三十万羽が黙って、一度に頭を下げた。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '……布かけたでね。もう鳴いてええよ。');
+  a.bowGoal = 0; a.bowK = 0; cut18(0, 12, 28, 0, 1, -20); osh45(3); await say('upYat', 'オォォォォォス！！！', { cls: 'shout24' }); G.shake = 0.8;
+  fc30(jr, 2.4, 0.2, 0.3); await say('juriYat', '二千台、同時に炊き上がりました。水は一・二倍、浸けて三十分。正確です。');
+  sh45(kb, 4.4, 0.5, -0.2); await say('kuro', '飯はみんなで食うゥゥ！！');
+  cut18(-9, 3.0, 17, 0, 1.0, 11); await narr('文鳥と人間が同じ米を食べた。フミは二杯食べた。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', 'もう一年やるわ。籠の掃除をあんたらがやってくれるならね。');
+  fc30(tr, 2.4, 0.2, 0.3); await say('torib', 'わしが拭く。一日一万回じゃ。');
+  fc22(fm, 2.0, -0.22, 0.3); await say('fumiYat', '一回でええて。');
+  if (S.flags.c45in === 'now') { fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '久世躁一郎さん。撤収後確認書です。様式第七号の二。'); fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '……二枚目があるとは聞いていませんでした。'); fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '私もです。……胃が痛い。'); sfx('stampYat'); await narr('久世は二枚目に認印を押した。'); }
+  else { fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '撤収完了確認書です。'); fc22(kz, 2.2, 0, -0.4); await saku('見たな。押せ。'); sfx('stampYat'); await narr('久世は認印を押した。'); }
+  fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '地表着任簿の原本はどうしますか。決まりでは記録庫に上げます。');
+  const g2 = await choose([{ k: '表', t: '「決まりどおり、原本は記録庫へ」' }, { k: '温情', t: '「原本は弥富に置いてください。上へは写しを」', warm: 1 }]); S.flags.c45gen = g2 ? 'stay' : 'up';
+  if (!g2) { fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '承知しました。写しを会館に置きます。'); }
+  else { fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '……前例がありません。承認を取ります。'); await say('ult', '（通信）……置け。'); await say('chanyu', '……承認です。原本の所在、地表、弥富。'); }
+  cut18(0, 6, 30, 0, 22, -70); a.pillarK = 0.3; a.rise = true; sfx('rise'); for (const r of a.ranks) r.meshes.forEach(mm => { mm.visible = false; }); await narr('回収便の光の柱が降りてきた。群れはクレーンより高く昇っていった。');
+  sh45(kb, 4.4, 0.5, -0.2); await say('kuro', '来週また来るゥゥ！！', { cls: 'shout24' });
+  sh45(po, 2.2, -0.8, 0); await say('ponpu', '兄貴たち、たぶん本当に来るっす。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', '店の前でスクワットはさせるなよ。');
+  for (const n of [fm, sr, kz, dg, tr, jr, ch, kb, po, is, ta]) n.hidden = true; a.rise = false; await fade(true); await goKiroku45(); }
+
+// 10. B.U.N 中央記録庫
+async function goKiroku45() { G.mode = 'cine'; S.flags.c45st = 'kiroku'; setObj(''); $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; await goCine30('bunrec'); const B = AREAS.bunrec; for (const n of B.npcs) n.hidden = true; B.ch.hidden = false; await fade(false); ckSave(); bgm('bun');
+  if (B.holo) { B.holo0 = B.holo0 || B.holo.material.map; const k45 = S.flags.c45gen === 'stay' ? 'stay' : 'up'; B.holo45 = B.holo45 || {}; B.holo.material.map = B.holo45[k45] || (B.holo45[k45] = signTex(720, 440, [{ t: '中央記録　JP-CHU-0615', size: 40, w: 900 }, { t: '弥富　地表第一降下点', size: 34 }, { t: '撤収完了　二十九万八千', size: 32 }, { t: k45 === 'stay' ? '原本所在　地表　弥富' : '確認印　人間一名', size: 32 }], { bg: '#081028', fg: '#C8D4FF' })); }
+  const ka = B.ka45 || (B.ka45 = npc(B, 'kaere', kaereBird(), 2.0, -0.6, -0.9)); ka.hidden = false; const zs = B.zs45 || (B.zs45 = npc(B, 'ult', zessonBird(), -3.6, 2.8, Math.PI * 0.8)); zs.hidden = true; CAST.kaere = ka.model; CAST.chanyu = B.ch.model; CAST.ult = zs.model;
+  cine(2.4, 2.6, 4.2, 0, 2.2, -0.6); await card('B.U.N 中央記録庫', '同じ夜', 1300);
+  cine(-1.6, 2.6, 2.6, 0, 2.4, -1.6); await say('chanyu', '中央記録、JP-CHU-0615。弥富。撤収は完了しました。');
+  sh45(ka, 2.6, -0.8, 0); await say('kaere', 'お疲れさま。全部上がった？');
+  cine(-1.6, 2.6, 2.6, 0, 2.4, -1.6); await say('chanyu', '二十九万八千羽です。点呼に名簿にない子が一羽混ざっていました。四十九番と名乗っていたそうです。');
+  sh45(ka, 2.6, -0.8, 0); await say('kaere', 'うん。知ってる。');
+  cine(-1.6, 2.6, 2.6, 0, 2.4, -1.6); await say('chanyu', S.flags.c45gen === 'stay' ? '地表着任簿の原本は地表に置いてきました。こちらにあるのは写しです。' : '地表着任簿の原本は棚に収めました。保存区分は永年です。');
+  await say('chanyu', '第一期の備考の欄、直しますか。「落下」のままです。');
+  sh45(ka, 2.6, -0.8, 0); await say('kaere', 'そのままでいいよ。シ・ロブンが自分で書いたんでしょ。');
+  if (S.flags.c45pro === 1) await say('kaere', 'それと、ソウがシナモンを飲んだって聞いたよ。');
+  zs.hidden = false; cine(-0.4, 2.8, 6.0, -3.6, 2.2, 2.8); await narr('奥の扉が開いた。黒い大きな文鳥が入ってきた。');
+  fc30(zs, 2.6, 0.3, 0.3); await say('ult', '……弥富の米は。');
+  cine(-1.6, 2.6, 2.6, 0, 2.4, -1.6); await say('chanyu', '正確でした。誤差〇・〇グラムと記録されています。');
+  fc30(zs, 2.6, 0.3, 0.3); await say('ult', 'ならばよい。'); await say('ult', '……弥富のことは、余は決めぬ。');
+  sh45(ka, 2.6, -0.8, 0); await say('kaere', '……それがいいと思います。');
+  cine(-1.6, 2.6, 2.6, 0, 2.4, -1.6); await say('chanyu', '……胃が痛い。');
+  ka.hidden = true; zs.hidden = true; await fade(true); if (B.holo && B.holo0) B.holo.material.map = B.holo0; await goHokoku45(); }
+
+// 11. 留文堂 地下　翌朝
+async function goHokoku45() { G.mode = 'cine'; S.flags.c45st = 'hokoku'; setObj(''); const { kr, kz, sa, is, ta, po } = await yatHq45(); ckSave();
+  cine(3.4, 2.6, 3.8, 0, 1.2, -1.2); await fade(false); await card('留文堂　地下', '翌朝', 1300);
+  fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '撤収完了確認書に押してきました。認印です。');
+  fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '見てから押したか。');
+  if (S.flags.c45in === 'after') { fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'はい。三十万羽が黙って頭を下げるのを見てから押しました。'); fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '……それでいい。'); }
+  else { fc22(kz, 2.2, 0.1, -0.3); await say('kuze', '先に押しました。……あとで二枚目を頼まれました。'); fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '二枚目は見てから押したんだろうな。'); fc22(kz, 2.2, 0.1, -0.3); await say('kuze', 'はい。'); }
+  fc22(sa, 2.2, 0.2, -0.3); await say('saegusa', '弥富の文鳥は常住の九万二千羽に戻りました。人ひとりに二羽です。');
+  fc22(ta, 2.2, 0.2, -0.3); await say('takane', '報告書、四日分になったっす。');
+  fc22(kr, 2.4, 0.2, 0.3); await say('kuroiwa', '今日中に出せ。');
+  fc30(po, 2.4, 0.2, 0.3); await say('ponpu', 'フミさんに粟玉もらったっす。来年の春、籠の掃除に行く約束したっす。');
+  fc22(is, 2.2, 0.2, 0.3); await say('ishii', '一万回は拭くなよ。');
+  fc30(po, 2.4, 0.2, 0.3); await say('ponpu', '……一回にするっす。');
+  cine(-1.2, 1.7, 0.8, -2.6, 0.9, -1.2); await narr('石居の巾着に粟玉の袋がひとつ増えた。');
+  for (const n of [kr, kz, sa, is, ta, po]) n.hidden = true; await fade(true); await end45(); }
+async function end45() { G.mode = 'cine'; S.flags.c45st = 'end'; await card(CH45, '完', 3200); await fade(false); setMeta({ ch45Clear: true, ch45: packS(), ch45Done: [...DONE] }); showReport45(); }
+function showReport45() { G.mode = 'end'; $('hud').hidden = true; $('act').hidden = true; $('prompt').hidden = true; galHud(false); news22off(); fear20(0); kuu34(false); nameCard(null); loc(null); setObj(''); bgm('yatQuiet');
+  const f = S.flags, look = (f.c45look || []).map(k => ({ seri: '金魚のせり場', hi: '白文鳥の碑', yacho: '堤防の上' })[k]).filter(Boolean).join('・') || '―', pro = ['黒ゴマ', 'シナモン', 'ココア'][f.c45pro] || '―';
+  const rows = [['弥富駅', '人ひとりに文鳥が九羽の町。白く塗られた表示に触ってから出勤する。ジュ・リ「根拠のない順位は載せない」。プロテインは' + pro],
+    ['会館', '地表着任簿　第一期二百羽。備考「落下」。チャ・ニュユー「本人がそう書いています」'],
+    ['判', f.c45in === 'after' ? '町を見てから押した。朔「見たな。押せ」' : '先に押した。夜に二枚目も押した'],
+    ['堤防', '水浴び点呼の四十九番。ポ・ンプ「……いるっす！」。フミ「堤防の上で跳んだらいかん」'],
+    ['又八', '二百軒が一羽ずつ預かった。シ・ロブン「落としました。二百羽ほど」'],
+    ['撤収式', '掟の唱和と三十万羽の押忍。マタが籠を出た'],
+    ['捜索', '調べた場所：' + look + '。クロ・バルクのささやきでシャッターが鳴った'],
+    ['ふ頭', (f.c45call === 'quiet' ? '三十万羽を黙らせてから鈴を鳴らした' : '鈴を鳴らした') + '。シ・ロブン「……動けません」'],
+    ['夜', '三十万羽の黙ったお辞儀。フミ「もう鳴いてええよ」。水谷家はもう一年続ける'],
+    ['原本', f.c45gen === 'stay' ? '原本は弥富に置いた。絶尊「……置け」' : '原本は記録庫へ。写しは会館に'],
+    ['記録', 'JP-CHU-0615。名簿にない一羽が点呼に混ざっていた。絶尊「弥富のことは、余は決めぬ」']];
+  const d = $('reportDoc'); d.innerHTML = '<div class="stamps"><span>一</span><span>羽</span></div><h2>' + CH45 + '</h2><div class="meta">弥富駅　／　弥富文鳥会館　／　輪中の堤防　／　又八　／　鍋田降下場　／　鍋田ふ頭　／　中央記録庫</div><table>' + rows.map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('') + '</table><p class="close">――　11.5章　幕間1　完</p><div class="trow"><button type="button" class="go" id="titleBtn45">タイトルへ</button></div>';
+  $('report').hidden = false; $('titleBtn45').addEventListener('click', () => location.reload()); }
+async function startCh45() { const m = meta(); if (m.ch42) unpackS(m.ch42); else if (m.ch41) unpackS(m.ch41); DONE = new Set(m.ch42Done || m.ch41Done || []); S.flags.revealed = true; S.flags.saku = true; SPK.kuroiwa[0] = '黒岩室長'; await chapter45(); }
+RESUME[45] = { ryumon: goRyumon45, eki: goEki45, kaikan: goKaikan45, teibou: goTeibou45, mata: goMata45, shiki: goShiki45, sagasu: goSagasu45, futou: goFutou45, kaeru: goKaeru45, kiroku: goKiroku45, hokoku: goHokoku45, end: end45 };
+{ const r0 = showReport42; showReport42 = function () { r0(); const row = $('titleBtn42') && $('titleBtn42').parentNode; if (row && !$('ch45Go')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost'; b.id = 'ch45Go'; b.textContent = '11.5章　一羽'; row.appendChild(b); b.addEventListener('click', () => run(chapter45)); } }; }
+// テスト用：いまの区域で、使える調べものをひとつ使う
+function yatAuto45() { const it = A.items.find(x => itemOn(x)); if (it) { useItem(it); return it.id; } return null; }
 // ================= 第一章の台本 =================
 const seenI = id => S.seen.has('i:' + id), markI = id => S.seen.add('i:' + id);
 let stationT = 0;
@@ -24179,7 +24763,7 @@ P.model = makeChar(LK.kuze); CAST.kuze = P.model;
 // ---- タイトル：続きから／セーブデータから／チャプターから／音 ----
 try { if (localStorage.getItem('reserve-sound') === '0') sound = false; } catch (e) { /* 読めなければ音あり */ }
 $('sndBtn').addEventListener('click', () => { sound = !sound; try { localStorage.setItem('reserve-sound', sound ? '1' : '0'); } catch (e) { /* 残せなくても切り替えはする */ } if (!sound && master) master.gain.value = 0; else if (master) master.gain.value = 0.5; refreshTitle(); });
-const CHSTART = [async () => { await worldIntro(); await prologue(); }, prologue, startCh2, startCh3, startCh4, startCh5, startCh6, startCh7, startCh8, startCh9, startCh10, startCh11, startCh12, startCh13, startCh14, startCh15, startCh16, startCh17, startCh18, startCh19, startCh20, startCh21, startCh22, startCh23, startCh24, startCh25, startCh26, startCh27, startCh28, startCh29, startCh30, startCh31, startCh32, startCh33, startCh34, startCh35, startCh36, startCh37, startCh38, startCh39, startCh40, startCh41, startCh42, startCh43, startCh44];
+const CHSTART = [async () => { await worldIntro(); await prologue(); }, prologue, startCh2, startCh3, startCh4, startCh5, startCh6, startCh7, startCh8, startCh9, startCh10, startCh11, startCh12, startCh13, startCh14, startCh15, startCh16, startCh17, startCh18, startCh19, startCh20, startCh21, startCh22, startCh23, startCh24, startCh25, startCh26, startCh27, startCh28, startCh29, startCh30, startCh31, startCh32, startCh33, startCh34, startCh35, startCh36, startCh37, startCh38, startCh39, startCh40, startCh41, startCh42, startCh43, startCh44, startCh45];
 function startChapter(i) { const f = CHSTART[i]; if (!f) return; audioOn(); $('title').hidden = true; run(f); }
 $('contBtn').addEventListener('click', () => { if (!latestFile()) { startChapter(0); return; } const nx = nextCh(); if (nx != null) { startChapter(nx); return; } audioOn(); $('title').hidden = true; run(loadGame); });
 $('chapBtn').addEventListener('click', () => { audioOn(); openChaps(); });
@@ -24232,6 +24816,6 @@ function unblock(who) { const t = ubTarget(who); if (!t) return false; ubList();
   T.push(c.clone().lerp(t.head, 0.4)); for (const v of T) if (ubFree(v, t, boxes)) { c.copy(v); camSnap = true; UB.moved++; return true; } return ch; }
 // 点検用：台詞が出るたびに、外から画角を調べられるようにする（通常は何もしない）
 { const s0 = say; say = function (...a) { let mv = false; if (a[0] === 'narr') UB.narr = String(a[1]); try { mv = unblock(a[0]); } catch (e) { } if (window.__sayHook) try { window.__sayHook(a[0], a[1], { A, CAST, G, camera, THREE, moved: mv, still: (() => { const t = ubTarget(a[0]); if (!t) return null; const o = ubHit(G.cine.pos, t.head, t.m.root); if (!o) return null; let p = o; while (p && p.parent !== A.g) p = p.parent; const n = A.npcs.find(x => x.model && x.model.root === p); return n ? n.key : (o.name || o.geometry && o.geometry.type || 'prop'); })() }); } catch (e) { } return s0.apply(this, a); }; }
-window.__kz = { unblock, ubTarget, ubHit, ubList, UB, AREAS_: () => A, RESUME: typeof RESUME !== "undefined" ? RESUME : {}, CHN, CHSTART, talkSkip, SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, chapter32, goRise32, goFight32, goStar32, goAsela32, goShuke32, goHq32, goKaere32, goVol32, goMoves32, goOni32, goEdel32, goTako32, tcoBird34, tcoPose34, stake34, chapter37, chapter40, goEntaku40, goShugeki40, goKaere40, goBun40, KE, keBind45, keUnbind45, keDo45, keMoveTo45, keShot45, keTest45, chapter41, chapter42, chapter43, goKiroku43, goEna43, goKakusei43, goZaina43, goRuriMiri43, goShuke43, goMachi43, goBun43, goNige43, goShokei43, goHito43, goTojiru43, showReport43, startCh43, chapter44, goKiroku44, goKugi44, goHaifu44, goBun44, goRyuho44, goShinsei44, goGojuu44, goSaigo44, goKyoshu44, goTojiru44, showReport44, startCh44, nailTo44, yell44, goMezame42, goDangi42, goRo42, goRider42, goKetsudan42, epFrom42, EP42, showReport42, startCh42, blood42, erupt42, stakeBreak42, riderBlade42, cam42, goEna41, tcoBattle41, goTcoMid41, goSeto41, goNekoGate41, goKoshiLose41, goInui41, goHokai41, goHoushi41, goChanyu41, goTcoBack41, goTcoEnd41, goRider41, showReport41, startCh41, TC41, S41, koshiModel41, hcfRider41, goSouryoku40, goIzoku40, goShimai40, goKessen40, goRyuho40, goNeko40, goSagasu40, goHannou40, goEna40, showReport40, startCh40, creamOrochi40, shinaTempest40, ANIM40, chapter39, goBaiyo39, goAsa39, goKouan39, goRyouri39, goSennyu39, goKenzoku39, goVol39, goKasen39, goShokutaku39, goShashin39, goGunzei39, showReport39, startCh39, VB, S39, vbStart, vbStop, sneak39Reset, hcfModel39, kenzoku39, chapter38, goKyaku38, goNeko38, goKojo38, goSora38, goUraguchi38, goNamae38, goAto38, goLab38, goKaeri38, xiaoModel38, showReport38, goFuto37, goSouko37, goMado37, goNamae37, goKaere37, goOkujo37, nekoMask37, nekoAgent37, suModel37, kutsuModel37, showReport37, chapter36, goUwasa36, goTachiiri36, goMure36, goSenro36, goKazoku36, goByoin36, goVol36, goGaku36, goReveal36, goYoake36, goAkushu36, showReport36, mzArmor36, peNouBird, peNouPose36, chapter35, goShojin35, goHondo35, evHondo35, goTrio35, goDuel35, goMama35, goOkaeri35, goFumoto35, goKaere35, goRyuho35, goLab35, goHome35, goIori35, goMorning35, showReport35, chapter34, goTorture34, goHome34, goCouncil34, goKaere34, goRyuho34, goAssault34, goCassia34, goCassiaEnd34, goSummit34, goKuu34, goRescue34, goBulk34, goTco34, showReport34, kuu34, bulkBird, mesuZeroBird, chapter33, goHq33, goWork33, goTown33, evTown33, goDomei33, goMate33, goNorth33, goYama33, showReport33, showReport32, ZDB, zdAttack32, zdDash32, zdSkill32, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
+window.__kz = { chapter45, startCh45, showReport45, goRyumon45, goEki45, goKaikan45, goTeibou45, goMata45, goShiki45, goSagasu45, goFutou45, goKaeru45, goKiroku45, goHokoku45, end45, yatAuto45, shh45, unblock, ubTarget, ubHit, ubList, UB, AREAS_: () => A, RESUME: typeof RESUME !== "undefined" ? RESUME : {}, CHN, CHSTART, talkSkip, SPK, camera: () => camera, segHitsBox, pan, nameCard, loc, narr, WORKS, CORPS, WX, CX, worldIntro, S, G, AREAS, goArea, run, P, evPhone, goOffice, goTrain, goKoryn, goArchive, evClimax, finale, showReport, chapter2, goSeiritsu, goAlley, goHQ, evRurika, evKuroiwa, reveal, saveGame, loadGame, showReport2, startCh2, refreshTitle, chapter3, goGiin, goGala, goGalaBack, goCeremony, goFront, goRiver, goHQ3, goApt, showReport3, startCh3, chapter4, goOffice4, goAsaiApt, goHospital, goKyubi, goMemory, goPenthouse, goDawn, goFarewell, goBunRec, goHQ4, goNight4, showReport4, startCh4, c4Trust, chapter5, goOffice5, goSite5, goOni5, goHQ5, goDangi, goBridgeNight, goSiteMorning5, showReport5a, startCh5, chapter6, goOffice6, goPolice6, goSite6, goOniDusk6, goHQ6, goCeremony6, goUnder6, goAfter6, showReport5b, startCh6, chapter7, goKuzeDorm7, goDawn7, showReport7, startCh7, kmap, chapter8, goSchool8, goBazaar8, goEve8, showReport8, startCh8, chapter9, goPlaza9, goOffice9, goAlley9, goShrine9, goOverpass9, showReport9, startCh9, chapter10, goGym10, goPlant10, goEscape10, goRally10, finale10, showReport10, startCh10, chapter11, goShip11, goGate11, goRaid11, finale11, goReturn11, goFox11, goVamp11, AB, showReport11, startCh11, chapter12, goNest12, goRiot12, goRoof12, goEnforcer12, showReport12, startCh12, showSlide, fight, FT, applySaku, sakuNamed, openFiles, readFiles, latestFile, DONE: () => DONE , chapter13, goKuze13, sitKuze13, showReport13, startCh13, GL, chapter14, goNews14, goShinryo14, showReport14, startCh14, chapter15, startCh15, exitTalk15, retry15, MEMB, CP15: () => CP15, chapter16, startCh16, goReune16, goInui16, goPlan16, goMaze16, goHall16, auction16, bulkCrash16, RW16, BR16, PART16, chapter17, startCh17, melStart17, goEsc17, evMaestro17, goRestore17, epilogue17, AB, PB, MEL , chapter18, startCh18, goHq18, goTown18, goRotary18, goCall18, goReveal18, goNest18b, goStay18, PON, ponCfg18, afterFight18, startChapter, openChaps, chapter19, startCh19, goKoryn19, goHub19, evHub19, goWeek19, goClub19, chapter20, startCh20, goCampus20, evCampus20, goFam20, goLab20, goCradle20, evCradle20, goAqua20, evAqua20, hug20, goDebrief20, goBottom20, goRoom20, chapter21, startCh21, goOffice21, evOffice21, goHq21, evHq21, goShuke21, goMiria21, goCouncil21, goAlley21, ambush21, lose21, goTako21, goAgents21, goKaere21, PB, chapter24, goCold24, goRoom24, evRoom24, goTown24, evTown24, goNight24, goShuke24, goEyesA24, goEyesB24, chapter25, goKroom25, evKroom25, goTrain25, goFes25, goShake25, goHq25, goLot25, caught25, chapter26, goGuard26, goHosp26, evHosp26, goNet26, evNet26, goZone26, evZone26, goObs26, goNight26, goEnd26, goEpi26, chapter27, goMeet27, goZone27, evZone27, goKoji27, evKoji27, goEnd27, chapter28, goDawn28, goNin28, goAgent28, goHq28, goAfter28, goKuze28, chapter29, goOpen29, goMorning29, evZone29, goSalon29, goBench29, goCatch29, goNight29, goAfter29, chapter30, goFlash30, goOpen30, meiModel30, goMorning30, evMorning30, goArrive30, goDress30, goRaid30, goHaniela30, goRec30, goHq30, goDawn30, mesuZeroGyo30, mesuZeroBird, mzOver30, chapter31, goCall31, goWait31, goMorning31, evMorning31, goNight31, goHub31, goFight31, goHubEnd31, goNews31, goCouncil31, goYotate31, goHate31, evHate31, goBridge31, showReport31, chapter32, goRise32, goFight32, goStar32, goAsela32, goShuke32, goHq32, goKaere32, goVol32, goMoves32, goOni32, goEdel32, goTako32, tcoBird34, tcoPose34, stake34, chapter37, chapter40, goEntaku40, goShugeki40, goKaere40, goBun40, KE, keBind45, keUnbind45, keDo45, keMoveTo45, keShot45, keTest45, chapter41, chapter42, chapter43, goKiroku43, goEna43, goKakusei43, goZaina43, goRuriMiri43, goShuke43, goMachi43, goBun43, goNige43, goShokei43, goHito43, goTojiru43, showReport43, startCh43, chapter44, goKiroku44, goKugi44, goHaifu44, goBun44, goRyuho44, goShinsei44, goGojuu44, goSaigo44, goKyoshu44, goTojiru44, showReport44, startCh44, nailTo44, yell44, goMezame42, goDangi42, goRo42, goRider42, goKetsudan42, epFrom42, EP42, showReport42, startCh42, blood42, erupt42, stakeBreak42, riderBlade42, cam42, goEna41, tcoBattle41, goTcoMid41, goSeto41, goNekoGate41, goKoshiLose41, goInui41, goHokai41, goHoushi41, goChanyu41, goTcoBack41, goTcoEnd41, goRider41, showReport41, startCh41, TC41, S41, koshiModel41, hcfRider41, goSouryoku40, goIzoku40, goShimai40, goKessen40, goRyuho40, goNeko40, goSagasu40, goHannou40, goEna40, showReport40, startCh40, creamOrochi40, shinaTempest40, ANIM40, chapter39, goBaiyo39, goAsa39, goKouan39, goRyouri39, goSennyu39, goKenzoku39, goVol39, goKasen39, goShokutaku39, goShashin39, goGunzei39, showReport39, startCh39, VB, S39, vbStart, vbStop, sneak39Reset, hcfModel39, kenzoku39, chapter38, goKyaku38, goNeko38, goKojo38, goSora38, goUraguchi38, goNamae38, goAto38, goLab38, goKaeri38, xiaoModel38, showReport38, goFuto37, goSouko37, goMado37, goNamae37, goKaere37, goOkujo37, nekoMask37, nekoAgent37, suModel37, kutsuModel37, showReport37, chapter36, goUwasa36, goTachiiri36, goMure36, goSenro36, goKazoku36, goByoin36, goVol36, goGaku36, goReveal36, goYoake36, goAkushu36, showReport36, mzArmor36, peNouBird, peNouPose36, chapter35, goShojin35, goHondo35, evHondo35, goTrio35, goDuel35, goMama35, goOkaeri35, goFumoto35, goKaere35, goRyuho35, goLab35, goHome35, goIori35, goMorning35, showReport35, chapter34, goTorture34, goHome34, goCouncil34, goKaere34, goRyuho34, goAssault34, goCassia34, goCassiaEnd34, goSummit34, goKuu34, goRescue34, goBulk34, goTco34, showReport34, kuu34, bulkBird, mesuZeroBird, chapter33, goHq33, goWork33, goTown33, evTown33, goDomei33, goMate33, goNorth33, goYama33, showReport33, showReport32, ZDB, zdAttack32, zdDash32, zdSkill32, npc, cine, makeBird, kaereBird, chanyuBird, shirobunBird, zessonBird, CSB, csbAttack, csbDash, csbSkill, playAsCassia31, goTenkan24, goOsu24, evOsu24, goNo3024, showReport24, chapter23, goPanic23, goCoc23, evCoc23, goRaid23, goRaidB23, goEvo23, goWatch23, goResolve23, goPortal23, goFold23, tuna23, goDawn23, goCouncil23, goEpi23, showReport23, chapter22, goNest22, evNest22, goGekka22, goClash22, goRyuho22, over22, goNirume22, goYuria22, goPhase22, evPhase22, goAgents22, goKaere22, goWake22, showReport22, evSheol19, goCouncil19, goHq19};
 })();
 </script>
