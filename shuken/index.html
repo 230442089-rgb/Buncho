@@ -24326,7 +24326,7 @@ async function goFutou45() { G.mode = 'cine'; S.flags.c45st = 'futou'; setObj(''
   const row = k => [21.4 + k * 1.5 * 0.59, -7.2 + k * 1.5 * 0.81];
   const sr = Q42(a, 'shirobun', () => shirobunBird(), ...row(0.6), 0), kz = Q42(a, 'kuze', () => makeChar(LK.kuze), ...row(-0.6), 0), is = Q42(a, 'ishii', () => makeChar(LK.ishii), ...row(-1.8), 0), ta = Q42(a, 'takane', () => takaneModel28(), ...row(1.8), 0), po = Q42(a, 'ponpu', () => ponpuModel(), ...row(-2.9), 0), dg = Q42(a, 'dogou', () => dogouBird(), ...row(3.1), 0);
   for (const n of [sr, kz, is, ta, po, dg]) n.facing = Math.atan2(0.81, -0.59);
-  cut18(14, 2.0, 2.0, 30, 11, -14); await fade(false); await card('鍋田ふ頭', '日没', 1200); bgm('yatNight');
+  cut18(15, 1.7, 4.5, 27.5, 4.2, -13); await fade(false); await card('鍋田ふ頭', '日没', 1200); bgm('yatNight');
   await narr('白い小鳥はガントリークレーンのいちばん上の梁にいた。岸壁のまわりを文鳥が囲んで、黙って見上げていた。');
   cut18(29.4, 13.7, -12.3, 30.5, 13.25, -14); sfx('chiYat'); await z22(1400);
   sh45(dg, 3.0, 0.15, 0.1); await say('dogou', '……組むか。一万羽で塔を組めば届く。');
@@ -24338,7 +24338,7 @@ async function goFutou45() { G.mode = 'cine'; S.flags.c45st = 'futou'; setObj(''
   if (!c) { await yatBell45(po); await yatHush45(); }
   else { sh45(kz, 2.3, -0.2); await saku('全員止めろ。息もするな。'); await yatHush45(); sh45(kz, 2.3, -0.2); await saku('……鈴だ。あいつが持ってる。'); await yatBell45(po); }
   const v = yatHead45(sr, 0.55); cine(20.6, 4.6, -1.6, 25.5, 6.5, -11); await yatFly(a, m, v, 3400, 2.6);
-  await narr('小鳥は梁の上を二歩歩いてから降りてきた。とまったのはシ・ロブンの頭の上だった。');
+  cut18(20.7, 1.95, -4.1, 26.8, 3.2, -10.0); await narr('小鳥は梁の上を二歩歩いてから降りてきた。とまったのはシ・ロブンの頭の上だった。');
   sh45(sr, 3.2, 0.2, 0.25); await say('shirobun', '……動けません。', { nod: false }); await say('shirobun', '……お腹が空きました。', { nod: false });
   sh45(ta, 2.3, -0.15); await say('takane', '（小声）がまんしてください。いま日本でいちばん静かな三十万羽っすよ。');
   sh45(kz, 2.3, -0.2); await say('kuze', '（……誰も動かない）');
@@ -24376,7 +24376,7 @@ async function goKaeru45() { G.mode = 'cine'; S.flags.c45st = 'kaeru'; setObj(''
   else { fc30(ch, 2.6, 0.2, 0.3); await say('chanyu', '……前例がありません。承認を取ります。'); await say('ult', '（通信）……置け。'); await say('chanyu', '……承認です。原本の所在、地表、弥富。'); }
   cut18(0, 6, 30, 0, 22, -70); a.pillarK = 0.3; a.rise = true; sfx('rise'); for (const r of a.ranks) r.meshes.forEach(mm => { mm.visible = false; }); await narr('回収便の光の柱が降りてきた。群れはクレーンより高く昇っていった。');
   sh45(kb, 4.4, 0.5, -0.2); await say('kuro', '来週また来るゥゥ！！', { cls: 'shout24' });
-  sh45(po, 2.2, -0.8, 0); await say('ponpu', '兄貴たち、たぶん本当に来るっす。');
+  cut18(1.5, 2.5, 11.2, 0.4, 1.05, 13.6); await say('ponpu', '兄貴たち、たぶん本当に来るっす。');
   fc22(is, 2.2, 0.2, 0.3); await say('ishii', '店の前でスクワットはさせるなよ。');
   for (const n of [fm, sr, kz, dg, tr, jr, ch, kb, po, is, ta]) n.hidden = true; a.rise = false; await fade(true); await goKiroku45(); }
 
