@@ -30,7 +30,7 @@ function adText(c, str, o) {
   const chars = [...str]; const ws = chars.map(ch => c.measureText(ch).width); const W = ws.reduce((a, b) => a + b, 0) + track * Math.max(0, chars.length - 1);
   let x0 = align === 'center' ? x - W * sx / 2 : align === 'right' ? x - W * sx : x;
   c.translate(x0, y); c.scale(sx, 1);
-  const pass = (fn) => { let cx = 0; chars.forEach((ch, i) => { fn(ch, cx); cx += ws[i] + track; }); };
+  const lift = family.indexOf('Zen Kaku') >= 0 ? size * 0.3 : 0; const pass = (fn) => { let cx = 0; chars.forEach((ch, i) => { if (ch === '…' && lift) { c.save(); c.translate(0, -lift); fn(ch, cx); c.restore(); } else fn(ch, cx); cx += ws[i] + track; }); };
   if (shadow) { c.save(); c.fillStyle = shadow.col; c.translate(shadow.dx || 0, shadow.dy || 0); if (shadow.blur) { c.shadowColor = shadow.col; c.shadowBlur = shadow.blur; } pass((ch, cx) => c.fillText(ch, cx, 0)); c.restore(); }
   if (stroke && sw > 0) { c.lineJoin = 'round'; c.lineWidth = sw; c.strokeStyle = stroke; pass((ch, cx) => c.strokeText(ch, cx, 0)); }
   if (glow) { c.shadowColor = glow; c.shadowBlur = gb; }

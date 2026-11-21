@@ -63,7 +63,7 @@ function adEmbInfo() { if (AD_EMB) return AD_EMB; const cv = document.createElem
 
 // ================= 場面（ユニット） =================
 const FONTS_ALL = [['500 24px "Zen Kaku Gothic New"', '※物語ゲーム主権留保'], ['700 30px "Zen Kaku Gothic New"', '断偽文鳥門'], ['900 88px "Zen Kaku Gothic New"', 'メス'], ['400 88px "Dela Gothic One"', 'メス・ゼロ'], ['900 100px "Zen Old Mincho"', '断'], ['800 50px "Shippori Mincho B1"', '断'], ['600 40px "Shippori Mincho B1"', '偽'], ['400 104px "Yuji Syuku"', '掃く。']];
-let AD_T = 0, AD_SHOT = '', AD_F = 0;
+let AD_T = 0, AD_SHOT = '', AD_F = 0; const AD_END = 60.0;
 
 // ---------- U1：s01 問い（0〜3.8） ----------
 adScene('u1', { t0: 0, t1: 3.8, fonts: FONTS_ALL,
@@ -170,38 +170,38 @@ adScene('u3', { t0: 10.2, t1: (406 / 30), fonts: FONTS_ALL,
     // 判
     if (t >= 13.1) { const fi = f - ADF(13.1), sc = adLerp(1.4, 1.0, adClamp(fi / 3)), jx = fi < 2 ? (fi % 2 ? 2 : -2) : 0; c.save(); c.translate(1404 + jx, 690); c.rotate(-4 * Math.PI / 180); c.scale(sc, sc); c.fillStyle = '#C01828'; c.fillRect(-38, -38, 76, 76); adText(c, '断', { x: 0, y: 2, size: 50, family: 'Shippori Mincho B1', weight: 800, fill: '#EAE4D4' }); c.restore(); } } });
 
-// ---------- U4：s09〜s10 証言と点呼（13.533〜18.5） ----------
-adScene('u4', { t0: (406 / 30), t1: 18.5, fonts: FONTS_ALL,
+// ---------- U4：s09〜s10 証言（25.533〜32.2） ----------
+const T9 = 766 / 30, T10 = 916 / 30, T10E = 966 / 30;
+adScene('u4', { t0: T9, t1: T10E, fonts: FONTS_ALL,
   async setup() { const a = await adDangi({ bg: 0xC89A84, f0: 18, f1: 60, hi: 0.55 }); sun.intensity = 0.6; sun.color.setHex(0xFFB080); sun.position.set(-20, 6, 6);
     AD.hie = put31(a, 'adHie', () => member30(1, false), 1.3, 0.0, -0.2 * Math.PI, { headY: -0.3 });
     const xs = [-1.65, -0.55, 0.55, 1.65], zf = -1.6, zb = -0.4; AD.row = [put31(a, 'adR0', () => member30(0, false), xs[0], zf, Math.PI), put31(a, 'adR2', () => member30(2, false), xs[1], zf, Math.PI), put31(a, 'adR4', () => member30(4, false), xs[3], zf, Math.PI),
       put31(a, 'adR5', () => member30(5, false), xs[0], zb, Math.PI), put31(a, 'adR7', () => member30(7, false), xs[1], zb, Math.PI), put31(a, 'adR8', () => member30(8, false), xs[2], zb, Math.PI), put31(a, 'adR9', () => member30(9, false), xs[3], zb, Math.PI)];
-    AD.ge = put31(a, 'adGe4', () => gedatsu30(), 2.4, -4.6, -0.12 * Math.PI, { cross: true });
-    AD.hand = { i: 0, x: -3.0, z: 0.45 }; AD.hie.model.adPost = c => { if (AD_SHOT !== 's10') return; const k = adK(AD_T, 16.95, 17.15, EZ.oc) * (1 - adK(AD_T, 18.2, 18.4, EZ.ios)); const H = AD.hand, A = c.arms[H.i]; if (k > 0) { A.rotation.x = adLerp(A.rotation.x, H.x, k); A.rotation.z = adLerp(A.rotation.z, H.z, k); } };
-    AD.u = [AD.hie, ...AD.row, AD.ge]; adShow([...AD.row, AD.ge], false); AD_SHOT = ''; AD.nods = { 14.4: 1, 15.3: 1, 16.1: 1 }; },
-  update(t, warm) { AD_T = t; const shot = t < (505 / 30) ? 's09' : 's10';
+    AD.ge = put31(a, 'adGe4', () => gedatsu30(), 2.4, -4.6, -0.12 * Math.PI, {});
+    AD.u = [AD.hie, ...AD.row, AD.ge]; adShow([...AD.row, AD.ge], false); AD_SHOT = ''; AD.nods = [26.6, 28.1, 29.6]; },
+  update(t, warm) { AD_T = t; const shot = t < T10 ? 's09' : 's10';
     if (shot !== AD_SHOT) { AD_SHOT = shot; if (shot === 's09') { adShow([...AD.row, AD.ge], false); adPlace(AD.hie, 1.3, 0.0, -0.2 * Math.PI, { headY: -0.3 }); }
-      else { adShow([...AD.row, AD.ge], true); adPlace(AD.hie, 0.55, -2.15, Math.PI, {}); AD.row.forEach(n => { n.st = {}; }); AD.ge.st = { cross: true }; } adSnap(AD.u); }
-    if (!warm) for (const k in AD.nods) if (ADF(t) === ADF(+k)) AD.hie.model.nod = 0.5;
-    if (shot === 's09') adCamK(adK(t, (406 / 30), (505 / 30), EZ.ios), [0.2, 1.9, 3.2], [0.8, 1.85, 0.0], [0.25, 1.9, 3.0], [0.8, 1.85, 0.0], 28);
-    else adCamK(adK(t, (505 / 30), 18.5), [-0.6, 2.9, -6.3], [0.1, 1.5, -0.8], [-0.55, 2.9, -6.15], [0.1, 1.5, -0.8], 40); },
+      else { adShow([...AD.row, AD.ge], true); adPlace(AD.hie, 0.55, -2.15, Math.PI, {}); AD.row.forEach(n => { n.st = {}; }); AD.ge.st = {}; } adSnap(AD.u); }
+    if (!warm) for (const k of AD.nods) if (ADF(t) === ADF(k)) AD.hie.model.nod = 0.5;
+    if (shot === 's09') adCamK(adK(t, T9, T10, EZ.ios), [0.2, 1.9, 3.2], [0.8, 1.85, 0.0], [0.26, 1.9, 2.9], [0.8, 1.85, 0.0], 28);
+    else adCamK(adK(t, T10, T10E), [-0.6, 2.9, -6.3], [0.1, 1.5, -0.8], [-0.55, 2.9, -6.15], [0.1, 1.5, -0.8], 40); },
   draw(c, t, f) { adVignette(c, 0.35); adGrain(c, f, 0.03);
-    if (t < (505 / 30)) adNameCard(c, t, { t0: 13.65, t1: 16.7, out0: 16.55, bar: { x: 100, y0: 742, y1: 862 },
+    if (t < T10) adNameCard(c, t, { t0: 25.65, t1: 29.0, out0: 28.85, bar: { x: 100, y0: 742, y1: 862 },
       l1: { s: '断偽文鳥門　門下', x: 128, y: 768, slide: 30, st: { size: 26, weight: 700, fill: '#EAE4D4', stroke: '#0C0A10', sw: 4 } },
       l2: { s: 'ヒ・エ', x: 124, y: 846, slide: 30, st: { size: 64, weight: 900, fill: '#EFEDE8', stroke: '#0C0A10', sw: 8 } } });
-    const qa = adK(t, 13.8, 14.0) * (1 - adK(t, 18.2, 18.35)); adText(c, '「ここじゃ毎朝、点呼で名前を呼ばれる。」', { x: 960, y: 975 - 4 * adK(t, 13.8, 14.0, EZ.oc), size: 54, weight: 700, fill: '#FFFFFF', stroke: '#0C0A10', sw: 8, alpha: qa });
-    const pa = adK(t, 13.65, 13.85) * (1 - adK(t, 18.2, 18.35)); adText(c, '※個人の感想です', { x: 1856, y: 1040, size: 24, weight: 500, align: 'right', fill: '#EAE4D4', alpha: 0.85 * pa });
-    adFill(c, '#000', adK(t, 18.35, 554 / 30)); } });
+    const qa = adK(t, 25.8, 26.0) * (1 - adK(t, 31.85, 32.0)); adText(c, '「ここでは、真の文鳥、真の存在になっていきます」', { x: 960, y: 975 - 4 * adK(t, 25.8, 26.0, EZ.oc), size: 54, weight: 700, fill: '#FFFFFF', stroke: '#0C0A10', sw: 8, alpha: qa });
+    const pa = adK(t, 25.65, 25.85) * (1 - adK(t, 31.85, 32.0)); adText(c, '※個人の感想です', { x: 1856, y: 1040, size: 24, weight: 500, align: 'right', fill: '#EAE4D4', alpha: 0.85 * pa });
+    adFill(c, '#000', adK(t, 32.05, 965 / 30)); } });
 
 // ---------- U5：s11〜s12 呼びかけ（18.5〜25.1） ----------
-adScene('u5', { t0: 18.5, t1: 25.1, fonts: FONTS_ALL,
+adScene('u5', { t0: 18.5, t1: 25.1, off: 27.7, fonts: FONTS_ALL,
   async setup() { const a = await adSohon({ bg: 0x070508, f0: 24, f1: 84, hi: 0.30, ground: 0x6A665E }); sun.intensity = 0.2; adCrestFix(a); if (a.wall) a.wall.visible = false;
     adClearCedars(a, (x, z) => Math.abs(x) < 8 && z > 21);
     adPoint(a, 0xFFB060, 2.2, 12, 0, 5.2, 24.5); for (const x of [-4.4, 4.4]) { const l = glowSprite(0xFFB060, 1.4, 0.85); l.position.set(x, 5.6, 22.2); adAdd(a.g, l); }
     a.fires.forEach(s => s.scale.multiplyScalar(1.25)); const cg = glowSprite(0xFF2A1A, 3.4, 0.35); cg.position.set(0, 5.6, -10.55); adAdd(a.g, cg);
     adTickPost(a, () => { a.hallGlow.material.opacity = 0.45; });
-    const mz = put31(a, 'adMz5', () => mesuZeroBird(), 0, -10.0, 0, {}, 1.2); mzOver30(mz.model, false); AD.mz = mz;
-    AD.rows = []; const zs = [15.0, 12.4, 9.8, 7.2, 4.6, 2.0]; for (let i = 0; i < 12; i++) AD.rows.push(put31(a, 'adX' + i, () => member30(i, true), i % 2 ? 2.2 : -2.2, zs[i >> 1], Math.PI, {}));
+    const mz = put31(a, 'adMz5', () => mesuZeroBird(), 0, -10.0, 0, {}, 1.2); mzOver30(mz.model, false); if (mz.model.nk) mz.model.nk.visible = false; AD.mz = mz;
+    AD.rows = []; const zs = [15.0, 12.4, 9.8, 7.2, 4.6, 2.0]; for (let i = 0; i < 12; i++) AD.rows.push(put31(a, 'adX' + i, () => member30(i, false), i % 2 ? 2.2 : -2.2, zs[i >> 1], Math.PI, {}));
     AD.nv = put31(a, 'adNovice5', () => member30(0, false), 0, -3.0, Math.PI, {});
     AD.u = [mz, ...AD.rows, AD.nv]; AD_SHOT = ''; },
   update(t) { AD_T = t; const bowed = t >= (604 / 30); AD.rows.forEach(n => { n.st = bowed ? { kneel: true, bow: true, bowA: 1.1 } : {}; }); AD.nv.st = bowed ? { bow: true, bowA: 0.9 } : {};
@@ -217,7 +217,7 @@ adScene('u5', { t0: 18.5, t1: 25.1, fonts: FONTS_ALL,
   shake(t) { if (t < (623 / 30) || t > (630.5 / 30)) return [0, 0]; const s = 6 * (1 - adK(t, (623 / 30), (630.5 / 30))); return [Math.round(s * adWob(t, 2.3)), Math.round(s * adWob(t + 0.4, 1.9))]; } });
 
 // ---------- U6：s13 エンドカード（25.1〜30） ----------
-adScene('u6', { t0: 25.1, t1: 30.0, fonts: FONTS_ALL, cover: true,
+adScene('u6', { t0: 25.1, t1: 32.3, off: 27.7, fonts: FONTS_ALL, cover: true,
   async setup() { for (const k in AREAS) AREAS[k].g.visible = false; scene.background = new THREE.Color(0x000000); scene.fog = null; adCam([0, 2, 30], [0, 2, 40]); },
   update(t) { adCam([0, 2, 30], [0, 2, 40]); },
   draw(c, t, f) { c.fillStyle = '#0C0A0C'; c.fillRect(0, 0, 1920, 1080); const g = c.createRadialGradient(960, 420, 0, 960, 420, 520); g.addColorStop(0, 'rgba(192,24,40,0.10)'); g.addColorStop(1, 'rgba(192,24,40,0)'); c.fillStyle = g; c.fillRect(0, 0, 1920, 1080);
@@ -230,18 +230,18 @@ adScene('u6', { t0: 25.1, t1: 30.0, fonts: FONTS_ALL, cover: true,
       x.save(); x.translate(bx, by); x.rotate(-Math.PI / 4); x.fillStyle = 'rgba(255,255,255,0.25)'; x.fillRect(-30, -300, 60, 600); x.restore(); c.drawImage(tmp, 0, 0); }
     const k1 = adK(t, 25.6, 26.0, EZ.oc); adText(c, '断偽文鳥門', { x: 960, y: 620 - 10 * (1 - k1), size: 120, family: 'Shippori Mincho B1', weight: 800, fill: '#EAE4D4', track: 14.4, stroke: '#C8A040', sw: 1, alpha: k1 });
     const k2 = adK(t, 26.1, 26.4); adText(c, '偽りなき世界へ', { x: 960, y: 712, size: 40, family: 'Shippori Mincho B1', weight: 600, fill: '#C8A040', track: adLerp(12, 8, adK(t, 26.1, 26.7, EZ.oc)), alpha: k2 });
-    const k3 = adK(t, 26.6, 26.9); adText(c, 'ここには、rate がない。', { x: 960, y: 800, size: 30, weight: 500, fill: '#EAE4D4', alpha: 0.8 * k3 });
+    const k3 = adK(t, 26.6, 27.0); adText(c, '偽りを禊ぎはらわん', { x: 960, y: 806, size: 46, family: 'Shippori Mincho B1', weight: 800, fill: '#EAE4D4', track: 9, alpha: 0.9 * k3 });
     adGrain(c, f, 0.03); } });
 
 // ================= 書き出しの口 =================
 window.__ad = {
-  list: () => Object.keys(AD.scenes).map(k => ({ key: k, f0: ADF(AD.scenes[k].t0), f1: ADF(AD.scenes[k].t1) })),
+  list: () => Object.keys(AD.scenes).map(k => ({ key: k, f0: ADF(AD.scenes[k].t0 + (AD.scenes[k].off || 0)), f1: ADF(AD.scenes[k].t1 + (AD.scenes[k].off || 0)) })),
   async prepare(key) { const s = AD.scenes[key]; if (!s) throw new Error('no scene ' + key); $('title').hidden = true; G.mode = 'cine'; setObj(''); bgm(''); adHideUI(); AD.cv.style.zIndex = 99999; window.__adSeed && window.__adSeed(20261121);
-    await adFonts(s.fonts || FONTS_ALL); AD.cur = s; await s.setup(); for (const id of ['hud', 'act', 'prompt', 'dlg']) { const e = $(id); if (e) e.hidden = true; } return { f0: ADF(s.t0), f1: ADF(s.t1) }; },
+    await adFonts(s.fonts || FONTS_ALL); AD.cur = s; await s.setup(); for (const id of ['hud', 'act', 'prompt', 'dlg']) { const e = $(id); if (e) e.hidden = true; } const o = s.off || 0; return { f0: ADF(s.t0 + o), f1: ADF(s.t1 + o) }; },
   async freeze() { const s = AD.cur; window.requestAnimationFrame = () => 0; await new Promise(r => setTimeout(r, 300)); window.__adSeed && window.__adSeed(777); T.now = 100 + s.t0 - 1.5; G.shake = 0; AD.now = 1e6; loop(AD.now);
     for (let i = 0; i < 45; i++) { s.update(s.t0, true); AD.now += 1000 / AD.fps; loop(AD.now); } T.now = 100 + s.t0; AD_SHOT = ''; AD.frz = null; },
-  frame(f) { const s = AD.cur, t = f / AD.fps; AD_F = f; s.update(t, false); AD.now += 1000 / AD.fps; loop(AD.now); const c = AD.cx; c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+  frame(fg) { const s = AD.cur, tg = fg / AD.fps, oF = ADF(s.off || 0), f = fg - oF, t = f / AD.fps; AD_F = f; s.update(t, false); AD.now += 1000 / AD.fps; loop(AD.now); const c = AD.cx; c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
     if (!s.cover) { const [dx, dy] = s.shake ? s.shake(t) : [0, 0]; if (dx || dy) { c.fillStyle = '#000'; c.fillRect(0, 0, 1920, 1080); c.drawImage(renderer.domElement, -12 + dx, -6.75 + dy, 1944, 1093.5); } else c.drawImage(renderer.domElement, 0, 0, 1920, 1080); }
     if (s.draw) { c.save(); s.draw(c, t, f); c.restore(); }
-    adNote(c, 1 - adK(t, 29.5, 30.0)); if (t >= 29.5) adFill(c, '#000', adK(t, 29.5, 30.0)); return true; },
+    adNote(c, 1 - adK(tg, AD_END - 0.5, AD_END)); if (tg >= AD_END - 0.5) adFill(c, '#000', adK(tg, AD_END - 0.5, AD_END)); return true; },
 };
