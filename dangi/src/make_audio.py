@@ -39,12 +39,18 @@ B1 = norm(B1, -20.0); B1 = ramp(B1, 0, 0.02, 0, 1); B1 = ramp(B1, 21.15, 21.95, 
 B1 = duck(B1, 11.0, 5, 2.5, 0.4, 10.1); B1 = duck(B1, 15.2, 4, 0.6, 0.3, 10.1); B1 = duck(B1, 17.1, 4, 0.5, 0.4, 10.1)
 place(bed, B1, 10.1)
 B2 = seg(EB, 96.12, 19.82)                                            # 40.18〜60.00（曲の 96.141 の強拍が 40.20 のカットに来る）
-B2 = norm(B2, -20.0); B2 = ramp(B2, 0, 0.015, 0, 1); B2 = ramp(B2, 18.32, 19.72, 1, 0)   # 58.5〜59.9 で絵と一緒に消える
+B2 = norm(B2, -20.0); B2 = ramp(B2, 0, 0.015, 0, 1); B2 = ramp(B2, 19.22, 19.77, 1, 0); B2[ss.secs(19.77):] = 0   # 59.4〜59.95 で絵と一緒に消え、そのあとは無音
 for tb in (46.18, 49.48): B2 = duck(B2, tb, 8, 0.25, 1.0, 40.18)
-for tb in (47.82, 48.45): B2 = duck(B2, tb, 5, 0.2, 0.6, 40.18)
+B2 = duck(B2, 47.82, 5, 0.2, 0.6, 40.18)
+B2 = duck(B2, 48.45, 8, 0.3, 0.8, 40.18)                              # 「入ろう」が落ちる瞬間は深く下げて打撃を聞かせる
 B2 = duck(B2, 52.78, 12, 20.0, 0.0, 40.18)                            # エンドカードの下では -12 dB のまま
-place(bed, B2, 40.18)
+# 床は sound_studio の mix で終わり 2.5 秒にフェードがかかる。カードの終わりまで曲を残すため、57.3 から先は効果音のファイルとして置く
+TAIL = 57.3; it = ss.secs(TAIL - 40.18)
+place(bed, B2[:it], 40.18)
 ss.write_audio(os.path.join(HERE, 'bed.wav'), np.clip(bed, -1, 1))
+ss.write_audio(os.path.join(HERE, 'sfx_b2tail.wav'), np.clip(B2[it:], -1, 1))
+_b = ss.read_audio(os.path.join(HERE, 'bed.wav')); _b = ss.fades(ss.fit(_b, N), 0.05, min(2.5, 0.15 * DUR)); LB = ss.lufs(_b)   # mix が床にかける倍率 -18-LB を同じに
+LT = ss.lufs(ss.read_audio(os.path.join(HERE, 'sfx_b2tail.wav')), True)                                                          # mix はファイルの cue を -15 にそろえる
 
 # ---- 環境音 ----
 amb = np.zeros((N, 2))
@@ -60,7 +66,7 @@ def amb_seg(src, t0, t1, db, fi=0.3, fo=0.3, src0=0.0, hp=None):
 birds = ss.fit(ss.read_audio(ss.lib_path('amb:birds')), ss.secs(DUR), 2.0); birds = norm(birds, -24.0)
 amb_seg(fire, 406 / 30, 586 / 30, -4.0, 0.2, 0.25, 6.0)                    # 火鉢
 amb_seg(fire, 17.2, 19.0, 0.0, 0.3, 0.6, 14.0)                            # 紙が燃える間は大きく
-amb_seg(birds, 586 / 30, 766 / 30, -8.0, 0.4, 0.3, 3.0)                   # 夜明けの問答
+amb_seg(birds, 586 / 30, 766 / 30, -8.0, 0.4, 0.3, 37.0)                  # 夜明けの問答（証言の鳥と同じ箇所を使わない）
 amb_seg(birds, 766 / 30, 32.05, -10.0, 0.3, 0.3, 6.0)                      # 証言
 amb_seg(wind, 966 / 30, 1206 / 30, -11.0, 0.4, 0.3, 2.0, hp=120)          # 沈黙と叫び：夜の風
 amb_seg(fire, 966 / 30, 1206 / 30, -10.0, 0.4, 0.3, 9.0)                  # 夜の篝火
@@ -123,10 +129,11 @@ cue('swish-soft', 1290 / 30, -14); cue('whoosh-fast-medium', 43.15, -14)
 cuef(BELL, 46.20, 4)
 cue('whoosh-medium-hard', 46.60, -8)
 cue('cinematic-drum-big', (604 + 831) / 30, -4); cue('foley-fabric-slide', 47.85, -4)
-cue('cinematic-slam-massive', 48.55, -3); cue('cinematic-drum-big', (623 + 831) / 30, -6); cue('impact-deep-hard', (623 + 831) / 30, -6)
+cue('cinematic-slam-massive', 48.55, -3); cue('cinematic-drum-big', (623 + 831) / 30, -6); cue('impact-deep-hard', (623 + 831) / 30, -6); cue('impact-heavy-hard', (623 + 831) / 30, 2); cuef(CLANG, (623 + 831) / 30, -2); cue('swish-hard', (623 + 831) / 30, 2)   # 字が落ちる一瞬に高い一振り
 cuef(BELL, 49.50, 5)
 cue('boom-hit-soft', (704 + 831) / 30, -10)
 cuef(BELL, 52.80, 7); cue('boom-hit-soft', 52.80, -10); cuef(BELL, 54.30, 0)
+C.append(dict(sfx=os.path.join(HERE, 'sfx_b2tail.wav'), t=TAIL, gain=round(LT - LB - 3.0, 3)))   # 曲の残り（床と同じ大きさになる gain）
 json.dump(C, open(os.path.join(HERE, 'cues.json'), 'w'), ensure_ascii=False, indent=0)
 
 # ---- 混ぜて付ける ----
@@ -144,5 +151,5 @@ for _ in range(3):  # 4 倍に上げた波形の上で先読みリミッター�
 x = x * min(1.0, lim / max(1e-9, np.abs(_sg.resample_poly(x, 4, 1, axis=0)).max()))
 ss.write_audio(mixw, x); print('true-ish peak before', round(20 * np.log10(pk), 2), 'after', round(20 * np.log10(np.abs(_sg.resample_poly(x, 4, 1, axis=0)).max()), 2), 'LUFS', round(ss.lufs(x), 2))
 for a in (3.8, 7.5, 18.5, 20.77, 25.1): print('  momentary @', a, round(ss.lufs(x[ss.secs(a):ss.secs(a + 0.8)], True), 1))
-subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', silent, '-i', mixw, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-shortest', '-movflags', '+faststart', out], check=True)
+subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', silent, '-i', mixw, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-shortest', '-movflags', '+faststart', out], check=True)
 print(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_type,duration', '-of', 'compact', out], capture_output=True, text=True).stdout)

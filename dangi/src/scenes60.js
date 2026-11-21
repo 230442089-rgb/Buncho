@@ -29,7 +29,7 @@ adScene('u7', { t0: T14, t1: T15, fonts: FONTS_ALL,
   async setup() { const a = await adDangi({ bg: 0x4A5266, f0: 12, f1: 52, hi: 0.32 }); sun.intensity = 0.12; sun.color.setHex(0xB8C8E8); sun.position.set(6, 10, 14);
     adTickPost(a, () => { if (a.hallGlow) a.hallGlow.material.opacity = 0.45; });
     AD.br = adBrazier(a, 0, -4.2);
-    AD.ring = []; [-64, -32, 0, 32, 64].forEach((dg, i) => { const an = dg * Math.PI / 180, x = 2.3 * Math.sin(an), z = -4.2 - 2.3 * Math.cos(an); AD.ring.push(put31(a, 'adRg' + i, () => member30(i + 1, false), x, z, Math.atan2(-x, -4.2 - z), { look: 0.25 })); });
+    AD.ring = []; [-28, 4, 36, 68, 100].forEach((dg, i) => { const an = dg * Math.PI / 180, x = 2.3 * Math.sin(an), z = -4.2 - 2.3 * Math.cos(an); AD.ring.push(put31(a, 'adRg' + i, () => member30(i + 1, false), x, z, Math.atan2(-x, -4.2 - z), { look: 0.25 })); });
     AD.fe = []; for (let i = 0; i < 3; i++) { const s2 = glowSprite(i % 2 ? 0xFFC060 : 0xFF7A2A, 0.22 + i * 0.05, 0); adAdd(a.g, s2); AD.fe.push(s2); }
     AD.sm = put31(a, 'adSm7', () => shinmai30(false), -0.95, -3.55, Math.atan2(0.95, -0.65), {});
     AD.pp = adPaper(); adAdd(a.g, AD.pp.m);
@@ -45,7 +45,7 @@ adScene('u7', { t0: T14, t1: T15, fonts: FONTS_ALL,
     else { m.position.copy(rest); m.rotation.set(-1.25, 0, 0); }
     { const bk = adK(t, 17.2, 19.15), on = bk > 0 && bk < 0.98; AD.fe.forEach((s2, i) => { const u = adLerp(-0.12, 0.14, adClamp(bk * 1.2 + i * 0.08)), v = adLerp(-0.2, 0.2, adClamp(bk * 1.1 + i * 0.05)); s2.position.set(rest.x + u, rest.y + 0.06 + 0.05 * Math.sin(t * (9 + i) + i), rest.z + v * 0.3 - 0.02); s2.material.opacity = on ? 0.55 + 0.3 * Math.sin(t * (11 + i * 3) + i) : 0; }); }
     pp.draw(adK(t, 17.2, 19.15));
-    if (shot !== AD_SHOT) { AD_SHOT = shot; adSnap(AD.u); }
+    if (shot !== AD_SHOT) { AD_SHOT = shot; adSnap(AD.u); [...br.fl, ...AD.fe].forEach(s => { s.material.depthTest = shot === 'a'; }); }
     if (shot === 'a') adCamK(adK(t, T14, T14B, EZ.ios), [1.35, 1.7, -1.9], [-0.5, 1.2, -4.0], [1.15, 1.6, -2.35], [-0.5, 1.2, -4.0], 44);
     else adCamK(adK(t, T14B, T15, EZ.ios), [0.32, 1.30, -3.34], [0.0, 0.92, -4.15], [0.28, 1.24, -3.46], [0.0, 0.92, -4.15], 36); },
   draw(c, t, f) { const A = t < T14B; adSparks(c, t, A ? 10 : 22, { speed: A ? 70 : 140, seed: 14, x0: A ? 700 : 500, x1: A ? 1200 : 1400, size: A ? 0.8 : 1.3 }); adVignette(c, 0.5); adGrain(c, f, 0.03);
@@ -103,16 +103,16 @@ adScene('u10', { t0: T17, t1: T18, fonts: FONTS_ALL,
   async setup() { const a = await adDangi({ bg: 0xA8B0B8, f0: 24, f1: 72, hi: 0.78 }); sun.intensity = 0.5; sun.color.setHex(0xFFF4E0); sun.position.set(8, 12, 14);
     adTickPost(a, () => { if (a.hallGlow) a.hallGlow.material.opacity = 0.3; });
     AD.nv = put31(a, 'adNovice10', () => member30(0, false), 0.15, 9.6, Math.PI, {});
-    AD.ge = put31(a, 'adGe10', () => gedatsu30(), 0, -4.4, 0, { look: 0.05 });
-    AD.sw = put31(a, 'adSw10', () => shinmai30(true), -3.0, 1.4, Math.PI, { paint: true });
-    AD.sw.model.adPost = c => { c.arms[1].rotation.x = -0.75 + 0.12 * Math.sin(2 * Math.PI * (AD_T - 40.2) / 0.9); };
+    AD.ge = put31(a, 'adGe10', () => gedatsu30(), 0.9, -4.4, 0, { look: 0.05 });
+    AD.sw = put31(a, 'adSw10', () => shinmai30(true), -4.9, 4.0, -0.35, { paint: true }); if (AD.sw.model.broom) AD.sw.model.broom.position.y = AD_BRY;
+    AD.sw.model.adPost = c => { const w = Math.sin(2 * Math.PI * (AD_T - 40.2) / 0.9); c.arms[1].rotation.x = AD_SWX + 0.03 * Math.abs(w); c.arms[1].rotation.z = 0.24 * w; };
     AD.ge.model.head.traverse(o => { if (o.isMesh && o.geometry && o.geometry.type === 'BoxGeometry' && Math.abs(o.geometry.parameters.height - 0.16) < 1e-3 && Math.abs(o.geometry.parameters.width - 0.04) < 1e-3) o.visible = false; });
     AD.u = [AD.nv, AD.ge, AD.sw]; AD_SHOT = ''; },
   update(t) { AD_T = t; const shot = t < T17B ? 'a' : 'b', nv = AD.nv, z = adLerp(9.6, 3.2, adK(t, T17, T17B));
     if (shot === 'a') { nv.pos.x = 0.15; nv.pos.z = z; nv.facing = Math.PI; nv.extMove = true; nv.hidden = false; } else nv.hidden = true;
     if (shot !== AD_SHOT) { AD_SHOT = shot; adSnap(AD.u); }
     if (shot === 'a') { adCam([0.9, 2.05, z + 4.6], [0.0, 1.5, z - 7.0]); adFov(42); }
-    else adCamK(adK(t, T17B, T18, EZ.ios), [0.45, 1.5, -0.4], [0.0, 2.8, -4.4], [0.38, 1.5, -0.75], [0.0, 2.8, -4.4], 38); },
+    else adCamK(adK(t, T17B, T18, EZ.ios), [1.35, 1.5, -0.4], [0.9, 2.8, -4.4], [1.28, 1.5, -0.75], [0.9, 2.8, -4.4], 38); },
   draw(c, t, f) { adVignette(c, 0.3); adGrain(c, f, 0.03);
     if (t >= T17B) { adNameCard(c, t, { t0: 43.15, t1: 46.05, out0: 45.9, bar: { x: 100, y0: 742, y1: 862 },
         l1: { s: '断偽文鳥門　修行頭', x: 128, y: 768, slide: 30, st: { size: 26, weight: 700, fill: '#EAE4D4', stroke: '#0C0A10', sw: 4 } },

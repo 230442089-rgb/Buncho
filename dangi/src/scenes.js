@@ -33,8 +33,10 @@ function adBottomShade(c, a) { if (a <= 0) return; const g = c.createLinearGradi
 
 // ---- 外の表記（全編、いちばん上。揺れ・暗がり・粒をかけない） ----
 const AD_NOTE = '※物語ゲーム『主権留保』に登場する架空の団体の広告です。';
-function adNote(c, a = 1) { if (a <= 0) return; c.save(); c.globalAlpha = adClamp(a); c.font = '500 24px "Zen Kaku Gothic New"'; c.textBaseline = 'middle'; const w = c.measureText(AD_NOTE).width, x1 = 1872, x0 = x1 - w; c.fillStyle = 'rgba(12,10,12,0.6)'; c.beginPath(); if (c.roundRect) c.roundRect(x0 - 12, 50 - 12 - 7, w + 24, 24 + 14, 6); else c.rect(x0 - 12, 31, w + 24, 38); c.fill(); c.globalAlpha = adClamp(a) * 0.9; c.fillStyle = '#EAE4D4'; c.textAlign = 'left'; c.fillText(AD_NOTE, x0, 51); c.restore(); }
+function adNote(c, a = 1) { if (a <= 0) return; c.save(); c.globalAlpha = adClamp(a); c.font = '500 30px "Zen Kaku Gothic New"'; c.textBaseline = 'middle'; const w = c.measureText(AD_NOTE).width, x1 = 1872, x0 = x1 - w; c.fillStyle = 'rgba(12,10,12,0.66)'; c.beginPath(); if (c.roundRect) c.roundRect(x0 - 14, 29, w + 28, 46, 7); else c.rect(x0 - 14, 29, w + 28, 46); c.fill(); c.globalAlpha = adClamp(a) * 0.92; c.fillStyle = '#EAE4D4'; c.textAlign = 'left'; c.fillText(AD_NOTE, x0, 53); c.restore(); }
 
+// 刀の鞘（makeBird の katana）を隠す：この広告には武器を出さない
+function adNoKatana(m) { const hide = []; m.torso.traverse(o => { if (o.isMesh && o.geometry && o.geometry.type === 'BoxGeometry' && Math.abs(o.geometry.parameters.depth - 1.4) < 1e-3 && Math.abs(o.geometry.parameters.width - 0.07) < 1e-3) hide.push(o); }); hide.forEach(o => { o.visible = false; }); return hide.length; }
 // ---- 名札（左下）：赤い縦の帯＋二行 ----
 function adNameCard(c, t, o) { const { t0, t1, out0, bar, l1, l2 } = o; if (t < t0 || t > t1) return; const fo = 1 - adK(t, out0, t1);
   const k1 = adK(t, t0, t0 + 0.25, EZ.oc), k2 = adK(t, t0 + 2 / 30, t0 + 2 / 30 + 0.25, EZ.oc);
@@ -80,13 +82,15 @@ adScene('u1', { t0: 0, t1: 3.8, fonts: FONTS_ALL,
       x += ws[i]; });
     adFill(c, '#000', 1 - adK(t, 0, 0.3)); } });
 
+// 掃く姿勢：箒を肩から AD_BRY だけ手の側へ下げ、腕を AD_SWX まで前へ出すと、穂先が地面に届く
+const AD_BRY = -0.3, AD_SWX = -1.0;
 // ---------- U2：s02〜s04 答え（3.8〜10.2） ----------
 adScene('u2', { t0: 3.8, t1: 10.2, fonts: FONTS_ALL,
   async setup() { const a = await adSohon({ bg: 0x070508, f0: 26, f1: 84, hi: 0.32, ground: 0x6A665E }); sun.intensity = 0.2; adCrestFix(a); if (a.wall) a.wall.visible = false;
     a.fires.forEach(s => s.scale.multiplyScalar(1.25)); const cg = glowSprite(0xFF2A1A, 3.4, 0.35); cg.position.set(0, 5.6, -10.55); adAdd(a.g, cg);
     adTickPost(a, () => { a.hallGlow.material.opacity = AD.hall ?? 0.5; });
-    const mz = put31(a, 'adMz', () => mesuZeroBird(), 0, -10.0, 0, {}, 1.2); mzOver30(mz.model, false); AD.mz = mz; adEyes(mz.model);
-    AD.ge = put31(a, 'adGe', () => gedatsu30(), -3.6, -8.2, 0); AD.mu = put31(a, 'adMu', () => mujou30(), 3.6, -8.2, 0); AD.za = put31(a, 'adZa', () => zange30(), -4.4, -7.4, 0);
+    const mz = put31(a, 'adMz', () => mesuZeroBird(), 0, -10.0, 0, {}, 1.2); mzOver30(mz.model, false); if (mz.model.nk) mz.model.nk.visible = false; AD.mz = mz; adEyes(mz.model);
+    AD.ge = put31(a, 'adGe', () => gedatsu30(), 4.6, -7.6, 0); AD.mu = put31(a, 'adMu', () => mujou30(), 3.4, -8.6, 0); AD.za = put31(a, 'adZa', () => zange30(), 2.4, -9.2, 0); adNoKatana(AD.mu.model);
     AD.rows = []; const zs = [9.0, 6.0, 3.0, 0.0, -3.0]; for (let i = 0; i < 10; i++) AD.rows.push(put31(a, 'adW' + i, () => member30(i, true), i % 2 ? 2.0 : -2.0, zs[i >> 1], Math.PI, { kneel: true, bow: true, bowA: 1.05 }));
     AD.red = new THREE.DirectionalLight(0xFF3A4A, 0); AD.red.position.set(0, 9, -17); AD.red.target.position.set(0, 3, -10); adAdd(a.g, AD.red); adAdd(a.g, AD.red.target);
     AD.u = [mz, AD.ge, AD.mu, AD.za, ...AD.rows]; AD_SHOT = ''; },
@@ -95,9 +99,9 @@ adScene('u2', { t0: 3.8, t1: 10.2, fonts: FONTS_ALL,
     if (shot === 's02') { hemi.intensity = 0.32; AD.red.intensity = 0; AD.hall = 0.5; mz.st = { look: 0 }; adOver(m, 0);
       adCamK(adK(t, 3.8, 6.0, EZ.ioc), [0, 0.6, 16.0], [0, 3.2, -10.0], [0, 2.8, 4.5], [0, 3.8, -10.0], 34, 32); }
     else if (shot === 's03') { hemi.intensity = 0.08; AD.red.intensity = 1.1; AD.hall = 0.7;
-      const look = t < 6.1 ? 0.35 : adLerp(0.35, -0.05, adK(t, 6.1, 6.4, EZ.ios)); mz.st = t >= 6.65 ? { look, windup: true } : { look };
+      const look = t < 6.1 ? 0.35 : adLerp(0.35, -0.05, adK(t, 6.1, 6.4, EZ.ios)); mz.st = { look };
       const ek = adLerp(1, 1.8, adK(t, 6.4, 6.4 + 4 / 30)); adEyes(m).forEach(e => e.s.scale.setScalar(e.k0 * ek)); adOver(m, adK(t, 6.8, 7.4));
-      const k = adK(t, 6.0, 7.5, EZ.ios), kw = adK(t, 6.65, 6.95, EZ.ios), ly = 4.6 + 0.5 * kw; adCam(adV3([0.9, 2.2, -5.4], [0.8, 2.3, -5.6], k), [0, ly, -10.0]); adFov(36 + 12 * kw); }
+      const k = adK(t, 6.0, 7.5, EZ.ios), kw = adK(t, 6.65, 7.45, EZ.ios); adCam(adV3([0.9, 2.2, -5.4], [0.8, 2.3, -5.6], k), [0, 4.6, -10.0]); adFov(36 - 9 * kw); }
     else { hemi.intensity = 0.3; AD.red.intensity = 1.1; adOver(m, 1); mz.st = { punch: true }; adCam([-3.6, 3.0, -2.6], [0, 3.7, -10.0]); adFov(44); } },
   draw(c, t, f) { const shot = t < 6.0 ? 's02' : t < 7.5 ? 's03' : 's04';
     if (shot === 's02') { adSparks(c, t, 20, { speed: 110, seed: 2 }); adVignette(c, 0.6); }
@@ -140,13 +144,13 @@ adScene('u3', { t0: 10.2, t1: (406 / 30), fonts: FONTS_ALL,
     adTickPost(a, () => { if (a.hallGlow) a.hallGlow.material.opacity = 0.5; });
     a.g.traverse(o => { if (o.isMesh && o.material && o.material.transparent && o.geometry && o.geometry.type === 'PlaneGeometry' && Math.abs(o.position.x - 8.2) < 0.01) { o.material = o.material.clone(); o.material.emissive = new THREE.Color(0x1A2A3A); AD.water = o; } });
     AD.sm = put31(a, 'adSm', () => shinmai30(true), -0.6, 3.6, -0.35 * Math.PI, { paint: true }); AD.ge = put31(a, 'adGe3', () => gedatsu30(), 9.4, -1.2, -0.75 * Math.PI, { cross: true, look: 0.3 });
-    AD.m2 = put31(a, 'adM2', () => member30(2, false), -9.6, -2.0, Math.PI); AD.mu = put31(a, 'adMu3', () => mujou30(), -9.2, 3.0, 0.93 * Math.PI); AD.za = put31(a, 'adZa3', () => zange30(), 7.4, 2.6, -Math.PI / 2, { sit: true, look: 0.2 }, 0.44);
+    AD.m2 = put31(a, 'adM2', () => member30(2, false), -9.6, -2.0, Math.PI); AD.mu = put31(a, 'adMu3', () => mujou30(), -9.2, 3.0, 0.93 * Math.PI); adNoKatana(AD.mu.model); AD.za = put31(a, 'adZa3', () => zange30(), 7.4, 2.6, -Math.PI / 2, { sit: true, look: 0.2 }, 0.44);
     AD.lamp = adPoint(a, 0xFFB060, 0, 6, 6.0, 1.6, 3.6);
-    AD.sm.model.adPost = c => { if (AD_SHOT === 's05') c.arms[1].rotation.x = -1.4 + 0.35 * Math.sin(2 * Math.PI * (AD_T - 10.2) / 0.83); };
+    AD.sm.model.adPost = c => { if (AD_SHOT === 's05') { const w = Math.sin(2 * Math.PI * (AD_T - 10.2) / 0.83); c.arms[1].rotation.x = AD_SWX + 0.03 * Math.abs(w); c.arms[1].rotation.z = 0.24 * w; } };
     AD.za.model.adPost = c => { c.arms[1].rotation.x = AD.zaX ?? -1.0; c.arms[1].rotation.z = AD.zaZ ?? 0.0; };
     const hit = (fs) => fs.some(f0 => AD_F >= f0 && AD_F < f0 + 4); AD.sm.model.adPost0 = AD.sm.model.adPost; AD.sm.model.adPost = c => { AD.sm.model.adPost0(c); if (AD_SHOT === 's07' && hit([359, 368, 377])) c.arms[0].rotation.x = -1.6; };
     AD.m2.model.adPost = c => { if (AD_SHOT === 's07' && hit([364, 373])) c.arms[0].rotation.x = -1.6; };
-    AD.u = [AD.sm, AD.ge, AD.m2, AD.mu, AD.za]; adShow([AD.ge, AD.m2, AD.mu, AD.za], false); AD_SHOT = ''; },
+    AD.u = [AD.sm, AD.ge, AD.m2, AD.mu, AD.za]; adShow([AD.ge, AD.m2, AD.mu, AD.za], false); if (AD.sm.model.broom) AD.sm.model.broom.position.y = AD_BRY; AD_SHOT = ''; },
   update(t) { AD_T = t; const sm = AD.sm; const shot = t < (331 / 30) ? 's05' : t < (356 / 30) ? 's06' : t < 12.7 ? 's07' : 's08';
     if (shot !== AD_SHOT) { AD_SHOT = shot; adShow([AD.ge, AD.m2, AD.mu, AD.za], false); AD.lamp.intensity = 0; if (sm.model.broom) sm.model.broom.visible = shot === 's05';
       if (shot === 's05') adPlace(sm, -0.6, 3.6, -0.35 * Math.PI, { paint: true });
