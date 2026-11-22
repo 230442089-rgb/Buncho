@@ -8,7 +8,7 @@ const fs = require('fs');
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
   page.on('pageerror', e => console.error('PAGE ERROR', e.message));
-  await page.goto('file://' + __dirname + '/anim.html');
+  await page.goto('file://' + __dirname + '/' + (process.env.PAGE || 'anim.html'));
   await page.evaluate(() => document.fonts.ready);
   const files = [];
   for (const [i, t] of ts.entries()) {

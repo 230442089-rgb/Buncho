@@ -12,6 +12,10 @@ const C = {
   tee: '#FFFFFF', teeShade: '#E8E4F6', teeLine: '#9E96C2',
   bag: '#CFC0EC', bagShade: '#AF9DD8', bagLine: '#8C7AB8', mesh: '#B7DEF6',
   shoeLine: '#A49CC4', gold: '#E9B949',
+  manHair: '#36323F', manHairHi: '#5F5A73', manHairLine: '#1F1D28', manBrow: '#3A3548',
+  hood: '#9794AA', hoodShade: '#7E7B91', hoodLine: '#57546A',
+  suit: '#414A6B', suitShade: '#333B58', suitLine: '#242A42', shirt: '#F7F5FA', tie: '#9E4B60',
+  pj: '#B7C9E3', pjShade: '#98AED0', pjLine: '#6F86AE', pants: '#5B596C', pantsShade: '#49475A', pantsLine: '#373546',
 };
 let __uid = 0;
 U.uid = () => 'u' + (++__uid);
@@ -20,23 +24,23 @@ U.resetUid = () => { __uid = 0; };
 // ---------------------------------------------------------------- eyes
 const EYE_WHITE = 'M-23,-2 C-22,-26 18,-31 25,-10 C28,6 22,28 1,29 C-17,29 -24,14 -23,-2 Z';
 const EYE_LASH = 'M-26,0 C-24,-27 18,-35 29,-13 L35,-18 C34,-12 32,-8 28,-4 C22,-21 -10,-25 -21,1 Z';
+const EYE_LASH_THIN = 'M-25,1 C-22,-23 17,-30 28,-12 L31,-14 C30,-10 29,-8 27,-6 C20,-19 -9,-21 -21,2 Z';
 
 function eyeSVG(cx, cy, side, o) {
   const st = o.eyes || 'open';
   const lx = (o.look ? o.look[0] : 0) * side, ly = o.look ? o.look[1] : 0;
   const blink = o.blink || 0;
-  const g = c => `<g transform="translate(${U.f(cx)} ${U.f(cy)}) scale(${side} 1)">${c}</g>`;
-  const L = C.eyeLine;
+  const g = c => `<g transform="translate(${U.f(cx)} ${U.f(cy)}) scale(${side} ${o.eyeSY || 1})">${c}</g>`;
+  const L = o.lashCol || C.eyeLine, LO = o.lashOutline || '';
+  const ll = (d, w) => (LO ? `<path d="${d}" fill="none" stroke="${LO}" stroke-width="${U.f(w + 3.4)}" stroke-linecap="round" stroke-linejoin="round"/>` : '') + `<path d="${d}" fill="none" stroke="${L}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   if (st === 'smile' || (st === 'wink' && side === o.winkSide)) {
-    return g(`<path d="M-24,12 Q1,-16 27,9" fill="none" stroke="${L}" stroke-width="6.5" stroke-linecap="round"/>
-      <path d="M24,8 l8,-3" stroke="${L}" stroke-width="4" stroke-linecap="round"/>`);
+    return g(ll('M-24,12 Q1,-16 27,9', 6.5) + ll('M24,8 l8,-3', 4));
   }
   if (st === 'closed' || blink > 0.86) {
-    return g(`<path d="M-23,6 Q1,20 27,4" fill="none" stroke="${L}" stroke-width="5.5" stroke-linecap="round"/>
-      <path d="M-9,13 l-3,7 M3,15 l0,7 M15,12 l3,7" stroke="${L}" stroke-width="2.6" stroke-linecap="round"/>`);
+    return g(ll('M-23,6 Q1,20 27,4', 5.5) + ll('M-9,13 l-3,7 M3,15 l0,7 M15,12 l3,7', 2.6));
   }
   if (st === 'shut') { // squeezed shut (> <)
-    return g(`<path d="M-20,-6 L18,6 L-20,18" fill="none" stroke="${L}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`);
+    return g(ll('M-20,-6 L18,6 L-20,18', 6));
   }
   const dragon = o.dragon || 0;
   const wide = st === 'wide';
@@ -69,26 +73,27 @@ function eyeSVG(cx, cy, side, o) {
   if (lid > 0.02) {
     const ly2 = U.lerp(-26, 24, lid);
     s += `<path d="M-32,-44 L36,-44 L36,${U.f(ly2 - 8)} C20,${U.f(ly2 - 3)} -14,${U.f(ly2 - 3)} -29,${U.f(ly2 + 3)} Z" fill="${o.skinCol || C.skin}"/>`;
-    s += `<path d="M-28,${U.f(ly2 + 3)} C-14,${U.f(ly2 - 3)} 20,${U.f(ly2 - 3)} 34,${U.f(ly2 - 8)}" fill="none" stroke="${L}" stroke-width="6.5" stroke-linecap="round"/>`;
-    s += `<path d="M31,${U.f(ly2 - 8)} l6,-4" stroke="${L}" stroke-width="3.5" stroke-linecap="round"/>`;
+    s += ll(`M-28,${U.f(ly2 + 3)} C-14,${U.f(ly2 - 3)} 20,${U.f(ly2 - 3)} 34,${U.f(ly2 - 8)}`, 6.5);
+    s += ll(`M31,${U.f(ly2 - 8)} l6,-4`, 3.5);
   } else {
-    s += `<path d="${EYE_LASH}" fill="${L}"/>`;
-    s += `<path d="M-23,1 q-3,5 -1,9" fill="none" stroke="${L}" stroke-width="2.2" stroke-linecap="round"/>`;
+    s += `<path d="${o.thinLash ? EYE_LASH_THIN : EYE_LASH}" fill="${L}" ${LO ? `stroke="${LO}" stroke-width="2.4" stroke-linejoin="round"` : ''}/>`;
+    s += ll('M-23,1 q-3,5 -1,9', 2.2);
   }
+  if (o.tired) s += `<path d="M-16,37 Q3,45 22,33" fill="none" stroke="#B3A3C6" stroke-width="3.2" stroke-linecap="round" opacity=".75"/><path d="M-10,42 Q4,48 16,40" fill="none" stroke="#C9BCD8" stroke-width="2.4" stroke-linecap="round" opacity=".6"/>`;
   s += `<path d="M-12,29.5 Q6,33 20,22" fill="none" stroke="#857898" stroke-width="2.4" stroke-linecap="round"/>`;
   s += `<path d="M-17,-26 Q6,-38 25,-24" fill="none" stroke="#D7AEB0" stroke-width="1.8" opacity=".75"/>`;
   if (o.tear) s += `<path d="M-6,31 q2,8 6,12" fill="none" stroke="#BFE7FF" stroke-width="3" opacity=".9"/>`;
   return g(s);
 }
 
-function browSVG(cx, cy, side, mood, op = 0.85) {
+function browSVG(cx, cy, side, mood, op = 0.85, col = C.brow, w = 4.5) {
   let d = 'M-18,-50 Q4,-58 24,-50';
   if (mood === 'happy') d = 'M-18,-56 Q4,-64 24,-55';
   if (mood === 'worry') d = 'M-18,-58 Q2,-58 24,-48';
   if (mood === 'up') d = 'M-18,-62 Q4,-70 24,-60';
   if (mood === 'angry') d = 'M-18,-46 Q4,-52 24,-56';
   if (mood === 'soft') d = 'M-18,-52 Q4,-58 24,-49';
-  return `<path transform="translate(${U.f(cx)} ${U.f(cy)}) scale(${side} 1)" d="${d}" fill="none" stroke="${C.brow}" stroke-width="4.5" stroke-linecap="round" opacity="${op}"/>`;
+  return `<path transform="translate(${U.f(cx)} ${U.f(cy)}) scale(${side} 1)" d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
 }
 
 function mouthSVG(m, x = 0, y = 0) {
@@ -126,6 +131,8 @@ const HAIR = {
   yuriaTailYellow: 'M52,8 C74,40 74,84 64,116 C56,146 68,176 64,204 C54,186 50,164 48,144 C44,112 60,72 46,30 Z',
   // high ponytail (Vol), attach point = 0,0
   volTail: 'M-16,8 C8,-52 74,-74 112,-28 C142,8 138,66 128,108 C120,148 138,196 118,232 C108,250 88,248 84,232 C98,206 86,166 88,130 C90,90 94,50 76,20 C58,-8 28,-4 14,18 Z',
+  manBack: 'M0,-128 C76,-130 116,-78 112,-10 C110,8 106,20 100,28 C70,40 -70,40 -100,28 C-106,20 -110,8 -112,-10 C-116,-78 -76,-130 0,-128 Z',
+  manBangs: 'M-108,-4 C-114,-84 -64,-136 2,-136 C70,-136 114,-86 108,-6 L100,14 L91,-14 L82,16 L71,-22 L58,9 L46,-28 L32,4 L20,-30 L6,2 L-6,-30 L-20,0 L-34,-28 L-48,6 L-60,-22 L-74,10 L-84,-16 L-96,12 Z',
   volTailShade: 'M76,20 C94,50 90,90 88,130 C86,166 98,206 84,232 C96,214 104,180 104,140 C104,96 112,56 96,24 Z',
 };
 
@@ -137,6 +144,7 @@ function hairCommon() {
 // ---------------------------------------------------------------- heads
 function headBack(who, o) {
   const shift = (o.turn || 0) * -4;
+  if (who === 'man') return `<g transform="translate(${shift} 0)"><path d="${HAIR.manBack}" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="3"/></g>`;
   const d = who === 'yuria' ? HAIR.yuriaBack : HAIR.volBack;
   let s = `<g transform="translate(${shift} 0)"><path d="${d}" fill="${C.hairShade}" stroke="${C.hairLine}" stroke-width="3"/>`;
   s += `<path d="M-70,120 C-40,150 40,150 70,120 L60,60 L-60,60 Z" fill="${C.hairShade2}" opacity=".7"/>`;
@@ -163,7 +171,10 @@ function headFront(who, o) {
     }
   }
   // eyes
-  const eo = Object.assign({}, o, { iris: who === 'yuria' ? 'gIrisY' : 'gIrisV' });
+  const man = who === 'man';
+  const eo = Object.assign({}, o, man
+    ? { iris: 'gIrisM', lashCol: '#2B2836', thinLash: true, eyeSY: 0.9, tired: o.tired }
+    : { iris: who === 'yuria' ? 'gIrisY' : 'gIrisV', lashCol: '#FFFFFF', lashOutline: '#7C72A8' });
   const ex = 42, ey = 22;
   if (who === 'vol') {
     s += eyeSVG(ex + fx, ey, 1, eo);
@@ -178,7 +189,13 @@ function headFront(who, o) {
   // hair front
   const hx = turn * 4;
   s += `<g transform="translate(${U.f(hx)} 0)">`;
-  if (who === 'yuria') {
+  if (man) {
+    for (const sd of [-1, 1]) s += `<path transform="scale(${sd} 1)" d="M-104,-16 C-108,6 -106,24 -99,38 C-95,24 -93,8 -92,-6 Z" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="2.6"/>`;
+    if (o.bedhair) s += `<path d="M-40,-118 L-62,-168 L-22,-130 L-6,-184 L12,-128 L44,-170 L36,-116 Z" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="2.6" stroke-linejoin="round"/>`;
+    s += `<path d="${HAIR.manBangs}" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="3" stroke-linejoin="round"/>`;
+    s += `<path d="M-74,-60 C-40,-86 40,-88 78,-58" fill="none" stroke="${C.manHairHi}" stroke-width="9" stroke-linecap="round" opacity=".8"/>`;
+    s += `<path d="M-46,-24 L-40,-60 M-6,-26 L-2,-66 M34,-24 L30,-62 M70,-20 L64,-50" fill="none" stroke="${C.manHairHi}" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
+  } else if (who === 'yuria') {
     s += `<path d="${HAIR.yuriaLockL}" fill="${C.hair}" stroke="${C.hairLine}" stroke-width="3"/>`;
     s += `<path d="M-96,40 C-100,80 -96,120 -94,150" fill="none" stroke="${C.hairShade2}" stroke-width="3" stroke-linecap="round"/>`;
     s += `<path d="${HAIR.yuriaLockR}" fill="${C.hair}" stroke="${C.hairLine}" stroke-width="3"/>`;
@@ -212,7 +229,8 @@ function headFront(who, o) {
   s += `</g>`;
   // brows (drawn over bangs, slightly translucent)
   const mood = o.brows || 'neutral';
-  if (who === 'yuria') { s += browSVG(-ex + fx, ey, -1, mood, 0.75); s += browSVG(ex + fx, ey, 1, mood, 0.75); }
+  if (man) { s += browSVG(-ex + fx, ey, -1, mood, 1, C.manBrow, 6); s += browSVG(ex + fx, ey, 1, mood, 1, C.manBrow, 6); }
+  else if (who === 'yuria') { s += browSVG(-ex + fx, ey, -1, mood, 0.75); s += browSVG(ex + fx, ey, 1, mood, 0.75); }
   else s += browSVG(ex + fx, ey, 1, mood, 0.75);
   // sweat drop
   if (o.sweat) s += `<path d="M${84 + fx},-26 C${76 + fx},-8 ${78 + fx},4 ${86 + fx},4 C${94 + fx},4 ${96 + fx},-8 ${84 + fx},-26 Z" fill="#CDEBFF" stroke="#7DB7E0" stroke-width="2.4"/>`;
@@ -247,6 +265,11 @@ function itemSVG(item, bite = 0) {
     s += `<path d="M-16,8 L-4,44 M2,10 L2,52 M16,8 L6,44" stroke="#fff" stroke-width="2.4" opacity=".7"/>`;
     return s + '</g>';
   }
+  if (item === 'can') return `<g transform="translate(0 -6)"><rect x="-11" y="-38" width="22" height="46" rx="4" fill="#6FD3C7" stroke="#2F7F78" stroke-width="2.4"/><path d="M-11,-24 L11,-24 M-11,-2 L11,-2" stroke="#2F7F78" stroke-width="2"/><path d="M-4,-20 L4,-20 L-1,-12 L5,-12 L-3,-4" fill="none" stroke="#FFF3A0" stroke-width="2.6" stroke-linejoin="round"/><rect x="-9" y="-42" width="18" height="6" rx="2" fill="#C8D0D6"/></g>`;
+  if (item === 'bento') return `<g transform="translate(0 -4)"><rect x="-32" y="-26" width="64" height="40" rx="9" fill="#C9B6EE" stroke="#8C78C0" stroke-width="2.6"/><path d="M-14,-26 C-22,-46 -2,-48 0,-30 C2,-48 22,-46 14,-26" fill="#C9B6EE" stroke="#8C78C0" stroke-width="2.6"/><circle cx="-16" cy="-4" r="4" fill="#fff" opacity=".75"/><circle cx="12" cy="4" r="4" fill="#fff" opacity=".75"/><circle cx="-2" cy="8" r="3" fill="#fff" opacity=".75"/></g>`;
+  if (item === 'chopL') return `<g transform="translate(0 -6) scale(-1 1)"><path d="M-4,4 L34,-54 M4,6 L42,-52" stroke="#B9854E" stroke-width="4.5" stroke-linecap="round"/><circle cx="40" cy="-60" r="10" fill="#E9B86C" stroke="#B98A3E" stroke-width="2.2"/></g>`;
+  if (item === 'chop') return `<g transform="translate(0 -6)"><path d="M-4,4 L34,-54 M4,6 L42,-52" stroke="#B9854E" stroke-width="4.5" stroke-linecap="round"/><circle cx="40" cy="-60" r="10" fill="#E9B86C" stroke="#B98A3E" stroke-width="2.2"/></g>`;
+  if (item === 'phoneLit') return `<g transform="translate(0 -10)"><rect x="-15" y="-50" width="30" height="48" rx="6" fill="#3A3650" stroke="#24212F" stroke-width="2.4"/><rect x="-11" y="-46" width="22" height="38" rx="3" fill="#CFE6FF"/><circle cx="0" cy="-26" r="40" fill="#BFE0FF" opacity=".25" filter="url(#fBlur8)"/></g>`;
   if (item === 'phone') return `<rect x="-13" y="-48" width="26" height="42" rx="6" fill="#E7DDF8" stroke="#9E92C6" stroke-width="2.4"/><rect x="-9" y="-44" width="18" height="30" rx="3" fill="#BFD7F5"/>`;
   if (item === 'bagShop') return `<g transform="translate(0 6)"><path d="M-22,0 L22,0 L26,44 L-26,44 Z" fill="#FFE3EC" stroke="#D493AE" stroke-width="2.4"/><path d="M-10,0 C-10,-18 10,-18 10,0" fill="none" stroke="#D493AE" stroke-width="3"/>${U.heart(0, 22, 16, '#FF86AE', 1)}</g>`;
   return '';
@@ -255,6 +278,7 @@ function itemSVG(item, bite = 0) {
 // ---------------------------------------------------------------- arms
 // ang: 0 = hanging down, + = outward (away from body), - = across the body
 function armSVG(who, side, ang, item, o) {
+  if (who === 'man') return armMan(side, ang, item, o);
   const yu = who === 'yuria';
   const px = side * (yu ? 52 : 50), py = yu ? -294 : -296;
   const rot = side < 0 ? ang : -ang;
@@ -279,7 +303,8 @@ function armSVG(who, side, ang, item, o) {
 }
 
 // ---------------------------------------------------------------- legs
-function legSVG(who, side, ang) {
+function legSVG(who, side, ang, o = {}) {
+  if (who === 'man') return legMan(side, ang, o);
   const yu = who === 'yuria';
   const px = side * (yu ? 20 : 22), py = yu ? -160 : -166;
   let s = `<g transform="translate(${px} ${py}) rotate(${U.f(ang)})">`;
@@ -357,6 +382,69 @@ function torsoVol(o) {
   return s;
 }
 
+// ---------------------------------------------------------------- the man (lonely office worker)
+function manCols(o) {
+  const f = o.outfit || 'hoodie';
+  if (f === 'suit') return { c: C.suit, sh: C.suitShade, ln: C.suitLine };
+  if (f === 'pajama') return { c: C.pj, sh: C.pjShade, ln: C.pjLine };
+  return { c: C.hood, sh: C.hoodShade, ln: C.hoodLine };
+}
+function armMan(side, ang, item, o) {
+  const px = side * 54, py = -296, rot = side < 0 ? ang : -ang, handY = 110;
+  const k = manCols(o);
+  let s = `<g transform="translate(${px} ${py}) rotate(${U.f(rot)})">`;
+  const it = item ? `<g transform="translate(0 ${handY}) rotate(${U.f(-rot - (o.lean || 0))})">${itemSVG(item, o.bite || 0)}</g>` : '';
+  s += `<path d="M-14,${handY - 12} C-18,${handY + 2} -13,${handY + 15} 0,${handY + 15} C13,${handY + 15} 18,${handY + 2} 14,${handY - 12} Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.6"/>` + it;
+  s += `<path d="M-21,0 C-23,36 -23,72 -21,98 C-10,104 10,104 21,98 C23,72 23,36 21,0 C12,-22 -12,-22 -21,0 Z" fill="${k.c}" stroke="${k.ln}" stroke-width="2.8"/>`;
+  s += `<path d="M${side * 8},10 C${side * 10},40 ${side * 10},70 ${side * 10},92" fill="none" stroke="${k.sh}" stroke-width="6" stroke-linecap="round" opacity=".7"/>`;
+  if ((o.outfit || 'hoodie') === 'suit') s += `<path d="M-19,94 L19,94 L19,100 L-19,100 Z" fill="${C.shirt}" stroke="${C.suitLine}" stroke-width="2"/>`;
+  else s += `<path d="M-21,90 C-10,96 10,96 21,90 L21,100 C10,106 -10,106 -21,100 Z" fill="${k.sh}" stroke="${k.ln}" stroke-width="2.2"/>`;
+  return s + '</g>';
+}
+function legMan(side, ang, o) {
+  const px = side * 22, py = -166;
+  const suit = (o.outfit || 'hoodie') === 'suit';
+  const pc = suit ? C.suit : C.pants, pl = suit ? C.suitLine : C.pantsLine, ps = suit ? C.suitShade : C.pantsShade;
+  let s = `<g transform="translate(${px} ${py}) rotate(${U.f(ang)})">`;
+  s += `<path d="M-22,0 C-23,48 -20,96 -17,128 L17,128 C20,96 23,48 22,0 Z" fill="${pc}" stroke="${pl}" stroke-width="2.6"/>`;
+  s += `<path d="M${side * 8},10 C${side * 9},50 ${side * 8},90 ${side * 7},122" fill="none" stroke="${ps}" stroke-width="6" stroke-linecap="round" opacity=".7"/>`;
+  if (suit) s += `<path d="M-20,128 C-22,142 -18,152 -6,154 L8,154 C20,152 23,142 21,128 C12,122 -12,122 -20,128 Z" fill="#2F2C38" stroke="#1C1A22" stroke-width="2.6"/><path d="M-8,132 Q0,128 8,132" stroke="#5A566A" stroke-width="2.4" fill="none"/>`;
+  else s += `<path d="M-21,130 C-23,144 -19,153 -6,154 L8,154 C21,153 24,144 22,130 C12,124 -12,124 -21,130 Z" fill="#8FA3C6" stroke="#5F7299" stroke-width="2.6"/><path d="M-21,146 C-14,151 14,151 22,146" stroke="#5F7299" stroke-width="2.2" fill="none"/>`;
+  return s + '</g>';
+}
+function torsoMan(o) {
+  const f = o.outfit || 'hoodie', k = manCols(o);
+  let s = '';
+  if (f === 'hoodie') s += `<path d="M-48,-320 C-40,-292 40,-292 48,-320 C40,-344 -40,-344 -48,-320 Z" fill="${C.hoodShade}" stroke="${C.hoodLine}" stroke-width="2.4"/>`;
+  s += `<path d="M-17,-374 L17,-374 L18,-316 L-18,-316 Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.4"/>`;
+  s += `<path d="M-18,-352 Q0,-336 18,-352 L18,-374 L-18,-374 Z" fill="${C.skinShade}"/>`;
+  // hips / trousers top
+  const suit = f === 'suit';
+  s += `<path d="M-54,-226 C-60,-204 -62,-184 -58,-160 L58,-160 C62,-184 60,-204 54,-226 Z" fill="${suit ? C.suit : C.pants}" stroke="${suit ? C.suitLine : C.pantsLine}" stroke-width="2.6"/>`;
+  if (suit) {
+    s += `<path d="M-46,-310 C-48,-270 -46,-232 -44,-214 L44,-214 C46,-232 48,-270 46,-310 C26,-322 -26,-322 -46,-310 Z" fill="${C.shirt}" stroke="#A7A2BE" stroke-width="2.4"/>`;
+    s += `<g transform="rotate(${o.tieLoose ? 8 : 0} 0 -312)"><path d="M-6,-314 L6,-314 L10,-246 L0,-232 L-10,-246 Z" fill="${C.tie}" stroke="#6E2F40" stroke-width="2"/><path d="M-8,-318 L8,-318 L6,-306 L-6,-306 Z" fill="#7E3A4C"/></g>`;
+    for (const sd of [-1, 1]) {
+      s += `<g transform="scale(${sd} 1)"><path d="M-56,-310 C-66,-276 -68,-230 -64,-196 L-20,-196 C-18,-236 -14,-276 -12,-300 L-26,-318 C-36,-318 -48,-316 -56,-310 Z" fill="${C.suit}" stroke="${C.suitLine}" stroke-width="2.6"/>`;
+      s += `<path d="M-26,-318 L-12,-300 L-26,-268" fill="none" stroke="${C.suitLine}" stroke-width="2.4"/><path d="M-60,-270 C-64,-240 -62,-214 -60,-200" fill="none" stroke="${C.suitShade}" stroke-width="7" stroke-linecap="round" opacity=".8"/></g>`;
+    }
+    s += `<circle cx="-16" cy="-224" r="3.4" fill="#1F2438"/>`;
+  } else {
+    s += `<path d="M-56,-308 C-64,-274 -64,-232 -60,-196 C-40,-188 40,-188 60,-196 C64,-232 64,-274 56,-308 C32,-324 -32,-324 -56,-308 Z" fill="${k.c}" stroke="${k.ln}" stroke-width="2.6"/>`;
+    s += `<path d="M-60,-208 C-40,-200 40,-200 60,-208 L60,-194 C40,-186 -40,-186 -60,-194 Z" fill="${k.sh}" stroke="${k.ln}" stroke-width="2.2"/>`;
+    s += `<path d="M-40,-268 C-36,-244 -40,-222 -46,-210 M34,-280 C42,-252 42,-228 38,-212" fill="none" stroke="${k.sh}" stroke-width="6" stroke-linecap="round" opacity=".8"/>`;
+    if (f === 'hoodie') {
+      s += `<path d="M-34,-250 L34,-250 L42,-214 L-42,-214 Z" fill="${C.hoodShade}" stroke="${C.hoodLine}" stroke-width="2.2"/>`;
+      s += `<path d="M-10,-314 L-12,-270 M10,-314 L12,-270" stroke="#E9E7F0" stroke-width="3" stroke-linecap="round"/>`;
+      s += `<path d="M-20,-318 Q0,-300 20,-318" fill="none" stroke="${C.hoodLine}" stroke-width="2.4"/>`;
+    } else {
+      s += `<path d="M-20,-318 Q0,-298 20,-318" fill="none" stroke="${k.ln}" stroke-width="2.4"/>`;
+      for (const [sx, sy] of [[-30, -280], [20, -260], [-14, -232], [34, -228], [0, -290]]) s += U.sparkle(sx, sy, 7, '#FFFFFF', 0.85);
+    }
+  }
+  return s;
+}
+
 // ---------------------------------------------------------------- full character
 // o: {x,y,s,t, walk(phase), run, lean, tilt, turn, look, eyes, mouth, blush, brows, armL, armR, itemL, itemR,
 //     sway, upperOnly, dragon, hiddenEye, sweat, blinkSeed, filter, sil, armBehind:'L'|'R'}
@@ -385,25 +473,25 @@ function charSVG(who, o) {
   if (!o.upperOnly && !o.noShadow) s += `<ellipse cx="0" cy="0" rx="78" ry="14" fill="#5A4A80" opacity=".16"/>`;
   // --- behind: back hair, ponytail
   back += `<g transform="translate(0 ${U.f(bob)}) rotate(${U.f(lean)} 0 -170)">`;
-  if (!yu) {
+  if (who === 'vol') {
     back += `<g transform="${headTr}"><g transform="translate(46 -112) rotate(${U.f(sway)})"><path d="${HAIR.volTail}" fill="${C.hair}" stroke="${C.hairLine}" stroke-width="3"/><path d="${HAIR.volTailShade}" fill="${C.hairShade}"/><path d="M40,-30 C70,-30 92,0 100,40 M20,10 C40,4 60,20 66,60" fill="none" stroke="${C.hairShade2}" stroke-width="3" stroke-linecap="round"/><path d="M98,40 C110,80 104,120 106,170" fill="none" stroke="${C.mesh}" stroke-width="6" stroke-linecap="round" opacity=".9"/></g></g>`;
   }
   back += `<g transform="${headTr}">${headBack(who, oo)}</g>`;
   back += `</g>`;
   s += `<g transform="translate(0 ${U.f(bob)})">`;
   // --- legs
-  if (!o.upperOnly) s += legSVG(who, -1, legL) + legSVG(who, 1, legR);
+  if (!o.upperOnly) s += legSVG(who, -1, legL, o) + legSVG(who, 1, legR, o);
   // --- upper body
   s += `<g transform="rotate(${U.f(lean)} 0 -170)">`;
   if (o.armBehind === 'L') s += armSVG(who, -1, armL, o.itemL, oo);
   if (o.armBehind === 'R') s += armSVG(who, 1, armR, o.itemR, oo);
-  s += `<g transform="translate(0 ${U.f(breathe * 0.3)})">${yu ? torsoYuria(oo) : torsoVol(oo)}</g>`;
+  s += `<g transform="translate(0 ${U.f(breathe * 0.3)})">${yu ? torsoYuria(oo) : who === 'man' ? torsoMan(oo) : torsoVol(oo)}</g>`;
   if (o.armBehind !== 'L' && !o.noArmL) s += armSVG(who, -1, armL, o.itemL, oo);
   if (o.armBehind !== 'R' && !o.noArmR) s += armSVG(who, 1, armR, o.itemR, oo);
   // side ponytail (Yuria)
   if (yu) {
     s += `<g transform="${headTr}"><g transform="translate(98 -70) rotate(${U.f(sway)})"><path d="${HAIR.yuriaTail}" fill="${C.hair}" stroke="${C.hairLine}" stroke-width="3"/><path d="${HAIR.yuriaTailYellow}" fill="${C.yYellow}"/><path d="M20,0 C46,20 56,60 54,100 M12,30 C26,60 28,100 22,140" fill="none" stroke="${C.hairShade2}" stroke-width="3" stroke-linecap="round" opacity=".8"/><path d="M58,30 C70,60 68,100 62,130" fill="none" stroke="${C.yYellowShade}" stroke-width="3" stroke-linecap="round" opacity=".8"/><ellipse cx="2" cy="2" rx="15" ry="20" transform="rotate(28 2 2)" fill="#2D2935"/><path d="M-6,-12 C2,-6 4,8 -2,16 M6,-14 C12,-4 12,10 6,18" fill="none" stroke="#55505F" stroke-width="2.4"/></g></g>`;
-  } else {
+  } else if (who === 'vol') {
     s += `<g transform="${headTr}"><g transform="translate(46 -112)"><ellipse cx="0" cy="0" rx="17" ry="13" transform="rotate(-32)" fill="#2D2935"/><path d="M-8,-6 C-2,0 2,6 4,10" fill="none" stroke="#55505F" stroke-width="2.4"/></g></g>`;
   }
   // head (kept separate so scenes can layer heads independently)

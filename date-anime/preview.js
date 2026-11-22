@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: Number(sc || 1) });
   page.on('pageerror', e => console.error('PAGE ERROR', e.message));
   page.on('console', m => { if (m.type() === 'error') console.error('CONSOLE', m.text()); });
-  await page.goto('file://' + __dirname + '/anim.html');
+  await page.goto('file://' + __dirname + '/' + (process.env.PAGE || 'anim.html'));
   await page.evaluate(expr);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(150);

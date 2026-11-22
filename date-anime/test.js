@@ -31,3 +31,13 @@ window.testBg = function (name, t = 2) {
   if (name === 'end') s += B.end(t);
   el.innerHTML = s;
 };
+window.testMan = function (t = 1.0) {
+  U.resetUid();
+  let s = '<rect width="1080" height="1920" fill="#F3F0FA"/>';
+  s += charSVG('man', { x: 190, y: 820, s: 1.05, t, outfit: 'suit', tired: true, eyes: 'half', mouth: 'flat', brows: 'worry', tieLoose: true, lean: 4, tilt: 6 });
+  s += charSVG('man', { x: 540, y: 820, s: 1.05, t, outfit: 'hoodie', eyes: 'open', mouth: 'smile', blush: 0.2 });
+  s += charSVG('man', { x: 890, y: 820, s: 1.05, t, outfit: 'pajama', bedhair: true, tired: true, eyes: 'sleepy', mouth: 'o' });
+  s += charSVG('yuria', { x: 300, y: 1900, s: 2.2, t, upperOnly: true, eyes: 'open', mouth: 'grin', look: [0.2, 0] });
+  s += charSVG('vol', { x: 800, y: 1900, s: 2.2, t, upperOnly: true, eyes: 'open', mouth: 'smile', look: [-0.2, 0] });
+  document.getElementById('content').innerHTML = s;
+};
