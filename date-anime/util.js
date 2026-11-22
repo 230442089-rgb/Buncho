@@ -49,3 +49,9 @@ U.heart = (x, y, size, fill = '#FF7FA6', op = 1, rot = 0, stroke = '') =>
 // 4-point sparkle
 U.sparkle = (x, y, size, fill = '#fff', op = 1, rot = 0) =>
   `<path ${U.tr(x, y, size, rot)} d="M0,-1 C0.12,-0.12 0.12,-0.12 1,0 C0.12,0.12 0.12,0.12 0,1 C-0.12,0.12 -0.12,0.12 -1,0 C-0.12,-0.12 -0.12,-0.12 0,-1 Z" fill="${fill}" opacity="${U.f(op * 100) / 100}"/>`;
+
+// mix two #rrggbb colours
+U.mix = (a, b, t) => {
+  const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * U.clamp(t)).toString(16).padStart(2, '0')).join('');
+};

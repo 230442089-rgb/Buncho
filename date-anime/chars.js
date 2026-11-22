@@ -190,6 +190,12 @@ function headFront(who, o) {
   const hx = turn * 4;
   s += `<g transform="translate(${U.f(hx)} 0)">`;
   if (man) {
+    const age = o.age || 25;
+    if (o.gaunt) for (const sd of [-1, 1]) s += `<ellipse cx="${sd * 62 + fx}" cy="66" rx="16" ry="24" fill="#CDA9A3" opacity=".35"/>`;
+    if (age >= 50) s += `<path d="M${-30 + fx},54 Q${-37 + fx},68 ${-27 + fx},82 M${30 + fx},54 Q${37 + fx},68 ${27 + fx},82" fill="none" stroke="#D2A39D" stroke-width="2.4" stroke-linecap="round" opacity="${U.f(U.inv(50, 68, age) * 80) / 100}"/>`;
+    if (age >= 58) for (const sd of [-1, 1]) s += `<path transform="translate(${fx} 0) scale(${sd} 1)" d="M74,14 l9,-4 M75,22 l10,0 M74,30 l9,4" stroke="#D2A39D" stroke-width="2" stroke-linecap="round" opacity="${U.f(U.inv(58, 72, age) * 80) / 100}"/>`;
+    if (o.stubble) for (let i = 0; i < 26; i++) { const a = Math.PI * (0.15 + 0.7 * U.hash(i * 3.7)), r = 70 + U.hash(i * 1.3) * 26; s += `<circle cx="${U.f(Math.cos(a) * r * 0.9 + fx)}" cy="${U.f(Math.sin(a) * r * 0.95 + 8)}" r="1.6" fill="#8E8A9A" opacity=".7"/>`; }
+    if (o.glasses) s += `<g transform="translate(${fx} 0)" fill="none" stroke="#4A4658" stroke-width="3.6"><circle cx="-42" cy="22" r="31"/><circle cx="42" cy="22" r="31"/><path d="M-11,18 Q0,12 11,18 M-73,16 L-94,10 M73,16 L94,10"/></g><path d="M${-60 + fx},4 l14,-6 M${24 + fx},4 l14,-6" stroke="#FFFFFF" stroke-width="3" opacity=".6"/>`;
     for (const sd of [-1, 1]) s += `<path transform="scale(${sd} 1)" d="M-104,-16 C-108,6 -106,24 -99,38 C-95,24 -93,8 -92,-6 Z" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="2.6"/>`;
     if (o.bedhair) s += `<path d="M-40,-118 L-62,-168 L-22,-130 L-6,-184 L12,-128 L44,-170 L36,-116 Z" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="2.6" stroke-linejoin="round"/>`;
     s += `<path d="${HAIR.manBangs}" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="3" stroke-linejoin="round"/>`;
@@ -387,6 +393,8 @@ function manCols(o) {
   const f = o.outfit || 'hoodie';
   if (f === 'suit') return { c: C.suit, sh: C.suitShade, ln: C.suitLine };
   if (f === 'pajama') return { c: C.pj, sh: C.pjShade, ln: C.pjLine };
+  if (f === 'cardigan') return { c: '#CDB99A', sh: '#B39E7C', ln: '#7E6C52' };
+  if (f === 'sweat') return { c: '#7E7C8E', sh: '#6A6879', ln: '#4C4A5A' };
   return { c: C.hood, sh: C.hoodShade, ln: C.hoodLine };
 }
 function armMan(side, ang, item, o) {
@@ -433,7 +441,12 @@ function torsoMan(o) {
     s += `<path d="M-56,-308 C-64,-274 -64,-232 -60,-196 C-40,-188 40,-188 60,-196 C64,-232 64,-274 56,-308 C32,-324 -32,-324 -56,-308 Z" fill="${k.c}" stroke="${k.ln}" stroke-width="2.6"/>`;
     s += `<path d="M-60,-208 C-40,-200 40,-200 60,-208 L60,-194 C40,-186 -40,-186 -60,-194 Z" fill="${k.sh}" stroke="${k.ln}" stroke-width="2.2"/>`;
     s += `<path d="M-40,-268 C-36,-244 -40,-222 -46,-210 M34,-280 C42,-252 42,-228 38,-212" fill="none" stroke="${k.sh}" stroke-width="6" stroke-linecap="round" opacity=".8"/>`;
-    if (f === 'hoodie') {
+    if (f === 'cardigan') {
+      s += `<path d="M-20,-318 L0,-262 L20,-318" fill="#ECE8F2" stroke="${k.ln}" stroke-width="2.4"/><path d="M0,-262 L0,-196" stroke="${k.ln}" stroke-width="2.4"/>`;
+      for (const by of [-250, -226, -204]) s += `<circle cx="6" cy="${by}" r="3.4" fill="#7E6C52"/>`;
+    } else if (f === 'sweat') {
+      s += `<path d="M-20,-318 Q0,-300 20,-318" fill="none" stroke="${k.ln}" stroke-width="2.4"/><path d="M-30,-250 C-20,-246 -14,-238 -12,-228 M22,-270 C28,-262 30,-254 30,-246" stroke="#5C5A6B" stroke-width="5" stroke-linecap="round" opacity=".7"/>`;
+    } else if (f === 'hoodie') {
       s += `<path d="M-34,-250 L34,-250 L42,-214 L-42,-214 Z" fill="${C.hoodShade}" stroke="${C.hoodLine}" stroke-width="2.2"/>`;
       s += `<path d="M-10,-314 L-12,-270 M10,-314 L12,-270" stroke="#E9E7F0" stroke-width="3" stroke-linecap="round"/>`;
       s += `<path d="M-20,-318 Q0,-300 20,-318" fill="none" stroke="${C.hoodLine}" stroke-width="2.4"/>`;
@@ -445,10 +458,39 @@ function torsoMan(o) {
   return s;
 }
 
+// ---------------------------------------------------------------- palette overrides
+const MOURN = {
+  card: '#2E2B36', cardShade: '#23212A', cardLine: '#121117', cardHi: '#45414F',
+  skirt: '#26242C', skirtShade: '#1C1B21', skirtLine: '#101014',
+  tee: '#34313C', teeShade: '#2A2832', teeLine: '#121117', jog: '#26242C', jogShade: '#1C1B21', jogLine: '#101014',
+  bag: '#34313C', bagShade: '#2A2832', bagLine: '#121117', gold: '#8E8A9A',
+  suit: '#26242C', suitShade: '#1C1B21', suitLine: '#0E0E12', tie: '#1A1A1F',
+};
+function agePalette(age) {
+  const a = age || 25;
+  const hair = a <= 35 ? '#36323F' : a <= 55 ? U.mix('#36323F', '#8A8596', (a - 35) / 20) : U.mix('#8A8596', '#E4E1EB', (a - 55) / 17);
+  const hi = a <= 35 ? '#5F5A73' : U.mix('#5F5A73', '#FFFFFF', (a - 35) / 37);
+  const ln = a <= 35 ? '#1F1D28' : U.mix('#1F1D28', '#8C87A0', (a - 35) / 37);
+  return { manHair: hair, manHairHi: hi, manHairLine: ln, manBrow: U.mix('#3A3548', '#B9B4C8', U.inv(45, 72, a)) };
+}
+function withPalette(over, fn) {
+  const saved = {};
+  for (const k in over) { saved[k] = C[k]; C[k] = over[k]; }
+  try { return fn(); } finally { Object.assign(C, saved); }
+}
+
 // ---------------------------------------------------------------- full character
 // o: {x,y,s,t, walk(phase), run, lean, tilt, turn, look, eyes, mouth, blush, brows, armL, armR, itemL, itemR,
 //     sway, upperOnly, dragon, hiddenEye, sweat, blinkSeed, filter, sil, armBehind:'L'|'R'}
 function charSVG(who, o) {
+  let over = {};
+  if (o.mourning) over = Object.assign(over, MOURN);
+  if (who === 'man' && o.age) over = Object.assign(over, agePalette(o.age));
+  if (o.mourning && who === 'man') o = Object.assign({}, o, { outfit: 'suit', tieLoose: false });
+  if (Object.keys(over).length) return withPalette(over, () => charSVGcore(who, o));
+  return charSVGcore(who, o);
+}
+function charSVGcore(who, o) {
   const t = o.t || 0;
   const yu = who === 'yuria';
   let legL = 0, legR = 0, bob = 0, swing = 0;
