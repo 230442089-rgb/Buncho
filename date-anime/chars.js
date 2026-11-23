@@ -39,6 +39,9 @@ function eyeSVG(cx, cy, side, o) {
   if (st === 'closed' || blink > 0.86) {
     return g(ll('M-23,6 Q1,20 27,4', 5.5) + ll('M-9,13 l-3,7 M3,15 l0,7 M15,12 l3,7', 2.6));
   }
+  if (st === 'swirl') {
+    return g(`<path d="M0,6 m-3,0 a3,3 0 1,1 6,0 a6,6 0 1,1 -12,0 a9,9 0 1,1 18,0 a12,12 0 1,1 -24,0 a15,15 0 1,1 30,0" fill="none" stroke="${L}" stroke-width="3.2" stroke-linecap="round"/>`);
+  }
   if (st === 'shut') { // squeezed shut (> <)
     return g(ll('M-20,-6 L18,6 L-20,18', 6));
   }
@@ -199,6 +202,7 @@ function headFront(who, o) {
     for (const sd of [-1, 1]) s += `<path transform="scale(${sd} 1)" d="M-104,-16 C-108,6 -106,24 -99,38 C-95,24 -93,8 -92,-6 Z" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="2.6"/>`;
     if (o.bedhair) s += `<path d="M-40,-118 L-62,-168 L-22,-130 L-6,-184 L12,-128 L44,-170 L36,-116 Z" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="2.6" stroke-linejoin="round"/>`;
     s += `<path d="${HAIR.manBangs}" fill="${C.manHair}" stroke="${C.manHairLine}" stroke-width="3" stroke-linejoin="round"/>`;
+    if (o.headband) s += `<path d="M-108,-46 Q0,-72 108,-46 L108,-24 Q0,-50 -108,-24 Z" fill="#D8343F" stroke="#9E1F2E" stroke-width="2.6"/><path d="M106,-40 C130,-36 140,-20 150,-4 M106,-32 C126,-20 130,-4 134,12" stroke="#D8343F" stroke-width="9" stroke-linecap="round" fill="none"/>`;
     s += `<path d="M-74,-60 C-40,-86 40,-88 78,-58" fill="none" stroke="${C.manHairHi}" stroke-width="9" stroke-linecap="round" opacity=".8"/>`;
     s += `<path d="M-46,-24 L-40,-60 M-6,-26 L-2,-66 M34,-24 L30,-62 M70,-20 L64,-50" fill="none" stroke="${C.manHairHi}" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
   } else if (who === 'yuria') {
@@ -395,12 +399,21 @@ function manCols(o) {
   if (f === 'pajama') return { c: C.pj, sh: C.pjShade, ln: C.pjLine };
   if (f === 'cardigan') return { c: '#CDB99A', sh: '#B39E7C', ln: '#7E6C52' };
   if (f === 'sweat') return { c: '#7E7C8E', sh: '#6A6879', ln: '#4C4A5A' };
+  if (f === 'tank') return { c: '#2E2B36', sh: '#23212A', ln: '#14131A' };
   return { c: C.hood, sh: C.hoodShade, ln: C.hoodLine };
 }
 function armMan(side, ang, item, o) {
-  const px = side * 54, py = -296, rot = side < 0 ? ang : -ang, handY = 110;
+  const px = side * 54, py = -296, rot = side < 0 ? ang : -ang;
+  const st = (side < 0 ? o.stretchL : o.stretchR) || 1;
+  const handY = 110 * st;
   const k = manCols(o);
   let s = `<g transform="translate(${px} ${py}) rotate(${U.f(rot)})">`;
+  if ((o.outfit || '') === 'tank') {
+    s += `<g transform="scale(1 ${U.f(st * 100) / 100})"><path d="M-17,-6 C-19,36 -18,72 -15,102 L15,102 C18,72 19,36 17,-6 C10,-20 -10,-20 -17,-6 Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.6"/><path d="M${side * -6},14 C${side * -9},34 ${side * -9},50 ${side * -6},62" fill="none" stroke="${C.skinShade}" stroke-width="5" stroke-linecap="round"/></g>`;
+    if (o.gloves) s += `<g transform="translate(0 ${U.f(handY)})"><path d="M-26,-18 C-34,8 -24,34 0,34 C24,34 34,8 26,-18 Z" fill="#E23C4C" stroke="#9E1F2E" stroke-width="3"/><path d="M${side * 20},-6 C${side * 34},0 ${side * 32},18 ${side * 20},20" fill="#E23C4C" stroke="#9E1F2E" stroke-width="3"/><rect x="-22" y="-26" width="44" height="14" rx="5" fill="#FFFFFF" stroke="#9E1F2E" stroke-width="2.4"/><path d="M-12,6 Q0,0 12,6" fill="none" stroke="#FF8A94" stroke-width="5" stroke-linecap="round" opacity=".8"/></g>`;
+    else s += `<path d="M-14,${handY - 12} C-18,${handY + 2} -13,${handY + 15} 0,${handY + 15} C13,${handY + 15} 18,${handY + 2} 14,${handY - 12} Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.6"/>`;
+    return s + '</g>';
+  }
   const it = item ? `<g transform="translate(0 ${handY}) rotate(${U.f(-rot - (o.lean || 0))})">${itemSVG(item, o.bite || 0)}</g>` : '';
   s += `<path d="M-14,${handY - 12} C-18,${handY + 2} -13,${handY + 15} 0,${handY + 15} C13,${handY + 15} 18,${handY + 2} 14,${handY - 12} Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.6"/>` + it;
   s += `<path d="M-21,0 C-23,36 -23,72 -21,98 C-10,104 10,104 21,98 C23,72 23,36 21,0 C12,-22 -12,-22 -21,0 Z" fill="${k.c}" stroke="${k.ln}" stroke-width="2.8"/>`;
@@ -423,6 +436,14 @@ function legMan(side, ang, o) {
 function torsoMan(o) {
   const f = o.outfit || 'hoodie', k = manCols(o);
   let s = '';
+  if (f === 'tank') {
+    s += `<path d="M-17,-374 L17,-374 L18,-316 L-18,-316 Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.4"/>`;
+    s += `<path d="M-60,-300 C-64,-312 -40,-322 -18,-318 L18,-318 C40,-322 64,-312 60,-300 L56,-270 L-56,-270 Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.4"/>`;
+    s += `<path d="M-54,-226 C-60,-204 -62,-184 -58,-160 L58,-160 C62,-184 60,-204 54,-226 Z" fill="#2E3A66" stroke="#1C2447" stroke-width="2.6"/><path d="M-58,-200 L58,-200" stroke="#E23C4C" stroke-width="8"/>`;
+    s += `<path d="M-40,-318 L-28,-318 C-26,-296 26,-296 28,-318 L40,-318 C50,-290 56,-250 54,-214 C30,-206 -30,-206 -54,-214 C-56,-250 -50,-290 -40,-318 Z" fill="#2E2B36" stroke="#14131A" stroke-width="2.6"/>`;
+    s += `<path d="M-26,-280 C-14,-272 14,-272 26,-280 M-20,-250 L20,-250" stroke="#45414F" stroke-width="3" fill="none"/>`;
+    return s;
+  }
   if (f === 'hoodie') s += `<path d="M-48,-320 C-40,-292 40,-292 48,-320 C40,-344 -40,-344 -48,-320 Z" fill="${C.hoodShade}" stroke="${C.hoodLine}" stroke-width="2.4"/>`;
   s += `<path d="M-17,-374 L17,-374 L18,-316 L-18,-316 Z" fill="${C.skin}" stroke="${C.skinLine}" stroke-width="2.4"/>`;
   s += `<path d="M-18,-352 Q0,-336 18,-352 L18,-374 L-18,-374 Z" fill="${C.skinShade}"/>`;
