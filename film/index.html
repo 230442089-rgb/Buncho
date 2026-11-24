@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>言葉は、世界になる。</title>
+<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css">
+<style>
+@font-face { font-family: 'Shippori Mincho'; src: url('fonts/ShipporiMincho-Regular.ttf'); font-weight: 400; }
+@font-face { font-family: 'Shippori Mincho'; src: url('fonts/ShipporiMincho-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'Shippori Mincho'; src: url('fonts/ShipporiMincho-SemiBold.ttf'); font-weight: 600; }
+@font-face { font-family: 'Shippori Mincho'; src: url('fonts/ShipporiMincho-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'Shippori Mincho'; src: url('fonts/ShipporiMincho-ExtraBold.ttf'); font-weight: 800; }
+@font-face { font-family: 'Noto Sans JP'; src: url('fonts/NotoSansJP-VF.ttf'); font-weight: 100 900; }
+:root {
+  --paper: #f4efe6; --ink: #05060a; --shu: #ff4b2b; --gold: #f2c57c;
+  --mincho: 'Shippori Mincho', serif; --gothic: 'Noto Sans JP', sans-serif;
+  --latin: 'Inter', sans-serif; --display: 'Inter Display', 'Inter', sans-serif; --mono: 'JetBrains Mono', 'Noto Sans JP', monospace;
+}
+html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
+#gl { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: block; }
+#overlay { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; color: var(--paper);
+  font-family: var(--mincho); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; font-kerning: normal; }
+#overlay > div { position: absolute; }
+.ch { display: inline-block; white-space: pre; }
+
+/* 章の見出し */
+.chap { left: 96px; top: 78px; display: flex; align-items: center; height: 60px; white-space: nowrap; }
+.chap .num { font-family: var(--display); font-weight: 200; font-size: 58px; line-height: 60px; letter-spacing: -0.02em; font-feature-settings: 'tnum' 1, 'cv01' 1; }
+.chap .rule { display: block; width: 46px; height: 2px; background: var(--shu); margin: 0 22px 0 24px; transform-origin: 0 50%; box-shadow: 0 0 12px rgba(255, 75, 43, .55); }
+.chap .kanji { font-family: var(--mincho); font-weight: 600; font-size: 40px; line-height: 60px; letter-spacing: 0.08em; }
+.chap .en { font-family: var(--latin); font-weight: 500; font-size: 13px; letter-spacing: 0.46em; margin-left: 22px; padding-top: 12px; color: rgba(244, 239, 230, .62); }
+.chap.dark { color: #14151c; } .chap.dark .en { color: rgba(20, 21, 28, .6); }
+
+/* 中央下の一行 */
+.narr { left: 0; right: 0; top: 886px; text-align: center; font-family: var(--mincho); font-weight: 500; font-size: 43px; line-height: 64px;
+  letter-spacing: 0.16em; padding-left: 0.16em; font-feature-settings: 'palt' 1; text-shadow: 0 0 28px rgba(0, 0, 0, .75), 0 2px 10px rgba(0, 0, 0, .55); white-space: nowrap; }
+.narr.dark { color: #14151c; text-shadow: 0 0 14px rgba(244, 239, 230, 1), 0 0 30px rgba(244, 239, 230, 1), 0 0 4px rgba(244, 239, 230, 1); }
+
+/* 数式 */
+.eq { color: var(--paper); line-height: 1.5; white-space: nowrap; text-shadow: 0 0 18px rgba(0, 0, 0, .8); }
+.eq.dark { color: #14151c; text-shadow: none; }
+.eq .eqline { margin: 2px 0; }
+.eq .katex { font-size: 1em; }
+
+/* 面の章: 名前と数式の札（紙の上なので墨色） */
+.plate { right: 96px; top: 80px; text-align: right; color: #14151c; white-space: nowrap; }
+.plate-label { font-family: var(--gothic); font-weight: 500; font-size: 15px; letter-spacing: 0.34em; margin-right: -0.34em; color: rgba(20, 21, 28, .72); }
+.plate-label::before { content: ''; display: inline-block; width: 7px; height: 7px; background: var(--shu); margin-right: 12px; transform: translateY(-1px); }
+.plate-eq { margin-top: 12px; line-height: 1.9; text-shadow: 0 0 10px rgba(244, 239, 230, 1), 0 0 22px rgba(244, 239, 230, 1), 0 0 3px rgba(244, 239, 230, 1); }
+.plate-eq .katex { font-size: 1em; }
+
+/* 時間の章: 早回しの時計 */
+.clock { left: 98px; top: 162px; font-family: var(--display); font-weight: 200; font-size: 44px; letter-spacing: 0.02em; font-feature-settings: 'tnum' 1; white-space: nowrap; text-shadow: 0 0 22px rgba(0, 0, 0, .55); }
+.clock .colon { margin: 0 3px; position: relative; top: -3px; opacity: .8; }
+.clock .unit { font-family: var(--gothic); font-weight: 400; font-size: 14px; letter-spacing: 0.3em; margin-left: 20px; color: rgba(244, 239, 230, .7); position: relative; top: -6px; }
+
+/* 生命の章: 群れの 3 つの規則 */
+.rules { right: 96px; top: 84px; font-family: var(--gothic); font-weight: 500; font-size: 19px; letter-spacing: 0.22em; text-shadow: 0 0 16px rgba(0, 0, 0, .6); white-space: nowrap; }
+.rules .rule-row { margin-bottom: 15px; display: flex; align-items: center; }
+.rules b { display: inline-block; width: 7px; height: 7px; background: var(--shu); margin-right: 14px; }
+.rules i { font-style: normal; font-weight: 300; font-size: 15px; letter-spacing: 0.14em; margin-left: 16px; color: rgba(244, 239, 230, .78); }
+
+/* 言葉の章: くちばしから生まれる文字 → 題（縦書き）と落款 */
+.title { left: 0; top: 0; width: 1920px; height: 1080px; }
+.title .tg { position: absolute; left: 0; top: 0; width: 98px; height: 98px; font-family: var(--mincho); font-weight: 700; font-size: 98px; line-height: 98px; writing-mode: vertical-rl; text-align: center;
+  color: var(--paper); text-shadow: 0 0 34px rgba(8, 12, 28, .55), 0 3px 16px rgba(8, 12, 28, .45); transform-origin: 50% 50%; }
+.title-en { position: absolute; left: 228px; width: 600px; top: 892px; text-align: center; font-family: var(--latin); font-weight: 500; font-size: 14px; letter-spacing: 0.56em; color: rgba(244, 239, 230, .82); text-shadow: 0 0 14px rgba(8, 12, 28, .7); white-space: nowrap; }
+.seal { position: absolute; left: 586px; top: 668px; width: 38px; height: 52px; background: var(--shu); border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: var(--mincho); font-weight: 800; font-size: 19px; line-height: 21px; color: var(--paper); box-shadow: 0 0 22px rgba(255, 75, 43, .45); transform-origin: 50% 50%; }
+
+/* クレジット */
+.credits { left: 1016px; top: 300px; width: 820px; white-space: nowrap; text-shadow: 0 0 20px rgba(8, 12, 28, .7), 0 2px 8px rgba(8, 12, 28, .5); }
+.cr-main { font-family: var(--mincho); font-weight: 600; font-size: 42px; letter-spacing: 0.12em; margin-bottom: 30px; }
+.cr-row { font-family: var(--gothic); font-weight: 400; font-size: 18px; letter-spacing: 0.12em; margin-top: 16px; display: flex; align-items: center; }
+.cr-row b { display: inline-block; width: 7px; height: 7px; background: var(--shu); margin-right: 14px; }
+.cr-row i { font-style: normal; opacity: .45; margin: 0 0.9em; }
+.cr-row em { font-style: normal; font-weight: 600; margin-left: 0.9em; }
+.cr-small { font-family: var(--gothic); font-weight: 300; font-size: 13.5px; letter-spacing: 0.08em; line-height: 2.0; margin-top: 30px; color: rgba(244, 239, 230, .78); }
+
+/* 注記 */
+.note { font-family: var(--mono); font-weight: 400; letter-spacing: 0.08em; color: rgba(244, 239, 230, .58); white-space: pre; text-shadow: 0 0 12px rgba(0, 0, 0, .8); }
+.note.dark { color: rgba(20, 21, 28, .6); text-shadow: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <div id="overlay"></div>
+</div>
+<script src="../node_modules/katex/dist/katex.min.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
