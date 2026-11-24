@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>見えない火</title>
+<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css">
+<style>
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-Regular.ttf'); font-weight: 400; }
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-SemiBold.ttf'); font-weight: 600; }
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-ExtraBold.ttf'); font-weight: 800; }
+@font-face { font-family: 'Noto Sans JP'; src: url('../film/fonts/NotoSansJP-VF.ttf'); font-weight: 100 900; }
+:root {
+  --paper: #eef1f4; --ink: #04060b; --blue: #58b8ff; --amber: #ffb648; --red: #ff5a3c; --dim: rgba(238, 241, 244, .62);
+  --mincho: 'Shippori Mincho', serif; --gothic: 'Noto Sans JP', sans-serif;
+  --latin: 'Inter', sans-serif; --display: 'Inter Display', 'Inter', sans-serif; --mono: 'JetBrains Mono', 'Noto Sans JP', monospace;
+}
+html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
+#gl { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: block; }
+#overlay { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; color: var(--paper);
+  font-family: var(--mincho); -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; font-kerning: normal; }
+#overlay > div { position: absolute; }
+.ch { display: inline-block; white-space: pre; }
+b, i, em { font-style: normal; font-weight: inherit; }
+
+/* 章の見出し（左上） */
+.chap { left: 96px; top: 72px; display: flex; align-items: center; height: 60px; white-space: nowrap; text-shadow: 0 0 18px rgba(0, 0, 0, .7); }
+.chap .num { font-family: var(--display); font-weight: 200; font-size: 56px; line-height: 60px; letter-spacing: -0.02em; font-feature-settings: 'tnum' 1; min-width: 34px; }
+.chap .rule { display: block; width: 46px; height: 2px; background: var(--blue); margin: 0 22px 0 22px; transform-origin: 0 50%; box-shadow: 0 0 12px rgba(88, 184, 255, .6); }
+.chap.warn .rule { background: var(--amber); box-shadow: 0 0 12px rgba(255, 182, 72, .6); }
+.chap .kanji { font-family: var(--mincho); font-weight: 600; font-size: 42px; line-height: 60px; letter-spacing: 0.1em; }
+.chap .en { font-family: var(--latin); font-weight: 500; font-size: 15px; letter-spacing: 0.44em; margin-left: 22px; padding-top: 12px; color: var(--dim); }
+
+/* 語りの一行（中央下。2 行まで） */
+.narr { left: 0; right: 0; top: 880px; text-align: center; font-family: var(--mincho); font-weight: 500; font-size: 47px; line-height: 70px;
+  letter-spacing: 0.12em; padding-left: 0.12em; font-feature-settings: 'palt' 1; text-shadow: 0 0 26px rgba(0, 0, 0, .9), 0 0 8px rgba(0, 0, 0, .8), 0 2px 10px rgba(0, 0, 0, .6); white-space: nowrap; }
+.narr.two { top: 836px; }
+.narr b { color: var(--blue); } .narr em { color: var(--amber); } .narr i { color: var(--red); }
+.narr .sm { font-size: 0.6em; letter-spacing: 0.1em; color: var(--dim); }
+/* 補足の小さな一行 */
+.sub { left: 0; right: 0; text-align: center; font-family: var(--gothic); font-weight: 400; font-size: 27px; line-height: 40px; letter-spacing: 0.1em; color: var(--dim); white-space: nowrap;
+  text-shadow: 0 0 14px rgba(0, 0, 0, .9), 0 0 4px rgba(0, 0, 0, .8); }
+
+/* 図のラベル */
+.lbl { font-family: var(--gothic); font-weight: 500; font-size: 27px; line-height: 38px; letter-spacing: 0.1em; white-space: nowrap; text-shadow: 0 0 12px rgba(0, 0, 0, .95), 0 0 3px rgba(0, 0, 0, .9); }
+.lbl small { display: block; font-weight: 400; font-size: 21px; letter-spacing: 0.08em; color: rgba(238, 241, 244, .72); line-height: 31px; }
+.lbl.panel { background: rgba(3, 7, 13, .80); padding: 14px 22px 16px; border-left: 2px solid var(--blue); }
+.lbl.r { text-align: right; } .lbl.c { text-align: center; transform: translateX(-50%); }
+.lbl b { color: var(--blue); } .lbl em { color: var(--amber); } .lbl i { color: var(--red); }
+.lbl .n { font-family: var(--display); font-weight: 300; font-size: 1.25em; letter-spacing: 0.02em; font-feature-settings: 'tnum' 1; }
+
+/* 大きな数字 */
+.big { white-space: nowrap; text-shadow: 0 0 24px rgba(0, 0, 0, .85), 0 0 6px rgba(0, 0, 0, .8); }
+.big .cap { font-family: var(--gothic); font-weight: 500; font-size: 26px; letter-spacing: 0.12em; color: var(--dim); margin-bottom: 6px; }
+.big .num { font-family: var(--display); font-weight: 200; font-size: 112px; line-height: 116px; letter-spacing: -0.01em; font-feature-settings: 'tnum' 1; }
+.big .num .u { font-family: var(--gothic); font-weight: 400; font-size: 36px; letter-spacing: 0.1em; margin-left: 10px; }
+.big .note { font-family: var(--gothic); font-weight: 400; font-size: 23px; line-height: 36px; letter-spacing: 0.08em; color: var(--dim); margin-top: 8px; }
+.big.r { text-align: right; }
+.big.amber .num { color: var(--amber); } .big.blue .num { color: var(--blue); } .big.red .num { color: var(--red); }
+
+/* 出典（左下） */
+.src { left: 96px; top: 1030px; font-family: var(--mono); font-weight: 400; font-size: 17px; letter-spacing: 0.06em; color: rgba(238, 241, 244, .42); white-space: nowrap; text-shadow: 0 0 8px rgba(0, 0, 0, .9); }
+
+/* 数式 */
+.eq { color: var(--paper); line-height: 1.5; white-space: nowrap; text-shadow: 0 0 18px rgba(0, 0, 0, .9); }
+.eq .eqline { margin: 2px 0; }
+.eq .katex { font-size: 1em; }
+
+/* 題 */
+.title { left: 0; right: 0; top: 0; height: 1080px; text-align: center; }
+.title .scrim { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: radial-gradient(ellipse 820px 330px at 50% 50%, rgba(0, 6, 20, .66), rgba(0, 6, 20, .35) 55%, rgba(0, 6, 20, 0) 100%); }
+.title .jp { position: absolute; left: 0; right: 0; top: 388px; font-family: var(--mincho); font-weight: 700; font-size: 148px; line-height: 170px; letter-spacing: 0.24em; padding-left: 0.24em;
+  text-shadow: 0 0 60px rgba(40, 140, 255, .55), 0 0 18px rgba(0, 10, 30, .9); white-space: nowrap; }
+.title .en { position: absolute; left: 0; right: 0; top: 586px; font-family: var(--latin); font-weight: 500; font-size: 19px; letter-spacing: 0.62em; padding-left: 0.62em; color: rgba(238, 241, 244, .8); white-space: nowrap; }
+.title .sub2 { position: absolute; left: 0; right: 0; top: 664px; font-family: var(--gothic); font-weight: 400; font-size: 29px; letter-spacing: 0.24em; padding-left: 0.24em; color: rgba(238, 241, 244, .78); white-space: nowrap; text-shadow: 0 0 14px rgba(0, 10, 30, .9); }
+.title .bar { position: absolute; left: 930px; top: 638px; width: 60px; height: 2px; background: var(--blue); box-shadow: 0 0 14px rgba(88, 184, 255, .8); transform-origin: 50% 50%; }
+
+/* 事故の場面: 時計と 3 つの原則 */
+.clock { right: 96px; top: 62px; text-align: right; white-space: nowrap; text-shadow: 0 0 18px rgba(0, 0, 0, .8); }
+.clock .date { font-family: var(--gothic); font-weight: 500; font-size: 26px; letter-spacing: 0.2em; color: var(--dim); }
+.clock .time { font-family: var(--display); font-weight: 200; font-size: 92px; line-height: 98px; letter-spacing: 0.01em; font-feature-settings: 'tnum' 1; }
+.clock .elapsed { font-family: var(--mono); font-size: 20px; letter-spacing: 0.08em; color: var(--dim); }
+.status { left: 96px; top: 168px; font-family: var(--gothic); white-space: nowrap; text-shadow: 0 0 12px rgba(0, 0, 0, .9); }
+.status .row { display: flex; align-items: center; height: 56px; font-weight: 500; font-size: 30px; letter-spacing: 0.2em; }
+.status .mk { display: inline-block; width: 22px; height: 22px; margin-right: 20px; border: 1.5px solid rgba(238, 241, 244, .55); border-radius: 50%; box-sizing: border-box; position: relative; }
+.status .row.ok .mk { border-color: var(--blue); background: var(--blue); box-shadow: 0 0 14px rgba(88, 184, 255, .8); }
+.status .row.ng .mk { border-color: var(--red); background: var(--red); box-shadow: 0 0 14px rgba(255, 90, 60, .8); }
+.status .row.ng { color: var(--red); }
+.status .st { font-weight: 400; font-size: 21px; letter-spacing: 0.16em; margin-left: 16px; color: var(--dim); }
+.status .row.ng .st { color: rgba(255, 90, 60, .85); }
+.gauge { white-space: nowrap; text-shadow: 0 0 16px rgba(0, 0, 0, .9); }
+.gauge .cap { font-family: var(--gothic); font-weight: 500; font-size: 23px; letter-spacing: 0.2em; color: var(--dim); }
+.gauge .val { font-family: var(--display); font-weight: 200; font-size: 84px; line-height: 90px; font-feature-settings: 'tnum' 1; }
+.gauge .val .u { font-family: var(--gothic); font-weight: 400; font-size: 32px; margin-left: 4px; }
+
+/* 線量の梯子 */
+.tier { left: 1010px; width: 800px; white-space: nowrap; text-shadow: 0 0 16px rgba(0, 0, 0, .9); }
+.tier .dose { font-family: var(--display); font-weight: 200; font-size: 84px; line-height: 90px; letter-spacing: 0; font-feature-settings: 'tnum' 1; }
+.tier .dose .u { font-family: var(--gothic); font-weight: 400; font-size: 32px; letter-spacing: 0.08em; margin-left: 8px; }
+.tier .dose .jp { font-family: var(--mincho); font-weight: 600; font-size: 64px; letter-spacing: 0.1em; }
+.tier .name { font-family: var(--mincho); font-weight: 600; font-size: 42px; line-height: 60px; letter-spacing: 0.1em; margin-top: 10px; }
+.tier .desc { font-family: var(--gothic); font-weight: 400; font-size: 28px; line-height: 46px; letter-spacing: 0.1em; color: rgba(238, 241, 244, .82); margin-top: 8px; }
+.tier .fate { font-family: var(--gothic); font-weight: 500; font-size: 30px; line-height: 46px; letter-spacing: 0.12em; margin-top: 10px; }
+.tier .fate i { color: var(--red); } .tier .fate em { color: var(--amber); } .tier .fate b { color: var(--blue); }
+.tick { font-family: var(--mono); font-size: 19px; letter-spacing: 0.04em; color: rgba(238, 241, 244, .5); white-space: nowrap; text-align: right; width: 120px; }
+
+/* 中央に置く大きめの一文 */
+.center { left: 0; right: 0; text-align: center; font-family: var(--mincho); font-weight: 500; font-size: 54px; line-height: 92px; letter-spacing: 0.16em; padding-left: 0.16em; white-space: nowrap; text-shadow: 0 0 30px rgba(0, 0, 0, .9); }
+.quote { left: 0; right: 0; text-align: center; white-space: nowrap; text-shadow: 0 0 26px rgba(0, 0, 0, .95), 0 0 8px rgba(0, 0, 0, .8); }
+.quote .q { font-family: var(--mincho); font-weight: 500; font-size: 46px; line-height: 72px; letter-spacing: 0.12em; }
+.quote .by { font-family: var(--gothic); font-weight: 400; font-size: 23px; letter-spacing: 0.18em; color: var(--dim); margin-top: 10px; }
+
+/* 箇条（人への影響の一覧など） */
+.rows { white-space: nowrap; text-shadow: 0 0 16px rgba(0, 0, 0, .95), 0 0 4px rgba(0, 0, 0, .8); }
+.rows .row { margin-bottom: 26px; }
+.rows .h { font-family: var(--gothic); font-weight: 500; font-size: 24px; letter-spacing: 0.22em; color: var(--dim); display: flex; align-items: center; }
+.rows .h::before { content: ''; display: inline-block; width: 10px; height: 10px; background: var(--amber); margin-right: 12px; }
+.rows .row.blue .h::before { background: var(--blue); }
+.rows .t { font-family: var(--mincho); font-weight: 500; font-size: 40px; line-height: 58px; letter-spacing: 0.08em; margin-top: 6px; }
+.rows .t .n { font-family: var(--display); font-weight: 300; font-size: 1.2em; letter-spacing: 0.01em; font-feature-settings: 'tnum' 1; }
+.rows .d { font-family: var(--gothic); font-weight: 400; font-size: 23px; line-height: 36px; letter-spacing: 0.1em; color: var(--dim); margin-top: 2px; }
+.rows em { color: var(--amber); } .rows b { color: var(--blue); } .rows i { color: var(--red); }
+
+/* 終わりの札 */
+.endcard { left: 0; top: 0; width: 1920px; height: 1080px; text-shadow: 0 0 14px rgba(0, 4, 12, .95), 0 0 4px rgba(0, 4, 12, .9); }
+.endcard .t { position: absolute; left: 130px; top: 96px; font-family: var(--mincho); font-weight: 700; font-size: 64px; letter-spacing: 0.2em; }
+.endcard .te { position: absolute; left: 134px; top: 190px; font-family: var(--latin); font-weight: 500; font-size: 15px; letter-spacing: 0.5em; color: var(--dim); }
+.endcard .col { position: absolute; top: 262px; font-family: var(--gothic); font-weight: 400; font-size: 20px; line-height: 37px; letter-spacing: 0.04em; color: rgba(238, 241, 244, .86); white-space: nowrap; }
+.endcard .col h4 { margin: 0 0 8px 0; font-weight: 500; font-size: 18px; letter-spacing: 0.3em; color: var(--blue); }
+.endcard .col h4.gap { margin-top: 30px; }
+.endcard .col .m { font-family: var(--mono); font-size: 16px; color: rgba(238, 241, 244, .6); }
+
+.note { font-family: var(--gothic); font-weight: 400; font-size: 23px; line-height: 36px; letter-spacing: 0.08em; color: var(--dim); margin-top: 8px; }
+.big.r { text-align: right; }
+.big.amber .num { color: var(--amber); } .big.blue .num { color: var(--blue); } .big.red .num { color: var(--red); }
+
+/* 出典（左下） */
+.src { left: 96px; top: 1030px; font-family: var(--mono); font-weight: 400; font-size: 17px; letter-spacing: 0.06em; color: rgba(238, 241, 244, .42); white-space: nowrap; text-shadow: 0 0 8px rgba(0, 0, 0, .9); }
+
+/* 数式 */
+.eq { color: var(--paper); line-height: 1.5; white-space: nowrap; text-shadow: 0 0 18px rgba(0, 0, 0, .9); }
+.eq .eqline { margin: 2px 0; }
+.eq .katex { font-size: 1em; }
+
+/* 題 */
+.title { left: 0; right: 0; top: 0; height: 1080px; text-align: center; }
+.title .scrim { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: radial-gradient(ellipse 820px 330px at 50% 50%, rgba(0, 6, 20, .66), rgba(0, 6, 20, .35) 55%, rgba(0, 6, 20, 0) 100%); }
+.title .jp { position: absolute; left: 0; right: 0; top: 388px; font-family: var(--mincho); font-weight: 700; font-size: 148px; line-height: 170px; letter-spacing: 0.24em; padding-left: 0.24em;
+  text-shadow: 0 0 60px rgba(40, 140, 255, .55), 0 0 18px rgba(0, 10, 30, .9); white-space: nowrap; }
+.title .en { position: absolute; left: 0; right: 0; top: 586px; font-family: var(--latin); font-weight: 500; font-size: 19px; letter-spacing: 0.62em; padding-left: 0.62em; color: rgba(238, 241, 244, .8); white-space: nowrap; }
+.title .sub2 { position: absolute; left: 0; right: 0; top: 664px; font-family: var(--gothic); font-weight: 400; font-size: 29px; letter-spacing: 0.24em; padding-left: 0.24em; color: rgba(238, 241, 244, .78); white-space: nowrap; text-shadow: 0 0 14px rgba(0, 10, 30, .9); }
+.title .bar { position: absolute; left: 930px; top: 638px; width: 60px; height: 2px; background: var(--blue); box-shadow: 0 0 14px rgba(88, 184, 255, .8); transform-origin: 50% 50%; }
+
+/* 事故の場面: 時計と 3 つの原則 */
+.clock { right: 96px; top: 62px; text-align: right; white-space: nowrap; text-shadow: 0 0 18px rgba(0, 0, 0, .8); }
+.clock .date { font-family: var(--gothic); font-weight: 500; font-size: 26px; letter-spacing: 0.2em; color: var(--dim); }
+.clock .time { font-family: var(--display); font-weight: 200; font-size: 92px; line-height: 98px; letter-spacing: 0.01em; font-feature-settings: 'tnum' 1; }
+.clock .elapsed { font-family: var(--mono); font-size: 20px; letter-spacing: 0.08em; color: var(--dim); }
+.status { left: 96px; top: 168px; font-family: var(--gothic); white-space: nowrap; text-shadow: 0 0 12px rgba(0, 0, 0, .9); }
+.status .row { display: flex; align-items: center; height: 56px; font-weight: 500; font-size: 30px; letter-spacing: 0.2em; }
+.status .mk { display: inline-block; width: 22px; height: 22px; margin-right: 20px; border: 1.5px solid rgba(238, 241, 244, .55); border-radius: 50%; box-sizing: border-box; position: relative; }
+.status .row.ok .mk { border-color: var(--blue); background: var(--blue); box-shadow: 0 0 14px rgba(88, 184, 255, .8); }
+.status .row.ng .mk { border-color: var(--red); background: var(--red); box-shadow: 0 0 14px rgba(255, 90, 60, .8); }
+.status .row.ng { color: var(--red); }
+.status .st { font-weight: 400; font-size: 21px; letter-spacing: 0.16em; margin-left: 16px; color: var(--dim); }
+.status .row.ng .st { color: rgba(255, 90, 60, .85); }
+.gauge { white-space: nowrap; text-shadow: 0 0 16px rgba(0, 0, 0, .9); }
+.gauge .cap { font-family: var(--gothic); font-weight: 500; font-size: 23px; letter-spacing: 0.2em; color: var(--dim); }
+.gauge .val { font-family: var(--display); font-weight: 200; font-size: 84px; line-height: 90px; font-feature-settings: 'tnum' 1; }
+.gauge .val .u { font-family: var(--gothic); font-weight: 400; font-size: 32px; margin-left: 4px; }
+
+/* 線量の梯子 */
+.tier { left: 1010px; width: 800px; white-space: nowrap; text-shadow: 0 0 16px rgba(0, 0, 0, .9); }
+.tier .dose { font-family: var(--display); font-weight: 200; font-size: 84px; line-height: 90px; letter-spacing: 0; font-feature-settings: 'tnum' 1; }
+.tier .dose .u { font-family: var(--gothic); font-weight: 400; font-size: 32px; letter-spacing: 0.08em; margin-left: 8px; }
+.tier .dose .jp { font-family: var(--mincho); font-weight: 600; font-size: 64px; letter-spacing: 0.1em; }
+.tier .name { font-family: var(--mincho); font-weight: 600; font-size: 42px; line-height: 60px; letter-spacing: 0.1em; margin-top: 10px; }
+.tier .desc { font-family: var(--gothic); font-weight: 400; font-size: 28px; line-height: 46px; letter-spacing: 0.1em; color: rgba(238, 241, 244, .82); margin-top: 8px; }
+.tier .fate { font-family: var(--gothic); font-weight: 500; font-size: 30px; line-height: 46px; letter-spacing: 0.12em; margin-top: 10px; }
+.tier .fate i { color: var(--red); } .tier .fate em { color: var(--amber); } .tier .fate b { color: var(--blue); }
+.tick { font-family: var(--mono); font-size: 19px; letter-spacing: 0.04em; color: rgba(238, 241, 244, .5); white-space: nowrap; text-align: right; width: 120px; }
+
+/* 中央に置く大きめの一文 */
+.center { left: 0; right: 0; text-align: center; font-family: var(--mincho); font-weight: 500; font-size: 54px; line-height: 92px; letter-spacing: 0.16em; padding-left: 0.16em; white-space: nowrap; text-shadow: 0 0 30px rgba(0, 0, 0, .9); }
+.quote { left: 0; right: 0; text-align: center; white-space: nowrap; text-shadow: 0 0 26px rgba(0, 0, 0, .95), 0 0 8px rgba(0, 0, 0, .8); }
+.quote .q { font-family: var(--mincho); font-weight: 500; font-size: 46px; line-height: 72px; letter-spacing: 0.12em; }
+.quote .by { font-family: var(--gothic); font-weight: 400; font-size: 23px; letter-spacing: 0.18em; color: var(--dim); margin-top: 10px; }
+
+/* 箇条（人への影響の一覧など） */
+.rows { white-space: nowrap; text-shadow: 0 0 16px rgba(0, 0, 0, .95), 0 0 4px rgba(0, 0, 0, .8); }
+.rows .row { margin-bottom: 26px; }
+.rows .h { font-family: var(--gothic); font-weight: 500; font-size: 24px; letter-spacing: 0.22em; color: var(--dim); display: flex; align-items: center; }
+.rows .h::before { content: ''; display: inline-block; width: 10px; height: 10px; background: var(--amber); margin-right: 12px; }
+.rows .row.blue .h::before { background: var(--blue); }
+.rows .t { font-family: var(--mincho); font-weight: 500; font-size: 40px; line-height: 58px; letter-spacing: 0.08em; margin-top: 6px; }
+.rows .t .n { font-family: var(--display); font-weight: 300; font-size: 1.2em; letter-spacing: 0.01em; font-feature-settings: 'tnum' 1; }
+.rows .d { font-family: var(--gothic); font-weight: 400; font-size: 23px; line-height: 36px; letter-spacing: 0.1em; color: var(--dim); margin-top: 2px; }
+.rows em { color: var(--amber); } .rows b { color: var(--blue); } .rows i { color: var(--red); }
+
+/* 終わりの札 */
+.endcard { left: 0; top: 0; width: 1920px; height: 1080px; }
+.endcard .t { position: absolute; left: 150px; top: 150px; font-family: var(--mincho); font-weight: 700; font-size: 60px; letter-spacing: 0.2em; }
+.endcard .te { position: absolute; left: 154px; top: 238px; font-family: var(--latin); font-weight: 500; font-size: 13px; letter-spacing: 0.5em; color: var(--dim); }
+.endcard .col { position: absolute; top: 320px; font-family: var(--gothic); font-weight: 400; font-size: 14.5px; line-height: 27px; letter-spacing: 0.06em; color: rgba(238, 241, 244, .8); white-space: nowrap; }
+.endcard .col h4 { margin: 0 0 8px 0; font-weight: 500; font-size: 14px; letter-spacing: 0.3em; color: var(--blue); }
+.endcard .col h4.gap { margin-top: 26px; }
+.endcard .col .m { font-family: var(--mono); font-size: 13px; color: rgba(238, 241, 244, .55); }
+.endcard .foot { position: absolute; left: 150px; top: 966px; font-family: var(--gothic); font-weight: 300; font-size: 13.5px; line-height: 24px; letter-spacing: 0.08em; color: rgba(238, 241, 244, .6); white-space: nowrap; }
+
+.note { font-family: var(--mono); font-weight: 400; letter-spacing: 0.08em; color: rgba(238, 241, 244, .58); white-space: pre; text-shadow: 0 0 12px rgba(0, 0, 0, .8); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <div id="overlay"></div>
+</div>
+<script src="../node_modules/katex/dist/katex.min.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

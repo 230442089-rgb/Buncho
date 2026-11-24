@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // tools/render.js — 指定区間のフレームを撮って 1 本の mp4 に書き出す（無音）
-//   node tools/render.js --from f0 --to f300 --out build/chunks/prologue.mp4 [--crf 16] [--only scene]
+//   node tools/render.js --from f0 --to f300 --out build/chunks/prologue.mp4 [--crf 16] [--only scene] [--film atom]
 // フレームは品質 92 の JPEG で受け取り、ffmpeg にパイプで渡す。一時名に書き、成功したらリネームする。
 const fs = require('fs');
 const path = require('path');
@@ -17,20 +17,21 @@ const ENC = (crf) => [
 
 (async () => {
   const a = process.argv.slice(2);
-  const opt = { from: 0, to: null, out: null, crf: 19, only: null, every: 1 };
+  const opt = { from: 0, to: null, out: null, crf: 19, only: null, every: 1, film: 'film' };
   for (let i = 0; i < a.length; i++) {
     if (a[i] === '--from') opt.from = parseTime(a[++i]);
     else if (a[i] === '--to') opt.to = parseTime(a[++i]);
     else if (a[i] === '--out') opt.out = path.resolve(a[++i]);
     else if (a[i] === '--crf') opt.crf = +a[++i];
     else if (a[i] === '--only') opt.only = a[++i];
+    else if (a[i] === '--film') opt.film = a[++i];
     else if (a[i] === '--query') opt.query = a[++i];
     else if (a[i] === '--jpgdir') opt.jpgdir = path.resolve(a[++i]);
   }
   if (!opt.out) throw new Error('--out が必要です');
   fs.mkdirSync(path.dirname(opt.out), { recursive: true });
   const tmp = opt.out.replace(/\.mp4$/, '.part.mp4');
-  const { page, close, info } = await openFilm({ query: [opt.only ? 'only=' + opt.only : '', opt.query || ''].filter(Boolean).join('&'), quiet: true });
+  const { page, close, info } = await openFilm({ film: opt.film, query: [opt.only ? 'only=' + opt.only : '', opt.query || ''].filter(Boolean).join('&'), quiet: true });
   if (opt.jpgdir) fs.mkdirSync(opt.jpgdir, { recursive: true });
   if (opt.to == null) opt.to = info.frames;
   const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', '30', '-c:v', 'mjpeg', '-i', '-', ...ENC(opt.crf), tmp], { stdio: ['pipe', 'inherit', 'inherit'] });

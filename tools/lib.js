@@ -1,4 +1,4 @@
-// tools/lib.js — film/ を配信するローカルサーバーと、ヘッドレス Chromium でページを開く共通処理
+// tools/lib.js — リポジトリを配信するローカルサーバーと、ヘッドレス Chromium でページ（film/ か atom/）を開く共通処理
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -27,7 +27,7 @@ function serve() {
   });
 }
 
-async function openFilm({ query = '', quiet = false } = {}) {
+async function openFilm({ query = '', quiet = false, film = 'film' } = {}) {
   const { server, port } = await serve();
   const browser = await chromium.launch({ args: ['--force-color-profile=srgb', '--disable-lcd-text', '--font-render-hinting=none'] });
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
@@ -39,7 +39,7 @@ async function openFilm({ query = '', quiet = false } = {}) {
     if (!quiet || m.type() === 'error' || /^prof /.test(t)) console.log(`[page:${m.type()}]`, t);
   });
   page.on('pageerror', (e) => { errors.push(String(e)); console.log('[pageerror]', String(e)); });
-  await page.goto(`http://127.0.0.1:${port}/film/index.html${query ? '?' + query : ''}`);
+  await page.goto(`http://127.0.0.1:${port}/${film}/index.html${query ? '?' + query : ''}`);
   await page.waitForFunction(() => window.film && window.film.state !== 'loading', null, { timeout: 300000 });
   const state = await page.evaluate(() => ({ state: window.film.state, error: window.film.error, frames: window.film.frames, layers: window.film.layers, stats: window.film.stats }));
   if (state.state !== 'ready') { await browser.close(); server.close(); throw new Error('film failed to boot:\n' + state.error); }
@@ -52,6 +52,7 @@ const BPM = 72.5, BAR = 240 / BPM, T0 = 0.034, FPS = 30;
 function parseTime(s) {
   s = String(s);
   if (s.startsWith('f')) return parseInt(s.slice(1), 10);
+  if (/^\d+:\d/.test(s)) { const [m, sec] = s.split(':'); return Math.round((parseInt(m, 10) * 60 + parseFloat(sec)) * FPS); }   // "2:35.5"（分:秒）
   if (s.startsWith('b')) return Math.round((T0 + parseFloat(s.slice(1)) * BAR) * FPS);
   return Math.round(parseFloat(s) * FPS);
 }

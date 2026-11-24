@@ -37,12 +37,12 @@ void main(){
 const FS_FINAL = /* glsl */ `
 uniform sampler2D uScene; uniform sampler2D uBloom;
 uniform float uBloomAmt, uExposure, uVignette, uCA, uGrain, uDither, uFlash, uFade, uSeed, uContrast, uSaturation, uLetterbox, uScrim;
-uniform vec3 uTint; uniform vec3 uLift;
+uniform vec3 uTint; uniform vec3 uLift; uniform vec2 uShake;
 out vec4 o;
 // 0.75 までは素通し、その上をなだらかに 1 へ収める（グラフィックの色を変えずにハイライトだけ丸める）
 vec3 softclip(vec3 x){ const float a = 0.75; vec3 y = (x - a) / (1.0 - a); return mix(x, a + (1.0 - a) * (1.0 - exp(-y)), step(a, x)); }
 void main(){
-  vec2 uv = vUv, c = uv - 0.5;
+  vec2 uv = vUv + uShake, c = uv - 0.5;
   float r2 = dot(c * vec2(uRes.x / uRes.y, 1.0), c * vec2(uRes.x / uRes.y, 1.0));
   vec3 col;
   if (uCA > 0.0) {
@@ -111,7 +111,7 @@ export class Post {
     g.draw(this.pFinal, {
       uScene: this.hdr, uBloom: low, uBloomAmt: p.bloom, uExposure: p.exposure, uVignette: p.vignette, uCA: p.ca, uGrain: p.grain, uDither: p.dither,
       uFlash: p.flash, uFade: p.fade, uSeed: frame % 1024, uContrast: p.contrast, uSaturation: p.saturation, uTint: p.tint, uLift: p.lift,
-      uLetterbox: p.letterbox, uScrim: p.scrim,
+      uLetterbox: p.letterbox, uScrim: p.scrim, uShake: p.shake || [0, 0],
     }, null);
   }
 }
