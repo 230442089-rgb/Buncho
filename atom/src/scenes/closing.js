@@ -29,7 +29,7 @@ export async function create(env) {
   source(ov, { text: '半減期: 理科年表ほか／廃炉: 経済産業省・東京電力「中長期ロードマップ」', t0: T0 + 6.6, t1: TC - 0.2 });
 
   // ---- 結び
-  const center = (html, t0, t1, top = 470) => ov.add({ t0, t1, className: 'center', style: { top: (top - 150) + 'px', paddingTop: '150px', paddingBottom: '170px', background: 'radial-gradient(ellipse 900px 300px at 50% 50%, rgba(0,5,16,.82), rgba(0,5,16,.5) 55%, rgba(0,5,16,0) 100%)' }, html, update(el, tl) { el.style.opacity = inout(tl, t1 - t0, 0.9, 0.6).toFixed(4); el.style.transform = `translateY(${((1 - ease.outCubic(sat(tl / 0.9))) * 8).toFixed(2)}px)`; } });
+  const center = (html, t0, t1, top = 470) => ov.add({ t0, t1, className: 'center', style: { top: (top - 150) + 'px', paddingTop: '150px', paddingBottom: '170px', background: 'radial-gradient(ellipse closest-side at 50% 50%, rgba(0,5,16,.84), rgba(0,5,16,.62) 45%, rgba(0,5,16,.22) 78%, rgba(0,5,16,0) 100%)', left: '360px', right: '360px' }, html, update(el, tl) { el.style.opacity = inout(tl, t1 - t0, 0.9, 0.6).toFixed(4); el.style.transform = `translateY(${((1 - ease.outCubic(sat(tl / 0.9))) * 8).toFixed(2)}px)`; } });
   center('原子の火は、スイッチでは消えない。', TC + 0.4, TC + 3.9);
   center('<span style="color:#a9d8ff">止める。冷やす。閉じ込める。</span><br>——それを、何十年も。', TC + 4.2, TE - 0.1, 424);
   // ---- 出典の札
