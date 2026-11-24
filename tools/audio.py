@@ -47,8 +47,8 @@ P1 = [('いまの', '今の'), ('あなたの', 'あなたの'), ('じつりょ�
 k = 10
 for i, (kana, conv) in enumerate(P1):
     for j, _ in enumerate(kana):
-        cue('kit:keyboard-letter-' + ('soft' if (k % 3) else 'medium'), T0 + k * BEAT / 8, -5); k += 1
-    cue('kit:keyboard-space-soft', T0 + k * BEAT / 8, -6); k += 1
+        cue('kit:keyboard-letter-' + ('medium' if (k % 3) else 'firm'), T0 + k * BEAT / 8, -3 if (k % 3) else -5); k += 1
+    cue('kit:keyboard-space-medium', T0 + k * BEAT / 8, -4); k += 1
     if i == 4: k += 2
 cue('kit:keyboard-return-soft', T0 + k * BEAT / 8, -5)
 cue('kit:keyboard-return-firm', bar(2), -1)                      # Enter（ここで曲のベースが入る）
@@ -84,8 +84,8 @@ cue('kit:foley-fabric-slide', OFF + 0.02, -6); cue('kit:whoosh-fast-soft', OFF +
 P2 = [('つぎは、', '次は、'), ('なにを', '何を'), ('つくりましょうか。', 'つくりましょうか。')]
 k = 4
 for kana, conv in P2:
-    for _ in kana: cue('kit:keyboard-letter-' + ('soft' if (k % 3) else 'medium'), bar(40) + k * BEAT / 4, -5); k += 1
-    if conv != kana: cue('kit:keyboard-space-soft', bar(40) + k * BEAT / 4, -6); k += 1
+    for _ in kana: cue('kit:keyboard-letter-' + ('medium' if (k % 3) else 'firm'), bar(40) + k * BEAT / 4, -3 if (k % 3) else -5); k += 1
+    if conv != kana: cue('kit:keyboard-space-medium', bar(40) + k * BEAT / 4, -4); k += 1
     k += 1
 cue('kit:keyboard-return-soft', bar(40) + k * BEAT / 4, -4)
 

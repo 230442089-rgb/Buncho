@@ -1,6 +1,6 @@
 # 言葉は、世界になる。
 
-`words-become-worlds.mp4` — 2 分 22 秒、1920×1080、30 fps のアニメーション。
+`words-become-worlds.mp4` — 2 分 22 秒、1920×1080、30 fps、音つきのアニメーション。
 
 「今のあなたの実力をフルに示す、アニメーションビデオを作って」という一行のプロンプトから、
 映像のすべてをコードで生成しました。写真・動画・画像生成モデルの素材は使っていません。
@@ -46,10 +46,13 @@ tools/                   撮影・連結・音付け
 ```bash
 npm install                      # KaTeX
 tools/fetch-fonts.sh             # 書体（SIL OFL）を film/fonts/ に取得
-tools/render_all.sh              # 9 つの場面を build/chunks/ に描き出す（GPU なしで 1〜2 時間）
-tools/concat.sh                  # つないで音を付ける → words-become-worlds.mp4
+tools/render_all.sh              # 9 つの場面を build/chunks/ に描き出す（GPU なしで約 2 時間）
+tools/concat.sh words-become-worlds.master.mp4   # 再エンコードなしでつなぎ、音を付ける（原版・約 108 MB）
+tools/web-copy.sh                # GitHub に置ける大きさの写し → words-become-worlds.mp4（約 80 MB）
 node tools/frame.js b30.5 64.2   # 確認用の静止画（小節・秒・f フレーム番号で指定）
 ```
+
+リポジトリにある `words-become-worlds.mp4` は、原版を 2 パスで圧縮した写しです（原版との SSIM は平均 0.993）。原版は 100 MB を超えるため置いていません。
 
 Playwright（Chromium）と ffmpeg、Python（numpy・scipy）が必要です。書体は Inter と JetBrains Mono も使います。
 音付けは video-making-custom-sound スキルの `sound_studio.py` を呼び出します。

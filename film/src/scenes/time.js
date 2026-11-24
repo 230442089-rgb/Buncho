@@ -88,14 +88,14 @@ export async function create(env) {
       const x = 0.5 + 0.30 * Math.cos(a) + 0.08 * Math.cos(2.3 * a + 1), y = 0.5 + 0.27 * Math.sin(1.3 * a + 0.4);
       const dx = -Math.sin(a) - 0.2 * Math.sin(2.3 * a + 1), dy = 1.3 * Math.cos(1.3 * a + 0.4), dl = Math.hypot(dx, dy) || 1;
       const c = PALETTE[(Math.floor(t / (BEAT * 2)) + i * 2 + 1) % 5];
-      out.push({ x, y, r: 0.020, vx: (dx / dl) * 2.6, vy: (dy / dl) * 2.6, col: c.map((v) => v * 0.045) });
+      out.push({ x, y, r: 0.020, vx: (dx / dl) * 2.6, vy: (dy / dl) * 2.6, col: c.map((v) => v * 0.07) });
     }
     // 拍ごとの噴き上げ（細い筋が中央へ向かい、ぶつかって渦になる）
     const kb = Math.floor(t / BEAT + 1e-6), age = n - Math.round(kb * BEAT * 30);
     if (kb < 16 && age >= 0 && age < 7) {
       const w = [1, 0.9, 0.72, 0.52, 0.34, 0.2, 0.1][age], bar4 = Math.floor(kb / 4);
       const C = (i) => PALETTE[(i + bar4 * 2) % 5];
-      const jet = (x, y, ang, sp, c, r = 0.030) => out.push({ x, y, r, vx: Math.cos(ang) * sp * w, vy: Math.sin(ang) * sp * w, col: c.map((v) => v * 0.15 * w) });
+      const jet = (x, y, ang, sp, c, r = 0.030) => out.push({ x, y, r, vx: Math.cos(ang) * sp * w, vy: Math.sin(ang) * sp * w, col: c.map((v) => v * 0.23 * w) });
       const wob = 0.10 * Math.sin(beatAng[kb]);
       if (kb % 4 === 0) {              // 小節の頭: 四方から中央へ
         jet(0.12, 0.5 + wob, 0, 19, C(0), 0.034); jet(0.88, 0.5 - wob, Math.PI, 19, C(3), 0.034);
@@ -116,7 +116,7 @@ export async function create(env) {
     if (fluid.frame < 0 || n < fluid.frame) fluid.reset();
     while (fluid.frame < n) {
       const k = fluid.frame, t = k / 30, end = sat((t - (B26 - B22 - 1.45)) / 1.4);
-      fluid.step(splats(k), { suck: 0.75 * end * end, vort: 0.40, dyeDiss: lerp(0.9905, 0.985, end) });
+      fluid.step(splats(k), { suck: 0.75 * end * end, vort: 0.40, dyeDiss: lerp(0.9870, 0.984, end) });
     }
   }
 
@@ -144,7 +144,7 @@ export async function create(env) {
         fluidTo(n);
         g.bind(env.post.hdr);
         const end = sat((t - (B26 - 1.45)) / 1.4);
-        fluid.show(env.post.hdr, 1.75 + 1.6 * end * end, 1);
+        fluid.show(env.post.hdr, 2.2 + 1.6 * end * end, 1);
         p.bloom = 0.62 + 0.5 * end; p.threshold = 0.7; p.knee = 0.6; p.vignette = 0.5; p.ca = 0.006; p.saturation = 1.22;
         p.flash = Math.max(0.55 * pulse(t, B22, 0.12), Math.pow(sat((t - (B26 - 0.42)) / 0.40), 2.2));
       }
