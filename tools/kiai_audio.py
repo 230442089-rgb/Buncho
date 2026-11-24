@@ -232,6 +232,8 @@ for sid, tc, g in [('digital-interference', 121.25, -8), ('digital-static', 121.
 for tc in [123.5, 124.2, 124.7]: kit('click-tap-soft', tc, -22, dst=post)
 mix += post
 
+if os.environ.get('KIAI_DUMP'):
+    for name, b_ in [('music', music), ('voice', voice), ('sfx', sfx), ('amb', amb)]: ss.write_audio(os.path.join(WORK, f'bus_{name}.wav'), b_ / max(1.0, np.abs(b_).max()))
 y = ss.master(mix, TARGET_LUFS, -1.0)
 print(f'buses (LUFS): music {ss.lufs(music):.1f}  voice {ss.lufs(voice):.1f}  sfx {ss.lufs(sfx):.1f}  amb {ss.lufs(amb):.1f}  →  mix {ss.lufs(y):.1f}, peak {20 * np.log10(np.abs(y).max()):.1f} dBFS')
 WAV = out if wav_only else os.path.join(WORK, 'mix.wav')
