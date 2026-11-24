@@ -131,7 +131,7 @@ function faceBase(c, shadow = 0.5) {
 function features(c, ch, f) {
   const e = { col: ch.eyeCol, lash: ch.lash, mode: f.eyes || 'open', lid: f.lid ?? ch.lid ?? 0, lookX: f.lookX || 0, lookY: f.lookY || 0, dot: f.dot };
   blush(c, (ch.blush ?? 1) * (f.blush ?? 1));
-  for (const s of [-1, 1]) { if (s === -1 && f.hideL) continue; eye(c, s, e); if (!(f.eyes === 'cross' || f.eyes === 'happy')) brow(c, s, { tilt: f.browTilt || 0, dy: f.browY || 0 }); }
+  for (const s of [-1, 1]) { if (f.noEyes || (s === -1 && f.hideL)) continue; eye(c, s, e); if (!(f.eyes === 'cross' || f.eyes === 'happy')) brow(c, s, { tilt: f.browTilt || 0, dy: f.browY || 0 }); }
   if (ch.moles) for (const s of [-1, 1]) { c.beginPath(); c.arc(0.66 * s, 0.4, 0.024, 0, TAU); F(c, '#5a3f4d'); }
   mouth(c, typeof f.mouth === 'string' ? { kind: f.mouth, fang: ch.fang } : { fang: ch.fang, ...(f.mouth || {}) });
   if (f.tears) for (const s of [-1, 1]) { c.beginPath(); c.moveTo(0.6 * s, 0.3); c.bezierCurveTo(0.78 * s, 0.4, 0.86 * s, 0.62 + 0.1 * f.tears, 0.74 * s, 0.7 + 0.1 * f.tears); c.bezierCurveTo(0.62 * s, 0.66, 0.6 * s, 0.5, 0.6 * s, 0.3); FS(c, '#d9efff', 0.018, '#8fbfe6'); }
@@ -189,10 +189,42 @@ function volFrontHair(c, sw, peek = 0) {
   lock(c, 0.26, -0.9, 0.12, 0.34, 0.28, -0.1, 0.08);
 }
 
+// ============================================================ フルル（ママ）
+// 白銀のふわっとした短い髪。厚い前髪で両目が隠れる。赤い頬
+export const FURURU = { eyeCol: ['#999', '#bbb', '#ddd'], lash: 'dark', blush: 1.5 };
+function fururuBackHair(c, sw) {
+  for (const s of [-1, 1]) {       // 頬の横と襟足の、外へはねる毛
+    lock(c, 1.0 * s, -0.42, (1.42 + sw * 0.15 * s) * s, -0.06, 0.26, -0.1 * s, -0.24 * s, HAIR, 0.024);
+    lock(c, 1.02 * s, 0.14, (1.44 + sw * 0.2 * s) * s, 0.56, 0.3, -0.12 * s, -0.26 * s, BACK, 0.024);
+    lock(c, 0.9 * s, 0.56, (1.26 + sw * 0.2 * s) * s, 1.04, 0.28, -0.1 * s, -0.26 * s, BACK, 0.024);
+  }
+  // 頭の後ろの丸み。毛先はあごの下で内へ巻く（まん中は顔と首に隠れる）
+  c.beginPath(); c.moveTo(0, -1.26); c.bezierCurveTo(0.74, -1.3, 1.26, -0.86, 1.24, -0.12); c.bezierCurveTo(1.24, 0.3, 1.2, 0.62, 1.04, 0.84); c.quadraticCurveTo(0.88, 1.06, 0.58, 0.98); c.quadraticCurveTo(0.3, 0.88, 0, 0.86);
+  c.quadraticCurveTo(-0.3, 0.88, -0.58, 0.98); c.quadraticCurveTo(-0.88, 1.06, -1.04, 0.84); c.bezierCurveTo(-1.2, 0.62, -1.24, 0.3, -1.24, -0.12); c.bezierCurveTo(-1.26, -0.86, -0.74, -1.3, 0, -1.26); c.closePath(); FS(c, BACK, 0.026);
+}
+// 両目を隠す、厚くてそろった前髪。房: [左の切れ目 x, 右の切れ目 x, 毛先 x, 毛先 y]
+const F_BANGS = [[-0.93, -0.6, -0.74, 0.39], [-0.6, -0.24, -0.4, 0.45], [-0.24, 0.1, -0.05, 0.48], [0.1, 0.46, 0.27, 0.45], [0.46, 0.93, 0.7, 0.4]], F_NOTCH = 0.13;
+function fururuBangs(c) {
+  c.moveTo(F_BANGS[0][0], F_NOTCH);
+  for (const [xl, xr, tx, ty] of F_BANGS) { c.bezierCurveTo(xl + 0.01, F_NOTCH + (ty - F_NOTCH) * 0.7, tx - (tx - xl) * 0.5, ty, tx, ty); c.bezierCurveTo(tx + (xr - tx) * 0.55, ty - 0.03, xr - 0.02, F_NOTCH + (ty - F_NOTCH) * 0.55, xr, F_NOTCH); }
+}
+function fururuFrontHair(c, sw) {
+  cap(c);
+  c.beginPath(); c.moveTo(-0.93, F_NOTCH); c.lineTo(-0.98, -0.3); c.bezierCurveTo(-0.92, -0.78, -0.5, -1.04, 0, -1.06); c.bezierCurveTo(0.5, -1.04, 0.92, -0.78, 0.98, -0.3); c.lineTo(0.93, F_NOTCH); c.lineTo(-0.93, F_NOTCH); c.closePath(); F(c, HAIR);
+  c.beginPath(); fururuBangs(c); c.closePath(); F(c, HAIR);
+  c.beginPath(); fururuBangs(c); S(c, 0.024);
+  for (const s of [-1, 1]) lock(c, 0.97 * s, -0.4, (1.0 + sw * 0.3 * s) * s, 0.92, 0.34, 0.1 * s, -0.2 * s, HAIR, 0.024, 0.3 * s);       // 顔の横の束（前髪の端に重なり、先が内へ巻く）
+  for (const [, xr] of F_BANGS.slice(0, -1)) { c.beginPath(); c.moveTo(xr, F_NOTCH); c.quadraticCurveTo(xr * 0.96 + 0.01, F_NOTCH - 0.2, xr * 0.86, F_NOTCH - 0.42); S(c, 0.016, '#cfc4dc'); }      // 房の分かれ目
+  for (const [x0, x1] of [[-0.78, -0.72], [-0.42, -0.36], [0.3, 0.26], [0.66, 0.7]]) { c.beginPath(); c.moveTo(x0 * 0.9, -0.5); c.quadraticCurveTo(x0, -0.1, x1, 0.2); S(c, 0.013, '#ddd5e8'); }       // 細い毛筋
+  c.beginPath(); c.moveTo(0.02, -1.2); c.quadraticCurveTo(0.06, -0.98, 0.0, -0.8); S(c, 0.016, '#cfc4dc');                         // 分け目
+  c.beginPath(); c.moveTo(-0.12, -1.22); c.quadraticCurveTo(-0.3, -1.46, -0.5, -1.36); S(c, 0.022);
+}
+
 // ---- 頭を描く。who: 'yuria' | 'vol'。f: 表情（features 参照）+ { sway: 髪のなびき, tilt, glow（隠れた目の光 0..1）, dark（顔の影 0..1）}
 export function drawHead(c, who, f = {}) {
   const sw = f.sway || 0;
-  if (who === 'yuria') {
+  if (who === 'fururu') { fururuBackHair(c, sw); faceBase(c, 0.75); features(c, FURURU, { ...f, noEyes: true }); fururuFrontHair(c, sw); }
+  else if (who === 'yuria') {
     yuriaBackHair(c, sw); yuriaTail(c, sw, f.lift || 0);
     faceBase(c); features(c, YURIA, f); yuriaFrontHair(c, sw);
   } else {
@@ -207,7 +239,7 @@ export function drawHead(c, who, f = {}) {
 // ============================================================ 体（正面・2 頭身）
 const CARD = '#f7c36c', CARD_SH = '#eaa850', SHIRT = '#ffffff', SHIRT_SH = '#ebe7f5', SKIRT = '#8d4250', SKIRT_SH = '#6f3040', SHOE = '#6b4a3c';
 const TEE = '#ffffff', PANTS = '#74708a', PANTS_SH = '#5d5972', SNEAK = '#ffffff';
-const DEF = { hx: 0, hy: 0, tilt: 0, lean: 0, armL: [-0.86, 1.86], armR: [0.86, 1.86], legL: 0, legR: 0, bob: 0, flap: 0, sway: 0, lift: 0, squash: 0 };
+const DEF = { hx: 0, hy: 0, tilt: 0, lean: 0, armL: [-0.86, 1.86], armR: [0.86, 1.86], elbL: null, elbR: null, legL: 0, legR: 0, bob: 0, flap: 0, sway: 0, lift: 0, squash: 0 };
 // 走る姿勢（正面へ向かって駆けてくる）。ph: 0..1 で 2 歩。panic: 腕の振り上げ
 export function runPose(ph, panic = 1) {
   const s = Math.sin(TAU * ph), b = Math.abs(Math.cos(TAU * ph));
@@ -221,63 +253,93 @@ function leg(c, side, lift, skin, shoe, pants = null) {
   c.beginPath(); c.ellipse(ax + 0.02 * side, ay + 0.1 * k, 0.2 * k, (0.11 + 0.06 * lift) * k, 0, 0, TAU); FS(c, shoe, 0.024);
   if (shoe === SNEAK) { c.beginPath(); c.moveTo(ax - 0.17 * k, ay + 0.14 * k); c.quadraticCurveTo(ax, ay + 0.22 * k, ax + 0.19 * k, ay + 0.14 * k); S(c, 0.018, '#b9b3c8'); }
 }
-function arm(c, sx, sy, hx, hy, kind, flap = 0) {
+function arm(c, sx, sy, hx, hy, kind, el = null) {
+  const ex = el ? el[0] : sx, ey = el ? el[1] : sy;       // ひじ（無ければ肩からまっすぐ）
   if (kind === 'sleeve') {           // カーディガンの袖（手の先まで隠れる長さ）
-    group(c, CARD, [capsule(c, sx, sy, hx, hy, 0.2, 0.25), () => c.ellipse(hx, hy, 0.27, 0.24, 0, 0, TAU)]);
-    const dx = hx - sx, dy = hy - sy, L = Math.hypot(dx, dy) || 1;
+    group(c, CARD, [...(el ? [capsule(c, sx, sy, ex, ey, 0.2, 0.22)] : []), capsule(c, ex, ey, hx, hy, el ? 0.22 : 0.2, 0.25), () => c.ellipse(hx, hy, 0.27, 0.24, 0, 0, TAU)]);
+    const dx = hx - ex, dy = hy - ey, L = Math.hypot(dx, dy) || 1;
     c.beginPath(); c.arc(hx + dx / L * 0.2, hy + dy / L * 0.2, 0.1, 0, TAU); FS(c, SKIN, 0.02);                 // 指先
     c.beginPath(); c.moveTo(hx - dy / L * 0.24 - dx / L * 0.02, hy + dx / L * 0.24 - dy / L * 0.02); c.lineTo(hx + dy / L * 0.24 - dx / L * 0.02, hy - dx / L * 0.24 - dy / L * 0.02); S(c, 0.02, CARD_SH);
   } else {                           // 半袖と素肌の腕
-    group(c, SKIN, [capsule(c, sx, sy, hx, hy, 0.13, 0.11), () => c.arc(hx, hy, 0.14, 0, TAU)]);
-    const k = 0.3; group(c, TEE, [capsule(c, sx, sy, lerp(sx, hx, k), lerp(sy, hy, k), 0.17, 0.18)]);
+    group(c, SKIN, [...(el ? [capsule(c, sx, sy, ex, ey, 0.13, 0.12)] : []), capsule(c, ex, ey, hx, hy, el ? 0.12 : 0.13, 0.11), () => c.arc(hx, hy, 0.14, 0, TAU)]);
+    const k = el ? 0.6 : 0.3, qx = el ? ex : hx, qy = el ? ey : hy; group(c, TEE, [capsule(c, sx, sy, lerp(sx, qx, k), lerp(sy, qy, k), 0.17, 0.18)]);
   }
 }
-// 全身を描く。原点は頭の中心（立っているとき）。face は drawHead と同じ
-export function drawFigure(c, who, pose = {}, face = {}) {
-  const p = { ...DEF, ...pose }, yu = who === 'yuria';
+// 全身を描く。原点は頭の中心（立っているとき）。face は drawHead と同じ。
+// o.only: ['back', 'body', 'arms', 'head'] のうち描く部分（抱き合う絵で、人物どうしを前後に重ねるため）
+const F_TOP = '#ffffff', F_TRIM = '#4d4a57', F_PANTS = '#63606f', F_PANTS_SH = '#504d5c';
+export function drawFigure(c, who, pose = {}, face = {}, o = {}) {
+  const p = { ...DEF, ...pose }, yu = who === 'yuria', fu = who === 'fururu', on = (k) => !o.only || o.only.includes(k);
   c.save(); c.translate(0, p.bob);
   // ---- 頭の後ろ（後ろ髪・尾）
-  c.save(); c.translate(p.hx, p.hy); c.rotate(p.tilt);
-  if (yu) { yuriaBackHair(c, p.sway, p.lift); yuriaTail(c, p.sway, p.lift); } else volBackHair(c, p.sway);
-  c.restore();
+  if (on('back')) { c.save(); c.translate(p.hx, p.hy); c.rotate(p.tilt); if (fu) fururuBackHair(c, p.sway); else if (yu) { yuriaBackHair(c, p.sway, p.lift); yuriaTail(c, p.sway, p.lift); } else volBackHair(c, p.sway); c.restore(); }
   // ---- 体
   c.save(); c.translate(0, 1.0); c.rotate(p.lean); c.scale(1 + p.squash, 1 - p.squash); c.translate(0, -1.0);
-  if (yu) {
-    for (const s of [-1, 1]) { const fl = p.flap * 0.13; c.beginPath(); c.moveTo(0.42 * s, 1.14); c.lineTo((0.74 + fl) * s, 1.3); c.quadraticCurveTo((0.98 + fl * 1.6) * s, 1.9, (0.9 + fl * 2) * s, 2.42 - fl * 0.3); c.lineTo((0.56 + fl) * s, 2.36); c.lineTo(0.4 * s, 1.7); c.closePath(); FS(c, CARD, 0.026); }   // カーディガンの身ごろ
-    leg(c, -1, p.legL, SKIN, SHOE); leg(c, 1, p.legR, SKIN, SHOE);
-    const fl = p.flap * 0.12;
-    c.beginPath(); c.moveTo(-0.44, 1.72); c.lineTo(-0.8 - fl, 2.38 - fl); c.quadraticCurveTo(0, 2.54 - fl * 0.5, 0.8 + fl, 2.38 - fl); c.lineTo(0.44, 1.72); c.closePath(); FS(c, SKIRT, 0.026);                      // スカート
-    c.save(); c.clip(); for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(i * 0.17, 1.74); c.lineTo(i * 0.33, 2.56); S(c, 0.016, SKIRT_SH); }
-    c.beginPath(); c.moveTo(-0.9, 2.26 - fl); c.quadraticCurveTo(0, 2.42 - fl * 0.5, 0.9, 2.26 - fl); S(c, 0.035, '#fff'); c.restore();
-    c.beginPath(); c.moveTo(-0.46, 1.02); c.bezierCurveTo(-0.58, 1.3, -0.52, 1.6, -0.44, 1.8); c.lineTo(0.44, 1.8); c.bezierCurveTo(0.52, 1.6, 0.58, 1.3, 0.46, 1.02); c.closePath(); FS(c, SHIRT, 0.026);                  // シャツ
-    c.beginPath(); c.moveTo(-0.34, 1.5); c.quadraticCurveTo(0, 1.62, 0.34, 1.5); S(c, 0.016, '#d6cfe6');
-    c.beginPath(); c.moveTo(0, 1.2); c.lineTo(0, 1.8); S(c, 0.014, '#d6cfe6');
-    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(0, 1.2); c.lineTo(0.3 * s, 0.98); c.lineTo(0.36 * s, 1.24); c.closePath(); FS(c, SHIRT, 0.022); }
-    arm(c, -0.52, 1.2, p.armL[0], p.armL[1], 'sleeve'); arm(c, 0.52, 1.2, p.armR[0], p.armR[1], 'sleeve');
+  if (fu) {
+    if (on('body')) {
+      for (const s of [-1, 1]) { const lift = s < 0 ? p.legL : p.legR, hx = 0.3 * s, ay = 3.02 - 0.62 * lift, ax = (0.32 + 0.06 * lift) * s, k = 1 + 0.32 * lift;
+        group(c, F_PANTS, [capsule(c, hx, 2.0, ax, ay - 0.1, 0.33, 0.25 * k)]); c.beginPath(); c.ellipse(ax, ay - 0.05, 0.26 * k, 0.08 * k, 0, 0, TAU); FS(c, F_PANTS_SH, 0.02);
+        c.beginPath(); c.ellipse(ax + 0.02 * s, ay + 0.11 * k, 0.25 * k, (0.13 + 0.06 * lift) * k, 0, 0, TAU); FS(c, SNEAK, 0.024); c.beginPath(); c.moveTo(ax - 0.2 * k, ay + 0.16 * k); c.quadraticCurveTo(ax, ay + 0.25 * k, ax + 0.22 * k, ay + 0.16 * k); S(c, 0.018, '#b9b3c8');
+        if (lift < 0.3) { c.beginPath(); c.rect((0.5 * s) - 0.12, 2.3, 0.24, 0.3); FS(c, F_PANTS, 0.02, F_PANTS_SH); } }
+      c.beginPath(); c.moveTo(-0.56, 1.72); c.bezierCurveTo(-0.7, 1.9, -0.68, 2.1, -0.62, 2.22); c.lineTo(0.62, 2.22); c.bezierCurveTo(0.68, 2.1, 0.7, 1.9, 0.56, 1.72); c.closePath(); FS(c, F_PANTS, 0.026);
+      c.beginPath(); c.moveTo(-0.06, 1.84); c.quadraticCurveTo(-0.2, 1.9, -0.12, 2.04); c.moveTo(0.06, 1.84); c.quadraticCurveTo(0.2, 1.9, 0.12, 2.04); S(c, 0.02, '#3c3a46');      // ひも
+      c.beginPath(); c.moveTo(-0.56, 1.04); c.bezierCurveTo(-0.76, 1.3, -0.72, 1.56, -0.58, 1.8); c.quadraticCurveTo(0, 1.88, 0.58, 1.8); c.bezierCurveTo(0.72, 1.56, 0.76, 1.3, 0.56, 1.04); c.closePath(); FS(c, F_TOP, 0.026);   // タンクトップ
+      c.beginPath(); c.moveTo(-0.58, 1.5); c.quadraticCurveTo(-0.3, 1.72, -0.02, 1.52); c.moveTo(0.02, 1.52); c.quadraticCurveTo(0.3, 1.72, 0.58, 1.5); S(c, 0.016, '#d6cfe6');
+      c.beginPath(); c.moveTo(-0.34, 1.02); c.quadraticCurveTo(0, 1.4, 0.34, 1.02); S(c, 0.042, F_TRIM);                                                                              // 黒い縁取り
+      for (const s of [-1, 1]) { c.beginPath(); c.moveTo(0.44 * s, 1.03); c.quadraticCurveTo(0.6 * s, 1.16, 0.63 * s, 1.34); S(c, 0.05, F_TRIM); }
+      c.beginPath(); c.moveTo(-0.06, 1.38); c.lineTo(0.06, 1.46); c.moveTo(0.06, 1.38); c.lineTo(-0.06, 1.46); S(c, 0.035, F_TRIM);                                                 // 小さな飾り紐
+    }
+    if (on('arms')) for (const s of [-1, 1]) { const h = s < 0 ? p.armL : p.armR, e = s < 0 ? p.elbL : p.elbR; group(c, SKIN, [...(e ? [capsule(c, 0.6 * s, 1.2, e[0], e[1], 0.17, 0.155)] : []), capsule(c, e ? e[0] : 0.6 * s, e ? e[1] : 1.2, h[0], h[1], e ? 0.155 : 0.17, 0.13), () => c.arc(h[0], h[1], 0.16, 0, TAU)]); }
+  } else if (yu) {
+    if (on('body')) {
+      for (const s of [-1, 1]) { const fl = p.flap * 0.13; c.beginPath(); c.moveTo(0.42 * s, 1.14); c.lineTo((0.74 + fl) * s, 1.3); c.quadraticCurveTo((0.98 + fl * 1.6) * s, 1.9, (0.9 + fl * 2) * s, 2.42 - fl * 0.3); c.lineTo((0.56 + fl) * s, 2.36); c.lineTo(0.4 * s, 1.7); c.closePath(); FS(c, CARD, 0.026); }   // カーディガンの身ごろ
+      leg(c, -1, p.legL, SKIN, SHOE); leg(c, 1, p.legR, SKIN, SHOE);
+      const fl = p.flap * 0.12;
+      c.beginPath(); c.moveTo(-0.44, 1.72); c.lineTo(-0.8 - fl, 2.38 - fl); c.quadraticCurveTo(0, 2.54 - fl * 0.5, 0.8 + fl, 2.38 - fl); c.lineTo(0.44, 1.72); c.closePath(); FS(c, SKIRT, 0.026);                      // スカート
+      c.save(); c.clip(); for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(i * 0.17, 1.74); c.lineTo(i * 0.33, 2.56); S(c, 0.016, SKIRT_SH); }
+      c.beginPath(); c.moveTo(-0.9, 2.26 - fl); c.quadraticCurveTo(0, 2.42 - fl * 0.5, 0.9, 2.26 - fl); S(c, 0.035, '#fff'); c.restore();
+      c.beginPath(); c.moveTo(-0.46, 1.02); c.bezierCurveTo(-0.58, 1.3, -0.52, 1.6, -0.44, 1.8); c.lineTo(0.44, 1.8); c.bezierCurveTo(0.52, 1.6, 0.58, 1.3, 0.46, 1.02); c.closePath(); FS(c, SHIRT, 0.026);                  // シャツ
+      c.beginPath(); c.moveTo(-0.34, 1.5); c.quadraticCurveTo(0, 1.62, 0.34, 1.5); S(c, 0.016, '#d6cfe6');
+      c.beginPath(); c.moveTo(0, 1.2); c.lineTo(0, 1.8); S(c, 0.014, '#d6cfe6');
+      for (const s of [-1, 1]) { c.beginPath(); c.moveTo(0, 1.2); c.lineTo(0.3 * s, 0.98); c.lineTo(0.36 * s, 1.24); c.closePath(); FS(c, SHIRT, 0.022); }
+    }
+    if (on('arms')) { arm(c, -0.52, 1.2, p.armL[0], p.armL[1], 'sleeve', p.elbL); arm(c, 0.52, 1.2, p.armR[0], p.armR[1], 'sleeve', p.elbR); }
   } else {
-    leg(c, -1, p.legL, SKIN, SNEAK, PANTS); leg(c, 1, p.legR, SKIN, SNEAK, PANTS);
-    c.beginPath(); c.moveTo(-0.46, 1.74); c.lineTo(-0.52, 2.14); c.lineTo(0.52, 2.14); c.lineTo(0.46, 1.74); c.closePath(); FS(c, PANTS, 0.026);
-    c.beginPath(); c.moveTo(-0.08, 1.86); c.quadraticCurveTo(-0.16, 2.02, -0.1, 2.1); S(c, 0.016, '#d9d5e6'); c.beginPath(); c.moveTo(0.08, 1.86); c.quadraticCurveTo(0.16, 2.02, 0.1, 2.1); S(c, 0.016, '#d9d5e6');
-    c.beginPath(); c.moveTo(-0.44, 1.56); c.lineTo(-0.46, 1.78); c.lineTo(0.46, 1.78); c.lineTo(0.44, 1.56); c.closePath(); FS(c, SKIN, 0.022);                           // おなか
-    c.beginPath(); c.moveTo(-0.46, 1.02); c.bezierCurveTo(-0.58, 1.3, -0.54, 1.5, -0.48, 1.66); c.quadraticCurveTo(0, 1.74, 0.48, 1.66); c.bezierCurveTo(0.54, 1.5, 0.58, 1.3, 0.46, 1.02); c.closePath(); FS(c, TEE, 0.026);
-    c.beginPath(); c.moveTo(-0.34, 1.46); c.quadraticCurveTo(0, 1.58, 0.34, 1.46); S(c, 0.016, '#d6cfe6');
-    c.beginPath(); c.ellipse(-0.08, 1.7, 0.09, 0.07, 0, 0, TAU); FS(c, TEE, 0.02); c.beginPath(); c.moveTo(-0.14, 1.74); c.lineTo(-0.24, 1.86); c.lineTo(-0.1, 1.82); c.closePath(); FS(c, TEE, 0.02);                 // T シャツの結び目
-    arm(c, -0.52, 1.2, p.armL[0], p.armL[1], 'bare'); arm(c, 0.52, 1.2, p.armR[0], p.armR[1], 'bare');
+    if (on('body')) {
+      leg(c, -1, p.legL, SKIN, SNEAK, PANTS); leg(c, 1, p.legR, SKIN, SNEAK, PANTS);
+      c.beginPath(); c.moveTo(-0.46, 1.74); c.lineTo(-0.52, 2.14); c.lineTo(0.52, 2.14); c.lineTo(0.46, 1.74); c.closePath(); FS(c, PANTS, 0.026);
+      c.beginPath(); c.moveTo(-0.08, 1.86); c.quadraticCurveTo(-0.16, 2.02, -0.1, 2.1); S(c, 0.016, '#d9d5e6'); c.beginPath(); c.moveTo(0.08, 1.86); c.quadraticCurveTo(0.16, 2.02, 0.1, 2.1); S(c, 0.016, '#d9d5e6');
+      c.beginPath(); c.moveTo(-0.44, 1.56); c.lineTo(-0.46, 1.78); c.lineTo(0.46, 1.78); c.lineTo(0.44, 1.56); c.closePath(); FS(c, SKIN, 0.022);                           // おなか
+      c.beginPath(); c.moveTo(-0.46, 1.02); c.bezierCurveTo(-0.58, 1.3, -0.54, 1.5, -0.48, 1.66); c.quadraticCurveTo(0, 1.74, 0.48, 1.66); c.bezierCurveTo(0.54, 1.5, 0.58, 1.3, 0.46, 1.02); c.closePath(); FS(c, TEE, 0.026);
+      c.beginPath(); c.moveTo(-0.34, 1.46); c.quadraticCurveTo(0, 1.58, 0.34, 1.46); S(c, 0.016, '#d6cfe6');
+      c.beginPath(); c.ellipse(-0.08, 1.7, 0.09, 0.07, 0, 0, TAU); FS(c, TEE, 0.02); c.beginPath(); c.moveTo(-0.14, 1.74); c.lineTo(-0.24, 1.86); c.lineTo(-0.1, 1.82); c.closePath(); FS(c, TEE, 0.02);                 // T シャツの結び目
+    }
+    if (on('arms')) { arm(c, -0.52, 1.2, p.armL[0], p.armL[1], 'bare', p.elbL); arm(c, 0.52, 1.2, p.armR[0], p.armR[1], 'bare', p.elbR); }
   }
   c.restore();
   // ---- 頭
-  c.save(); c.translate(p.hx, p.hy); c.rotate(p.tilt);
-  faceBase(c);
-  if (yu) { features(c, YURIA, face); yuriaFrontHair(c, p.sway); }
-  else {
-    features(c, VOL, { ...face, hideL: true });
-    if (face.dark) { c.save(); c.beginPath(); c.arc(0, 0, 0.95, 0, TAU); c.clip(); const g = c.createLinearGradient(0, -1, 0, 0.55); g.addColorStop(0, `rgba(58,40,92,${0.75 * face.dark})`); g.addColorStop(1, 'rgba(58,40,92,0)'); c.fillStyle = g; c.fillRect(-1, -1, 2, 1.6); c.restore(); }
-    volFrontHair(c, p.sway, face.peek || 0);
-    if (face.glow) { const g = c.createRadialGradient(-0.43, 0.21, 0, -0.43, 0.21, 0.42); g.addColorStop(0, `rgba(150,200,255,${0.95 * face.glow})`); g.addColorStop(0.3, `rgba(120,170,255,${0.5 * face.glow})`); g.addColorStop(1, 'rgba(120,170,255,0)'); c.fillStyle = g; c.fillRect(-0.9, -0.25, 0.95, 0.95); c.beginPath(); c.ellipse(-0.43, 0.21, 0.035, 0.13, 0, 0, TAU); F(c, `rgba(235,245,255,${face.glow})`); }
+  if (on('head')) {
+    c.save(); c.translate(p.hx, p.hy); c.rotate(p.tilt);
+    faceBase(c, fu ? 0.75 : 0.5);
+    if (fu) { features(c, FURURU, { ...face, noEyes: true }); fururuFrontHair(c, p.sway); }
+    else if (yu) { features(c, YURIA, face); yuriaFrontHair(c, p.sway); }
+    else {
+      features(c, VOL, { ...face, hideL: true });
+      if (face.dark) { c.save(); c.beginPath(); c.arc(0, 0, 0.95, 0, TAU); c.clip(); const g = c.createLinearGradient(0, -1, 0, 0.55); g.addColorStop(0, `rgba(58,40,92,${0.75 * face.dark})`); g.addColorStop(1, 'rgba(58,40,92,0)'); c.fillStyle = g; c.fillRect(-1, -1, 2, 1.6); c.restore(); }
+      volFrontHair(c, p.sway, face.peek || 0);
+      if (face.glow) { const g = c.createRadialGradient(-0.43, 0.21, 0, -0.43, 0.21, 0.42); g.addColorStop(0, `rgba(150,200,255,${0.95 * face.glow})`); g.addColorStop(0.3, `rgba(120,170,255,${0.5 * face.glow})`); g.addColorStop(1, 'rgba(120,170,255,0)'); c.fillStyle = g; c.fillRect(-0.9, -0.25, 0.95, 0.95); c.beginPath(); c.ellipse(-0.43, 0.21, 0.035, 0.13, 0, 0, TAU); F(c, `rgba(235,245,255,${face.glow})`); }
+    }
+    c.restore();
   }
   c.restore();
-  c.restore();
 }
+
+// 素肌の腕や手を、人物の座標（頭の半径 = 1）で描く。pts: [[x,y],...] 肩 → ひじ → 手。r: 太さ [根もと, 先]
+export function limb(c, pts, r = [0.16, 0.13], col = SKIN, handR = 0.16) {
+  const parts = []; for (let i = 0; i < pts.length - 1; i++) { const k0 = i / (pts.length - 1), k1 = (i + 1) / (pts.length - 1); parts.push(capsule(c, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], lerp(r[0], r[1], k0), lerp(r[0], r[1], k1))); }
+  const h = pts[pts.length - 1]; if (handR) parts.push(() => c.arc(h[0], h[1], handR, 0, TAU)); group(c, col, parts);
+}
+export const COLORS = { SKIN, CARD, HAIR, BLUSH };
 
 // ============================================================ 触手（ヴォルの眷属）。やわらかい、先細りの腕
 // pts: [[x,y],...] 根もと → 先（なめらかにつなぐ）。w0 → w1: 太さ。t: 時刻（うねり）。o: { amp, freq, tip: 'heart' | 'round', col: [根もと, 先] }

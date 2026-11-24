@@ -4,22 +4,22 @@ import { drawFigure, drawHead, runPose, tentacle, heart, LINE, STYLE } from './c
 import { text, bubble, sfx, speedLines, gloom, drops, dust, heartsUp, burst, sofa, cup, table, tray, pillow, blanket, room, hallway, darkTiles, dreamBg, rrect } from './props.js';
 
 // 人物を置く。x, footY: 足もとの位置、s: 頭の半径（どれも px）
-function fig(c, who, x, footY, s, pose = {}, face = {}, rot = 0) {
+export function fig(c, who, x, footY, s, pose = {}, face = {}, rot = 0, o = {}) {
   c.save(); c.translate(x, footY); c.rotate(rot); c.translate(0, -3.14 * s); c.scale(s, s); c.lineJoin = 'round'; c.lineCap = 'round';
-  STYLE.lw = s < 60 ? lerp(2.2, 1.2, sat((s - 26) / 34)) : s > 170 ? lerp(1, 0.72, sat((s - 170) / 90)) : 1; drawFigure(c, who, pose, face); STYLE.lw = 1; c.restore();
+  STYLE.lw = s < 60 ? lerp(2.2, 1.2, sat((s - 26) / 34)) : s > 170 ? lerp(1, 0.72, sat((s - 170) / 90)) : 1; drawFigure(c, who, pose, face, o); STYLE.lw = 1; c.restore();
 }
-function head(c, who, x, y, s, face = {}, rot = 0) { c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.lineJoin = 'round'; c.lineCap = 'round'; drawHead(c, who, face); c.restore(); }
-function tent(c, pts, w0, w1, t, o = {}) { return tentacle(c, pts, w0, w1, t, { amp: 14, lw: 4, ...o }); }
-const beatBob = (t, k = 1) => -k * Math.abs(Math.sin(Math.PI * t / BEAT));
-const K = (t, a, b) => sat((t - a) / (b - a));
-const blink = (t, seed = 0) => ((t + seed * 1.37) % 2.9) < 0.11;      // まばたき
-const fadeIn = (c, t, t0, d = 0.4, col = '253,251,248') => { const a = 1 - sat((t - t0) / d); if (a > 0.003) { c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = `rgba(${col},${a})`; c.fillRect(0, 0, W, H); } };
-const flash = (c, k, col = '255,255,255') => { if (k > 0.003) { c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = `rgba(${col},${Math.min(1, k)})`; c.fillRect(0, 0, W, H); } };
+export function head(c, who, x, y, s, face = {}, rot = 0) { c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.lineJoin = 'round'; c.lineCap = 'round'; drawHead(c, who, face); c.restore(); }
+export function tent(c, pts, w0, w1, t, o = {}) { return tentacle(c, pts, w0, w1, t, { amp: 14, lw: 4, ...o }); }
+export const beatBob = (t, k = 1) => -k * Math.abs(Math.sin(Math.PI * t / BEAT));
+export const K = (t, a, b) => sat((t - a) / (b - a));
+export const blink = (t, seed = 0) => ((t + seed * 1.37) % 2.9) < 0.11;      // まばたき
+export const fadeIn = (c, t, t0, d = 0.4, col = '253,251,248') => { const a = 1 - sat((t - t0) / d); if (a > 0.003) { c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = `rgba(${col},${a})`; c.fillRect(0, 0, W, H); } };
+export const flash = (c, k, col = '255,255,255') => { if (k > 0.003) { c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = `rgba(${col},${Math.min(1, k)})`; c.fillRect(0, 0, W, H); } };
 // カメラ（カットごと。[開始, 終了, 倍率, 注視点 x, y, (終わりの倍率, x, y)]）
-function shotCam(shots, t) { for (const sh of shots) if (t >= sh[0] && t < sh[1]) { const u = (t - sh[0]) / (sh[1] - sh[0]); return { s: lerp(sh[2], sh[5] ?? sh[2], u), fx: lerp(sh[3], sh[6] ?? sh[3], u), fy: lerp(sh[4], sh[7] ?? sh[4], u) }; } return { s: 1, fx: W / 2, fy: H / 2 }; }
-const setCam = (c, cam) => c.setTransform(cam.s, 0, 0, cam.s, W / 2 - cam.fx * cam.s, H / 2 - cam.fy * cam.s);
-const ident = (c) => c.setTransform(1, 0, 0, 1, 0, 0);
-const w2s = (cam, x, y) => [(x - cam.fx) * cam.s + W / 2, (y - cam.fy) * cam.s + H / 2];
+export function shotCam(shots, t) { for (const sh of shots) if (t >= sh[0] && t < sh[1]) { const u = (t - sh[0]) / (sh[1] - sh[0]); return { s: lerp(sh[2], sh[5] ?? sh[2], u), fx: lerp(sh[3], sh[6] ?? sh[3], u), fy: lerp(sh[4], sh[7] ?? sh[4], u) }; } return { s: 1, fx: W / 2, fy: H / 2 }; }
+export const setCam = (c, cam) => c.setTransform(cam.s, 0, 0, cam.s, W / 2 - cam.fx * cam.s, H / 2 - cam.fy * cam.s);
+export const ident = (c) => c.setTransform(1, 0, 0, 1, 0, 0);
+export const w2s = (cam, x, y) => [(x - cam.fx) * cam.s + W / 2, (y - cam.fy) * cam.s + H / 2];
 
 // ============================================================ 居間（0:00 → 0:25）
 const SOFA = [720, 880, 840], YX = 1190, YFOOT = 940, YS = 126, VX = 620, VS = 126, YHEAD = YFOOT - 3.14 * YS;
@@ -143,7 +143,7 @@ const chase = {
 
 // ============================================================ ユリアの想像（0:34 → 0:42）
 // 触手でぐるぐる巻き（頭だけ出ている）
-function bundle(c, x, y, s, t, face, o = {}) {
+export function bundle(c, x, y, s, t, face, o = {}) {
   const wob = o.wiggle ? 0.06 * Math.sin(t * 22) * o.wiggle : 0.03 * Math.sin(t * 1.6);
   c.save(); c.translate(x, y); c.rotate(wob + (o.rot || 0)); c.lineJoin = 'round'; c.lineCap = 'round';
   c.beginPath(); c.ellipse(0, 0, 1.2 * s, 1.42 * s, 0, 0, TAU); c.fillStyle = '#d9cbf6'; c.fill(); c.strokeStyle = LINE; c.lineWidth = 0.03 * s; c.stroke();
@@ -155,7 +155,7 @@ function bundle(c, x, y, s, t, face, o = {}) {
   c.save(); c.translate(0, -1.72 * s); c.rotate(o.headTilt || 0); c.scale(s * 0.98, s * 0.98); drawHead(c, 'yuria', { sway: 0.03 * Math.sin(t * 1.5), ...face }); c.restore();
   c.restore();
 }
-function steam(c, x, y, t, k = 1) { for (let i = 0; i < 3; i++) { const a = (t * 0.5 + i / 3) % 1; c.save(); c.globalAlpha = Math.sin(a * Math.PI) * 0.8 * k; heart(c, x + (i - 1) * 70 + 14 * Math.sin(t * 2 + i), y - a * 150, 20 + 8 * i, '#ffa9c4'); c.restore(); } }
+export function steam(c, x, y, t, k = 1) { for (let i = 0; i < 3; i++) { const a = (t * 0.5 + i / 3) % 1; c.save(); c.globalAlpha = Math.sin(a * Math.PI) * 0.8 * k; heart(c, x + (i - 1) * 70 + 14 * Math.sin(t * 2 + i), y - a * 150, 20 + 8 * i, '#ffa9c4'); c.restore(); } }
 const STAGES = [[34.5, '1 日目'], [36.4, '30 日目'], [38.2, '100 年目'], [39.9, '一生']];
 function dreamContent(c, t) {
   dreamBg(c, t);

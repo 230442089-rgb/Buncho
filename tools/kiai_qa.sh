@@ -11,6 +11,6 @@ echo "== frames"; ffprobe -v error -count_frames -select_streams v:0 -show_entri
 echo "== loudness"; ffmpeg -hide_banner -nostats -i "$F" -vn -af ebur128=peak=true -f null - 2>&1 | grep -E "I:|LRA:|Peak:" | tail -3
 # つなぎ目（フレーム番号）の 1 枚前と当のフレーム
 for f in 420 1020 1500 2130 2550 3030 3510 3900; do
-  for d in -1 0; do n=$((f + d)); ffmpeg -y -v error -ss $(python3 -c "print(($n + 0.5) / 30)") -i "$F" -frames:v 1 -q:v 3 "$Q/join_$(printf %05d $n).jpg"; done
+  for d in -1 0; do n=$((f + d)); ffmpeg -y -v error -ss $(python3 -c "print(($n - 0.25) / 30)") -i "$F" -frames:v 1 -q:v 3 "$Q/join_$(printf %05d $n).jpg"; done
 done
 ls "$Q" | wc -l
