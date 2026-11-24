@@ -95,6 +95,8 @@ film/src/scenes/         章ごとの演出
 - 「約 1,200℃」（ジルコニウムと水蒸気の反応が激しくなる温度）、「約 2,800℃」（二酸化ウランの融点）、「ペレット 1 個で家庭の電気およそ 8 か月分」は、広く使われている概数です。今回の調べでは一次資料の該当箇所までは確認できていません（8 か月分は、燃焼度と熱効率から計算して桁が合うことだけ確かめました）。
 - 線量と症状の対応は目安です。個人差があり、治療の有無でも変わります。
 
+リポジトリにある `invisible-fire.mp4`（約 97 MB）は、原版（約 168 MB）を 2 パスで圧縮した写しです（原版との SSIM は平均 0.995）。原版は 100 MB を超えるため置いていません。
+
 ### ファイル
 
 ```
@@ -123,6 +125,8 @@ tools/web-copy.sh                # GitHub に置ける大きさの写し → wor
 # 2 本目
 tools/atom_render_all.sh         # 9 つの場面を build/atom/chunks/ に描き出す（GPU なしで 1 時間あまり）
 tools/atom_concat.sh invisible-fire.master.mp4
+tools/web-copy.sh invisible-fire.master.mp4 invisible-fire.mp4 1850k   # GitHub に置ける大きさの写し
+tools/atom_qa.sh invisible-fire.master.mp4       # 長さ・フレーム数・音量・全フレームのデコード・つなぎ目の点検
 
 # 確認用の静止画（秒・分:秒・f フレーム番号で指定。--film atom で 2 本目）
 node tools/frame.js --film atom 2:59.5 f5400
