@@ -38,7 +38,7 @@ export async function create(env) {
   chap(ov, { n: 7, kanji: '人々', en: 'THE PEOPLE', t0: P1 + 0.3, t1: PEND - 0.2, warn: true });
   // P1
   narr(ov, { text: 'これほどの量を浴びたのは、構内の運転員と消防士だった。', t0: P1 + 0.3, t1: P2 - 0.2 });
-  label(ov, { html: '<span style="letter-spacing:.2em;color:rgba(238,241,244,.62)">チェルノブイリ　1986 年</span>', t0: P1 + 0.5, t1: P2 - 0.25, x: 1012, y: 300, size: 25 });
+  label(ov, { html: '<span style="letter-spacing:.16em;color:rgba(238,241,244,.7)">史上最悪の原発事故　チェルノブイリ（1986 年）</span>', t0: P1 + 0.5, t1: P2 - 0.25, x: 1012, y: 300, size: 25 });
   big(ov, { cap: '急性放射線症（0.8〜16 グレイ）', value: 134, unit: '人', t0: P1 + 0.7, t1: P2 - 0.25, x: 1010, y: 356, count: 1.2, size: 104 });
   big(ov, { cap: 'うち、数か月以内に死亡', value: 28, unit: '人', t0: P1 + 2.5, t1: P2 - 0.25, x: 1010, y: 560, count: 1.2, cls: 'red', size: 104 });
   label(ov, { html: '<i>爆発で 2 人</i>', t0: P1 + 1.2, t1: P2 - 0.25, x: GX + 2 * GS + 6, y: GY - 86, size: 24 });
