@@ -234,7 +234,7 @@ mix += post
 
 if os.environ.get('KIAI_DUMP'):
     for name, b_ in [('music', music), ('voice', voice), ('sfx', sfx), ('amb', amb)]: ss.write_audio(os.path.join(WORK, f'bus_{name}.wav'), b_ / max(1.0, np.abs(b_).max()))
-y = ss.master(mix, TARGET_LUFS, -1.0)
+y = ss.master(mix, TARGET_LUFS, -2.6)          # AAC にすると山が少し伸びるので、余裕を持たせる
 print(f'buses (LUFS): music {ss.lufs(music):.1f}  voice {ss.lufs(voice):.1f}  sfx {ss.lufs(sfx):.1f}  amb {ss.lufs(amb):.1f}  →  mix {ss.lufs(y):.1f}, peak {20 * np.log10(np.abs(y).max()):.1f} dBFS')
 WAV = out if wav_only else os.path.join(WORK, 'mix.wav')
 ss.write_audio(WAV, y)
