@@ -95,10 +95,10 @@ export async function create(env) {
     if (t >= T.stop) aura = 1.6 * (1 - sat((t - T.stop) / 2.6)) ** 2;
     const strain = sat(env1 * 0.9 + (t > 27.4 && t < 30 ? sat((t - 27.4) / 2) * 0.5 : 0) + (t >= T.last && t < T.stop ? 0.6 : 0));
     // 体のふるえ・息
-    const tr = 0.012 + 0.05 * strain + (t >= T.flash2 && t < T.dark ? 0.03 : 0);
-    pose.hip = [pose.hip[0] + noise1(t * 23, 1) * tr, pose.hip[1] + noise1(t * 27, 2) * tr * 0.6 + 0.012 * Math.sin(t * (t > 58 && t < 62 || t > 125.5 && t < 130 ? 7 : 2.2))];
-    pose.lean += noise1(t * 19, 3) * tr * 40;
-    pose.head += noise1(t * 21, 4) * tr * 50;
+    const tr = 0.01 + 0.04 * strain + (t >= T.flash2 && t < T.dark ? 0.03 : 0);
+    pose.hip = [pose.hip[0] + noise1(t * 15, 1) * tr, pose.hip[1] + noise1(t * 17, 2) * tr * 0.6 + 0.012 * Math.sin(t * (t > 58 && t < 62 || t > 125.5 && t < 130 ? 7 : 2.2))];
+    pose.lean += noise1(t * 13, 3) * tr * 40;
+    pose.head += noise1(t * 14, 4) * tr * 50;
     if (!(t >= T.walk && t < 116.5)) { pose.handN = [pose.handN[0] + noise1(t * 31, 5) * tr * 0.9, pose.handN[1] + noise1(t * 29, 6) * tr * 0.9]; pose.handF = [pose.handF[0] + noise1(t * 33, 7) * tr * 0.9, pose.handF[1] + noise1(t * 28, 8) * tr * 0.9]; }
     pose.jaw = Math.max(pose.jaw * (t > 26 && env1 < 0.05 && !(t >= 67 && t < 71) ? 0.25 : 1), env1 * (0.86 + 0.14 * noise1(t * 30, 9)));
     if (t >= T.vomit && t < T.shatter - 0.6) pose.jaw = 1;
@@ -173,10 +173,10 @@ export async function create(env) {
       // ---- 画面全体
       const fl = 1.5 * pulse(t, T.flash1, 0.13) + 2.4 * pulse(t, T.flash2, 0.22) + 0.5 * pulse(t, T.kiai1, 0.07) + 0.5 * pulse(t, T.kiai1b, 0.07) + 0.9 * pulse(t, 76.95, 0.09) + 1.6 * pulse(t, T.stop, 0.2)
         + 0.3 * SHOUTS.slice(1).reduce((m, q) => Math.max(m, pulse(t, q, 0.06)), 0);
-      const sh = 0.014 * pulse(t, T.flash1, 0.3) + 0.024 * pulse(t, T.flash2, 0.45) + 0.02 * pulse(t, T.stop, 0.35) + st.env1 * (0.0035 + 0.004 * sm(T.kiai2 - 1, T.kiai2, t) + 0.004 * sm(T.last, T.stop, t)) + 0.004 * recoil
+      const sh = 0.014 * pulse(t, T.flash1, 0.3) + 0.024 * pulse(t, T.flash2, 0.45) + 0.02 * pulse(t, T.stop, 0.35) + st.env1 * (0.002 + 0.0015 * sm(T.kiai2 - 1, T.kiai2, t) + 0.0045 * sm(T.last, T.stop, t)) + 0.004 * recoil + 0.008 * Math.max(pulse(t, T.kiai1, 0.22), pulse(t, T.kiai1b, 0.22), ...SHOUTS.map((q) => pulse(t, q, 0.22)))
         + (t >= T.walk && t < 116.5 ? 0.006 * pulse(t, T.walk + Math.floor(t - T.walk) + 0.7, 0.12) : 0);
       p.shake = [noise1(f * 0.83, 21) * sh, noise1(f * 0.91, 22) * sh];
-      p.flash = Math.min(1.2, fl);
+      p.flash = Math.min(0.9, fl);
       p.bloom = 0.62 + 0.25 * sat(fl); p.threshold = 0.78; p.vignette = 0.62; p.ca = 0.006 + 0.04 * sat(fl) + 0.006 * st.env1;
       p.fade = sm(0, 1.2, t) * (1 - 0.999 * sm(129.2, 129.9, t) * (1 - sm(T.dawn, T.dawn + 0.9, t))) * lerp(1, 0.2, sm(T.title - 0.4, T.title + 0.6, t)) * (1 - sm(DURATION - 1.0, DURATION - 0.1, t));
     },

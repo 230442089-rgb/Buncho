@@ -163,6 +163,7 @@ export async function create(env) {
   const card = (html, t0, t1, top) => ov.add({ t0, t1, className: 'card', style: { top: top + 'px' }, html, update(el, tl) { el.style.opacity = inout(tl, t1 - t0, 0.7, 0.5).toFixed(4); el.style.transform = `translateY(${((1 - ease.outCubic(sat(tl / 0.7))) * 10).toFixed(2)}px)`; } });
   card('次の日も、彼はふつうに出勤した。', 137.9, 140.5, 830);
   card('ただ、声だけは——三日、出なかった。', 140.8, 143.5, 830);
+  ov.add({ t0: 141.9, t1: 143.5, className: 'lbl', style: { left: '560px', width: '290px', textAlign: 'right', top: '388px', fontFamily: "'Shippori Mincho', serif", fontSize: '34px', letterSpacing: '0.16em', color: 'rgba(255,255,255,.86)' }, html: '（……気合いだ）', update(el, tl) { el.style.opacity = inout(tl, 1.6, 0.35, 0.5).toFixed(3); el.style.transform = `translateY(${(-10 * tl).toFixed(1)}px)`; } });
   const loc = (env.stats && env.stats.loc) ? env.stats.loc.toLocaleString('en-US') : '—';
   ov.add({
     t0: T.title, t1: DURATION + 1, className: 'title', html: '<div class="t">気合い</div><div class="te">KIAI</div>',
@@ -175,6 +176,6 @@ export async function create(env) {
   fadeEl(ov, { t0: T.title + 1.5, t1: DURATION, className: 'disc', fin: 0.8, fout: 0.9, dy: 6,
     html: '※ この物語はフィクションです。現実の放射線は、<b>気合いでは防げません。</b><br>10 グレイを全身に浴びれば、いまの医療でも、ほぼ助かりません。' });
   fadeEl(ov, { t0: T.title + 2.6, t1: DURATION, className: 'credit', fin: 0.8, fout: 0.9, dy: 4,
-    html: `音楽　“Rulers of Our Lands”　Rafael Krux（CC0）　／　効果音　SFX Kit by Wyzowl（CC0）ほか<br>声　合成音声 Open JTalk ＋ HTS voice “NIT ATR503 M001”（名古屋工業大学, CC BY 3.0）を加工<br>映像　すべてプログラムで生成（${loc} 行）　／　プロンプト　あなた　／　構成・プログラム　Claude` });
+    html: `音楽　“Rulers of Our Lands” Rafael Krux・“Infinite Peace” Kevin MacLeod（CC0）　／　効果音　SFX Kit by Wyzowl（CC0）ほか<br>声　合成音声 Open JTalk ＋ HTS voice “NIT ATR503 M001”（名古屋工業大学, CC BY 3.0）を加工<br>映像　すべてプログラムで生成（${loc} 行）　／　プロンプト　あなた　／　構成・プログラム　Claude` });
   return [];
 }

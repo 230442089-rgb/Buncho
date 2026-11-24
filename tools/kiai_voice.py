@@ -241,6 +241,15 @@ def kiaida(dur=2.6, seed=7, peak=350, power=1.0, n=3, last=False):
     return stack(one, n, seed=seed)
 
 
+def madada(seed=6):
+    """低くうなる「……まだだ」"""
+    def one(sd, mul):
+        y = shout('まだだ', [0.08, 0.17, 0.06, 0.17, 0.06, 0.34], [(0, 128), (0.3, 150), (0.6, 142), (0.9, 118)], warp=[(0, 1.0), (0.9, 1.04)], tilt=2.5, rasp=0.5, growl=0.7, jitter=0.03,
+                  amp=[(0, 0.7), (0.3, 1.0), (0.9, 0.8)], seed=sd, f0mul=mul, rough=0.5, tail=0.18)
+        return eq(drive(y, 2.2, 0.2), hp=90, pres=(2200, 2.0))
+    return stack(one, 1, seed=seed)
+
+
 def whisper_kiai(seed=2):
     """最後の、声にならない「……気合いだ」"""
     y = shout('きあいだ', [0.13, 0.13, 0.2, 0.17, 0.07, 0.3], [(0, 120), (1, 110)], tilt=1.5, rasp=0.2, growl=0, whisper=True, seed=seed, tail=0.2)
@@ -273,8 +282,7 @@ def speaker_break(x, t_on, t_dead=None, seed=4, fs=FS):
 
 def finish(x, ss, room=1.5, wetmix=0.2, damp=0.45):
     """44.1 kHz にして、部屋の響きを足す"""
-    y = resample(x)
-    return y + ss.reverb(np.concatenate([y, np.zeros((int(room * 44100), 2))]), room, damp)[:len(y)] * wetmix if False else _wet(y, ss, room, damp, wetmix)
+    return _wet(resample(x), ss, room, damp, wetmix)
 
 
 def _wet(y, ss, room, damp, wetmix):
