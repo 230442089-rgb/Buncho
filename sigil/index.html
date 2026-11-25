@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>外神竜一族 十二の紋章</title>
+<style>
+/* 書体は film/fonts と chase/fonts のものを使う（tools/fetch-fonts.sh で取得） */
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'Shippori Mincho'; src: url('../film/fonts/ShipporiMincho-ExtraBold.ttf'); font-weight: 800; }
+@font-face { font-family: 'Noto Sans JP'; src: url('../film/fonts/NotoSansJP-VF.ttf'); font-weight: 100 900; }
+@font-face { font-family: 'Zen Maru Gothic'; src: url('../chase/fonts/ZenMaruGothic-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'Zen Maru Gothic'; src: url('../chase/fonts/ZenMaruGothic-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'Zen Maru Gothic'; src: url('../chase/fonts/ZenMaruGothic-Black.ttf'); font-weight: 900; }
+html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; transform-origin: 0 0; }
+#cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: block; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="cv" width="1920" height="1080"></canvas></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
