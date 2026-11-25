@@ -38,7 +38,7 @@ const { chromium } = require('playwright');
 
   // ---- 3D モデル
   const models = await ev(() => Object.keys(window.__flight.figs.models));
-  ok('3D モデルが読みこまれている', ['yuria', 'yuria_lo', 'buncho', 'buncho_lo', 'buncho_far', 'jetpack', 'bazooka', 'gatling', 'chute', 'round', 'slug', 'bullet', 'rocket', 'missile', 'mine', 'gem', 'arrow'].every((n) => models.includes(n)) && (await ev(() => window.__flight.cast.ok)), `${models.length} 種`);
+  ok('3D モデルが読みこまれている', ['yuria', 'yuria_lo', 'dragon', 'buncho', 'buncho_lo', 'buncho_far', 'jetpack', 'bazooka', 'gatling', 'chute', 'round', 'slug', 'bullet', 'rocket', 'missile', 'mine', 'gem', 'arrow'].every((n) => models.includes(n)) && (await ev(() => window.__flight.cast.ok)), `${models.length} 種`);
   const names = () => ev(() => window.__flight.figs.queue.map((q) => q.pose.m.h.name));
   await step(1, true); let fg = await names();
   ok('題の画面に、3D のユリアがいる（手前の大きな姿と、見本のうしろ姿）', fg.includes('yuria') && fg.includes('yuria_lo'), fg.join(' '));
@@ -46,11 +46,11 @@ const { chromium } = require('playwright');
   ok('ユリアの姿勢は、どの場面でも数として壊れない', nan === 0, `壊れた数 ${nan}`);
   await page.click('#btnGallery'); await step(3, true);
   let gl0 = await ev(() => ({ mode: window.__flight.game.mode, name: document.getElementById('galName').textContent, count: document.getElementById('galCount').textContent, yaw: window.__flight.game.gal.yaw }));
-  ok('「3D モデルを見る」で、鑑賞の画面になる', gl0.mode === 'gallery' && (await vis('gallery')) && !(await vis('title')) && gl0.name.includes('ユリア') && gl0.count === '1 / 8', JSON.stringify(gl0));
+  ok('「3D モデルを見る」で、鑑賞の画面になる', gl0.mode === 'gallery' && (await vis('gallery')) && !(await vis('title')) && gl0.name.includes('ユリア') && gl0.count === '1 / 9', JSON.stringify(gl0));
   const seen = [], drawn = [];
-  for (let i = 0; i < 8; i++) { await step(2, true); seen.push(await ev(() => document.getElementById('galName').textContent)); drawn.push(await names()); await page.click('#btnGalNext'); }
+  for (let i = 0; i < 9; i++) { await step(2, true); seen.push(await ev(() => document.getElementById('galName').textContent)); drawn.push(await names()); await page.click('#btnGalNext'); }
   await step(2, true);
-  ok('8 つのモデルを順に見られる（一巡して最初にもどる）', new Set(seen).size === 8 && drawn.every((d) => d.length > 0) && drawn[2].includes('buncho') && drawn[4].includes('gatling') && drawn[6].includes('chute') && drawn[7].includes('missile') && (await ev(() => window.__flight.game.gal.i)) === 0, seen.join('・'));
+  ok('9 つのモデルを順に見られる（一巡して最初にもどる）', new Set(seen).size === 9 && drawn.every((d) => d.length > 0) && drawn[2].includes('buncho') && drawn[4].includes('gatling') && drawn[6].includes('chute') && drawn[7].includes('dragon') && drawn[8].includes('missile') && (await ev(() => window.__flight.game.gal.i)) === 0, seen.join('・'));
   await page.mouse.move(W * 0.5, H * 0.5); await page.mouse.down(); await page.mouse.move(W * 0.5 + 120, H * 0.5, { steps: 4 }); await page.mouse.up();
   const gl1 = await ev(() => window.__flight.game.gal.yaw);
   ok('ドラッグで回せる', Math.abs(gl1 - 0.45 - 120 * 0.012) < 0.2, `yaw ${f2(gl1)}`);
@@ -218,6 +218,9 @@ const { chromium } = require('playwright');
   ok('芯を落とすと決め技が始まる', c.mode === 'fin', `${t2.toFixed(0)} 秒`);
   await until('G.fin.t > 3', 10); await step(2, true);
   ok('決め技のあいだは、もう当たらない', await ev(() => { const G = window.__flight.game, s = G.P.shield; G.P.inv = 0; G.damage(); return G.P.shield === s; }));
+  await until('G.fin && G.fin.t > 3.2', 10); await step(1, true); fg = await names();
+  const dz = await ev(() => { const F = window.__flight, q = F.figs.queue.find((x) => x.pose.m.h.name === 'dragon'); if (!q) return null; let bad = 0; for (const v of q.pose.skin) if (!Number.isFinite(v)) bad++; let len = 0; for (let i = 0; i < 17; i++) { const a = q.pose.at('s' + i), b = q.pose.at('s' + (i + 1)); len += Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); } return { bad, len: len * q.m[0], want: 30 * q.m[0] }; });
+  ok('決め技では、ユリアが 3D の竜になって飛ぶ（体は道すじに沿ってのびている）', fg.includes('dragon') && !fg.includes('yuria') && !fg.includes('yuria_lo') && dz && dz.bad === 0 && Math.abs(dz.len / dz.want - 1) < 0.12, JSON.stringify(dz));
   await until('G.mode === "result"', 20); await step(2, true); a = await S();
   ok('結果が出る', a.mode === 'result' && (await vis('result')) && a.turn === 1);
   const res = await ev(() => ({ rank: document.getElementById('rRank').textContent, score: document.getElementById('rScore').textContent, routed: document.getElementById('rRouted').textContent, best: JSON.parse(localStorage.getItem('yuria-strike:v1')).best }));

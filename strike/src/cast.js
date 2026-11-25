@@ -1,30 +1,90 @@
 // cast.js — 3D の登場人物の「演技」: ユリアの顔の絵と、ユリア・マッスル文鳥の姿勢（骨の角度）を、場面と時刻から決める。
 //   形そのものは strike/model/ に、描き方は figure.js にある。ここは「どう動くか」だけ。
-import { features, YURIA } from '../../chase/src/chibi.js';
 import { attach } from './figure.js';
 
 const { sin, cos, PI, abs, min, max } = Math;
 const clamp = (x, a, b) => min(b, max(a, x)), sat = (x) => clamp(x, 0, 1), lerp = (a, b, k) => a + (b - a) * k;
 const ease = (x) => { x = sat(x); return x * x * (3 - 2 * x); };
 
-// ============================================================ ユリアの顔（目・眉・口・ほお）を、表情ごとに 1 枚ずつ描いておく
-const EYES = { ...YURIA, eyeCol: ['#4a93c8', '#86d2ee', '#e0f8ff', '#86a6c2'], fang: true, lid: 0.12 };
+// ============================================================ ユリアの顔（目・眉・鼻・口・ほお）を、表情ごとに 1 枚ずつ描いておく
+//   頭の中心が原点、頭の半径が 1、下が +y。向かって右（+x）が本人の左。形は 3D の頭のほうにあるので、ここは色と線だけ。
+const TAU = PI * 2;
+function eye(c, side, f) {
+  c.save(); c.translate(0.37 * side, 0.1); c.scale(side, 1); c.lineCap = 'round'; c.lineJoin = 'round';        // 目じりが +x
+  const W = 0.2, kind = f.eyes || 'open', LASH = '#3b3040';
+  if (kind === 'happy' || kind === 'shut' || kind === 'tight') {
+    c.beginPath();
+    if (kind === 'happy') { c.moveTo(-W, 0.05); c.quadraticCurveTo(0, -0.13, W, 0.04); }
+    else if (kind === 'tight') { c.moveTo(W, -0.07); c.lineTo(-W * 0.7, 0.02); c.lineTo(W, 0.1); }
+    else { c.moveTo(-W, 0.0); c.quadraticCurveTo(0, 0.1, W, -0.01); }
+    c.strokeStyle = LASH; c.lineWidth = 0.036; c.stroke();
+    if (kind === 'shut') for (const k of [0.6, 0.95]) { c.beginPath(); c.moveTo(W * k, 0.03); c.lineTo(W * k + 0.04, 0.085); c.lineWidth = 0.016; c.stroke(); }
+    c.restore(); return;
+  }
+  const wide = kind === 'wide' ? 1.18 : 1, Hh = 0.15 * wide, drop = (f.lid || 0) * Hh * 1.5;
+  const lids = () => { c.beginPath(); c.moveTo(-W, 0.035); c.bezierCurveTo(-W * 0.62, -Hh * 1.22 + drop, W * 0.42, -Hh * 1.32 + drop, W, -0.03); c.bezierCurveTo(W * 0.8, Hh * 0.92, -W * 0.45, Hh * 1.08, -W, 0.035); c.closePath(); };
+  lids(); c.fillStyle = '#fdfcff'; c.fill();
+  c.save(); lids(); c.clip();
+  const ix = (f.lookX || 0) * 0.03, iy = 0.005 + (f.lookY || 0) * 0.02, R = kind === 'wide' ? 0.105 : 0.14;
+  let g = c.createLinearGradient(0, iy - R, 0, iy + R); g.addColorStop(0, '#245c9e'); g.addColorStop(0.45, '#3f98d6'); g.addColorStop(1, '#a9ecfb');
+  c.beginPath(); c.arc(ix, iy, R, 0, TAU); c.fillStyle = g; c.fill(); c.strokeStyle = '#1f4c86'; c.lineWidth = 0.016; c.stroke();
+  c.beginPath(); c.arc(ix, iy + 0.004, R * 0.4, 0, TAU); c.fillStyle = '#14305a'; c.fill();
+  g = c.createRadialGradient(ix, iy + R * 0.55, 0, ix, iy + R * 0.55, R * 0.7); g.addColorStop(0, 'rgba(190,250,255,.75)'); g.addColorStop(1, 'rgba(190,250,255,0)'); c.fillStyle = g; c.fillRect(-W, -Hh * 1.4, W * 2, Hh * 2.8);
+  g = c.createLinearGradient(0, -Hh * 1.3 + drop, 0, -Hh * 0.2 + drop); g.addColorStop(0, 'rgba(30,40,90,.5)'); g.addColorStop(1, 'rgba(30,40,90,0)'); c.fillStyle = g; c.fillRect(-W, -Hh * 1.4, W * 2, Hh * 1.4);     // まぶたの影
+  c.fillStyle = '#fff'; c.beginPath(); c.ellipse(ix - R * 0.38, iy - R * 0.42, R * 0.26, R * 0.2, -0.4, 0, TAU); c.fill(); c.beginPath(); c.arc(ix + R * 0.4, iy + R * 0.38, R * 0.11, 0, TAU); c.fill();
+  c.restore();
+  // 上のまつげ（太く、目じりではね上げる）と、二重の線、下まつげ
+  c.beginPath(); c.moveTo(-W, 0.035); c.bezierCurveTo(-W * 0.62, -Hh * 1.22 + drop, W * 0.42, -Hh * 1.32 + drop, W, -0.03); c.strokeStyle = LASH; c.lineWidth = 0.04; c.stroke();
+  c.beginPath(); c.moveTo(W * 0.8, -0.075 + drop * 0.4); c.lineTo(W + 0.075, -0.105); c.lineTo(W - 0.01, -0.02); c.closePath(); c.fillStyle = LASH; c.fill();
+  c.beginPath(); c.moveTo(-W * 0.8, -Hh * 0.95 + drop * 0.5); c.quadraticCurveTo(0, -Hh * 1.62 + drop * 0.5, W * 0.85, -Hh * 0.75 + drop * 0.5); c.strokeStyle = 'rgba(170,120,125,.55)'; c.lineWidth = 0.013; c.stroke();
+  c.beginPath(); c.moveTo(W * 0.92, 0.02); c.bezierCurveTo(W * 0.7, Hh * 0.95, W * 0.1, Hh * 1.08, -W * 0.35, Hh * 0.98); c.strokeStyle = 'rgba(80,60,75,.6)'; c.lineWidth = 0.013; c.stroke();
+  c.restore();
+}
+// f: { eyes: 'open' | 'wide' | 'happy'（∩）| 'shut' | 'tight'（＞＜）, lid: まぶたの下がり 0..0.5, brow: 眉の傾き, mouth: 'smile' | 'open' | 'grin' | 'small' | 'wavy', blush }
+export function drawYuriaFace(c, f = {}) {
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  // ほおの赤み
+  for (const s of [-1, 1]) { const g = c.createRadialGradient(0.5 * s, 0.37, 0, 0.5 * s, 0.37, 0.2); g.addColorStop(0, `rgba(255,128,140,${0.34 * (f.blush ?? 1)})`); g.addColorStop(1, 'rgba(255,128,140,0)'); c.save(); c.translate(0, 0.37); c.scale(1, 0.6); c.translate(0, -0.37); c.fillStyle = g; c.fillRect(0.5 * s - 0.2, 0.17, 0.4, 0.4); c.restore(); }
+  for (const s of [-1, 1]) {
+    eye(c, s, f);
+    // 眉（細く、髪と同じ淡い色）
+    c.save(); c.translate(0.38 * s, -0.17 + (f.browY || 0)); c.scale(s, 1); c.rotate(f.brow || 0);
+    c.beginPath(); c.moveTo(-0.17, 0.035); c.quadraticCurveTo(0.0, -0.03, 0.2, 0.0); c.strokeStyle = '#a99fb8'; c.lineWidth = 0.026; c.stroke(); c.restore();
+    c.beginPath(); c.arc(0.52 * s, 0.3, 0.014, 0, TAU); c.fillStyle = '#6a4a58'; c.fill();                 // 目の下のほくろ
+  }
+  // 鼻（先の下の小さな影）
+  c.beginPath(); c.ellipse(0.0, 0.405, 0.032, 0.011, 0, 0, TAU); c.fillStyle = 'rgba(214,138,128,.55)'; c.fill();
+  // 口
+  const m = f.mouth || 'smile', y = 0.6;
+  if (m === 'open' || m === 'grin') {
+    const w = m === 'grin' ? 0.17 : 0.145, h = m === 'grin' ? 0.15 : 0.12;
+    c.beginPath(); c.moveTo(-w, y - 0.01); c.quadraticCurveTo(0, y + 0.02, w, y - 0.01); c.bezierCurveTo(w * 0.85, y + h * 1.15, -w * 0.85, y + h * 1.15, -w, y - 0.01); c.closePath();
+    c.fillStyle = '#a13b4b'; c.fill(); c.save(); c.clip();
+    c.beginPath(); c.ellipse(0, y + h * 0.92, w * 0.62, h * 0.4, 0, 0, TAU); c.fillStyle = '#ee8996'; c.fill();
+    c.fillStyle = '#fff'; c.fillRect(-w, y - 0.03, w * 2, 0.045);                                           // 上の歯
+    c.beginPath(); c.moveTo(-w * 0.72, y); c.lineTo(-w * 0.34, y); c.lineTo(-w * 0.52, y + 0.075); c.closePath(); c.fill();   // 八重歯（本人の右）
+    c.restore();
+    c.beginPath(); c.moveTo(-w, y - 0.01); c.quadraticCurveTo(0, y + 0.02, w, y - 0.01); c.bezierCurveTo(w * 0.85, y + h * 1.15, -w * 0.85, y + h * 1.15, -w, y - 0.01); c.strokeStyle = '#8c3545'; c.lineWidth = 0.014; c.stroke();
+  } else if (m === 'small') { c.beginPath(); c.ellipse(0, y + 0.03, 0.04, 0.045, 0, 0, TAU); c.fillStyle = '#a13b4b'; c.fill(); }
+  else if (m === 'wavy') { c.beginPath(); c.moveTo(-0.13, y + 0.03); for (let i = 0; i < 4; i++) c.quadraticCurveTo(-0.13 + (i + 0.5) * 0.065, y + (i % 2 ? 0.07 : -0.01), -0.13 + (i + 1) * 0.065, y + 0.03); c.strokeStyle = '#8c3545'; c.lineWidth = 0.02; c.stroke(); }
+  else { c.beginPath(); c.moveTo(-0.135, y - 0.012); c.quadraticCurveTo(0, y + 0.07, 0.135, y - 0.012); c.strokeStyle = '#a5505f'; c.lineWidth = 0.02; c.stroke(); c.beginPath(); c.ellipse(0, y + 0.075, 0.06, 0.014, 0, 0, TAU); c.fillStyle = 'rgba(255,170,170,.5)'; c.fill(); }
+}
 export const FACES = {
-  smile: { eyes: 'open', mouth: { kind: 'open', h: 0.16, fang: true }, lid: 0.1 },
-  grin: { eyes: 'open', mouth: { kind: 'open', h: 0.2, w: 0.17, fang: true }, lid: 0.05 },
-  happy: { eyes: 'happy', mouth: { kind: 'open', h: 0.2, w: 0.17, fang: true }, blush: 1.2 },
-  cool: { eyes: 'open', mouth: 'smile', lid: 0.28, browTilt: 0.22 },
-  oops: { eyes: 'cross', mouth: 'wavy' },
-  wow: { eyes: 'wide', mouth: 'small', dot: 0.05 },
-  fierce: { eyes: 'open', mouth: { kind: 'open', h: 0.14, fang: true }, lid: 0.3, browTilt: 0.3 },
-  blink: { eyes: 'shut', mouth: { kind: 'open', h: 0.16, fang: true } },
+  smile: { eyes: 'open', mouth: 'open', lid: 0.06 },
+  grin: { eyes: 'open', mouth: 'grin', lid: 0.02 },
+  happy: { eyes: 'happy', mouth: 'grin', blush: 1.4 },
+  cool: { eyes: 'open', mouth: 'smile', lid: 0.22, brow: 0.12 },
+  oops: { eyes: 'tight', mouth: 'wavy' },
+  wow: { eyes: 'wide', mouth: 'small' },
+  fierce: { eyes: 'open', mouth: 'open', lid: 0.2, brow: 0.26, browY: 0.02 },
+  blink: { eyes: 'shut', mouth: 'open' },
 };
 export class Faces {
-  constructor(g, size = 384) {
+  constructor(g, size = 512) {
     this.g = g; this.tex = {};
     for (const k in FACES) {
       const cv = document.createElement('canvas'); cv.width = cv.height = size; const c = cv.getContext('2d'), s = size / 2.2;
-      c.setTransform(s, 0, 0, s, size / 2, size / 2); features(c, EYES, FACES[k]);
+      c.setTransform(s, 0, 0, s, size / 2, size / 2); drawYuriaFace(c, FACES[k]);
       this.tex[k] = g.fromCanvas(cv, { filter: 'linear' });
     }
   }
@@ -41,22 +101,23 @@ const setMix = (p, A, B, k) => {
 const Z3 = [0, 0, 0];
 export const LANCE_REST = [0.6, 0.1, 0.79];        // ふだんの槍の向き（右ななめ前へ。うしろから見て、よく見えるように）
 
-// ---- ユリア。飛ぶ（うしろ姿）: 体を前へ倒し、脚と髪をうしろへ流して、槍を前へ向ける
+// ---- ユリア（人の体つき）。飛ぶ（うしろ姿）: 体を前へ倒し、脚と髪をうしろへ流して、槍を右に構える
 const Y_FLY = {
-  pelvis: [30, 0, 0], spine: [-7, 0, 0], chest: [-8, 0, 0], neck: [-6, 0, 0], head: [-12, 0, 0],
-  thighR: [14, 0, 4], shinR: [44, 0, 0], footR: [42, 0, 0], thighL: [34, 0, -4], shinL: [14, 0, 0], footL: [46, 0, 0],
-  armR: [12, 0, 24], foreR: [-44, 24, 0], handR: [18, 6, 0], lance: [0, 0, 90], armL: [30, 0, -58], foreL: [-18, 0, -12], handL: [0, 0, -10],
-  hair1: [42, 0, 0], hair2: [14, 0, 0], hair3: [10, 0, 0], tail1: [34, -10, 10], tail2: [16, 0, 8], lockR: [38, 0, 8], lockL: [38, 0, -8],
-  hipR: [38, 0, 14], hipL: [38, 0, -14], wingR: [0, 12, 4], wingL: [0, -12, -4],
+  pelvis: [40, 0, 0], spine: [-8, 0, 0], chest: [-10, 0, 0], neck: [-8, 0, 0], head: [-16, 0, 0],
+  thighR: [6, 0, 5], shinR: [52, 0, 0], footR: [40, 0, 0], thighL: [26, 0, -5], shinL: [14, 0, 0], footL: [46, 0, 0],
+  armR: [8, 0, 34], foreR: [-46, 22, 0], lance: [0, 0, 90], armL: [34, 0, -40], foreL: [-24, 0, -10], handL: [0, 0, -12],
+  hair1: [50, 0, 0], hair2: [16, 0, 0], hair3: [12, 0, 0], tail1: [40, -8, 10], tail2: [18, 0, 8], lockR: [44, 0, 8], lockL: [44, 0, -8],
+  hipR: [44, 0, 14], hipL: [44, 0, -14], wingR: [0, 12, 4], wingL: [0, -12, -4],
 };
-// 正面を向いて浮かぶ（題・結果）: 槍を立てて持ち、片ひざを軽く曲げる
+// 正面を向いて浮かぶ（題・結果・鑑賞）: いただいた絵のように、右手の槍をななめ下へ流し、左手をひらいて差し出す
 const Y_FRONT = {
-  pelvis: [0, 0, 0], spine: [-2, 0, 0], chest: [-3, 0, 0], head: [2, 0, 4],
-  thighR: [-12, 0, 5], shinR: [34, 0, 0], footR: [30, 0, 0], thighL: [4, 0, -3], shinL: [6, 0, 0], footL: [34, 0, 0],
-  armR: [-6, 0, 34], foreR: [-30, 0, 4], handR: [-60, 0, -16], lance: [0, 0, 90], armL: [6, 0, -18], foreL: [-14, 0, -6],
+  pelvis: [-3, 0, 0], spine: [2, 0, 0], chest: [-4, 6, 0], neck: [2, 0, 0], head: [4, -8, 5],
+  thighR: [-16, 0, 5], shinR: [40, 0, 0], footR: [40, 0, 0], thighL: [5, 0, -4], shinL: [8, 0, 0], footL: [46, 0, 0],
+  armR: [2, 0, 4], foreR: [-58, 8, 0], lance: [0, 0, 90], armL: [-26, 0, -10], foreL: [-38, 0, -12], handL: [-14, 0, -10],
   hair1: [4, 0, 0], hair2: [2, 0, 0], hair3: [2, 0, 0], tail1: [0, 0, 0], tail2: [4, 0, 0],
-  hipR: [4, 0, 6], hipL: [4, 0, -6], wingR: [0, 6, 6], wingL: [0, -6, -6],
+  hipR: [6, 0, 8], hipL: [6, 0, -8], wingR: [0, 6, 6], wingL: [0, -6, -6],
 };
+export const LANCE_FRONT = [-0.44, -0.6, 0.67];      // 正面の姿勢での槍の向き（穂先を、本人の左下・手前へ）
 // o: { t, sway: 左右への動き -1..1, power: ための強さ 0..1, turn: ふり向き 0..1, wave: 手をふる 0..1, thrust: 槍を突き出す 0..1, hurt: 0..1, aim: 槍を向ける先（モデルの座標での向き）, still: ふり向いても体は回さない }
 export function poseYuria(p, o = {}) {
   const t = o.t || 0, sw = clamp(o.sway || 0, -1, 1), pw = sat(o.power || 0), k = ease(o.turn || 0), fly = 1 - k, wv = sat(o.wave || 0), th = sat(o.thrust || 0), hu = sat(o.hurt || 0);
@@ -70,7 +131,7 @@ export function poseYuria(p, o = {}) {
   // 槍の腕: ためると引きしぼり、撃つと突き出す
   p.add('armR', 16 * pw * fly - 26 * th * fly, 0, 6 * pw); p.add('foreR', -22 * pw * fly + 30 * th * fly, 0, 0); p.add('handR', 10 * pw * fly - 6 * th * fly, 0, 0);
   // 左手: 飛ぶときはうしろへ流す。ふり向いたら、手をふる
-  p.add('armL', 4 * s2 * fly - 78 * wv * k, 0, -4 * s1 * fly - 34 * wv * k); p.add('foreL', -62 * wv * k, 0, (-30 - 22 * sin(t * 9)) * wv * k); p.add('handL', 0, 0, -16 * sin(t * 9 + 0.6) * wv * k);
+  p.add('armL', 4 * s2 * fly - 40 * wv * k, 0, -4 * s1 * fly - 44 * wv * k); p.add('foreL', -50 * wv * k, 0, (-40 - 18 * sin(t * 8)) * wv * k); p.add('handL', 0, 0, -14 * sin(t * 8 + 0.6) * wv * k);
   // 髪・結んだ髪・顔のわきの束: 風に流れて、遅れて揺れる
   const hs = fly * 1 + 0.35 * k;
   p.add('hair1', 5 * s2 * hs, 0, 10 * sw * fly + 3 * s1 * hs); p.add('hair2', 8 * sin(t * 3.1) * hs, 0, 8 * sw * fly + 5 * sin(t * 2.3 - 0.8) * hs); p.add('hair3', 11 * sin(t * 3.1 - 1.1) * hs, 0, 7 * sin(t * 2.3 - 1.7) * hs);
@@ -82,10 +143,9 @@ export function poseYuria(p, o = {}) {
   p.add('wingR', 0, 5 * fl + 6 * pw, 3 * fl); p.add('wingL', 0, -5 * fl - 6 * pw, -3 * fl);
   for (let i = 0; i < 5; i++) { const a = (2 - i) * 4.5 * (op - 1) + 1.5 * sin(t * 5 + i); p.rot('wb' + i + 'R', 0, 0, a); p.rot('wb' + i + 'L', 0, 0, -a); }
   // 飛んでいるあいだ、槍はいつも ねらいの先を向く（体が傾いても、槍はぶれない）
-  if (fly > 0.02) {
-    const d = o.aim || LANCE_REST, e = fly * fly; p.update();
-    const c = p.at('lance', Z3), z = p.at('lance', [0, 0, 1]), cur = [z[0] - c[0], z[1] - c[1], z[2] - c[2]];
-    p.aim('handR', [lerp(cur[0], d[0], e), lerp(cur[1], d[1], e), lerp(cur[2], d[2], e)], [0, 1, 0]);
+  {
+    const d = o.aim || LANCE_REST, a = (o.still ? 0 : PI * k), ca = cos(a), sa = sin(a), fx = LANCE_FRONT[0] * ca + LANCE_FRONT[2] * sa, fz = -LANCE_FRONT[0] * sa + LANCE_FRONT[2] * ca;     // ふり向くときは、体といっしょに槍も回る
+    p.update(); p.aim('handR', [lerp(d[0], fx, k), lerp(d[1], LANCE_FRONT[1], k), lerp(d[2], fz, k)], [0, 1, 0]);
   }
   return p;
 }
@@ -149,7 +209,7 @@ export const xf = (m, p) => [m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], m[
 // m × （点 c を中心に k 倍）
 const scaledAbout = (m, c, k) => { const o = m.slice(); for (let i = 0; i < 12; i++) o[i] = m[i] * k; const d = (1 - k); o[12] = m[12] + (m[0] * c[0] + m[4] * c[1] + m[8] * c[2]) * d; o[13] = m[13] + (m[1] * c[0] + m[5] * c[1] + m[9] * c[2]) * d; o[14] = m[14] + (m[2] * c[0] + m[6] * c[1] + m[10] * c[2]) * d; return o; };
 
-export const YPIV = [0, 3.1, 0];                       // ユリアの「当たるところ」（胸）。ここを自分の位置に合わせる
+export const YPIV = [0, 10.3, 0];                       // ユリアの「当たるところ」（胸）。ここを自分の位置に合わせる
 export const BPIV = [0, 2.7, 0];                       // 文鳥の体のまん中
 const GEAR = { trooper: [['jetpack', 'chest'], ['bazooka', 'chest']], gunner: [['jetpack', 'chest'], ['gatling', 'chest']], cmd: [['cap', 'head'], ['shades', 'head'], ['cape', 'chest']] };
 
@@ -177,5 +237,34 @@ export class Cast {
     }
     if (kind === 'chute') this.prop('chute', scaledAbout(m, [0, 4.0, 0], Math.max(0.02, o.open ?? 1)), opt);
     return p;
+  }
+  // 竜。pts: 頭 → 尾の順に、飛んだ道すじをたどる点の列（世界の座標。体の長さより長く、細かく）。S: 大きさ。
+  //   背骨の骨を道すじに沿って等間隔に置くので、体は道のとおりにくねる。o: { t, jaw: 口のひらき 0..1, look: 頭を向ける先（世界の向き）, flap }
+  //   戻り値: { pose, mouth: 口の先（世界の座標）, head: 頭の位置 }
+  dragon(pts, S, o = {}, opt = {}) {
+    const md = this.figs.models.dragon, p = this.pose('dragon'), n = md.h.spine, step = md.h.step * S, t = o.t || 0;
+    const len = (i) => Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1], pts[i + 1][2] - pts[i][2]);
+    const P = []; let seg = 0, acc = 0, L = len(0);
+    for (let i = 0; i < n; i++) {
+      const want = i * step; while (seg + 2 < pts.length && acc + L < want) { acc += L; seg++; L = len(seg); }
+      const u = L > 1e-6 ? (want - acc) / L : 0, a = pts[seg], b = pts[seg + 1]; P.push([a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u]);
+    }
+    p.reset(); let f = [0, 0, 1], r = [1, 0, 0];
+    for (let i = 0; i < n; i++) {
+      const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)], d = [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dl = Math.hypot(d[0], d[1], d[2]);
+      if (dl > 1e-5) f = [d[0] / dl, d[1] / dl, d[2] / dl];
+      // 背は上へ。曲がるときは、曲がる内側へ少し傾く
+      let rr = crs([0, 1, 0], f); const rl = Math.hypot(rr[0], rr[1], rr[2]); if (rl > 0.05) r = [rr[0] / rl, rr[1] / rl, rr[2] / rl];
+      const u = crs(f, r);
+      p.setWorld('s' + i, r, u, f, [P[i][0] / S, P[i][1] / S, P[i][2] / S]);
+    }
+    const fl = sin(t * 5.2), jaw = sat(o.jaw || 0);
+    p.rot('jaw', 6 + 30 * jaw + 3 * sin(t * 3.1), 0, 0); p.rot('head', -4 - 8 * jaw, 0, 3 * sin(t * 1.7));
+    p.rot('wFR', 0, 8 + 10 * fl, 10 * fl); p.rot('wFL', 0, -8 - 10 * fl, -10 * fl); p.rot('wBR', 0, 6 + 8 * sin(t * 5.2 - 0.9), 8 * sin(t * 5.2 - 0.9)); p.rot('wBL', 0, -6 - 8 * sin(t * 5.2 - 0.9), -8 * sin(t * 5.2 - 0.9));
+    if (o.look) { p.update(); p.aim('head', o.look, [0, 1, 0]); }
+    p.update();
+    const m = [S, 0, 0, 0, 0, S, 0, 0, 0, 0, S, 0, 0, 0, 0, 1], mo = md.h.mouth || [0, -0.2, 3.3];
+    this.figs.draw(p, m, opt);
+    return { pose: p, mouth: xf(m, p.at('head', [mo[0], mo[1], mo[2] - 0.2])), head: P[0] };
   }
 }

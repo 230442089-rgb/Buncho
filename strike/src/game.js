@@ -11,9 +11,8 @@ import { A } from './art.js';
 import { matrix } from './mesh.js';
 import { SCRIPT, makeEnemy } from './enemies.js';
 import { place, xf, YPIV, BPIV, LANCE_REST } from './cast.js';
-import { drawDragon } from './dragon.js';
 
-const HEADR = 0.030, SPEED = 1.8, ORBIT_SPEED = 2.5, TAU = Math.PI * 2;
+const HEADR = 0.0136, SPEED = 1.8, ORBIT_SPEED = 2.5, TAU = Math.PI * 2;
 const AIM_DY = 0.30;                       // ねらいの中心は、ユリアのすこし上（画面の高さの 15%）
 const BS = 0.9;                            // 旗艦の大きさ（模型は全長 13）
 const MARK_T = 1.0;                        // 着弾の何秒前から、赤い印を出すか
@@ -66,13 +65,14 @@ function makeArmada() {
 
 // 「3D モデルを見る」に並べるもの。size: 画面に収める高さ（模型の単位）, pivot: 画面のまん中に来る点
 export const GALLERY = [
-  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。顔はときどき変わる。', size: 8.0, pivot: [0, 3.5, 0] },
-  { id: 'fly', name: 'ユリア（飛ぶ姿）', note: '戦いのあいだ、うしろから見ている姿。髪も翼も動く。', size: 8.4, pivot: [0, 3.2, 0.6], back: 1 },
+  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。顔はときどき変わる。', size: 18.5, pivot: [0, 7.8, 0] },
+  { id: 'fly', name: 'ユリア（飛ぶ姿）', note: '戦いのあいだ、うしろから見ている姿。髪も翼も動く。', size: 19.5, pivot: [0, 8.6, 1.2], back: 1 },
   { id: 'flex', name: 'マッスル文鳥', note: 'B.U.N の兵。頭は文鳥、体は筋肉。', size: 7.2, pivot: [0, 2.6, 0] },
   { id: 'trooper', name: '兵（バズーカ）', note: '背中の噴射装置で浮かび、肩の筒からロケット弾を撃つ。', size: 7.6, pivot: [0, 2.7, 0] },
   { id: 'gunner', name: '砲手（ガトリング）', note: '6 本の銃身が回る。撃つときは、もっと速く回る。', size: 7.6, pivot: [0, 2.6, 0.6] },
   { id: 'cmd', name: '隊長', note: '旗艦の艦橋に立つ。帽子とマントと色眼鏡。', size: 7.8, pivot: [0, 2.9, 0] },
   { id: 'chute', name: '脱出した文鳥', note: '機体を落とされても、落下傘で帰っていく。だれも倒れない。', size: 12.5, pivot: [0, 5.6, 0] },
+  { id: 'dragon', name: '竜の姿', note: '決め技のときの姿。白い体に黒と金の背、金の角、機械の翼、光の輪。', size: 30, pivot: [0, 0, 0] },
   { id: 'ammo', name: '弾と兵器', note: '機関砲の弾・太い弾・細い弾・ロケット弾・ミサイル・機雷・光の結晶。', size: 5.8, pivot: [0, 0, 0] },
 ];
 
@@ -437,14 +437,20 @@ export class Strike {
       this.say('fin2'); b.gone = true; this.addScore(5000);
       for (let i = 0; i < 40; i++) this.gem(b.X + rnd(4, -4), b.Y + rnd(2, -1), b.z + rnd(3, -3));
     }
-    if (f.t > 7.2 && !f.s3) { f.s3 = 1; this.flash = 0.7; P.turnTo = 1; const tall = this.hw < this.hh; P.tx = tall ? 0 : 0.42; P.ty = tall ? 0.34 : -0.1; }
+    if (f.t > 7.2 && !f.s3) { f.s3 = 1; this.flash = 0.7; P.turnTo = 1; const tall = this.hw < this.hh; P.tx = tall ? 0 : 0.42; P.ty = tall ? 0.36 : 0.04; }
     if (f.t > 8.8 && !this.resultShown) { this.resultShown = true; this.mode = 'result'; this.say('end'); this.emit('mode', 'result'); this.emit('result', this.result()); }
+  }
+  // 竜の体がたどる道すじ。現れる前（tau < 0）のぶんは、ユリアの前で巻いた とぐろ（そこから体がほどけて出てくる）
+  dragonPath(tau) {
+    if (tau >= 0) return this.dragonAt(tau);
+    const P = this.P, a = -Math.PI / 2 + 1.5 * tau;
+    return [P.X + 1.2 * Math.cos(a), P.Y + 0.2 + 0.28 * tau, 4.8 + 1.2 * Math.sin(a)];
   }
   // 竜の頭の位置（枠の中）。tau: 現れてからの秒。うねりながら旗艦へ向かい、つきぬけて空へ上がる
   dragonAt(tau) {
     const P = this.P, b = this.boss, u = sat(tau / 3.5), e = u * u * (3 - 2 * u);
     const bx = b ? b.X : 0, by = b ? b.Y : 1.5, bz = b ? b.z : 14;
-    if (tau < 3.6) return [lerp(P.X, bx, e) + 2.4 * Math.sin(tau * 2.1) * (1 - u) * (0.3 + u), lerp(P.Y + 0.2, by + 0.5, e) + 1.2 * Math.sin(tau * 1.5 + 0.8) * (1 - u * 0.7) + 1.0 * Math.sin(u * Math.PI), lerp(1.3, bz - 3.0, e)];
+    if (tau < 3.6) return [lerp(P.X, bx, e) + 2.4 * Math.sin(tau * 2.1) * (1 - u) * (0.3 + u), lerp(P.Y + 0.2, by + 0.5, e) + 1.2 * Math.sin(tau * 1.5 + 0.8) * (1 - u * 0.7) * sat(tau * 2) + 1.0 * Math.sin(u * Math.PI), lerp(3.6, bz - 3.0, e)];
     const v = tau - 3.6; return [bx + 2.0 * Math.sin(v * 1.1), by + 0.5 + v * (1.2 + v * 1.4), bz - 3.0 + v * 6];
   }
   result() { const rank = this.cont ? 'B' : this.hits === 0 ? 'S' : this.hits <= 2 ? 'A' : 'B'; return { score: this.score, routed: this.routed, chain: this.maxChain, hits: this.hits, cont: this.cont, rank }; }
@@ -484,7 +490,14 @@ export class Strike {
     const focal = this.lens();
     const F = this.fr, ro = add3(F.p, F.f, -DCAM);
     if (this.shake > 0.01 && !this.reduced) { const a = Math.sin(this.clock * 67) * 0.012 * this.shake, b = Math.sin(this.clock * 53) * 0.012 * this.shake; for (let i = 0; i < 3; i++) ro[i] += F.r[i] * a + F.u[i] * b; }
-    return camera(ro, add3(ro, F.f), focal, 0);
+    let ta = add3(ro, F.f);
+    // 決め技: 竜が現れてから光の息を吐く前まで、カメラを横へ回して、竜の姿を横から見せる（そのあと、うしろへ戻る）
+    const fin = this.fin, tau = fin ? fin.t - 1.3 : -1;
+    if (fin && tau > 0 && tau < 3.6 && !this.reduced) {
+      const k = ease01(tau / 0.9) * ease01((3.3 - tau) / 0.9), q = this.dragonAt(Math.max(0, tau - 0.25)), hd = this.W(q[0], q[1], q[2]);
+      for (let i = 0; i < 3; i++) { ro[i] += (F.r[i] * 2.6 + F.u[i] * 0.9 + F.f[i] * 0.6) * k; ta[i] = lerp(ro[i] + F.f[i], hd[i], 0.85 * k); }
+    }
+    return camera(ro, ta, focal, 0);
   }
   draw() {
     const R = this.R, gl = R.gl, P = this.P, now = this.clock, B = R.batch, M = this.meshes;
@@ -613,15 +626,17 @@ export class Strike {
     // ---- ユリア（決め技のあいだは竜）
     const pw = this.W(P.X, P.Y, 0), fin = this.fin, tau = fin ? fin.t - 1.3 : -1, asDragon = fin && tau > 0 && fin.t < 7.2;
     if (asDragon) {
-      const pts = []; for (let i = 0; i < 30; i++) { const q = this.dragonAt(Math.max(0, tau - i * 0.075)); pts.push(this.W(q[0], q[1], q[2])); }
-      const a = sat(tau / 0.3) * sat((7.2 - fin.t) / 0.5);
-      drawDragon(B, A, pts, cam, a, now, FX, 1.0);
-      glow(pts[0], 2.6, GOLD, 0.5 * a, 0.5);
-      // 光の息（旗艦を光に返す）
-      if (tau > 2.9 && tau < 3.7 && b) { const m = pts[0], t = this.W(b.X, b.Y, b.z), side = norm(cross(sub3(t, m), sub3(cam.ro, m))), k = sat((tau - 2.9) / 0.15) * sat((3.7 - tau) / 0.15); for (const [wd, col] of [[1.1, [1, 0.75, 0.25]], [0.42, [1, 1, 0.9]]]) B.quad(add3(m, side, -wd * 0.5), add3(t, side, -wd), add3(t, side, wd), add3(m, side, wd * 0.5), FX.streak, [col[0] * k, col[1] * k, col[2] * k, 0], 0, 1); glow(t, 4.5, GOLD, k, -1); }
+      // 竜（3D）。頭の通った道すじをさかのぼって点を取り、その上に体を並べる。現れるときは、ユリアのいた所から、とぐろをほどいて大きくなる
+      const pts = []; for (let i = 0; i < 170; i++) { const q = this.dragonPath(tau - i * 0.035); pts.push(this.W(q[0], q[1], q[2])); }
+      const a = sat(tau / 0.6) * sat((7.2 - fin.t) / 0.5), S = 0.34 * (0.22 + 0.78 * ease01(a)), br = b ? sat((tau - 2.9) / 0.15) * sat((3.7 - tau) / 0.15) : 0;
+      const bw2 = b ? this.W(b.X, b.Y, b.z) : null, aim = b && tau > 2.3 && tau < 3.9 ? sub3(bw2, pts[0]) : null;
+      const dg = C.dragon(pts, S, { t: now, jaw: Math.max(br, 0.5 * sat(1 - Math.abs(tau - 0.5) / 0.5)), look: aim }, {});
+      for (let i = 0; i < 6; i++) glow(pts[i * 12], (2.0 - i * 0.2) * S / 0.34, GOLD, 0.14 * a, 0.5);
+      // 光の息（旗艦を光に返す）: 口の先から
+      if (br > 0 && b) { const m = dg.mouth, t = bw2, side = norm(cross(sub3(t, m), sub3(cam.ro, m))); for (const [wd, col] of [[1.1, [1, 0.75, 0.25]], [0.42, [1, 1, 0.9]]]) B.quad(add3(m, side, -wd * 0.3), add3(t, side, -wd), add3(t, side, wd), add3(m, side, wd * 0.3), FX.streak, [col[0] * br, col[1] * br, col[2] * br, 0], 0, 1); glow(m, 1.1, [1, 0.9, 0.6], br, -0.3); glow(t, 4.5, GOLD, br, -1); }
     } else {
       // ユリア（3D）。ふり向くときは手前へ寄って、大きく見せる（顔に決まった向きの光を当てる）
-      const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0, tn = ease01(P.turn), zq = -0.42 * tn, kq = this.k(zq), yw = this.W(P.X * kq, P.Y * kq, zq), ga = 0.12 + 0.4 * P.power + 0.15 * L.night;
+      const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0, tn = ease01(P.turn), zq = -0.3 * tn, kq = this.k(zq), yw = this.W(P.X * kq, P.Y * kq, zq), ga = 0.12 + 0.4 * P.power + 0.15 * L.night;
       const key = norm([-0.45 * F0.r[0] + 0.55 * F0.u[0] - 0.7 * F0.f[0], -0.45 * F0.r[1] + 0.55 * F0.u[1] - 0.7 * F0.f[1], -0.45 * F0.r[2] + 0.55 * F0.u[2] - 0.7 * F0.f[2]]);
       glow(pw, 0.3 * U, GOLD, ga * (1 - tn), 0.03);
       C.yuria(place(yw, F0.f, F0.u, HEADR * U, YPIV), { t: now, sway: clamp(P.vx * 0.5, -1, 1), power: P.lance >= 1 ? Math.max(P.power, 0.35) : P.power, turn: P.turn, mood: P.mood, wave: this.mode === 'result' ? 1 : 0, thrust: sat(P.lanceT / 0.12) * sat((1.35 - P.lanceT) / 0.4), hurt: P.hurt, aim: this.lanceDir(), lod: P.turn < 0.02 },
@@ -635,9 +650,9 @@ export class Strike {
 
     // ---- 題の画面: 手前に大きく、正面を向いたユリア
     if (this.mode === 'title' && C.ok) {
-      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.26 : 0.5) * hw * kt, (tall ? -0.12 : -0.1) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
+      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.26 : 0.5) * hw * kt, (tall ? -0.1 : -0.04) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
       const tf = norm([-F0.f[0] - 0.32 * F0.r[0], -F0.f[1] - 0.32 * F0.r[1], -F0.f[2] - 0.32 * F0.r[2]]), tk = norm([-0.5 * F0.r[0] + 0.5 * F0.u[0] - 0.7 * F0.f[0], -0.5 * F0.r[1] + 0.5 * F0.u[1] - 0.7 * F0.f[1], -0.5 * F0.r[2] + 0.5 * F0.u[2] - 0.7 * F0.f[2]]);
-      C.yuria(place(tp, tf, F0.u, (tall ? 0.026 : 0.044) * U, [0, 3.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
+      C.yuria(place(tp, tf, F0.u, (tall ? 0.0115 : 0.0182) * U, [0, 7.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
     }
     // ---- 風景と仕上げ
     const Po = R.post; Po.fade = this.fade; Po.flash = Math.min(1, this.flash); Po.rush = 0; Po.bloom = 0.46;
@@ -653,7 +668,12 @@ export class Strike {
     const m = place(c, f, F.u, s, it.pivot), q = t % 12;
     if (it.id === 'yuria') C.yuria(m, { t, turn: 1, still: true, wave: q > 8 ? 1 : 0, mood: q > 8 ? 'happy' : q > 4 ? 'grin' : 'smile' }, opt);
     else if (it.id === 'fly') C.yuria(m, { t, sway: Math.sin(t * 0.7) * 0.6, power: sat(Math.sin(t * 0.5) * 2 - 1), mood: 'grin' }, opt);
-    else if (it.id === 'ammo') {
+    else if (it.id === 'dragon') {
+      // 竜: ゆるくうねる道すじを作って、その上に体を並べる（頭が手前の上、尾は奥の下へ）
+      const pts = [], Sg = s * 0.9;
+      for (let i = 0; i < 150; i++) { const d = i * 0.28, x = 3.4 * Math.sin(d * 0.3 + t * 1.1) * (0.25 + d / 26), y = 3.2 - d * 0.2 + 1.5 * Math.sin(d * 0.2 + t * 0.7), z = 9 - d * 0.78, X = (x * cs + z * sn) * Sg, Z = (-x * sn + z * cs) * Sg; pts.push([c[0] + F.r[0] * X + F.u[0] * y * Sg - F.f[0] * Z, c[1] + F.r[1] * X + F.u[1] * y * Sg - F.f[1] * Z, c[2] + F.r[2] * X + F.u[2] * y * Sg - F.f[2] * Z]); }
+      C.dragon(pts, Sg, { t, jaw: sat(Math.sin(t * 0.8) * 2 - 0.6) }, opt);
+    } else if (it.id === 'ammo') {
       const list = [['round', 1.25], ['slug', 1.3], ['bullet', 1.25], ['rocket', 1.05], ['missile', 0.9], ['mine', 1.0], ['gem', 0.85]], n = list.length, rows = tall ? [4, 3] : [n];
       let i = 0;
       rows.forEach((cnt, ri) => { for (let j = 0; j < cnt; j++, i++) {

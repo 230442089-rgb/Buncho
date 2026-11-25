@@ -1,6 +1,5 @@
 // art.js — 迎撃ゲームの「光と煙」の絵をまとめた 1 枚（2048×1024。使うのは右半分の 256² のます目）。
-//   着弾の印・光の矢・火花・照準・煙・爆発・衝撃の輪・竜の部品。ユリア・文鳥・弾は 3D のモデルになった（strike/model/）。
-import { dragonHead, dragonWing, dragonBody, dragonHalo } from './dragon.js';
+//   着弾の印・光の矢・火花・照準・煙・爆発・衝撃の輪。ユリア・文鳥・弾・竜は 3D のモデルになった（strike/model/）。
 
 const TAU = Math.PI * 2, AW = 2048, AH = 1024;
 const rect = (x, y, w, h) => [(x + 0.5) / AW, (y + 0.5) / AH, (x + w - 0.5) / AW, (y + h - 0.5) / AH];
@@ -10,7 +9,6 @@ export const A = {
   mark: cell(3, 1),
   bolt: sub(3), hit: sub(6), aim: sub(7), smoke: sub(8), fire: sub(9), wave: sub(10), core: sub(11),
   boom: cell(1, 2), smokeBig: cell(2, 2), shock: cell(3, 2),
-  dHead: cell(0, 3), dWing: cell(1, 3), dBody: cell(2, 3), dHalo: cell(3, 3),
 };
 
 export function strikeAtlas() {
@@ -40,9 +38,5 @@ export function strikeAtlas() {
     c.restore(); }
   { const x = 1792 + 128, y = 512 + 128; c.save(); c.translate(x, y); for (const [w, a] of [[26, 0.06], [14, 0.14], [6, 0.4], [2.4, 1]]) { c.strokeStyle = `rgba(255,255,255,${a})`; c.lineWidth = w; c.beginPath(); c.arc(0, 0, 104, 0, TAU); c.stroke(); } c.restore(); }
   // ---- 竜（決め技）
-  at(1024, 768, 256, 4.0, 0, () => dragonHead(c));
-  at(1280, 768, 256, 2.8, -0.68, () => dragonWing(c), 0.8);
-  c.save(); c.translate(1536, 768); dragonBody(c, 256); c.restore();
-  at(1792, 768, 256, 4.0, 0, () => dragonHalo(c));
   return cv;
 }

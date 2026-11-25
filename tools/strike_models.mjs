@@ -11,9 +11,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'strike/assets/models.bin'), CACHE = path.join(ROOT, 'build/strike/models');
 fs.mkdirSync(CACHE, { recursive: true });
 const only = process.argv.slice(2);
-const B = () => import('../strike/model/buncho.mjs'), P = () => import('../strike/model/props.mjs'), Y = () => import('../strike/model/yuria.mjs');
+const B = () => import('../strike/model/buncho.mjs'), P = () => import('../strike/model/props.mjs'), Y = () => import('../strike/model/yuria.mjs'), D = () => import('../strike/model/dragon.mjs');
 const LIST = [
-  ['yuria', async () => (await Y()).buildYuria()], ['yuria_lo', async () => (await Y()).buildYuria({ lod: true })],
+  ['yuria', async () => (await Y()).buildYuria()], ['yuria_lo', async () => (await Y()).buildYuria({ lod: true })], ['dragon', async () => (await D()).buildDragon()],
   ['buncho', async () => (await B()).buildBuncho()],
   ['buncho_lo', async () => (await B()).buildBuncho({ lod: 1 })], ['buncho_far', async () => (await B()).buildBuncho({ lod: 2 })],
   ['jetpack', async () => (await P()).buildJetpack()], ['bazooka', async () => (await P()).buildBazooka()], ['gatling', async () => (await P()).buildGatling()],

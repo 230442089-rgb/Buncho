@@ -30,7 +30,7 @@ export function buildJetpack(lod) {
   const hot = mirror(cyl([0.56, 2.2, -1.03], [0.56, 2.27, -1.02], 0.16));
   const lamps = union(rbox([0, 3.08, -1.25], [0.3, 0.035, 0.025], 0.015), rbox([0, 2.9, -1.25], [0.2, 0.03, 0.025], 0.012), mirror(rbox([0.56, 3.1, -1.3], [0.03, 0.22, 0.025], 0.012)));
   const fins = mirror(plate([0.86, 3.0, -1.05], euler(0, 90, 0), [[-0.25, -0.5], [0.05, -0.6], [0.3, 0.35], [-0.1, 0.5]], 0.03, { edge: 0.12, round: 0.01 }));
-  m.part('pack', pack, { h: 0.06, mat: 'armor' }); m.part('nozzle', nozzle, { h: 0.04, mat: 'steel' });
+  m.part('pack', pack, { h: 0.075, mat: 'armor' }); m.part('nozzle', nozzle, { h: 0.045, mat: 'steel' });
   m.part('hot', hot, { h: 0.03, mat: 'hot', ao: false, cast: false }); m.part('lamps', lamps, { h: 0.02, mat: 'lamp', ao: false, cast: false }); m.part('fins', fins, { h: 0.03, mat: 'armor' });
   return m;
 }
@@ -43,7 +43,7 @@ export function buildBazooka(lod) {
   const sight = union(rbox([1.02, 4.3, 0.45], [0.03, 0.1, 0.2], 0.02), cut(cyl([1.02, 4.42, 0.3], [1.02, 4.42, 0.62], 0.085, 0.01), cyl([1.02, 4.42, 0.2], [1.02, 4.42, 0.7], 0.058)));
   const pad = rbox(ax(-0.3, -0.3), [0.16, 0.06, 0.32], 0.05);
   const head = blend(0.06, cone(ax(1.42), ax(2.0), 0.19, 0.035, 0.02), sphere(ax(1.56), 0.24));
-  m.part('tube', tubeS, { h: 0.05, mat: 'olive' }); m.part('rear', rear, { h: 0.05, mat: 'dark' }); m.part('grips', grips, { h: 0.03, mat: 'dark' });
+  m.part('tube', tubeS, { h: 0.065, mat: 'olive' }); m.part('rear', rear, { h: 0.065, mat: 'dark' }); m.part('grips', grips, { h: 0.03, mat: 'dark' });
   m.part('sight', sight, { h: 0.025, mat: 'armor' }); m.part('pad', pad, { h: 0.035, mat: 'dark' }); m.part('head', head, { h: 0.03, mat: 'red', mask: [['steel', (x, y, z) => 1.82 - z]] });
   return m;
 }
@@ -56,8 +56,8 @@ export function buildGatling(lod) {
   const body = blend(0.06, cyl(ax(-0.1), ax(1.05), 0.4, 0.07), rbox(ax(-0.36), [0.26, 0.28, 0.3], 0.07), rbox(ax(0.5, 0, 0.4), [0.16, 0.1, 0.36], 0.05));
   const handle = union(tube([[...ax(0.1, 0, 0.46), 0.055], [...ax(0.24, 0, 0.78), 0.055], [...ax(0.76, 0, 0.78), 0.055], [...ax(0.9, 0, 0.46), 0.055]], 10), rbox(ax(-0.56, 0, -0.12), [0.07, 0.2, 0.1], 0.035, rotX(0.3)));
   const drum = union(cyl(ax(0.5, 0.42, -0.06), ax(0.5, 0.9, -0.06), 0.4, 0.06), tube([[...ax(0.55, 0.66, 0.3), 0.075], [...ax(0.62, 0.5, 0.5), 0.075], [...ax(0.66, 0.2, 0.42), 0.075]], 6));
-  m.part('body', body, { h: 0.06, mat: 'armor' }); m.part('handle', handle, { h: 0.04, mat: 'dark' }); m.part('drum', drum, { h: 0.06, mat: 'olive' });
-  m.part('barrels', barrels, { h: 0.034, mat: 'steel', bone: 'spin' }); m.part('clamps', clamps, { h: 0.04, mat: 'armor', bone: 'spin' });
+  m.part('body', body, { h: 0.08, mat: 'armor' }); m.part('handle', handle, { h: 0.045, mat: 'dark' }); m.part('drum', drum, { h: 0.085, mat: 'olive' });
+  m.part('barrels', barrels, { h: 0.042, mat: 'steel', bone: 'spin' }); m.part('clamps', clamps, { h: 0.05, mat: 'armor', bone: 'spin' });
   return m;
 }
 // ---- 色眼鏡と、隊長の帽子・マント（どれも頭や胸の骨に合わせて置く）
@@ -87,7 +87,7 @@ export function buildCape() {
   const collar = both(shell(rcone([0, 3.7, -0.1], [0, 4.25, -0.2], 0.7, 0.95), 0.05), { bb: [-2, 3.7, -2, 2, 4.3, 0.5], d: (x, y, z) => Math.max(z - 0.3 + 0.5 * Math.abs(x), 3.75 - y, y - 4.2 + 0.12 * Math.abs(x)) }, 0.03);
   const pads = mirror(union(rbox([1.5, 3.86, 0], [0.42, 0.07, 0.3], 0.05, rotZ(-0.2)), sphere([1.82, 3.74, 0.0], 0.13), cyl([1.2, 3.86, 0.26], [1.75, 3.76, 0.26], 0.035, 0.01)));
   const clasp = union(mirror(sphere([0.42, 3.78, 0.5], 0.09)), tube([[-0.42, 3.78, 0.5, 0.03], [0, 3.62, 0.66, 0.03], [0.42, 3.78, 0.5, 0.03]], 8));
-  m.part('cloth', cloth, { h: 0.1, mat: 'dark', mask: [['red', (x, y, z) => bell.d(x, y, z)]] });
+  m.part('cloth', cloth, { h: 0.125, mat: 'dark', mask: [['red', (x, y, z) => bell.d(x, y, z)]] });
   m.part('collar', collar, { h: 0.06, mat: 'dark', mask: [['red', (x, y, z) => rcone([0, 3.7, -0.1], [0, 4.25, -0.2], 0.7, 0.95).d(x, y, z)]] });
   m.part('pads', pads, { h: 0.03, mat: 'gold' }); m.part('clasp', clasp, { h: 0.025, mat: 'gold' });
   return m;

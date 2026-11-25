@@ -85,7 +85,7 @@ const feather = (len, wid) => plate([0, 0, 0], I3, [[-wid * 0.3, 0], [-wid * 0.5
 const featherR = (dir, nor) => { const y = V.norm(dir), x = V.norm(V.cross(y, nor)), z = V.cross(x, y); return [[x[0], y[0], z[0]], [x[1], y[1], z[1]], [x[2], y[2], z[2]]]; };
 
 export function buildBuncho(o = {}) {
-  const far = o.lod === 2, k = far ? 3.5 : o.lod ? 2.5 : 1, k2 = far ? 1.9 : o.lod ? 1.6 : 1, kb = far ? 2.4 : o.lod ? 1.8 : 1, s = shapes(), m = new Model(far ? 'buncho_far' : o.lod ? 'buncho_lo' : 'buncho', { toon: 0, line: 0, aoR: 0.5, height: 6.1 });
+  const far = o.lod === 2, k = far ? 3.5 : o.lod ? 2.5 : 1.18, k2 = far ? 1.9 : o.lod ? 1.6 : 1, kb = far ? 2.4 : o.lod ? 1.8 : 1, s = shapes(), m = new Model(far ? 'buncho_far' : o.lod ? 'buncho_lo' : 'buncho', { toon: 0, line: 0, aoR: 0.5, height: 6.1 });
   const mat = (n, d) => m.mat(n, d);
   mat('black', { col: '#1b1b22', kind: 'feather', spec: 0.3, gloss: 22, rim: 0.3, shade: '#0d0d14', toon: 0 });
   mat('white', { col: '#f3efe7', kind: 'feather', spec: 0.1, gloss: 12, rim: 0.12, shade: '#aeb3c6', toon: 0 });

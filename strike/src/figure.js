@@ -28,7 +28,7 @@ const b64 = (uri) => { const bin = atob(uri.slice(uri.indexOf(',') + 1)), u8 = n
 const lin = (v) => Math.pow(v, 2.2);
 const hex = (h) => [lin(parseInt(h.slice(1, 3), 16) / 255), lin(parseInt(h.slice(3, 5), 16) / 255), lin(parseInt(h.slice(5, 7), 16) / 255)];
 // 質感の種類（材質の kind）
-export const KIND = { matte: 0, feather: 1, hair: 2, skin: 3, gloss: 4, glow: 5, eye: 6, face: 7, beak: 8, scaly: 9, cloth: 10, metal: 11, film: 12 };
+export const KIND = { matte: 0, feather: 1, hair: 2, skin: 3, gloss: 4, glow: 5, eye: 6, face: 7, beak: 8, scaly: 9, cloth: 10, metal: 11, film: 12, scale: 13 };
 
 const VS = `#version 300 es
 precision highp float; precision highp int;
@@ -49,7 +49,7 @@ const FS = (HDR) => HEAD + `
 in vec3 vN, vW, vObj, vNo; in float vAO, vZ; in vec2 vMask; flat in uvec4 vMat; out vec4 o;
 uniform sampler2D uScene; uniform vec2 uInv; uniform sampler2D uFace; uniform vec4 uFaceRect;
 uniform vec3 uSun, uSunCol, uMoon, uMoonCol, uTop, uHor, uCam, uFogCol;
-uniform float uFog, uExposure, uFade, uToon, uTime, uLine, uAlpha;
+uniform float uFog, uExposure, uFade, uToon, uTime, uLine, uAlpha, uSoft;
 uniform vec4 uPal[${MAXM * 3}], uTint, uKey;
 vec3 toSRGB(vec3 c){ c = max(c, 0.0); return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
 vec3 softclip(vec3 x){ const float a = 0.75; vec3 y = (x - a) / (1.0 - a); return mix(x, a + (1.0 - a) * (1.0 - exp(-y)), step(a, x)); }
@@ -88,8 +88,13 @@ void main(){
   }
   // ---- 質感ごとの下ごしらえ
   if (kind == 2.0) {                                             // 髪: 毛の流れに沿った、ごくうすい筋
-    float st = vnoise(vec3(vObj.x * 15.0, vObj.y * 0.9, vObj.z * 15.0));
-    alb *= 0.94 + 0.09 * st;
+    float st = 0.6 * vnoise(vec3(vObj.x * 34.0, vObj.y * 0.8, vObj.z * 34.0)) + 0.4 * vnoise(vec3(vObj.x * 90.0, vObj.y * 1.3, vObj.z * 90.0));
+    alb *= 0.82 + 0.3 * st; spec *= 0.5 + st;
+  } else if (kind == 13.0) {                                     // 竜のうろこ: 体の向きに沿って、半分ずつずれて重なる丸い板
+    vec2 q = vec2(atan(vObj.x, vObj.y) * 3.2, vObj.z * 1.7); q.x += 0.5 * floor(q.y); vec2 c = fract(q) - vec2(0.5, 0.0);
+    float d = min(length(c * vec2(1.0, 0.8)), length((c - vec2(sign(c.x) * 0.5, 1.0)) * vec2(1.0, 0.8)));
+    float sc = smoothstep(0.50, 0.36, d);
+    alb *= 0.76 + 0.28 * sc; spec *= 0.4 + 1.2 * sc;
   } else if (kind == 1.0) {                                      // 羽: 流れに沿った細い筋と、まだら
     float st = vnoise(vObj * vec3(46.0, 7.0, 46.0)), bl = vnoise(vObj * 5.0);
     alb *= 0.90 + 0.14 * st + 0.08 * (bl - 0.5);
@@ -110,14 +115,14 @@ void main(){
   const float K = 0.25;
   vec3 sun = uSunCol * K;
   vec3 amb = (mix(uHor, uTop, smoothstep(-0.3, 1.0, n.y)) * 1.7 + uSunCol * 0.05 * max(-n.y, 0.0) + uMoonCol * (0.6 + 0.8 * max(dot(n, uMoon), 0.0)) * 4.0) * K;
-  float litR = smoothstep(-0.25, 0.85, ndl), litT = kind == 7.0 ? smoothstep(-0.3, 0.45, ndl) : smoothstep(-0.03, 0.09, ndl);   // 顔の陰影はやわらかく
+  float litR = smoothstep(-0.25, 0.85, ndl), litT = kind == 7.0 ? smoothstep(-0.3, 0.45, ndl) : smoothstep(-0.03 - 0.3 * uSoft, 0.09 + 0.3 * uSoft, ndl);   // 顔の陰影はやわらかく
   vec3 col;
   if (toon > 0.5) {
     // 絵のような陰影: 明るい側と影の側の 2 階調。影は材質ごとの影の色へ寄せる（暗くなりすぎない）
     vec3 ambA = (uHor * 0.9 + uTop * 0.8) * K;
     vec3 Llit = sun + ambA * 1.1, Lsh = ambA * 1.9 + sun * 0.34;
     // 3 階調: 影 → 中間（光に対してななめの面）→ いちばん明るい面。肌は 2 階調のまま、なめらかに
-    float t2 = (kind == 7.0 || kind == 3.0) ? 1.0 : smoothstep(0.40, 0.58, ndl);
+    float t2 = (kind == 7.0 || kind == 3.0) ? 1.0 : smoothstep(0.40 - 0.2 * uSoft, 0.58 + 0.25 * uSoft, ndl);
     vec3 mid = mix(Lsh * mix(shade, vec3(1.0), 0.45), Llit, 0.6);
     col = alb * mix(Lsh * shade * (0.72 + 0.28 * ao), mix(mid, Llit, t2), litT * (0.85 + 0.15 * ao));
   } else {
@@ -230,10 +235,12 @@ export class Pose {
   constructor(model) {
     this.m = model; const n = model.nb;
     this.a = new Float32Array(n * 7); for (let i = 0; i < n; i++) this.a[i * 7 + 6] = 1;     // 骨ごとの [rx, ry, rz, tx, ty, tz, 大きさ]
-    this.world = new Float32Array(n * 12); this.skin = new Float32Array(n * 12); this.skinN = this.skin; this.tmp = new Float32Array(24);
+    this.world = new Float32Array(n * 12); this.skin = new Float32Array(n * 12); this.skinN = this.skin; this.tmp = new Float32Array(24); this.fix = new Uint8Array(n);
     this.update();
   }
-  reset() { const a = this.a; a.fill(0); for (let i = 0; i < this.m.nb; i++) a[i * 7 + 6] = 1; return this; }
+  reset() { const a = this.a; a.fill(0); for (let i = 0; i < this.m.nb; i++) a[i * 7 + 6] = 1; this.fix.fill(0); return this; }
+  // 骨の姿勢を、モデルの座標でじかに決める（右・上・前・位置）。道すじに沿って並べる背骨などに使う。子の骨は、ここからいつもどおりにつながる
+  setWorld(name, r, u, f, p) { const i = this.m.bi[name]; if (i === undefined) return this; const w = this.world, o = i * 12; w[o] = r[0]; w[o + 1] = r[1]; w[o + 2] = r[2]; w[o + 3] = u[0]; w[o + 4] = u[1]; w[o + 5] = u[2]; w[o + 6] = f[0]; w[o + 7] = f[1]; w[o + 8] = f[2]; w[o + 9] = p[0]; w[o + 10] = p[1]; w[o + 11] = p[2]; this.fix[i] = 1; return this; }
   // 骨を回す（度。前へ倒す = rx が正、左右へ向く = ry、横へ傾く = rz）
   rot(name, rx = 0, ry = 0, rz = 0) { const i = this.m.bi[name]; if (i === undefined) return this; const a = this.a; a[i * 7] = rx; a[i * 7 + 1] = ry; a[i * 7 + 2] = rz; return this; }
   add(name, rx = 0, ry = 0, rz = 0) { const i = this.m.bi[name]; if (i === undefined) return this; const a = this.a; a[i * 7] += rx; a[i * 7 + 1] += ry; a[i * 7 + 2] += rz; return this; }
@@ -242,6 +249,7 @@ export class Pose {
   update() {
     const { nb, bones, rest, ibind } = this.m, w = this.world, a = this.a, t = this.tmp;
     for (let i = 0; i < nb; i++) {
+      if (this.fix[i]) { mul(this.skin, i * 12, w, i * 12, ibind, i * 12); continue; }
       trs(t, a[i * 7], a[i * 7 + 1], a[i * 7 + 2], a[i * 7 + 3], a[i * 7 + 4], a[i * 7 + 5], a[i * 7 + 6]);
       mul(t, 12, rest, i * 12, t, 0);
       if (bones[i].p < 0) for (let k = 0; k < 12; k++) w[i * 12 + k] = t[12 + k]; else mul(w, i * 12, w, bones[i].p * 12, t, 12);
@@ -313,7 +321,7 @@ export class Figures {
     let lm = null, lp = null, lf = null;
     const one = (q, pass) => {
       const m = q.pose.m, o = q.o, r = pass === 2 ? m.ranges.alpha : m.ranges.solid; if (!r[1]) return;
-      if (lm !== m) { gl.uniform4fv(loc('uPal[0]'), m.palN); gl.uniform4fv(loc('uFaceRect'), m.h.faceRect || [0, 0, 0.4, 0]); gl.bindVertexArray(m.vao); lm = m; lp = null; }
+      if (lm !== m) { gl.uniform4fv(loc('uPal[0]'), m.palN); gl.uniform4fv(loc('uFaceRect'), m.h.faceRect || [0, 0, 0.4, 0]); gl.uniform1f(loc('uSoft'), m.h.soft || 0); gl.bindVertexArray(m.vao); lm = m; lp = null; }
       if (lp !== q.pose) { gl.uniformMatrix4x3fv(loc('uBones[0]'), false, q.pose.skinN); lp = q.pose; }
       gl.uniformMatrix4fv(loc('uModel'), false, q.m);
       gl.uniform4fv(loc('uTint'), o.tint || [1, 1, 1, 0]);
