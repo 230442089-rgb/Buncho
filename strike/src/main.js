@@ -37,7 +37,7 @@ async function start() {
     retry: begin,
     title: () => { game.paused = false; input.enabled = true; game.toTitle(); },
     cont: () => { input.clear(); game.resume(); canvas.focus({ preventScroll: true }); },
-    lance: (v) => { if (input) input.btnLance = v; },
+    lance: (v) => { if (input) { input.btnLance = v; if (v && input.enabled) input.lanceTap = true; } },
     wave: () => { if (input && input.enabled) input.waveTap = true; },
     setting: (key, v) => { if (key === 'sound') sound.setMuted(!v); if (key === 'sens' && input) input.sens = v; if (key === 'quality') applyQuality(v); },
     // 設定の板に出す「いまの描画」（うまく動かないときに、どの状態かを伝えてもらえるように）
@@ -103,7 +103,8 @@ async function start() {
   game = new Strike({
     T, R, meshes, input, sound, sprite, tex,
     hooks: {
-      mode: (m) => { if (booted) { ui.show(m); scene(m); } }, say: (d) => ui.say(d), chain: (n) => ui.chain(n), warn: () => ui.warn(),
+      // 題の画面の見本が一巡して最初に戻るときは、画面を作り直さない（開いている「あそびかた・設定」を閉じてしまわないように）
+      mode: (m) => { if (booted) { if (!(m === 'title' && ui.mode === 'title')) ui.show(m); scene(m); } }, say: (d) => ui.say(d), chain: (n) => ui.chain(n), warn: () => ui.warn(),
       result: (r) => ui.result(r),
     },
   });

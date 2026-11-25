@@ -30,6 +30,11 @@ const { chromium } = require('playwright');
   await step(60 * 9, false); await step(1, true);
   let a = await S();
   ok('題の画面で、見本の戦いが進んでいる', a.mode === 'title' && a.kills > 0 && a.shield === 5, `kills=${a.kills}`);
+  await page.click('#btnHow');
+  await ev(() => { const G = window.__flight.game; G.reset('title'); });                  // 見本が一巡して最初に戻る
+  ok('題の画面で開いた「あそびかた・設定」は、見本が一巡しても閉じない', await vis('panel'));
+  await page.click('#btnResume');
+  ok('「とじる」で閉じる', !(await vis('panel')) && (await vis('title')));
 
   // ---- はじめる
   await page.click('#btnStart');
@@ -123,6 +128,10 @@ const { chromium } = require('playwright');
   await ev(() => { const G = window.__flight.game; G.P.lance = 1; G.P.lanceT = 0; G.spawn('gunner', 'hover', { from: [0, 0.05], at: [0, 0.05], z: 6.5, hold: 30, strafe: 0 }); G.P.fireT = 99; });
   await step(90); await page.dispatchEvent('#btnLance', 'pointerdown', { pointerId: 6, pointerType: 'touch', isPrimary: true }); await step(4); b = await S(); await page.dispatchEvent('#btnLance', 'pointerup', { pointerId: 6, pointerType: 'touch' });
   ok('槍のボタンでも放てる', b.lanceT > 0);
+  await step(120);
+  await ev(() => { const G = window.__flight.game; G.P.lance = 1; G.P.lanceT = 0; G.spawn('gunner', 'hover', { from: [0, 0.05], at: [0, 0.05], z: 6.5, hold: 30, strafe: 0 }); G.P.fireT = 99; });
+  await step(90); await page.dispatchEvent('#btnLance', 'pointerdown', { pointerId: 7, pointerType: 'touch', isPrimary: true }); await page.dispatchEvent('#btnLance', 'pointerup', { pointerId: 7, pointerType: 'touch' }); await step(4); b = await S();
+  ok('槍のボタンを一瞬だけ押しても放てる', b.lanceT > 0);
   await step(120);
 
   // ---- 一時停止

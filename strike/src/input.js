@@ -12,7 +12,7 @@ export class Input {
     this.dx = 0; this.dy = 0;         // 前のこまから指が動いたぶん（画面の半分を 1 とする）
     this.mouse = null; this.useMouse = false; this.lastKind = 'none';
     this.sens = 1; this.enabled = true;
-    this.mouseLance = false; this.btnLance = false; this.waveTap = false;
+    this.mouseLance = false; this.btnLance = false; this.lanceTap = false; this.waveTap = false;
     const opt = { passive: false };
     el.addEventListener('pointerdown', (e) => this.down(e), opt);
     el.addEventListener('pointermove', (e) => this.move(e), opt);
@@ -22,13 +22,13 @@ export class Input {
     window.addEventListener('keyup', (e) => this.key(e, false));
     window.addEventListener('blur', () => this.clear());
   }
-  clear() { this.keys.clear(); this.drag = null; this.dx = this.dy = 0; this.mouseLance = false; this.btnLance = false; this.waveTap = false; }
+  clear() { this.keys.clear(); this.drag = null; this.dx = this.dy = 0; this.mouseLance = false; this.btnLance = false; this.lanceTap = false; this.waveTap = false; }
   rect() { return this.el.getBoundingClientRect(); }
   down(e) {
     if (!this.enabled) return;
     if (e.pointerType === 'mouse') {
       this.useMouse = true; this.lastKind = 'mouse'; this.move(e);
-      if (e.button === 0) this.mouseLance = true; else if (e.button === 2) this.waveTap = true;
+      if (e.button === 0) { this.mouseLance = true; this.lanceTap = true; } else if (e.button === 2) this.waveTap = true;
       return;
     }
     e.preventDefault(); this.lastKind = 'touch'; this.useMouse = false;
@@ -67,7 +67,8 @@ export class Input {
     if (this.dx || this.dy) { tx += this.dx; ty += this.dy; this.dx = this.dy = 0; }
     else if (kx || ky) { const l = Math.hypot(kx, ky), v = (K.has('Shift') ? 0.6 : 1.45) * this.sens * dt / l; tx += kx * v / hw; ty += ky * v / hh; }
     else if (this.useMouse && this.mouse && !this.drag) { tx = this.mouse.x; ty = this.mouse.y; }
-    const wave = this.waveTap; this.waveTap = false;
-    return { tx, ty, lance: this.mouseLance || this.btnLance || K.has('z') || K.has(' ') || K.has('j'), wave };
+    // 押した瞬間は取りこぼさないように覚えておく（こまとこまのあいだに押して離しても効く）
+    const wave = this.waveTap, tap = this.lanceTap; this.waveTap = false; this.lanceTap = false;
+    return { tx, ty, lance: tap || this.mouseLance || this.btnLance || K.has('z') || K.has(' ') || K.has('j'), wave };
   }
 }
