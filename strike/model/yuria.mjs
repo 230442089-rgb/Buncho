@@ -58,27 +58,24 @@ function boxes(list) {
 
 function shapes() {
   // ---- 頭: たまご形の頭に、ほお・細いあご・小さな鼻・くちびるのふくらみ。目のところは浅くくぼませる。耳
-  const skull = blend(0.3, ellipsoid(H(0, 0.16, -0.06), [0.83, 0.88, 0.96]), ellipsoid(H(0, -0.36, 0.1), [0.66, 0.62, 0.74]), mirror(sphere(H(0.33, -0.4, 0.3), 0.37)), sphere(H(0, -0.86, 0.36), 0.22));
-  const nose = blend(0.07, rcone(H(0, -0.02, 0.84), H(0, -0.34, 0.96), 0.045, 0.062), mirror(sphere(H(0.045, -0.38, 0.9), 0.04)));
-  const lips = ellipsoid(H(0, -0.615, 0.79), [0.15, 0.065, 0.07]);
-  const face0 = blend(0.05, blend(0.09, skull, nose), lips);
-  const sockets = mirror(ellipsoid(H(0.37, -0.1, 1.2), [0.3, 0.24, 0.42]));
-  const head = blend(0.05, cut(face0, sockets, 0.16), mirror(ellipsoid(H(0.84, -0.14, -0.06), [0.08, 0.22, 0.14], euler(0, -22, -8))));
+  const skull = blend(0.3, ellipsoid(H(0, 0.1, -0.04), [0.9, 0.92, 0.95]), mirror(sphere(H(0.36, -0.38, 0.3), 0.44)), sphere(H(0, -0.68, 0.36), 0.3));
+  const face0 = blend(0.08, skull, sphere(H(0, -0.3, 0.9), 0.045));                // 鼻は、先がほんの少し出るだけ
+  const head = blend(0.05, face0, mirror(ellipsoid(H(0.88, -0.14, -0.06), [0.08, 0.22, 0.14], euler(0, -22, -8))));
   // ---- 髪。頭をおおう面（顔のところをくりぬく）に、前髪の束を重ねる
-  const hp = (az, el, r, rad) => [0.86 * r * cos(el * D2R) * sin(az * D2R), HY + 0.14 + 0.9 * r * sin(el * D2R), -0.06 + 0.96 * r * cos(el * D2R) * cos(az * D2R), rad];
+  const hp = (az, el, r, rad) => [0.9 * r * cos(el * D2R) * sin(az * D2R), HY + 0.1 + 0.92 * r * sin(el * D2R), -0.04 + 0.95 * r * cos(el * D2R) * cos(az * D2R), rad];
   const radial = (az, el) => [cos(el * D2R) * sin(az * D2R), sin(el * D2R), cos(el * D2R) * cos(az * D2R)];
   const bang = (az, az2, els, rads, r = 1.14) => ribbon(els.map((el, i) => hp(az + (az2 - az) * i / (els.length - 1), el, i === 0 ? 1.08 : r + 0.012 * i, rads[i])), radial((az + az2) / 2, 26), 0.42, 14);
-  const capS = cut(ellipsoid(H(0, 0.2, -0.1), [0.97, 1.0, 1.1]), ellipsoid(H(0, -0.5, 0.98), [0.8, 1.12, 0.9]), 0.05);
+  const capS = cut(ellipsoid(H(0, 0.18, -0.1), [1.0, 1.02, 1.1]), ellipsoid(H(0, -0.5, 0.98), [0.84, 1.1, 0.9]), 0.05);
   const RB = [0.17, 0.21, 0.17, 0.1, 0.035], RT = [0.13, 0.16, 0.13, 0.08, 0.03];
   const bangs = [
     bang(4, -7, [80, 50, 22, -2, -24], RB),                                    // まんなか（目のあいだへ）
     bang(-9, -3, [80, 52, 26, 8, -6], RT, 1.17),
-    bang(17, 22, [78, 48, 24, 8, -4], RB),                                     // 本人の右（まゆの上まで）
-    bang(30, 40, [74, 46, 22, 6, -8], RB, 1.16),
-    bang(11, 13, [80, 54, 30, 14, 4], RT, 1.18),
-    bang(-19, -15, [78, 48, 25, 9, -3], RB),                                   // 本人の左
-    bang(-31, -27, [74, 46, 23, 7, -6], RB, 1.16),
-    bang(-25, -22, [80, 54, 31, 15, 5], RT, 1.18),
+    bang(17, 22, [78, 48, 26, 12, 3], RB),                                     // 本人の右（まゆの上まで）
+    bang(30, 40, [74, 46, 24, 10, 1], RB, 1.16),
+    bang(11, 13, [80, 54, 32, 17, 8], RT, 1.18),
+    bang(-19, -15, [78, 48, 27, 13, 4], RB),                                   // 本人の左
+    bang(-31, -27, [74, 46, 25, 11, 2], RB, 1.16),
+    bang(-25, -22, [80, 54, 33, 18, 9], RT, 1.18),
     bang(47, 60, [68, 40, 14, -10, -34], RB, 1.13),                            // 右の外（顔のわきへ長く）
     bang(60, 70, [62, 36, 8, -20, -46], RT, 1.11),
     bang(-46, -58, [68, 40, 15, -9, -32], RB, 1.13),
@@ -131,7 +128,11 @@ function shapes() {
   const { S, E, W, hip, knee, ankle } = YJ;
   const core = blend(0.42, ellipsoid([0, 10.5, -0.1], [1.1, 1.3, 0.78]), ellipsoid([0, 11.12, -0.14], [1.24, 0.46, 0.6]), ellipsoid([0, 9.05, 0], [0.82, 0.98, 0.6]), ellipsoid([0, 8.35, 0.1], [0.95, 0.75, 0.62]), ellipsoid([0, 7.7, -0.05], [1.34, 0.98, 0.9]));
   const trunk0 = blend(0.26, core, mirror(sphere([0.62, 7.42, -0.5], 0.8)), rcone([0, 11.2, -0.12], [0, 12.4, 0.0], 0.43, 0.38), mirror(rcone([0.3, 11.72, -0.22], [1.08, 11.44, -0.14], 0.28, 0.25)));
-  const trunk = blend(0.13, trunk0, mirror(ellipsoid([0.52, 10.22, 0.58], [0.56, 0.55, 0.52])));
+  // 胸: 鎖骨の下からなだらかに下り、下のほうでふくらむ。左右は服の下でつながる（球を 2 つ貼った形にしない）
+  const slope = mirror(ellipsoid([0.5, 10.62, 0.36], [0.6, 0.86, 0.46], euler(-20, 8, 0)));
+  const full = mirror(ellipsoid([0.54, 10.16, 0.52], [0.54, 0.47, 0.5], euler(-8, 10, 0)));
+  const bridge = ellipsoid([0, 10.24, 0.4], [0.52, 0.42, 0.3]);
+  const trunk = blend(0.2, blend(0.5, trunk0, slope, bridge), full);
   const arm = blend(0.1, ellipsoid(V.add(S, [0.06, -0.12, 0]), [0.42, 0.5, 0.42]), rcone(S, E, 0.36, 0.28), sphere(E, 0.285), rcone(E, W, 0.29, 0.19), ellipsoid(V.add(V.lerp(E, W, 0.25), [0.02, 0, 0.02]), [0.3, 0.3, 0.6], look(dF)));
   const thigh = blend(0.2, rcone(hip, knee, 0.8, 0.47), ellipsoid(V.add(V.lerp(hip, knee, 0.3), [0.05, 0, 0.08]), [0.76, 1.35, 0.8]), sphere(knee, 0.47), rcone(knee, V.add(knee, [0, -0.9, -0.03]), 0.44, 0.4));
   const body = blend(0.16, trunk, mirror(arm), mirror(thigh));
