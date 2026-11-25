@@ -39,7 +39,7 @@ const { chromium } = require('playwright');
   ok('→ キーで右へ曲がる', b.yaw - a.yaw > 0.3, `Δyaw=${(b.yaw - a.yaw).toFixed(2)}`);
   await step(30); a = await Y();
   await page.keyboard.down('ArrowUp'); await step(50); b = await Y(); await page.keyboard.up('ArrowUp');
-  ok('↑ キーで上昇する', b.pitch > 0.4 && b.pos[1] > a.pos[1] + 0.2, `pitch=${b.pitch.toFixed(2)} Δy=${(b.pos[1] - a.pos[1]).toFixed(2)}`);
+  ok('↑ キーで上昇する', b.pitch > 0.3 && b.pos[1] > a.pos[1] + 0.15, `pitch=${b.pitch.toFixed(2)} Δy=${(b.pos[1] - a.pos[1]).toFixed(2)}`);
   await step(90); b = await Y();
   ok('手を離すと水平に戻る', Math.abs(b.pitch) < 0.08, `pitch=${b.pitch.toFixed(3)}`);
   a = await Y();
@@ -52,19 +52,19 @@ const { chromium } = require('playwright');
   await page.mouse.move(900, 270); await step(40); b = await Y();
   ok('マウスを右へ寄せると右へ曲がる', b.yaw - a.yaw > 0.3, `Δyaw=${(b.yaw - a.yaw).toFixed(2)}`);
   await page.mouse.move(480, 60); await step(40); b = await Y();
-  ok('マウスを上へ寄せると上昇する', b.pitch > 0.3, `pitch=${b.pitch.toFixed(2)}`);
+  ok('マウスを上へ寄せると上昇する', b.pitch > 0.2, `pitch=${b.pitch.toFixed(2)}`);
   await page.mouse.move(480, 270); await step(60);
 
   // ---- タッチ（指をずらした向きへ）
   const touch = (type, id, x, y) => ev(([type, id, x, y]) => document.getElementById('view').dispatchEvent(new PointerEvent(type, { pointerId: id, pointerType: 'touch', clientX: x, clientY: y, bubbles: true, cancelable: true, isPrimary: id === 11 })), [type, id, x, y]);
   a = await Y();
-  await touch('pointerdown', 11, 300, 300); await touch('pointermove', 11, 240, 300); await step(40); b = await Y();
+  await touch('pointerdown', 11, 400, 300); await touch('pointermove', 11, 285, 300); await step(60); b = await Y();
   ok('指を左へずらすと左へ曲がる', b.yaw - a.yaw < -0.3, `Δyaw=${(b.yaw - a.yaw).toFixed(2)}`);
   ok('さわった場所に目印が出る', await ev(() => +getComputedStyle(document.getElementById('stick')).opacity > 0.5 || document.getElementById('stick').style.opacity === '1'));
   const g0 = (await Y()).gauge;
   await touch('pointerdown', 12, 700, 300); await step(30); b = await Y();
   ok('2 本目の指で加速する', b.gauge < g0 - 0.02, `gauge ${g0.toFixed(2)}→${b.gauge.toFixed(2)}`);
-  await touch('pointerup', 12, 700, 300); await touch('pointerup', 11, 240, 300); await step(60);
+  await touch('pointerup', 12, 700, 300); await touch('pointerup', 11, 285, 300); await step(60);
   ok('指を離すとまっすぐ', await ev(() => { const i = window.__flight.input.get(); return i.x === 0 && !i.boost; }));
 
   // ---- 一時停止・音・ふり向き
@@ -77,6 +77,10 @@ const { chromium } = require('playwright');
   ok('つづける', !a.paused && !(await vis('panel')));
   await page.keyboard.down('ArrowUp'); await step(50); b = await Y(); await page.keyboard.up('ArrowUp');
   ok('上下反転の設定が効く', b.pitch < -0.02 || b.pos[1] <= a.pos[1] + 0.01, `pitch=${b.pitch.toFixed(2)}`);
+  // 感度: 同じ入力でも「ひかえめ」は曲がりにくく、「きびん」は曲がりやすい
+  const turn = async (v) => { await page.keyboard.press('p'); await page.click(`#segSens button[data-v="${v}"]`); await page.click('#btnResume'); await step(60); const a0 = await Y(); await page.keyboard.down('ArrowRight'); await step(40); const b0 = await Y(); await page.keyboard.up('ArrowRight'); return b0.yaw - a0.yaw; };
+  const tLow = await turn('0.65'), tHigh = await turn('1.4'); await turn('1');
+  ok('操作の感度の設定が効く', tLow > 0.1 && tHigh > tLow * 1.6, `ひかえめ ${tLow.toFixed(2)} / きびん ${tHigh.toFixed(2)}`);
   await page.keyboard.press('p'); await page.click('#segInvert button[data-v="0"]'); await page.click('#btnResume'); await step(60);
   await page.keyboard.press('m');
   ok('M で音を切る', await ev(() => window.__flight.ui.settings.sound === false && window.__flight.sound.muted === true));

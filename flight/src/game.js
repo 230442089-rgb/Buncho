@@ -9,7 +9,8 @@ import { SPRITE_SPAN } from './yuria.js';
 
 const HEADR = 0.024;                       // 絵の「頭の半径 1」が世界でどれだけか（ユリアの背たけ ≒ 0.1）
 const CRUISE = 2.0, FAST = 3.7;
-const PITCH_MAX = 0.95;                     // 上下の向きの限度（ラジアン）。入力の上下は「この角度の何割で飛ぶか」
+const PITCH_MAX = 0.62;                     // 上下の向きの限度（ラジアン）。入力の上下は「この角度の何割で飛ぶか」
+const YAW_MAX = 0.95;                       // 左右へ曲がる速さの限度（ラジアン/秒）。最初の版は 1.55 で、視点が振り回されて扱いにくかった
 const hex = (h, k = 1) => [parseInt(h.slice(1, 3), 16) / 255 * k, parseInt(h.slice(3, 5), 16) / 255 * k, parseInt(h.slice(5, 7), 16) / 255 * k];
 const angDiff = (a, b) => { let d = (a - b) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 const ex = (dt, k) => 1 - Math.exp(-dt * k);
@@ -100,7 +101,7 @@ export class Game {
     const pr = C.project(y.pos, this.botS); this.botS = Math.max(this.botS, pr.s);
     const tgt = C.at(this.botS + 1.1 + y.speed * 0.5).p;
     const dx = tgt[0] - y.pos[0], dy = tgt[1] - y.pos[1], dz = tgt[2] - y.pos[2];
-    return { x: clamp(angDiff(Math.atan2(dx, dz), y.yaw) * 2.6, -1, 1), y: clamp(Math.atan2(dy, Math.hypot(dx, dz)) * 1.25 / PITCH_MAX, -1, 1), boost: false, bot: true };
+    return { x: clamp(angDiff(Math.atan2(dx, dz), y.yaw) * 2.6, -1, 1), y: clamp(Math.atan2(dy, Math.hypot(dx, dz)) * 1.1 / PITCH_MAX, -1, 1), boost: false, bot: true };
   }
 
   update(dt) {
@@ -115,12 +116,13 @@ export class Game {
     if (playing && !this.started && (inp.x || inp.y || inp.boost)) this.started = true;
 
     // ---- 向きと速さ
-    y.sx += (inp.x - y.sx) * ex(dt, 9); y.sy += (inp.y - y.sy) * ex(dt, 7);
+    const sens = inp.bot ? 1.3 : (this.input.sens || 1);                 // 設定の「操作の感度」
+    y.sx += (clamp(inp.x * sens, -1.5, 1.5) - y.sx) * ex(dt, 6); y.sy += (clamp(inp.y * (inp.bot ? 1.5 : Math.min(sens, 1.2)), -1.5, 1.5) - y.sy) * ex(dt, 5);
     const boosting = inp.boost && !y.lock && y.gauge > 0 && this.mode !== 'finish';
     if (boosting) { y.gauge = Math.max(0, y.gauge - dt / 5.5); if (y.gauge <= 0) y.lock = true; if (y.boost < 0.15) { this.say('boost'); this.sound.play('boost', { gain: 0.8, gap: 0.6 }); } }
     else { y.gauge = Math.min(1, y.gauge + dt / 10); if (y.gauge > 0.2) y.lock = false; }
     y.boost += ((boosting ? 1 : 0) - y.boost) * ex(dt, 4.5);
-    y.yaw += y.sx * (1.55 - 0.3 * y.boost) * dt;
+    y.yaw += y.sx * YAW_MAX * (1 - 0.2 * y.boost) * dt;
     // 上下は「入力した高さの向きへ飛ぶ」。手を離せば水平に戻る。地面が迫っていれば、そのぶん上を向く
     const CLEAR = 0.05, hx = Math.sin(y.yaw), hz = Math.cos(y.yaw);
     const look = 0.22 + y.speed * 0.16;
@@ -132,7 +134,7 @@ export class Game {
     let v0 = lerp(CRUISE, FAST, y.boost) - Math.sin(y.pitch) * 0.7;
     if (this.mode === 'finish') v0 = lerp(CRUISE, 0.10, smoothstep(0, 1.6, this.finT));
     y.speed += (v0 - y.speed) * ex(dt, v0 > y.speed ? 2.4 : 1.2);
-    y.bank += (y.sx * 0.62 - y.bank) * ex(dt, 6);
+    y.bank += (clamp(y.sx, -1, 1) * 0.5 - y.bank) * ex(dt, 5);
 
     // ---- 世界の端・高さの上限では、そっと向きを戻す
     const ox = y.pos[0] - WORLD.cx, oz = y.pos[2] - WORLD.cz;
@@ -222,7 +224,7 @@ export class Game {
 
     // ---- カメラ（うしろから追う。曲がるときは少し遅れてついていく）
     const c = this.cam;
-    c.yaw += angDiff(y.yaw, c.yaw) * ex(dt, 4.2); c.pitch += (y.pitch * 0.72 - c.pitch) * ex(dt, 3.4);
+    c.yaw += angDiff(y.yaw, c.yaw) * ex(dt, 3.2); c.pitch += (y.pitch * 0.6 - c.pitch) * ex(dt, 2.8);
     c.shake *= Math.exp(-dt * 6);
     if (this.mode === 'finish') c.orbit = Math.PI * smoothstep(0.2, 2.8, this.finT) + 0.22 * Math.sin(Math.max(0, this.finT - 2.8) * 0.35); else c.orbit += (0 - c.orbit) * ex(dt, 3);
 
@@ -283,7 +285,7 @@ export class Game {
       ta[0] -= side[0] * k; ta[2] -= side[2] * k; ta[1] -= fin * fin * port * 0.075;
     }
     const focal = lerp(1.2, 1.02, this.reduced ? 0 : y.boost) * lerp(1, 0.6, port);
-    return camera(ro, ta, focal, this.reduced ? 0 : -y.bank * 0.2 * (1 - fin));
+    return camera(ro, ta, focal, this.reduced ? 0 : -y.bank * 0.08 * (1 - fin));
   }
 
   draw() {

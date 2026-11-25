@@ -12,7 +12,7 @@ const KEY = 'yuria-sky:v1';
 export class UI {
   constructor(actions) {
     this.act = actions;
-    this.settings = { quality: 'auto', invert: false, sound: true, best: null };
+    this.settings = { quality: 'auto', invert: false, sound: true, sens: 1, best: null };
     try { Object.assign(this.settings, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* 保存できない環境でも動く */ }
     this.mood = 'smile'; this.talkUntil = 0; this.mode = 'boot'; this.panelFor = null; this.hintUntil = 0;
     // 紋章の並び
@@ -31,7 +31,7 @@ export class UI {
     on('btnAgain', () => this.act.course());
     on('btnStroll', () => this.act.free());
     on('btnHome', () => this.act.title());
-    for (const [seg, key, conv] of [['segQuality', 'quality', (v) => v], ['segInvert', 'invert', (v) => v === '1'], ['segSound', 'sound', (v) => v === '1']])
+    for (const [seg, key, conv] of [['segQuality', 'quality', (v) => v], ['segInvert', 'invert', (v) => v === '1'], ['segSens', 'sens', (v) => +v], ['segSound', 'sound', (v) => v === '1']])
       $(seg).addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; this.act.click(); this.set(key, conv(b.dataset.v)); });
     // 加速ボタン（押しているあいだ）
     const bb = $('btnBoost');
@@ -47,7 +47,7 @@ export class UI {
   set(key, v) { this.settings[key] = v; this.save(); this.sync(); this.act.setting(key, v); }
   sync() {
     const s = this.settings, mark = (seg, v) => { for (const b of $(seg).children) b.setAttribute('aria-pressed', String(b.dataset.v === v)); };
-    mark('segQuality', s.quality); mark('segInvert', s.invert ? '1' : '0'); mark('segSound', s.sound ? '1' : '0');
+    mark('segQuality', s.quality); mark('segInvert', s.invert ? '1' : '0'); mark('segSens', String(s.sens)); mark('segSound', s.sound ? '1' : '0');
     $('btnSound').innerHTML = s.sound ? ICON_ON : ICON_OFF;
   }
 
@@ -81,7 +81,7 @@ export class UI {
   }
   toast(text, small = '') { const t = $('toast'); t.innerHTML = (small ? `<small>${small}</small>` : '') + text; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); }
   say({ text, mood }) { const p = $('talkText'); p.textContent = text; p.classList.add('show'); this.mood = mood; this.talkUntil = performance.now() + Math.max(2600, 900 + text.length * 130); }
-  stick(s, on) { const el = $('stick'); el.style.opacity = on && s ? 1 : 0; if (on && s) { el.style.transform = `translate(${s.x0}px, ${s.y0 - $('app').getBoundingClientRect().top}px)`; el.firstElementChild.style.transform = `translate(${s.x * 40}px, ${-s.y * 40}px)`; } }
+  stick(s, on) { const el = $('stick'); el.style.opacity = on && s ? 1 : 0; if (on && s) { el.style.transform = `translate(${s.x0}px, ${s.y0 - $('app').getBoundingClientRect().top}px)`; el.firstElementChild.style.transform = `translate(${s.x * 54}px, ${-s.y * 54}px)`; } }
   openPanel(kind) {
     this.panelFor = kind; $('panel').hidden = false;
     $('panelTitle').textContent = kind === 'pause' ? 'ひとやすみ' : 'あそびかた';

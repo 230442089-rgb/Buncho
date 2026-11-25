@@ -37,7 +37,7 @@ async function start() {
     boost: (v) => { if (input) input.btnBoost = v; },
     day: (v) => { game.freeDay = v; game.freeFlow = false; $('dayFlow').checked = false; },
     flow: (v) => { game.freeFlow = v; },
-    setting: (key, v) => { if (key === 'sound') sound.setMuted(!v); if (key === 'invert' && input) input.invert = v; if (key === 'quality') applyQuality(v); },
+    setting: (key, v) => { if (key === 'sound') sound.setMuted(!v); if (key === 'invert' && input) input.invert = v; if (key === 'sens' && input) input.sens = v; if (key === 'quality') applyQuality(v); },
     // 設定の板に出す「いまの描画」（うまく動かないときに、どの状態かを伝えてもらえるように）
     status: () => (R ? `いまの描画　${R.stats.w}×${R.stats.h}・${{ low: '軽い', mid: 'ふつう', high: 'きれい' }[R.quality]}・毎秒 ${Math.round(1 / Math.max(R.dtAvg, 1e-3))} こま${R.hdr ? '' : '・予備の描き方'}` : ''),
   });
@@ -84,7 +84,7 @@ async function start() {
       else if (k === 'Enter' && game.mode === 'title' && !ui.panelFor) { sound.unlock(); game.startCourse(); }
     },
   });
-  input.invert = !!ui.settings.invert;
+  input.invert = !!ui.settings.invert; input.sens = +ui.settings.sens || 1;
   canvas.addEventListener('pointerdown', () => sound.unlock(), { passive: true });
   game = new Game({
     T, R, input, sound, sprite, tex,

@@ -12,7 +12,7 @@ export class Input {
     this.touchBoost = new Set(); this.btnBoost = false; this.mouseBoost = false;
     this.mouse = null;              // { x, y }（-1..1）
     this.useMouse = false; this.lastKind = 'none';
-    this.invert = false; this.enabled = true;
+    this.invert = false; this.enabled = true; this.sens = 1;
     const opt = { passive: false };
     el.addEventListener('pointerdown', (e) => this.down(e), opt);
     el.addEventListener('pointermove', (e) => this.move(e), opt);
@@ -34,13 +34,13 @@ export class Input {
   }
   move(e) {
     if (e.pointerType === 'mouse') {
-      const r = this.rect(), m = Math.min(r.width, r.height) * 0.40;
+      const r = this.rect(), m = Math.min(r.width, r.height) * 0.46;
       this.mouse = { x: clamp((e.clientX - r.left - r.width / 2) / m, -1, 1), y: clamp((r.top + r.height * 0.5 - e.clientY) / m, -1, 1) };
       this.useMouse = true; return;
     }
     const s = this.stick; if (!s || s.id !== e.pointerId) return;
     e.preventDefault();
-    const R = clamp(Math.min(window.innerWidth, window.innerHeight) * 0.16, 44, 84);
+    const R = clamp(Math.min(window.innerWidth, window.innerHeight) * 0.24, 70, 120);      // 指をこれだけずらすと最大（小さいと、少しの動きで振り回される）
     let dx = (e.clientX - s.x0) / R, dy = (s.y0 - e.clientY) / R; const l = Math.hypot(dx, dy);
     if (l > 1) { dx /= l; dy /= l; s.x0 = e.clientX - dx * R; s.y0 = e.clientY + dy * R; }      // 引っぱりすぎたら中心がついてくる
     s.x = dx; s.y = dy;
@@ -64,9 +64,9 @@ export class Input {
     if (K.has('ArrowUp') || K.has('w')) y += 1; if (K.has('ArrowDown') || K.has('s')) y -= 1;
     const dz = (v, d) => (Math.abs(v) < d ? 0 : Math.sign(v) * (Math.abs(v) - d) / (1 - d));
     if (this.stick) { x = dz(this.stick.x, 0.08); y = dz(this.stick.y, 0.08); }
-    else if (x === 0 && y === 0 && this.useMouse && this.mouse) { x = dz(this.mouse.x, 0.10); y = dz(this.mouse.y, 0.10); }
+    else if (x === 0 && y === 0 && this.useMouse && this.mouse) { x = dz(this.mouse.x, 0.14); y = dz(this.mouse.y, 0.14); }
     // 小さな動きは細かく、大きな動きはしっかり効くように
-    const curve = (v) => Math.sign(v) * Math.pow(Math.abs(v), 1.35);
+    const curve = (v) => Math.sign(v) * Math.pow(Math.abs(v), 1.7);
     return { x: curve(x), y: curve(y) * (this.invert ? -1 : 1), boost: K.has(' ') || K.has('Shift') || this.btnBoost || this.mouseBoost || this.touchBoost.size > 0 };
   }
 }

@@ -92,7 +92,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
 #btnBoost.lock { --ring: var(--rose); color: var(--rose); }
 #btnBoost.on { background: radial-gradient(closest-side, var(--gold) calc(100% - 6px), transparent calc(100% - 5px)), conic-gradient(var(--ring) calc(var(--g) * 360deg), rgba(244, 236, 223, 0.22) 0); color: var(--gold-ink); }
 #stick { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; transition: opacity 0.15s; }
-#stick::before { content: ""; position: absolute; left: -46px; top: -46px; width: 92px; height: 92px; border: 1px solid var(--line); border-radius: 50%; background: rgba(11, 16, 32, 0.18); }
+#stick::before { content: ""; position: absolute; left: -62px; top: -62px; width: 124px; height: 124px; border: 1px solid var(--line); border-radius: 50%; background: rgba(11, 16, 32, 0.18); }
 #stick i { position: absolute; left: -15px; top: -15px; width: 30px; height: 30px; border-radius: 50%; background: rgba(244, 236, 223, 0.8); }
 #hint { position: absolute; left: 50%; top: 74px; transform: translateX(-50%); margin: 0; padding: 7px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; font-size: 12.5px; letter-spacing: 0.06em; white-space: nowrap; transition: opacity 0.5s; }
 #hint.gone { opacity: 0; }
@@ -236,6 +236,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
       <div class="rows">
         <div class="row"><span>画質</span><span class="seg" id="segQuality"><button type="button" data-v="auto">自動</button><button type="button" data-v="low">軽い</button><button type="button" data-v="mid">ふつう</button><button type="button" data-v="high">きれい</button></span></div>
         <div class="row"><span>上下の向き</span><span class="seg" id="segInvert"><button type="button" data-v="0">上で上昇</button><button type="button" data-v="1">上で下降</button></span></div>
+        <div class="row"><span>操作の感度</span><span class="seg" id="segSens"><button type="button" data-v="0.65">ひかえめ</button><button type="button" data-v="1">ふつう</button><button type="button" data-v="1.4">きびん</button></span></div>
         <div class="row"><span>音</span><span class="seg" id="segSound"><button type="button" data-v="1">あり</button><button type="button" data-v="0">なし</button></span></div>
       </div>
       <p id="perf" class="note"></p>
