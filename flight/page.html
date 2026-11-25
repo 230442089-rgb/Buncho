@@ -1,0 +1,265 @@
+<title>ユリアと、空へ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* 画面いっぱいの風景の上に、紙の白と金の細い線だけを置く。題は映画の題字のように縦書き。夜空を前提にした一つの見た目に決めている。 */
+:root {
+  color-scheme: dark;
+  --ink: #0b1020;                       /* 夜の藍（読み込み中と余白の地） */
+  --panel: rgba(11, 16, 32, 0.72);      /* 風景に重ねる板 */
+  --panel-solid: #131a33;
+  --paper: #f4ecdf;                     /* 紙の白（文字） */
+  --dim: rgba(244, 236, 223, 0.70);
+  --line: rgba(244, 236, 223, 0.30);
+  --gold: #ffd24a;                      /* ユリアの色 */
+  --gold-ink: #3b2a00;
+  --rose: #ff9db0;
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-body: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--ink); color: var(--paper); font-family: var(--font-body); font-weight: 500; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+#app { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--ink); }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+.layer { position: absolute; inset: 0; padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 14px; pointer-events: none; }
+.layer button, .layer input, .layer label, .layer .card { pointer-events: auto; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ---- 読み込み */
+#boot { display: grid; place-items: center; background: radial-gradient(120% 90% at 50% 100%, #1b2550 0%, var(--ink) 62%); }
+.boot-card { display: grid; gap: 18px; justify-items: center; text-align: center; }
+.boot-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 6vw, 44px); letter-spacing: 0.16em; }
+.bar { width: min(260px, 60vw); height: 2px; background: var(--line); }
+.bar i { display: block; height: 100%; width: 0; background: var(--gold); transition: width 0.25s; }
+#bootMsg { margin: 0; color: var(--dim); font-size: 13px; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+
+/* ---- 題 */
+#title { display: grid; grid-template-rows: 1fr auto; row-gap: 14px; background: linear-gradient(90deg, rgba(8, 11, 24, 0.55) 0%, rgba(8, 11, 24, 0.12) 46%, rgba(8, 11, 24, 0) 70%); }
+.head { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: flex-start; gap: clamp(10px, 2vw, 22px); min-height: 0; }
+.title { margin: 0; writing-mode: vertical-rl; font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 9.4vh, 84px); line-height: 1.22; letter-spacing: 0.14em; text-shadow: 0 2px 18px rgba(6, 9, 20, 0.7); }
+.title span { display: block; }
+.title span + span { padding-inline-start: 1.5em; }
+.lede { margin: 0; padding-inline-start: 0.4em; writing-mode: vertical-rl; font-family: var(--font-display); font-size: clamp(13px, 2.3vh, 17px); letter-spacing: 0.3em; color: var(--dim); text-shadow: 0 1px 10px rgba(6, 9, 20, 0.8); }
+#titleYuria { position: absolute; right: var(--gutter-r); bottom: 0; height: min(64%, 520px); width: auto; max-width: 46%; pointer-events: none; filter: drop-shadow(0 8px 24px rgba(6, 9, 20, 0.45)); }
+.menu { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; max-width: min(720px, 64%); }
+.btn { display: grid; gap: 3px; text-align: left; padding: 11px 18px 12px; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; color: var(--paper); font-weight: 700; font-size: 17px; letter-spacing: 0.1em; transition: transform 0.12s, background 0.12s, border-color 0.12s; }
+.btn small { font-weight: 500; font-size: 11.5px; letter-spacing: 0.04em; color: var(--dim); }
+.btn:hover { border-color: var(--paper); transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.btn.primary small { color: rgba(59, 42, 0, 0.78); }
+.btn.ghost { align-content: center; font-size: 13.5px; font-weight: 500; }
+.credit { position: absolute; left: var(--gutter-l); bottom: 2px; margin: 0; font-size: 10px; letter-spacing: 0.04em; color: rgba(244, 236, 223, 0.46); }
+
+/* ---- 飛行中 */
+#hud .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.marks { display: grid; grid-template-columns: repeat(12, 26px); gap: 3px; padding: 5px 7px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; }
+.marks canvas { width: 26px; height: 26px; display: block; }
+.marks canvas.next { animation: nextPulse 1.2s ease-in-out infinite; }
+@keyframes nextPulse { 50% { transform: scale(1.22); } }
+#nextLabel { margin: 6px 0 0; white-space: nowrap; font-size: 12.5px; letter-spacing: 0.1em; color: var(--paper); text-shadow: 0 1px 6px rgba(6, 9, 20, 0.9); }
+#nextLabel b { color: var(--gold); font-weight: 700; }
+.side { display: flex; align-items: center; gap: 8px; }
+.stats { display: flex; gap: 12px; align-items: baseline; white-space: nowrap; padding: 6px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; font-variant-numeric: tabular-nums; }
+#time { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: 0.04em; min-width: 4.6ch; text-align: right; }
+#lights { font-size: 13px; color: var(--gold); }
+.tool { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 50%; color: var(--paper); font-size: 14px; }
+.tool:hover { border-color: var(--paper); }
+.tool svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#toast { position: absolute; left: 50%; top: 21%; transform: translateX(-50%); font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 4.6vh, 34px); letter-spacing: 0.2em; white-space: nowrap; text-shadow: 0 2px 16px rgba(6, 9, 20, 0.85); opacity: 0; }
+#toast.show { animation: toast 1.7s ease-out both; }
+#toast small { display: block; font-family: var(--font-body); font-size: 0.42em; letter-spacing: 0.24em; color: var(--gold); text-align: center; margin-bottom: 0.3em; }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, 10px); } 12% { opacity: 1; transform: translate(-50%, 0); } 76% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -8px); } }
+#target { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; transition: opacity 0.2s; }
+#target i { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border: 1.5px solid var(--gold); border-radius: 50%; }
+#target.off i { border: 0; border-left: 11px solid var(--gold); border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-radius: 0; width: 0; height: 0; left: -5px; top: -7px; }
+#target b { position: absolute; left: 14px; top: -9px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; color: var(--gold); white-space: nowrap; text-shadow: 0 1px 5px rgba(6, 9, 20, 0.95); font-variant-numeric: tabular-nums; }
+#talk { position: absolute; left: var(--gutter-l); bottom: 14px; display: flex; align-items: flex-end; gap: 8px; max-width: min(470px, calc(100% - var(--gutter-l) - var(--gutter-r) - 100px)); }
+#btnLook { flex: none; width: 66px; height: 66px; padding: 0; border-radius: 50%; border: 1.5px solid var(--gold); background: #f7efe4; overflow: hidden; pointer-events: auto; }
+#btnLook canvas { width: 100%; height: 100%; display: block; }
+#talkText { margin: 0 0 6px; min-width: 0; padding: 9px 13px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px 14px 14px 14px; font-size: 14.5px; line-height: 1.55; letter-spacing: 0.03em; opacity: 0; transform: translateY(4px); transition: opacity 0.25s, transform 0.25s; }
+#talkText.show { opacity: 1; transform: none; }
+#gauge { position: absolute; right: var(--gutter-r); bottom: 18px; width: min(190px, 30vw); height: 7px; background: rgba(11, 16, 32, 0.6); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+#gauge i { display: block; height: 100%; width: 100%; background: var(--gold); transform-origin: left; }
+#gauge.lock i { background: var(--rose); }
+#gauge::before { content: "加速"; position: absolute; right: 0; bottom: 9px; font-size: 10.5px; letter-spacing: 0.2em; color: var(--dim); }
+#gauge { overflow: visible; }
+#btnBoost { --g: 1; --ring: var(--gold); position: absolute; right: var(--gutter-r); bottom: 18px; width: 88px; height: 88px; border-radius: 50%; border: 0; background: radial-gradient(closest-side, rgba(11, 16, 32, 0.72) calc(100% - 6px), transparent calc(100% - 5px)), conic-gradient(var(--ring) calc(var(--g) * 360deg), rgba(244, 236, 223, 0.22) 0); color: var(--gold); font-weight: 700; font-size: 15px; letter-spacing: 0.14em; touch-action: none; }
+#btnBoost.lock { --ring: var(--rose); color: var(--rose); }
+#btnBoost.on { background: radial-gradient(closest-side, var(--gold) calc(100% - 6px), transparent calc(100% - 5px)), conic-gradient(var(--ring) calc(var(--g) * 360deg), rgba(244, 236, 223, 0.22) 0); color: var(--gold-ink); }
+#stick { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; transition: opacity 0.15s; }
+#stick::before { content: ""; position: absolute; left: -46px; top: -46px; width: 92px; height: 92px; border: 1px solid var(--line); border-radius: 50%; background: rgba(11, 16, 32, 0.18); }
+#stick i { position: absolute; left: -15px; top: -15px; width: 30px; height: 30px; border-radius: 50%; background: rgba(244, 236, 223, 0.8); }
+#hint { position: absolute; left: 50%; top: 74px; transform: translateX(-50%); margin: 0; padding: 7px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; font-size: 12.5px; letter-spacing: 0.06em; white-space: nowrap; transition: opacity 0.5s; }
+#hint.gone { opacity: 0; }
+#freeBar { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; font-size: 12.5px; letter-spacing: 0.06em; max-width: calc(100% - 190px); }
+#freeBar input[type=range] { width: min(180px, 30vw); accent-color: var(--gold); }
+#freeBar label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+#freeBar input[type=checkbox] { accent-color: var(--gold); }
+
+/* ---- 板（あそびかた・設定・一時停止・結果） */
+.scrim { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; background: rgba(6, 9, 20, 0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); overflow-y: auto; }
+.card { width: min(520px, 100%); max-height: 100%; overflow-y: auto; display: grid; gap: 14px; padding: 20px 22px 18px; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 18px 60px rgba(4, 6, 14, 0.6); }
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: 0.16em; text-wrap: balance; }
+.card h3 { margin: 4px 0 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.24em; color: var(--gold); }
+.card p, .card li { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--dim); }
+.card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.card li b { color: var(--paper); font-weight: 700; margin-right: 0.6em; }
+.rows { display: grid; gap: 8px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.seg button { padding: 6px 12px; background: transparent; border: 0; border-left: 1px solid var(--line); font-size: 12.5px; letter-spacing: 0.06em; color: var(--dim); }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed=true] { background: var(--paper); color: var(--ink); font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.actions .btn { font-size: 14.5px; padding: 9px 16px; text-align: center; }
+#result { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; justify-items: start; background: linear-gradient(0deg, rgba(8, 11, 24, 0.6) 0%, rgba(8, 11, 24, 0) 55%); }
+#result .card { width: min(440px, 100%); background: rgba(11, 16, 32, 0.8); }
+.score { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: baseline; font-variant-numeric: tabular-nums; }
+.score dt { font-size: 12.5px; letter-spacing: 0.14em; color: var(--dim); }
+.score dd { margin: 0; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: 21px; }
+.score dd small { font-family: var(--font-body); font-weight: 500; font-size: 11.5px; color: var(--dim); margin-left: 0.4em; }
+#best { color: var(--gold); font-size: 12.5px; letter-spacing: 0.08em; }
+#fatal { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--ink); }
+#fatal p { max-width: 34em; line-height: 1.8; color: var(--paper); }
+
+/* ---- せまい画面 */
+@media (max-width: 640px) {
+  .marks { grid-template-columns: repeat(6, 23px); padding: 4px 6px; }
+  .marks canvas { width: 23px; height: 23px; }
+  #btnSound { display: none; }
+  #time { font-size: 17px; }
+  .stats { padding: 6px 9px; gap: 8px; }
+  .menu { max-width: 100%; }
+  .btn { font-size: 15.5px; padding: 10px 14px; flex: 1 1 150px; }
+  #titleYuria { height: min(34%, 300px); max-width: 50%; bottom: 158px; }
+  #talk { max-width: calc(100% - var(--gutter-l) - var(--gutter-r)); bottom: 122px; }
+  #freeBar { top: 62px; max-width: calc(100% - 32px); }
+  #hint { top: 112px; white-space: normal; text-align: center; width: max-content; max-width: calc(100% - 40px); }
+}
+@media (max-height: 460px) {
+  .layer { padding-block: 8px; }
+  .title { font-size: clamp(26px, 11vh, 44px); }
+  .btn { padding: 7px 14px 8px; font-size: 15px; }
+  .btn small { display: none; }
+  #btnBoost { width: 74px; height: 74px; bottom: 10px; }
+  #btnLook { width: 54px; height: 54px; }
+  #talk { bottom: 8px; }
+  #talkText { font-size: 13px; padding: 6px 10px 7px; }
+  .credit { display: none; }
+  .card { padding: 14px 16px; gap: 9px; }
+}
+@media (hover: none) and (pointer: coarse) { .keys-only { display: none; } }
+@media (hover: hover) and (pointer: fine) { .touch-only { display: none; } #btnBoost { display: none; } }
+@media (hover: none) and (pointer: coarse) { #gauge { display: none; } }
+@media (prefers-reduced-motion: reduce) { .marks canvas.next { animation: none; } #toast.show { animation-duration: 2.2s; } .btn { transition: none; } }
+</style>
+
+<div id="app">
+  <canvas id="view" tabindex="0" aria-label="ユリアが山と湖の上を飛んでいる画面"></canvas>
+
+  <section id="boot" class="layer">
+    <div class="boot-card">
+      <p class="boot-title">ユリアと、空へ。</p>
+      <div class="bar"><i id="bootBar"></i></div>
+      <p id="bootMsg">山と湖をつくっています…</p>
+    </div>
+  </section>
+
+  <section id="title" class="layer" hidden>
+    <div class="head">
+      <p class="lede">山と湖の上を、いっしょに飛ぶ。</p>
+      <h1 class="title"><span>ユリアと、</span><span>空へ。</span></h1>
+    </div>
+    <canvas id="titleYuria" width="560" height="700" aria-hidden="true"></canvas>
+    <div class="menu">
+      <button id="btnCourse" class="btn primary" type="button">紋章めぐり<small>12 の輪をくぐって、朝から夜へ</small></button>
+      <button id="btnFree" class="btn" type="button">おさんぽ<small>好きなところを、好きな時間に</small></button>
+      <button id="btnHow" class="btn ghost" type="button">あそびかた・設定</button>
+    </div>
+    <p class="credit">音楽 “Inventing Flight” Bryan Teoh（CC0）</p>
+  </section>
+
+  <section id="hud" class="layer" hidden>
+    <div class="top">
+      <div>
+        <div class="marks" id="marks" aria-label="くぐった紋章"></div>
+        <p id="nextLabel"></p>
+      </div>
+      <div class="side">
+        <div class="stats" id="stats"><span id="time">0:00.0</span><span id="lights">✦ 0</span></div>
+        <button id="btnSound" class="tool" type="button" aria-label="音を切りかえる"></button>
+        <button id="btnPause" class="tool" type="button" aria-label="一時停止"><svg viewBox="0 0 20 20"><path d="M7 4v12M13 4v12"/></svg></button>
+      </div>
+    </div>
+    <div id="freeBar" hidden>
+      <span>時刻</span>
+      <input id="dayRange" type="range" min="0" max="100" value="30" aria-label="時刻">
+      <label><input id="dayFlow" type="checkbox" checked>流れる</label>
+    </div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="target"><i></i><b></b></div>
+    <div id="talk">
+      <button id="btnLook" type="button" aria-label="ユリアにこっちを向いてもらう"><canvas id="face" width="160" height="160"></canvas></button>
+      <p id="talkText" role="status" aria-live="polite"></p>
+    </div>
+    <div id="gauge" aria-hidden="true"><i></i></div>
+    <button id="btnBoost" class="touch-only" type="button">加速</button>
+    <div id="stick" aria-hidden="true"><i></i></div>
+    <p id="hint" class="gone"></p>
+  </section>
+
+  <section id="panel" class="layer scrim" hidden>
+    <div class="card" role="dialog" aria-labelledby="panelTitle">
+      <h2 id="panelTitle">あそびかた</h2>
+      <div id="howto">
+        <ul>
+          <li class="touch-only"><b>向き</b>画面をさわって、行きたいほうへ指をずらす</li>
+          <li class="touch-only"><b>加速</b>右下のボタン（2 本目の指でも）</li>
+          <li class="keys-only"><b>向き</b>マウスを行きたいほうへ／矢印キー・WASD</li>
+          <li class="keys-only"><b>加速</b>クリックしたまま／スペース・Shift</li>
+          <li class="keys-only"><b>ほか</b>P で一時停止、M で音、R でユリアがふり向く</li>
+          <li><b>輪</b>金の目印のほうへ。光の粒をひろうと加速の力がたまる</li>
+          <li><b>顔</b>左下の顔を押すと、ユリアがふり向く</li>
+          <li><b>地面</b>ぶつかっても終わらない。ユリアがよけてくれる</li>
+        </ul>
+      </div>
+      <h3>設定</h3>
+      <div class="rows">
+        <div class="row"><span>画質</span><span class="seg" id="segQuality"><button type="button" data-v="auto">自動</button><button type="button" data-v="low">軽い</button><button type="button" data-v="mid">ふつう</button><button type="button" data-v="high">きれい</button></span></div>
+        <div class="row"><span>上下の向き</span><span class="seg" id="segInvert"><button type="button" data-v="0">上で上昇</button><button type="button" data-v="1">上で下降</button></span></div>
+        <div class="row"><span>音</span><span class="seg" id="segSound"><button type="button" data-v="1">あり</button><button type="button" data-v="0">なし</button></span></div>
+      </div>
+      <div class="actions">
+        <button id="btnResume" class="btn primary" type="button">つづける</button>
+        <button id="btnRetry" class="btn" type="button">はじめから</button>
+        <button id="btnQuit" class="btn" type="button">題にもどる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="layer" hidden>
+    <div class="card">
+      <h2>ただいま。</h2>
+      <dl class="score">
+        <dt>時間</dt><dd id="rTime">0:00.0</dd>
+        <dt>光の粒</dt><dd id="rLights">0<small>/ 0</small></dd>
+        <dt>ど真ん中</dt><dd id="rCenters">0<small>/ 12</small></dd>
+      </dl>
+      <p id="best"></p>
+      <div class="actions">
+        <button id="btnAgain" class="btn primary" type="button">もういちど</button>
+        <button id="btnStroll" class="btn" type="button">おさんぽへ</button>
+        <button id="btnHome" class="btn" type="button">題にもどる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="fatal" hidden><p id="fatalMsg"></p></section>
+</div>
+<script>/*__ASSETS__*/</script>
+<script>/*__BUNDLE__*/</script>
