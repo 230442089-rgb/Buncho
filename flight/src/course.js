@@ -49,7 +49,10 @@ const DS = 0.25;                            // 道を刻む間隔
 
 const cr = (a, b, c, d, u) => 0.5 * (2 * b + (c - a) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (-a + 3 * b - 3 * c + d) * u * u * u);
 
-export function buildCourse(T) {
+// 平面の道すじ route（[x, z, 地面からの高さ, …]）から、地面に埋まらないなめらかな道をつくる。
+//   戻り値: { N, DS, total, X, Y, Z, U（もとの点の番号）, at(s) → { p, t }, project(pos, s0) }
+export function buildPath(T, ROUTE, o = {}) {
+  const ceiling = o.ceiling ?? CEILING - 0.35, wide = o.wide ?? 0.35, ahead = o.ahead ?? 1.5, soft = o.soft ?? 2.0;
   // ---- 平面の道すじ（Catmull-Rom）を細かく取り、長さで等間隔に刻み直す
   const n = ROUTE.length, dense = [];
   for (let i = 0; i < n - 1; i++) {
@@ -65,19 +68,19 @@ export function buildCourse(T) {
     const f = clamp((s - cum[j]) / Math.max(1e-6, cum[j + 1] - cum[j]), 0, 1), a = dense[j], b = dense[j + 1];
     X[i] = lerp(a[0], b[0], f); Z[i] = lerp(a[1], b[1], f); clear[i] = lerp(a[2], b[2], f); U[i] = lerp(a[3], b[3], f);
     // 道の左右も見て、いちばん高い地面を基準にする（谷の壁や岩に道が埋まらないように）
-    let m = -1e9; for (const o of [-0.35, 0, 0.35]) m = Math.max(m, T.surfaceAt(X[i] + o, Z[i]), T.surfaceAt(X[i], Z[i] + o));
+    let m = -1e9; for (const q of [-wide, 0, wide]) m = Math.max(m, T.surfaceAt(X[i] + q, Z[i]), T.surfaceAt(X[i], Z[i] + q));
     surf[i] = m;
   }
-  // ---- 高さ: 前後 1.5 単位の地面の最大 + ゆとり → なめらかに → 地面より下がらないように戻す
-  const W = Math.round(1.5 / DS), tmp = new Float32Array(N);
+  // ---- 高さ: 前後の地面の最大 + ゆとり → なめらかに → 地面より下がらないように戻す
+  const W = Math.round(ahead / DS), tmp = new Float32Array(N);
   for (let i = 0; i < N; i++) { let m = -1e9; for (let k = Math.max(0, i - W); k <= Math.min(N - 1, i + W); k++) m = Math.max(m, surf[k] + 0.55 * clear[k]); Y[i] = Math.max(m, surf[i] + clear[i]); }
   const smooth = (r, rep) => { for (let q = 0; q < rep; q++) { for (let i = 0; i < N; i++) { let s = 0, c = 0; for (let k = Math.max(0, i - r); k <= Math.min(N - 1, i + r); k++) { s += Y[k]; c++; } tmp[i] = s / c; } Y.set(tmp); } };
-  smooth(Math.round(2.0 / DS), 2);
-  for (let i = 0; i < N; i++) Y[i] = Math.min(CEILING - 0.35, Math.max(Y[i], surf[i] + Math.max(0.3, 0.8 * clear[i])));
+  smooth(Math.round(soft / DS), 2);
+  for (let i = 0; i < N; i++) Y[i] = Math.min(ceiling, Math.max(Y[i], surf[i] + Math.max(0.3, 0.8 * clear[i])));
   smooth(Math.round(0.75 / DS), 1);
   for (let i = 0; i < N; i++) Y[i] = Math.max(Y[i], surf[i] + 0.28);
 
-  const C = { N, DS, total: (N - 1) * DS, X, Y, Z };
+  const C = { N, DS, total: (N - 1) * DS, X, Y, Z, U, cum, dense };
   // 道の上の点と向き
   C.at = (s) => {
     const f = clamp(s / DS, 0, N - 1.001), i = Math.floor(f), u = f - i;
@@ -93,6 +96,11 @@ export function buildCourse(T) {
     for (let i = i0; i <= i1; i++) { const d = (X[i] - pos[0]) ** 2 + (Y[i] - pos[1]) ** 2 * 0.5 + (Z[i] - pos[2]) ** 2; if (d < bd) { bd = d; best = i * DS; } }
     return { s: best, dist: Math.sqrt(bd) };
   };
+  return C;
+}
+
+export function buildCourse(T) {
+  const C = buildPath(T, ROUTE), { N, U } = C;
 
   // ---- 輪
   const gateRows = ROUTE.map((r, i) => [r, i]).filter(([r]) => r[3]);

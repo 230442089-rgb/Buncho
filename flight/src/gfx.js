@@ -6,11 +6,12 @@ in vec2 aPos; out vec2 vUv;
 void main(){ vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }`;
 
 export class GFX {
-  constructor(canvas) {
-    const opt = { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', desynchronized: false };
+  // o.depth: 画面に奥行きバッファを持たせる（3D モデルどうしの前後を正しく描くゲームで使う）
+  constructor(canvas, o = {}) {
+    const opt = { alpha: false, antialias: false, depth: !!o.depth, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', desynchronized: false };
     const gl = canvas.getContext('webgl2', opt);
     if (!gl) throw new Error('nowebgl2');
-    this.gl = gl; this.canvas = canvas;
+    this.gl = gl; this.canvas = canvas; this.depth = !!o.depth;
     const q = new URLSearchParams(safeSearch());
     // 浮動小数の描画先（HDR と影の地図に使う）。無い端末では 8bit に落とす
     this.floatRT = !q.has('ldr') && !!(gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float'));

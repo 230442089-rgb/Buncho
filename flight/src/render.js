@@ -153,7 +153,9 @@ export class Renderer {
     const f = cam.focal, asp = cw / ch, r = cam.right, u = cam.up, w = cam.fwd, e = cam.ro;
     const tx = -(r[0] * e[0] + r[1] * e[1] + r[2] * e[2]), ty = -(u[0] * e[0] + u[1] * e[1] + u[2] * e[2]), tz = -(w[0] * e[0] + w[1] * e[1] + w[2] * e[2]);
     const a = 2 * f / asp, b = 2 * f;
-    const VP = [a * r[0], b * u[0], 0, w[0], a * r[1], b * u[1], 0, w[1], a * r[2], b * u[2], 0, w[2], a * tx, b * ty, 0, tz];
+    // 奥行き: 近い面 0.04・遠い面 600（3D モデルどうしの前後の判定に使う。風景との前後は、風景の奥行きと比べて決める）
+    const zn = 0.04, zf = 600, A = (zf + zn) / (zf - zn), B = -2 * zf * zn / (zf - zn);
+    const VP = [a * r[0], b * u[0], A * w[0], w[0], a * r[1], b * u[1], A * w[1], w[1], a * r[2], b * u[2], A * w[2], w[2], a * tx, b * ty, A * tz + B, tz];
     this.VP = VP;
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     if (this.stars && L.night > 0.003) {
@@ -161,11 +163,18 @@ export class Renderer {
       g.use(this.pStar, { uVP: VP, uStarMT: mt, uPx: Math.max(1, ch / 720), uTime: o.time, uNight: L.night * P.fade, uScene: sc, uInv: [1 / cw, 1 / ch] });
       gl.bindVertexArray(this.stars.vao); gl.drawArrays(gl.POINTS, 0, this.stars.n);
     }
+    const fc = fogTint(L);
+    // 3D モデル（あれば）: 奥行きバッファを使って描く。そのあとの絵（スプライト）は、モデルの奥行きと比べるだけで書きこまない
+    if (o.meshes && g.depth) {
+      gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true); gl.clearDepth(1); gl.clear(gl.DEPTH_BUFFER_BIT);
+      o.meshes({ VP, scene: sc, inv: [1 / cw, 1 / ch], fogCol: fc, fade: P.fade });
+      gl.depthMask(false); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
     if (this.batch.n) {
-      const fc = fogTint(L);
       g.use(this.pSprite, { uVP: VP, uT0: o.tex[0], uT1: o.tex[1], uT2: o.tex[2], uScene: sc, uInv: [1 / cw, 1 / ch], uFog: L.fog, uFogCol: fc });
       this.batch.flush(P.fade);
     }
+    if (g.depth) { gl.disable(gl.DEPTH_TEST); gl.depthMask(true); }
     gl.disable(gl.BLEND);
     this.frame++;
   }
@@ -226,6 +235,13 @@ class SpriteBatch {
     this.items.push({ z: cx * c.fwd[0] + cy * c.fwd[1] + cz * c.fwd[2] + sortBias, p0, p1, p2, p3, uv, col, tex, add });
     this.n = this.items.length;
   }
+  // 4 隅それぞれの uv を指定する版（帯のように、絵をつないで貼るとき）
+  quadUV(p0, p1, p2, p3, uvs, col, tex = 0, add = 0, sortBias = 0) {
+    if (this.items.length >= this.max) return;
+    const c = this.cam, cx = (p0[0] + p2[0]) * 0.5 - c.ro[0], cy = (p0[1] + p2[1]) * 0.5 - c.ro[1], cz = (p0[2] + p2[2]) * 0.5 - c.ro[2];
+    this.items.push({ z: cx * c.fwd[0] + cy * c.fwd[1] + cz * c.fwd[2] + sortBias, p0, p1, p2, p3, uvs, col, tex, add });
+    this.n = this.items.length;
+  }
   // カメラを向く四角形。c: 中心, sx, sy: 半分の大きさ, rot: 画面内の回転
   billboard(c, sx, sy, uv, col, tex = 0, add = 0, rot = 0, sortBias = 0) {
     const cam = this.cam, cr = Math.cos(rot), sr = Math.sin(rot);
@@ -243,8 +259,8 @@ class SpriteBatch {
     it.sort((a, b) => b.z - a.z);                       // 奥から手前へ
     let k = 0;
     for (const q of it) {
-      const [u0, v0, u1, v1] = q.uv, c = q.col;
-      const P = [q.p0, q.p1, q.p2, q.p3], UV = [[u0, v1], [u1, v1], [u1, v0], [u0, v0]];
+      const c = q.col, P = [q.p0, q.p1, q.p2, q.p3];
+      let UV = q.uvs; if (!UV) { const [u0, v0, u1, v1] = q.uv; UV = [[u0, v1], [u1, v1], [u1, v0], [u0, v0]]; }
       for (let i = 0; i < 4; i++) {
         d[k++] = P[i][0]; d[k++] = P[i][1]; d[k++] = P[i][2]; d[k++] = UV[i][0]; d[k++] = UV[i][1];
         d[k++] = c[0] * fade; d[k++] = c[1] * fade; d[k++] = c[2] * fade; d[k++] = c[3] * fade; d[k++] = q.tex; d[k++] = q.add;

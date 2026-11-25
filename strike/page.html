@@ -1,0 +1,318 @@
+<title>B.U.N 襲来</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* 風景の上に、ユリアの戦闘形態の色（白・黄・黒・水色）と、B.U.N の赤だけを置く。題は極太の文字と警戒の縞。夕焼けの決戦まで通して読めるよう、暗い板に白い文字の一つの見た目に決めている。 */
+:root {
+  color-scheme: dark;
+  --ink: #0a0c13;                       /* 装甲の黒（読み込み中と余白の地） */
+  --panel: rgba(10, 12, 19, 0.74);      /* 風景に重ねる板 */
+  --panel-solid: #12151f;
+  --paper: #f7f5ee;                     /* 装甲の白（文字） */
+  --dim: rgba(247, 245, 238, 0.72);
+  --line: rgba(247, 245, 238, 0.28);
+  --yel: #ffd23c;                       /* ユリアの黄 */
+  --yel-ink: #2a2000;
+  --cyan: #54e6e2;                      /* 翼と槍の灯 */
+  --red: #ff4a36;                       /* B.U.N の赤 */
+  --font-display: "Dela Gothic One", "Hiragino Kaku Gothic StdN", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-num: "Chakra Petch", "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --stripe: repeating-linear-gradient(-45deg, var(--yel) 0 10px, #15161c 10px 20px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--ink); color: var(--paper); font-family: var(--font-body); font-weight: 500; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+#app { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--ink); }
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+#app.playing #view { cursor: none; }
+.layer { position: absolute; inset: 0; padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 12px; pointer-events: none; }
+.layer button, .layer .card { pointer-events: auto; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+/* ---- 読み込み */
+#boot { display: grid; place-items: center; background: radial-gradient(120% 90% at 50% 100%, #252a3d 0%, var(--ink) 62%); }
+.boot-card { display: grid; gap: 16px; justify-items: center; text-align: center; }
+.boot-title { margin: 0; font-family: var(--font-display); font-size: clamp(30px, 8vw, 56px); line-height: 1.1; letter-spacing: 0.04em; }
+.boot-title b { font-weight: 400; color: var(--yel); }
+.bar { width: min(280px, 64vw); height: 8px; background: var(--stripe); background-size: 28.28px 100%; opacity: 0.9; position: relative; }
+.bar i { position: absolute; inset: 0 0 0 auto; width: 100%; background: var(--ink); transition: width 0.25s; opacity: 0.86; }
+#bootMsg { margin: 0; color: var(--dim); font-size: 13px; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+
+/* ---- 題 */
+#title { display: grid; grid-template-rows: 1fr auto; row-gap: 12px; background: linear-gradient(90deg, rgba(7, 8, 14, 0.66) 0%, rgba(7, 8, 14, 0.22) 48%, rgba(7, 8, 14, 0) 72%); }
+.head { align-self: start; display: grid; justify-items: start; gap: 8px; padding-top: clamp(4px, 3vh, 28px); min-width: 0; }
+.kicker { margin: 0; padding: 3px 10px 4px; background: var(--red); color: #fff; font-weight: 900; font-size: clamp(11px, 1.9vh, 14px); letter-spacing: 0.2em; }
+.title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: min(clamp(46px, 15vh, 128px), 23vw); line-height: 0.98; letter-spacing: 0.01em; text-shadow: 0.045em 0.045em 0 rgba(255, 74, 54, 0.9), 0 6px 30px rgba(4, 5, 10, 0.6); }
+.title span { display: block; }
+.title span + span { color: var(--yel); text-shadow: 0.045em 0.045em 0 #15161c, 0 6px 30px rgba(4, 5, 10, 0.6); }
+.head::after { content: ""; width: min(330px, 62vw); height: 9px; background: var(--stripe); }
+.lede { margin: 2px 0 0; max-width: 21em; font-weight: 700; font-size: clamp(13px, 2.4vh, 17px); line-height: 1.7; letter-spacing: 0.06em; text-shadow: 0 1px 10px rgba(4, 5, 10, 0.9); text-wrap: pretty; }
+#titleYuria { position: absolute; right: var(--gutter-r); bottom: 0; height: min(78%, 620px); width: auto; max-width: 52%; pointer-events: none; filter: drop-shadow(0 10px 26px rgba(4, 5, 10, 0.5)); }
+.menu { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; max-width: min(640px, 60%); position: relative; margin-bottom: 16px; }
+.btn { display: grid; gap: 2px; text-align: left; padding: 10px 18px 11px; min-width: 0; background: var(--panel); border: 1.5px solid var(--line); border-radius: 2px; color: var(--paper); font-weight: 900; font-size: 17px; letter-spacing: 0.1em; transition: transform 0.12s, border-color 0.12s; }
+.btn small { font-weight: 500; font-size: 11.5px; letter-spacing: 0.04em; color: var(--dim); }
+.btn:hover { border-color: var(--paper); transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--yel); border-color: var(--yel); color: var(--yel-ink); padding-inline: 26px 30px; font-size: 21px; }
+.btn.primary small { color: rgba(42, 32, 0, 0.8); }
+.btn.ghost { align-content: center; font-size: 13.5px; font-weight: 700; }
+.credit { position: absolute; left: var(--gutter-l); bottom: 1px; margin: 0; font-size: 10px; letter-spacing: 0.03em; color: rgba(247, 245, 238, 0.5); }
+
+/* ---- 戦闘中 */
+#hud .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.me { display: grid; gap: 6px; justify-items: start; }
+.box { display: flex; align-items: baseline; gap: 9px; padding: 3px 12px 4px 10px; background: var(--panel); border-left: 4px solid var(--yel); white-space: nowrap; }
+.box span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; color: var(--dim); }
+.box b { font-family: var(--font-num); font-weight: 700; font-size: 23px; letter-spacing: 0.03em; font-variant-numeric: tabular-nums; min-width: 4ch; text-align: right; }
+.pips { display: flex; gap: 4px; align-items: center; padding: 0 2px; }
+.pips::before { content: "まもり"; margin-right: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--paper); text-shadow: 0 1px 5px rgba(4, 5, 10, 0.95); }
+.pips i { width: 19px; height: 11px; background: var(--cyan); transform: skewX(-18deg); box-shadow: 0 0 9px rgba(84, 230, 226, 0.65); transition: background 0.2s, box-shadow 0.2s; }
+.pips i.off { background: rgba(10, 12, 19, 0.6); box-shadow: inset 0 0 0 1.5px var(--line); }
+.pips.low i:not(.off) { background: var(--red); box-shadow: 0 0 9px rgba(255, 74, 54, 0.7); animation: blink 0.5s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.45; } }
+#chain { margin: 0; min-height: 1.3em; font-family: var(--font-num); font-weight: 700; font-size: 17px; letter-spacing: 0.05em; color: var(--yel); text-shadow: 0 1px 6px rgba(4, 5, 10, 0.95); opacity: 0; transition: opacity 0.25s; }
+#chain.show { opacity: 1; }
+#chain small { font-family: var(--font-body); font-size: 0.66em; margin-left: 0.3em; letter-spacing: 0.12em; }
+#chain.bump { animation: bump 0.16s ease-out; }
+@keyframes bump { 0% { transform: scale(1.3); } }
+.side { display: flex; align-items: center; gap: 8px; }
+.box.bird { border-left-color: var(--red); }
+.box.bird b { font-size: 19px; min-width: 2ch; }
+.tool { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; background: var(--panel); border: 1.5px solid var(--line); border-radius: 2px; color: var(--paper); }
+.tool:hover { border-color: var(--paper); }
+.tool svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#boss { position: absolute; left: 50%; top: 60px; transform: translateX(-50%); width: min(460px, calc(100% - var(--gutter-l) - var(--gutter-r))); display: grid; gap: 3px; }
+#boss span { font-size: 11px; font-weight: 900; letter-spacing: 0.22em; text-shadow: 0 1px 5px rgba(4, 5, 10, 0.95); }
+#boss span b { color: var(--red); font-family: var(--font-num); letter-spacing: 0.08em; margin-right: 0.5em; }
+.bossbar { height: 9px; background: rgba(10, 12, 19, 0.7); box-shadow: inset 0 0 0 1px var(--line); }
+.bossbar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ff8a5c, var(--red)); transform-origin: left; transition: transform 0.2s; }
+#warn { position: absolute; left: 0; right: 0; top: 30%; display: grid; gap: 0; pointer-events: none; animation: warnIn 0.3s ease-out both; }
+#warn .stripe { height: 13px; background: repeating-linear-gradient(-45deg, var(--red) 0 12px, #15161c 12px 24px); animation: slide 0.7s linear infinite; }
+#warn p { margin: 0; padding: 8px 0 10px; display: grid; justify-items: center; gap: 0; background: rgba(10, 12, 19, 0.78); }
+#warn b { font-family: var(--font-num); font-weight: 700; font-size: clamp(30px, 8vh, 60px); letter-spacing: 0.3em; text-indent: 0.3em; color: var(--red); animation: blink 0.7s steps(2) infinite; }
+#warn span { font-weight: 900; font-size: clamp(13px, 2.6vh, 18px); letter-spacing: 0.3em; text-indent: 0.3em; }
+@keyframes slide { to { background-position: 33.94px 0; } }
+@keyframes warnIn { from { opacity: 0; transform: scaleY(0.4); } }
+#toast { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); font-family: var(--font-display); font-size: clamp(22px, 5vh, 40px); letter-spacing: 0.1em; white-space: nowrap; text-shadow: 0.05em 0.05em 0 #15161c, 0 2px 16px rgba(4, 5, 10, 0.85); opacity: 0; }
+#toast.show { animation: toast 1.7s ease-out both; }
+#toast small { display: block; font-family: var(--font-body); font-weight: 900; font-size: 0.4em; letter-spacing: 0.24em; color: var(--yel); text-align: center; margin-bottom: 0.2em; }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, 10px); } 12% { opacity: 1; transform: translate(-50%, 0); } 76% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -8px); } }
+#talk { position: absolute; left: var(--gutter-l); bottom: 12px; display: flex; align-items: flex-end; gap: 8px; max-width: min(480px, calc(100% - var(--gutter-l) - var(--gutter-r) - 190px)); transition: opacity 0.3s; }
+#face { flex: none; width: 62px; height: 62px; border: 2px solid var(--yel); border-radius: 2px; background: #f4f1ea; transition: border-color 0.2s; }
+#talk.foe #face { border-color: var(--red); background: #3a3d4b; }
+#talkText { margin: 0 0 4px; min-width: 0; padding: 8px 12px 9px; background: var(--panel); border-left: 3px solid var(--yel); font-size: 14.5px; font-weight: 700; line-height: 1.55; letter-spacing: 0.03em; opacity: 0; transform: translateY(4px); transition: opacity 0.25s, transform 0.25s; }
+#talk.foe #talkText { border-left-color: var(--red); }
+#talkText.show { opacity: 1; transform: none; }
+.pad { position: absolute; right: var(--gutter-r); bottom: 14px; display: flex; align-items: flex-end; gap: 12px; }
+.act { --g: 0; --ring: var(--yel); position: relative; flex: none; width: 88px; height: 88px; display: grid; place-content: center; justify-items: center; gap: 0; padding: 0; border: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(10, 12, 19, 0.78) calc(100% - 7px), transparent calc(100% - 6px)), conic-gradient(var(--ring) calc(var(--g) * 360deg), rgba(247, 245, 238, 0.24) 0); color: var(--dim); font-family: var(--font-display); font-size: 27px; line-height: 1; touch-action: none; }
+.act small { font-family: var(--font-body); font-weight: 700; font-size: 10px; letter-spacing: 0.1em; margin-top: 4px; color: var(--dim); }
+.act.ready { color: var(--yel-ink); background: radial-gradient(closest-side, var(--yel) calc(100% - 7px), transparent calc(100% - 6px)), conic-gradient(var(--ring) 360deg, transparent 0); box-shadow: 0 0 22px rgba(255, 210, 60, 0.55); animation: ready 0.9s ease-in-out infinite; }
+.act.ready small { color: rgba(42, 32, 0, 0.8); }
+@keyframes ready { 50% { box-shadow: 0 0 34px rgba(255, 210, 60, 0.9); } }
+#btnWave { --ring: var(--cyan); width: 70px; height: 70px; font-size: 22px; color: var(--paper); }
+#btnWave.empty { color: rgba(247, 245, 238, 0.4); }
+.stock { position: absolute; left: 50%; top: -11px; transform: translateX(-50%); display: flex; gap: 4px; }
+.stock i { width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 7px rgba(84, 230, 226, 0.8); }
+.stock i.off { background: rgba(10, 12, 19, 0.7); box-shadow: inset 0 0 0 1.5px var(--line); }
+#hint { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); margin: 0; padding: 7px 14px 8px; background: var(--panel); border-left: 3px solid var(--cyan); font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; white-space: nowrap; transition: opacity 0.5s; }
+#hint.gone { opacity: 0; }
+
+/* ---- 板（あそびかた・設定・一時停止・力つきたとき・結果） */
+.scrim { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; background: rgba(5, 6, 11, 0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); overflow-y: auto; }
+.card { width: min(520px, 100%); max-height: 100%; overflow-y: auto; display: grid; gap: 13px; padding: 20px 22px 18px; background: var(--panel-solid); border: 1.5px solid var(--line); border-top: 6px solid var(--yel); border-radius: 2px; box-shadow: 0 18px 60px rgba(3, 4, 9, 0.6); }
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: 0.08em; text-wrap: balance; }
+.card h3 { margin: 4px 0 0; font-size: 11.5px; font-weight: 900; letter-spacing: 0.24em; color: var(--yel); }
+.card p, .card li { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--dim); }
+.card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.card li { display: grid; grid-template-columns: 3.6em minmax(0, 1fr); gap: 0.7em; }
+.card li b { color: var(--paper); font-weight: 900; }
+.rows { display: grid; gap: 8px; }
+.card .note { font-size: 11.5px; letter-spacing: 0.04em; color: rgba(247, 245, 238, 0.52); font-variant-numeric: tabular-nums; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13.5px; font-weight: 700; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 2px; overflow: hidden; }
+.seg button { padding: 6px 12px; background: transparent; border: 0; border-left: 1.5px solid var(--line); font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; color: var(--dim); }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed=true] { background: var(--paper); color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.actions .btn, .actions .btn.primary { font-size: 14.5px; padding: 9px 16px; text-align: center; }
+#down .card { border-top-color: var(--cyan); width: min(440px, 100%); }
+#result { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; justify-items: start; background: linear-gradient(0deg, rgba(7, 8, 14, 0.66) 0%, rgba(7, 8, 14, 0) 60%); }
+#result .card { width: min(460px, 100%); background: rgba(10, 12, 19, 0.84); }
+.rhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rank { display: grid; justify-items: center; line-height: 1; }
+.rank span { font-size: 10px; font-weight: 900; letter-spacing: 0.24em; color: var(--dim); }
+.rank b { font-family: var(--font-display); font-weight: 400; font-size: 54px; color: var(--yel); text-shadow: 0.06em 0.06em 0 #15161c; }
+.scoredl { display: grid; grid-template-columns: 1fr auto; gap: 5px 16px; align-items: baseline; margin: 0; font-variant-numeric: tabular-nums; }
+.scoredl dt { font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--dim); }
+.scoredl dd { margin: 0; text-align: right; font-family: var(--font-num); font-weight: 700; font-size: 22px; }
+.scoredl dd small { font-family: var(--font-body); font-weight: 500; font-size: 11.5px; color: var(--dim); margin-left: 0.4em; }
+#best { color: var(--yel); font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; }
+.quote { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.quote canvas { flex: none; width: 56px; height: 56px; border: 2px solid var(--yel); border-radius: 2px; background: #f4f1ea; }
+.quote p { min-width: 0; color: var(--paper); font-size: 14px; font-weight: 700; line-height: 1.6; }
+#fatal { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--ink); }
+#fatal p { max-width: 34em; line-height: 1.8; color: var(--paper); }
+
+/* ---- せまい画面 */
+@media (max-width: 640px) {
+  #btnSound { display: none; }
+  .box b { font-size: 20px; }
+  .box.bird span { display: none; }
+  .box.bird::before { content: "文鳥"; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: var(--dim); }
+  .menu { max-width: 100%; }
+  .btn { flex: 1 1 150px; font-size: 15.5px; padding: 10px 14px; }
+  .btn.primary { font-size: 19px; }
+  #titleYuria { height: min(44%, 400px); max-width: 66%; bottom: 150px; }
+  #title { background: linear-gradient(180deg, rgba(7, 8, 14, 0.62) 0%, rgba(7, 8, 14, 0.1) 46%, rgba(7, 8, 14, 0.5) 100%); }
+  #talk { max-width: calc(100% - var(--gutter-l) - var(--gutter-r)); bottom: 122px; }
+  #face { width: 54px; height: 54px; }
+  #talkText { font-size: 13.5px; }
+  #hint { top: 118px; white-space: normal; text-align: left; width: max-content; max-width: calc(100% - 40px); }
+  #boss { top: 96px; }
+}
+@media (max-height: 460px) {
+  .layer { padding-block: 8px; }
+  .title { font-size: min(clamp(38px, 21vh, 80px), 23vw); }
+  .menu { margin-bottom: 0; }
+  .head { gap: 5px; padding-top: 0; }
+  .lede { font-size: 12.5px; line-height: 1.5; }
+  .btn { padding: 6px 14px 7px; font-size: 15px; }
+  .btn.primary { font-size: 17px; }
+  .btn small { display: none; }
+  .act { width: 74px; height: 74px; font-size: 23px; }
+  #btnWave { width: 60px; height: 60px; font-size: 19px; }
+  .pad { bottom: 8px; }
+  #talk { bottom: 8px; }
+  #face { width: 50px; height: 50px; }
+  #talkText { font-size: 13px; padding: 6px 10px 7px; }
+  #boss { top: 50px; }
+  #hint { top: 84px; }
+  .credit { display: none; }
+  .card { padding: 13px 16px; gap: 8px; }
+  .card p, .card li { line-height: 1.5; }
+  .rank b { font-size: 40px; }
+}
+@media (hover: none) and (pointer: coarse) { .keys-only { display: none; } .act small { display: none; } }
+@media (hover: hover) and (pointer: fine) { .touch-only { display: none; } .act { width: 66px; height: 66px; font-size: 21px; } #btnWave { width: 56px; height: 56px; font-size: 18px; } }
+@media (prefers-reduced-motion: reduce) { .act.ready, #warn b, #warn .stripe, .pips.low i:not(.off) { animation: none; } #toast.show { animation-duration: 2.2s; } .btn { transition: none; } }
+</style>
+
+<div id="app">
+  <canvas id="view" tabindex="0" aria-label="槍を持ったユリアが、山と湖の空で黒い機体の軍隊と戦っている画面"></canvas>
+
+  <section id="boot" class="layer">
+    <div class="boot-card">
+      <p class="boot-title">B.U.N <b>襲来</b></p>
+      <div class="bar"><i id="bootBar"></i></div>
+      <p id="bootMsg">山と湖をつくっています…</p>
+    </div>
+  </section>
+
+  <section id="title" class="layer" hidden>
+    <div class="head">
+      <p class="kicker">ユリア　対　マッスル文鳥の軍隊</p>
+      <h1 class="title"><span>B.U.N</span><span>襲来</span></h1>
+      <p class="lede">空から押しよせる黒い機体と、武装した文鳥たち。槍と波で、ぜんぶ蹴散らす。</p>
+    </div>
+    <canvas id="titleYuria" width="640" height="760" aria-hidden="true"></canvas>
+    <div class="menu">
+      <button id="btnStart" class="btn primary" type="button">出撃<small>旗艦を止めるまで、およそ 3 分</small></button>
+      <button id="btnHow" class="btn ghost" type="button">あそびかた・設定</button>
+    </div>
+    <p class="credit" id="credit"></p>
+  </section>
+
+  <section id="hud" class="layer" hidden>
+    <div class="top">
+      <div class="me">
+        <div class="box"><span>得点</span><b id="score">0</b></div>
+        <div class="pips" id="shield" role="img" aria-label="まもり 5"><i></i><i></i><i></i><i></i><i></i></div>
+        <p id="chain"></p>
+      </div>
+      <div class="side">
+        <div class="box bird"><span>帰した文鳥</span><b id="routed">0</b></div>
+        <button id="btnSound" class="tool" type="button" aria-label="音を切りかえる"></button>
+        <button id="btnPause" class="tool" type="button" aria-label="一時停止"><svg viewBox="0 0 20 20"><path d="M7 4v12M13 4v12"/></svg></button>
+      </div>
+    </div>
+    <div id="boss" hidden><span><b>B.U.N</b>旗艦</span><div class="bossbar"><i id="bossBar"></i></div></div>
+    <div id="warn" hidden><div class="stripe"></div><p><b>WARNING</b><span>B.U.N 旗艦、接近</span></p><div class="stripe"></div></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="talk">
+      <canvas id="face" width="160" height="160" aria-hidden="true"></canvas>
+      <p id="talkText" role="status" aria-live="polite"></p>
+    </div>
+    <div class="pad">
+      <button id="btnWave" class="act" type="button" aria-label="波。弾と機械を止める">波<small class="keys-only">X</small><span class="stock" id="stock" aria-hidden="true"><i></i><i></i><i></i></span></button>
+      <button id="btnLance" class="act" type="button" aria-label="槍。たまったら貫く光線を放つ">槍<small class="keys-only">Z</small></button>
+    </div>
+    <p id="hint" class="gone"></p>
+  </section>
+
+  <section id="panel" class="layer scrim" hidden>
+    <div class="card" role="dialog" aria-labelledby="panelTitle">
+      <h2 id="panelTitle">あそびかた</h2>
+      <ul>
+        <li class="touch-only"><b>動く</b><span>画面のどこでも、指をすべらせたぶんだけユリアが動く</span></li>
+        <li class="touch-only"><b>槍・波</b><span>右下のボタン</span></li>
+        <li class="keys-only"><b>動く</b><span>ユリアがマウスについてくる／矢印キー・WASD（Shift でゆっくり）</span></li>
+        <li class="keys-only"><b>槍・波</b><span>槍は左クリックか Z、波は右クリックか X。P で一時停止、M で音</span></li>
+        <li><b>光の矢</b><span>自動で撃つ。ユリアのすこし上にいる敵へ飛んでいく</span></li>
+        <li><b>槍</b><span>輪がたまったら放てる、貫く光線</span></li>
+        <li><b>波</b><span>弾を消し、機械を止める。3 回ぶん（時間でもどる）</span></li>
+        <li><b>赤い印</b><span>そこに弾や砲が来る合図。胸の水色の光を、印の外へ</span></li>
+        <li><b>視点</b><span>動かない。景色のほうが流れていく</span></li>
+      </ul>
+      <h3>設定</h3>
+      <div class="rows">
+        <div class="row"><span>画質</span><span class="seg" id="segQuality"><button type="button" data-v="auto">自動</button><button type="button" data-v="low">軽い</button><button type="button" data-v="mid">ふつう</button><button type="button" data-v="high">きれい</button></span></div>
+        <div class="row"><span>動きの感度<span class="keys-only">（キー）</span></span><span class="seg" id="segSens"><button type="button" data-v="0.75">ひかえめ</button><button type="button" data-v="1">ふつう</button><button type="button" data-v="1.35">きびん</button></span></div>
+        <div class="row"><span>音</span><span class="seg" id="segSound"><button type="button" data-v="1">あり</button><button type="button" data-v="0">なし</button></span></div>
+      </div>
+      <p id="perf" class="note"></p>
+      <div class="actions">
+        <button id="btnResume" class="btn primary" type="button">つづける</button>
+        <button id="btnRetry" class="btn" type="button">はじめから</button>
+        <button id="btnQuit" class="btn" type="button">題にもどる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="down" class="layer scrim" hidden>
+    <div class="card" role="dialog" aria-labelledby="downTitle">
+      <h2 id="downTitle">まもりが、尽きた。</h2>
+      <p>ここから続けられる。まもりは元にもどり、波も 2 回ぶん使える（評価は B になる）。</p>
+      <div class="actions">
+        <button id="btnContinue" class="btn primary" type="button">ここから続ける</button>
+        <button id="btnDownRetry" class="btn" type="button">はじめから</button>
+        <button id="btnDownQuit" class="btn" type="button">題にもどる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="layer" hidden>
+    <div class="card">
+      <div class="rhead"><h2>空は、守った。</h2><div class="rank"><span>評価</span><b id="rRank">A</b></div></div>
+      <div class="quote"><canvas id="rFace" width="128" height="128" aria-hidden="true"></canvas><p id="rSay"></p></div>
+      <dl class="scoredl">
+        <dt>得点</dt><dd id="rScore">0</dd>
+        <dt>帰した文鳥</dt><dd id="rRouted">0<small>羽</small></dd>
+        <dt>つづけて落とした数</dt><dd id="rChain">0</dd>
+        <dt>受けた数</dt><dd id="rHits">0<small>回</small></dd>
+      </dl>
+      <p id="best"></p>
+      <div class="actions">
+        <button id="btnAgain" class="btn primary" type="button">もういちど</button>
+        <button id="btnHome" class="btn" type="button">題にもどる</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="fatal" hidden><p id="fatalMsg"></p></section>
+</div>
+<script>/*__ASSETS__*/</script>
+<script>/*__BUNDLE__*/</script>

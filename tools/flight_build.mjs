@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// tools/flight_build.mjs — 飛行ゲームを 1 つの HTML にまとめる。
-//   flight/src/*.js を束ね、flight/assets の音を data: URI で埋め込む。
+// tools/flight_build.mjs — ゲームを 1 つの HTML にまとめる。
+//   node tools/flight_build.mjs [flight|strike] [--dev]
+//   <ゲーム>/src/*.js を束ね、<ゲーム>/assets の音を data: URI で埋め込む。
 //   flight/dist/artifact.html … 公開用（<html> や <body> を持たない中身だけ。公開時に外枠が付く）
 //   flight/dist/index.html    … そのままブラウザで開ける版（同じ中身に外枠を付けたもの）
 import { build } from 'esbuild';
@@ -9,7 +10,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SRC = path.join(ROOT, 'flight'), OUT = path.join(SRC, 'dist');
+const GAME = process.argv.slice(2).find((a) => !a.startsWith('--')) || 'flight';
+const SRC = path.join(ROOT, GAME), OUT = path.join(SRC, 'dist');
 const dev = process.argv.includes('--dev');
 
 const res = await build({ entryPoints: [path.join(SRC, 'src/main.js')], bundle: true, format: 'iife', target: 'es2020', minify: !dev, write: false, legalComments: 'none', charset: 'utf8' });
