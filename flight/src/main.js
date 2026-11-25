@@ -38,6 +38,8 @@ async function start() {
     day: (v) => { game.freeDay = v; game.freeFlow = false; $('dayFlow').checked = false; },
     flow: (v) => { game.freeFlow = v; },
     setting: (key, v) => { if (key === 'sound') sound.setMuted(!v); if (key === 'invert' && input) input.invert = v; if (key === 'quality') applyQuality(v); },
+    // 設定の板に出す「いまの描画」（うまく動かないときに、どの状態かを伝えてもらえるように）
+    status: () => (R ? `いまの描画　${R.stats.w}×${R.stats.h}・${{ low: '軽い', mid: 'ふつう', high: 'きれい' }[R.quality]}・毎秒 ${Math.round(1 / Math.max(R.dtAvg, 1e-3))} こま${R.hdr ? '' : '・予備の描き方'}` : ''),
   });
   sound.muted = !ui.settings.sound;
   let lock = null;
@@ -103,7 +105,7 @@ async function start() {
     const t0 = performance.now(); game.draw(); game.draw(); const t1 = performance.now(); wait();
     // 描く命令を出す時間（CPU）と描き終わるまでの時間（GPU）は重なって進むので、CPU のぶんは割り引いて見積もる
     const ms = Math.max(0.4, (performance.now() - t0 - 0.6 * (t1 - t0)) / 2), budget = (R.stats.w * R.stats.h / ms) * 11;
-    F.bench = { ms, budget };
+    F.bench = { ms, budget }; R.fastHint = ms < 9;
     autoQ = budget >= 1.5e6 ? 'high' : budget >= 0.22e6 ? 'mid' : 'low';
     if (!forced && autoQ !== R.quality) { const pr = R.compileWorld(autoQ); if (!sync) { let n = 0; while (!g.done(pr) && n++ < 1200) await frame(); } g.finish(pr); R.setQuality(autoQ); }
     const Q = QUALITY[R.quality], cost = { low: 0.75, mid: 1, high: 1.5 }[R.quality];

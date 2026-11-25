@@ -6,10 +6,12 @@ export class Sound {
   constructor(assets) { this.a = assets || {}; this.ctx = null; this.buf = {}; this.muted = false; this.el = null; this.windSrc = null; this.last = {}; this.musicLevel = 0.62; }
   get on() { return !!this.ctx; }
   async unlock() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {}); if (this.el && this.el.paused && !this.muted) this.el.play().catch(() => {}); return; }
+    // 2 回目以降: 止まっていたら起こす（iOS では電話や画面の切りかえのあと 'interrupted' になる）
+    if (this.ctx) { if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {}); if (this.el && this.el.paused && !this.muted && !document.hidden) this.el.play().catch(() => {}); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* 無い環境 */ }
     const ctx = this.ctx = new AC();
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
     this.master = ctx.createGain(); this.master.gain.value = this.muted ? 0 : 1; this.master.connect(ctx.destination);
     this.sfx = ctx.createGain(); this.sfx.gain.value = 0.9; this.sfx.connect(this.master);
     this.music = ctx.createGain(); this.music.gain.value = 0; this.music.connect(this.master);

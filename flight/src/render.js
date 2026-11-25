@@ -177,6 +177,8 @@ export class Renderer {
     this.dtAvg = lerp(this.dtAvg, dt, 0.08);
     this.hold -= dt;
     if (this.hold > 0) return;
+    // 描くのは速いはずなのに毎秒 30 こまで安定しているなら、端末がこま数を制限している（解像度を下げても変わらない）
+    if (!this.goal && this.fastHint && this.dtAvg > 0.030 && this.dtAvg < 0.037) { this.capN = (this.capN || 0) + 1; if (this.capN > 3) this.goal = 1 / 30; } else this.capN = 0;
     const goal = this.goal || 1 / 60;
     const slow = this.dtAvg > goal * 1.28, fine = this.dtAvg < goal * 1.09;
     if (slow && this.scaleIdx > 0) {

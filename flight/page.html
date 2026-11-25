@@ -110,6 +110,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
 .card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .card li b { color: var(--paper); font-weight: 700; margin-right: 0.6em; }
 .rows { display: grid; gap: 8px; }
+.card .note { font-size: 11.5px; letter-spacing: 0.04em; color: rgba(244, 236, 223, 0.5); font-variant-numeric: tabular-nums; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
 .seg button { padding: 6px 12px; background: transparent; border: 0; border-left: 1px solid var(--line); font-size: 12.5px; letter-spacing: 0.06em; color: var(--dim); }
@@ -124,6 +125,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
 .score dd { margin: 0; text-align: right; font-family: var(--font-display); font-weight: 700; font-size: 21px; }
 .score dd small { font-family: var(--font-body); font-weight: 500; font-size: 11.5px; color: var(--dim); margin-left: 0.4em; }
 #best { color: var(--gold); font-size: 12.5px; letter-spacing: 0.08em; }
+.quote { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.quote canvas { flex: none; width: 54px; height: 54px; border-radius: 50%; border: 1.5px solid var(--gold); background: #f7efe4; }
+.quote p { min-width: 0; color: var(--paper); font-size: 14px; line-height: 1.6; }
 #fatal { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--ink); }
 #fatal p { max-width: 34em; line-height: 1.8; color: var(--paper); }
 
@@ -234,6 +238,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
         <div class="row"><span>上下の向き</span><span class="seg" id="segInvert"><button type="button" data-v="0">上で上昇</button><button type="button" data-v="1">上で下降</button></span></div>
         <div class="row"><span>音</span><span class="seg" id="segSound"><button type="button" data-v="1">あり</button><button type="button" data-v="0">なし</button></span></div>
       </div>
+      <p id="perf" class="note"></p>
       <div class="actions">
         <button id="btnResume" class="btn primary" type="button">つづける</button>
         <button id="btnRetry" class="btn" type="button">はじめから</button>
@@ -245,6 +250,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outl
   <section id="result" class="layer" hidden>
     <div class="card">
       <h2>ただいま。</h2>
+      <div class="quote"><canvas id="rFace" width="128" height="128" aria-hidden="true"></canvas><p id="rSay"></p></div>
       <dl class="score">
         <dt>時間</dt><dd id="rTime">0:00.0</dd>
         <dt>光の粒</dt><dd id="rLights">0<small>/ 0</small></dd>

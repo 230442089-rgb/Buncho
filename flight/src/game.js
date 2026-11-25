@@ -44,7 +44,6 @@ export const LINES = {
   far: [['紋章はあっち。ま、寄り道も楽しいじゃん。', 'smile']],
   edge: [['この先は雲の向こう。戻ろっか。', 'calm']],
   high: [['これより上は雲の中。このへんにしとこ。', 'calm']],
-  finish: [['今日は、いっしょに飛んでくれてありがと。……また行こ♡', 'love']],
   free: [['好きなとこ、行ってみよ。どこでも付き合うよ♪', 'grin']],
   look: [['ん？　どしたの？', 'smile'], ['ちゃんとついてきてる？　えらいえらい♪', 'happy'], ['あーしの顔、見たくなった？　うける。', 'wink']],
   night: [['星、すごいじゃん……。', 'wow']],
@@ -66,7 +65,7 @@ export class Game {
   emit(name, data) { if (this.hooks[name]) this.hooks[name](data); }
   say(key, i = -1, force = false) {
     const list = LINES[key]; if (!list) return;
-    const now = this.clock, gap = { gate: 0, finish: 0, start: 0, free: 0, look: 0, center: 6, boost: 22, bump: 5, skim: 30, miss: 8, far: 30, edge: 12, high: 14, night: 999 }[key] ?? 10;
+    const now = this.clock, gap = { gate: 0, start: 0, free: 0, look: 0, center: 6, boost: 22, bump: 5, skim: 30, miss: 8, far: 30, edge: 12, high: 14, night: 999 }[key] ?? 10;
     if (!force && this.cool[key] && now - this.cool[key] < gap) return;
     this.cool[key] = now;
     const pick = list[i >= 0 ? Math.min(i, list.length - 1) : Math.floor(Math.random() * list.length)];
@@ -373,7 +372,9 @@ export class Game {
     if (this.spriteT === undefined || now - this.spriteT > 1 / 40 || now < this.spriteT) { this.spriteT = now; this.sxk = this.sprite.draw({ t: now, sway: clamp(-y.sx * 0.9, -1, 1), boost: y.boost, pitch: clamp((y.pitch - this.cam.pitch) * 2.2, -1, 1), turn: y.turn, mood: y.mood, wave: y.wave }); R.g.updateCanvas(this.tex[2], this.sprite.cv); }
     const sxk = this.sxk;
     const half = SPRITE_SPAN * 0.5 * HEADR;
-    const tint = [0, 1, 2].map((i) => clamp(lerp(amb[i], 1, 0.42) * (0.92 + 0.10 * night), 0, 1));
+    // 夜でも沈まないよう、ユリア自身が少し光っているぶんを足す（結びでこちらを向いたときは、もう少し明るく）
+    const lit = 0.42 + 0.10 * night + 0.22 * (this.mode === 'finish' ? smoothstep(0.8, 2.6, this.finT) : 0);
+    const tint = [0, 1, 2].map((i) => clamp(lerp(amb[i], 1, lit) * (0.92 + 0.10 * night), 0, 1));
     const ga = 0.20 + 0.16 * y.boost + 0.22 * night;
     B.billboard(y.pos, 0.2, 0.2, FX.glow, [GOLD[0] * ga, GOLD[1] * ga, GOLD[2] * ga, 0], 0, 1, 0, 0.02);
     B.billboard(y.pos, half * sxk, half, [0, 0, 1, 1], [tint[0], tint[1], tint[2], 1], 2, 0, y.turn > 0.5 ? 0 : y.bank * 0.9, -0.02);

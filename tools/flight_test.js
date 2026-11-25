@@ -6,7 +6,7 @@ const path = require('path');
 const { chromium } = require('playwright');
 
 (async () => {
-  const file = path.resolve(__dirname, '../flight/dist/index.html');
+  const file = path.resolve(process.env.FLIGHT_FILE || path.join(__dirname, '../flight/dist/index.html'));      // FLIGHT_FILE=… で別のビルドを試せる
   const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
   const errors = [];

@@ -355,7 +355,7 @@ vec3 applyFog(vec3 col, float t, vec3 ro, vec3 rd, vec3 sd, float lit){
   vec3 Ssh = uHorA * 0.62 + uZen * 0.55;
   vec3 fc = mix(mix(Ssh, S, lit), uZen * 1.6 + uMidA * 0.3, 0.42);
   float mu = max(dot(rd, sd), 0.0);
-  fc += uSunCol * 0.05 * (lit - 0.5) * (0.25 + pow(mu, 6.0));
+  fc += uSunCol * 0.085 * (lit - 0.72) * (0.35 + 2.2 * pow(mu, 5.0));       // 日なたの空気は明るく、山かげの空気は暗く（光芒）
   float f = 1.0 - exp(-t * t * 0.00034 * uFog);
   // 湖面にたまる朝もや（高さで指数的に薄くなる霧を光線に沿って積分）
   float b = 1.4, y0 = max(ro.y - uWaterY, 0.0), x = t * rd.y * b;

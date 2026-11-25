@@ -87,6 +87,7 @@ export class UI {
     $('panelTitle').textContent = kind === 'pause' ? 'ひとやすみ' : 'あそびかた';
     $('btnRetry').hidden = kind !== 'pause'; $('btnQuit').hidden = kind !== 'pause';
     $('btnResume').textContent = kind === 'pause' ? 'つづける' : 'とじる';
+    $('perf').textContent = this.act.status();
     $('btnResume').focus({ preventScroll: true });
   }
   closePanel() { $('panel').hidden = true; this.panelFor = null; }
@@ -95,6 +96,13 @@ export class UI {
     $('rTime').textContent = fmt(r.time);
     $('rLights').innerHTML = `${r.lights}<small>/ ${r.totalLights}</small>`;
     $('rCenters').innerHTML = `${r.centers}<small>/ ${r.gates}</small>`;
+    // ユリアのひとこと（飛び方で変わる）
+    const [line, mood] = r.centers >= r.gates ? ['ぜんぶど真ん中！？　やば、うける♡　……また行こ♡', 'love']
+      : r.lights >= r.totalLights * 0.85 ? ['光の粒、ほとんど集めたじゃん。すごっ♪　……また行こ♡', 'happy']
+      : r.time < 85 ? ['はやっ。あーしより飛ばすじゃん、うける。……また行こ♡', 'wink']
+      : ['今日は、いっしょに飛んでくれてありがと。……また行こ♡', 'love'];
+    $('rSay').textContent = line;
+    { const c = $('rFace').getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 128, 128); c.setTransform(45, 0, 0, 45, 64, 69); STYLE.lw = 1.5; drawYuriaFace(c, mood, 1.0); STYLE.lw = 1; }
     const b = this.settings.best;
     if (!b || r.time < b) { this.settings.best = r.time; this.save(); $('best').textContent = b ? `いちばん速い記録を更新（これまで ${fmt(b)}）` : ''; }
     else $('best').textContent = `いちばん速い記録 ${fmt(b)}`;
