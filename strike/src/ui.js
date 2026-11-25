@@ -61,7 +61,7 @@ export class UI {
     const prev = this.mode; this.mode = mode;
     const fight = mode === 'play' || mode === 'boss' || mode === 'fin' || mode === 'down' || mode === 'result';
     $('boot').hidden = true;
-    $('title').hidden = mode !== 'title'; $('gallery').hidden = mode !== 'gallery';
+    $('title').hidden = mode !== 'title'; $('gallery').hidden = mode !== 'gallery'; this.faceDirty = true;
     $('hud').hidden = !fight;
     $('down').hidden = mode !== 'down';
     $('panel').hidden = true; this.panelFor = null;

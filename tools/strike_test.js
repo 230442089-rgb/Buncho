@@ -36,6 +36,27 @@ const { chromium } = require('playwright');
   await page.click('#btnResume');
   ok('「とじる」で閉じる', !(await vis('panel')) && (await vis('title')));
 
+  // ---- 3D モデル
+  const models = await ev(() => Object.keys(window.__flight.figs.models));
+  ok('3D モデルが読みこまれている', ['yuria', 'yuria_lo', 'buncho', 'buncho_lo', 'buncho_far', 'jetpack', 'bazooka', 'gatling', 'chute', 'round', 'slug', 'bullet', 'rocket', 'missile', 'mine', 'gem', 'arrow'].every((n) => models.includes(n)) && (await ev(() => window.__flight.cast.ok)), `${models.length} 種`);
+  const names = () => ev(() => window.__flight.figs.queue.map((q) => q.pose.m.h.name));
+  await step(1, true); let fg = await names();
+  ok('題の画面に、3D のユリアがいる（手前の大きな姿と、見本のうしろ姿）', fg.includes('yuria') && fg.includes('yuria_lo'), fg.join(' '));
+  const nan = await ev(() => { const F = window.__flight, p = F.figs.pose('yuria'); let bad = 0; for (const o of [{ t: 1.3 }, { t: 2, sway: 1, power: 1, aim: [-0.5, 0.4, 0.76] }, { t: 3, turn: 1, wave: 1 }, { t: 4, turn: 0.5, hurt: 1, thrust: 1, aim: [0, 0, 1] }]) { F.poseYuria(p, o).update(); for (const v of p.skin) if (!Number.isFinite(v)) bad++; } return bad; });
+  ok('ユリアの姿勢は、どの場面でも数として壊れない', nan === 0, `壊れた数 ${nan}`);
+  await page.click('#btnGallery'); await step(3, true);
+  let gl0 = await ev(() => ({ mode: window.__flight.game.mode, name: document.getElementById('galName').textContent, count: document.getElementById('galCount').textContent, yaw: window.__flight.game.gal.yaw }));
+  ok('「3D モデルを見る」で、鑑賞の画面になる', gl0.mode === 'gallery' && (await vis('gallery')) && !(await vis('title')) && gl0.name.includes('ユリア') && gl0.count === '1 / 8', JSON.stringify(gl0));
+  const seen = [], drawn = [];
+  for (let i = 0; i < 8; i++) { await step(2, true); seen.push(await ev(() => document.getElementById('galName').textContent)); drawn.push(await names()); await page.click('#btnGalNext'); }
+  await step(2, true);
+  ok('8 つのモデルを順に見られる（一巡して最初にもどる）', new Set(seen).size === 8 && drawn.every((d) => d.length > 0) && drawn[2].includes('buncho') && drawn[4].includes('gatling') && drawn[6].includes('chute') && drawn[7].includes('missile') && (await ev(() => window.__flight.game.gal.i)) === 0, seen.join('・'));
+  await page.mouse.move(W * 0.5, H * 0.5); await page.mouse.down(); await page.mouse.move(W * 0.5 + 120, H * 0.5, { steps: 4 }); await page.mouse.up();
+  const gl1 = await ev(() => window.__flight.game.gal.yaw);
+  ok('ドラッグで回せる', Math.abs(gl1 - 0.45 - 120 * 0.012) < 0.2, `yaw ${f2(gl1)}`);
+  await page.click('#btnGalBack'); await step(3, true);
+  ok('題にもどれる', (await S()).mode === 'title' && (await vis('title')) && !(await vis('gallery')));
+
   // ---- はじめる
   await page.click('#btnStart');
   a = await S();
@@ -213,6 +234,17 @@ const { chromium } = require('playwright');
   await ev(() => { const G = window.__flight.game; G.auto = true; });
   const t3 = await until('G.mode === "result"', 400); await step(2, true); a = await S();
   ok('はじめから結果まで通る', a.mode === 'result' && a.kills >= 60, `${t3.toFixed(0)} 秒・落とした数 ${a.kills}・帰した文鳥 ${a.routed}・受けた数 ${a.hits}`);
+
+  // ---- 戦いの中の 3D モデル（文鳥・装備・弾）
+  await page.click('#btnHome'); await step(5); await page.keyboard.press('Enter'); await step(5);
+  await ev(() => { const G = window.__flight.game; G.si = 999; G.bossAt = 1e9; G.P.inv = 1e9; G.P.fireT = 99; G.spawn('gunner', 'hover', { from: [0.35, 0.25], at: [0.35, 0.25], z: 6.0, hold: 30, strafe: 0 }); G.spawn('trooper', 'hover', { from: [-0.5, 0.35], at: [-0.5, 0.35], z: 6.5, hold: 30, strafe: 0 }); });
+  await until('G.bul.some((u) => u.kind === "needle") && G.bul.some((u) => u.kind === "shell")', 12); await step(1, true); fg = await names();
+  ok('文鳥と装備と弾が、3D で描かれている', ['yuria_lo', 'buncho_lo', 'jetpack_lo', 'bazooka_lo', 'gatling_lo', 'bullet', 'rocket'].every((n) => fg.includes(n)), [...new Set(fg)].join(' '));
+  const tip = await ev(() => { const G = window.__flight.game, a = G.tipL(); G.P.power = 1; const b = G.tipL(), d = G.lanceDir(), A = G.aimL(), g = G.gripL(), l = Math.hypot(A[0] - g[0], A[1] - g[1], A[2] - g[2]); G.P.power = 0; return { a, b, dot: (d[0] * (A[0] - g[0]) + d[1] * (A[1] - g[1]) + d[2] * (A[2] - g[2])) / l }; });
+  ok('槍はふだん右ななめ前を向き、放つときは、ねらいの先を向く', tip.a.every(Number.isFinite) && tip.a[2] > 0.05 && tip.a[0] > tip.b[0] + 0.03 && tip.dot > 0.999, `ふだん (${tip.a.map(f2)}) 放つとき (${tip.b.map(f2)}) dot=${tip.dot.toFixed(4)}`);
+  await ev(() => { const G = window.__flight.game; for (const e of G.en) G.kill(e); });
+  await until('G.fly.some((f) => f.age > 1.5)', 6); await step(1, true); fg = await names();
+  ok('落とされた文鳥は、3D の落下傘で降りていく', fg.includes('buncho_far') && fg.includes('chute'), [...new Set(fg)].join(' '));
 
   ok('エラーが出ていない', errors.length === 0, errors.slice(0, 3).join(' | '));
   await browser.close();

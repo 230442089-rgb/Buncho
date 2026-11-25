@@ -19,11 +19,12 @@ const gear = (m) => {
 };
 // 胴のまわりに 4 枚の羽（pts: [胴からの距離, 前後の位置] の輪郭）
 const fins4 = (z0, pts, a0) => { const f = plate([0, 0, 0], I3, pts, 0.014, { round: 0.004 }), R = Math.max(...pts.map((p) => Math.hypot(p[0], p[1]))) + 0.05; return union([0, 1, 2, 3].map((i) => { const a = a0 + i * PI / 2, c = Math.cos(a), sn = Math.sin(a); return { bb: [-R, -R, z0 - R, R, R, z0 + R], d: (x, y, z) => f.d(x * c + y * sn, z - z0, -x * sn + y * c) }; })); };
-const one = (name, o = {}) => { const m = new Model(name, { toon: 0, line: 0, aoR: 0.35, ...o }); gear(m); m.bone('root', null, [0, 0, 0]); return m; };
+// lod: 戦いの中で小さく映る装備の、粗い版（名前に _lo が付く。網目の細かさを 2 倍に粗くする）
+const one = (name, o = {}, lod = false) => { const m = new Model(lod ? name + '_lo' : name, { toon: 0, line: 0, aoR: 0.35, ...o }); gear(m); m.bone('root', null, [0, 0, 0]); if (lod) { const part = m.part.bind(m); m.part = (n, shape, opt) => part(n, shape, opt.h ? { ...opt, h: opt.h * 2 } : opt); } return m; };
 
 // ---- 噴射装置（背中）。黒い箱と 2 本の筒、下向きの噴射口、赤い灯
-export function buildJetpack() {
-  const m = one('jetpack');
+export function buildJetpack(lod) {
+  const m = one('jetpack', {}, lod);
   const pack = blend(0.08, rbox([0, 2.95, -0.98], [0.5, 0.66, 0.26], 0.12), mirror(cyl([0.56, 3.5, -1.02], [0.56, 2.28, -1.02], 0.27, 0.1)), rbox([0, 3.52, -0.9], [0.36, 0.14, 0.2], 0.06), mirror(rbox([0.4, 3.0, -0.72], [0.1, 0.42, 0.14], 0.04)));
   const nozzle = mirror(cut(cone([0.56, 2.32, -1.02], [0.56, 1.9, -1.06], 0.2, 0.32, 0.02), cone([0.56, 2.2, -1.03], [0.56, 1.84, -1.07], 0.13, 0.28)));
   const hot = mirror(cyl([0.56, 2.2, -1.03], [0.56, 2.27, -1.02], 0.16));
@@ -34,8 +35,8 @@ export function buildJetpack() {
   return m;
 }
 // ---- バズーカ（右肩にかつぐ）。筒・うしろの広がった口・照準・にぎり・先に見える弾頭
-export function buildBazooka() {
-  const m = one('bazooka'), ax = (z, dy = 0) => [1.3, 4.05 + dy, z];
+export function buildBazooka(lod) {
+  const m = one('bazooka', {}, lod), ax = (z, dy = 0) => [1.3, 4.05 + dy, z];
   const tubeS = cut(union(cyl(ax(-1.6), ax(1.4), 0.26, 0.02), cyl(ax(1.28), ax(1.44), 0.31, 0.03), cyl(ax(-0.66), ax(0.2), 0.29, 0.03)), cyl(ax(0.8), ax(1.6), 0.2));
   const rear = cut(cone(ax(-1.58), ax(-2.1), 0.25, 0.42, 0.02), cone(ax(-1.7), ax(-2.16), 0.16, 0.37));
   const grips = union(rbox(ax(0.5, -0.42), [0.06, 0.19, 0.085], 0.03, rotX(-0.25)), rbox(ax(0.98, -0.4), [0.055, 0.17, 0.07], 0.03, rotX(0.1)), rbox(ax(0.74, -0.29), [0.03, 0.03, 0.22], 0.015));
@@ -47,8 +48,8 @@ export function buildBazooka() {
   return m;
 }
 // ---- ガトリング（腰だめ）。6 本の銃身（回る）・胴・弾の箱・取っ手
-export function buildGatling() {
-  const m = one('gatling'), C = [1.4, 1.3], ax = (z, dx = 0, dy = 0) => [C[0] + dx, C[1] + dy, z];      // 右手で上の取っ手をつかんで、腰の横に下げる
+export function buildGatling(lod) {
+  const m = one('gatling', {}, lod), C = [1.4, 1.3], ax = (z, dx = 0, dy = 0) => [C[0] + dx, C[1] + dy, z];      // 右手で上の取っ手をつかんで、腰の横に下げる
   m.bone('spin', 'root', ax(1.0));
   const barrels = union([0, 1, 2, 3, 4, 5].map((i) => { const a = i / 6 * PI * 2; return cut(cyl(ax(1.0, Math.cos(a) * 0.2, Math.sin(a) * 0.2), ax(3.3, Math.cos(a) * 0.2, Math.sin(a) * 0.2), 0.082, 0.012), cyl(ax(3.1, Math.cos(a) * 0.2, Math.sin(a) * 0.2), ax(3.4, Math.cos(a) * 0.2, Math.sin(a) * 0.2), 0.045)); }));
   const clamps = union([1.5, 2.3, 3.14].map((z) => cyl(ax(z), ax(z + 0.09), 0.31, 0.02)), cyl(ax(1.0), ax(3.2), 0.07));

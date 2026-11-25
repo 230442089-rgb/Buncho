@@ -136,7 +136,8 @@ function shapes() {
   // 胸もとの水色の石、腰の帯（白）、胸の下の黄色い山形
   const gemP = surfaceAlong(trunk, [0, 3.56, 0], [0, 0, 1], 0.02, 1.5);
   const gem = plate(V.add(gemP, [0, 0, 0.0]), rotX(-0.25), [[0, 0.1], [0.075, 0], [0, -0.1], [-0.075, 0]], 0.035, { edge: 0.07, round: 0.006, thin: 0.4 });
-  const belt = patch(trunk, { bb: [-1, 2.2, -1, 1, 3.0, 1], d: (x, y, z) => abs(y - (2.44 + 0.3 * abs(x))) - 0.05 }, 0.028, 0.01);
+  // 腰の帯（白）: 肌の上を横切る細い帯。装甲と同じ色なので、装甲の範囲に足して塗る（境目がくっきり出る）
+  const suitBelt = (x, y, z) => Math.min(suitF(x, y, z), max(abs(y - (2.44 + 0.3 * abs(x))) - 0.048, abs(x) - 0.75));
   const chev = patch(trunk, { bb: [-0.3, 2.5, 0, 0.3, 3.1, 1], d: (x, y, z) => max(abs(y - (2.72 + 0.55 * abs(x))) - 0.035, abs(x) - 0.17, -z) }, 0.02, 0.006);
   // ---- 袖（上腕のなかほどから手首まで、手首へ向かって大きくふくらむ。先は黒いそで口で、中が空いている）
   const cuffB = V.add(W, dF, 0.2), sp = (a, b, k) => V.lerp(a, b, k);
@@ -192,12 +193,15 @@ function shapes() {
   const butt = union(plate(lz(0), PY, [[0.07, -2.3], [0, -3.0], [-0.07, -2.3]], 0.05, { edge: 0.06, round: 0.006, thin: 0.45 }),
     plate(lz(0), PY, buttPts, 0.05, { edge: 0.07, round: 0.006, thin: 0.45 }), plate(lz(0), PY, buttPts.map(([a, b]) => [-a, b]).reverse(), 0.05, { edge: 0.07, round: 0.006, thin: 0.45 }));
   const lanceLight = union(rbox(lz(3.3, 0.0, 0), [0.082, 0.028, 0.75], 0.015), rbox(lz(3.0, 0, 0), [0.028, 0.068, 0.5], 0.015));
-  return { head, hair, sideLock, backHair, sideTail, hubS, hubRing, hubCap, horns, hornBase, hornDot, pins, body, trunk, suitF, blackF, gem, belt, chev, sleeve, cuffRing, sleeveTop, sleeveCuff, fist, openHand,
+  return { head, hair, sideLock, backHair, sideTail, hubS, hubRing, hubCap, horns, hornBase, hornDot, pins, body, trunk, suitF: suitBelt, blackF, gem, chev, sleeve, cuffRing, sleeveTop, sleeveCuff, fist, openHand,
     hipHub, hipDot, hipBlade, bootU, bootF, bootYel, bootBlk, footBlk, shinBlade, calfFin, bootLight, wHub, wRing, wArm, blade, bladeLight, memb, shaft, lanceMain, lanceCross, guard, butt, lanceLight };
 }
 
-export function buildYuria() {
-  const s = shapes(), m = new Model('yuria', { toon: 1, line: 0.0024, aoR: 0.32, height: 5.9, faceRect: [0, HY, 1 / 2.2, 0], grip: GRIP, lance: [LANCE.z0, LANCE.z1] });
+// lod: 戦いのあいだの小さなうしろ姿に使う、粗い版（細かい灯は省く）
+export function buildYuria(o = {}) {
+  const PLATES = new Set(['horns', 'hipBlade', 'shinBlade', 'calfFin', 'blade', 'lanceMain', 'lanceCross', 'guard', 'butt']), SKIP = new Set(['chev', 'hipDot', 'hornDot', 'bladeLight', 'bootLight', 'hubCap']), KEEP = new Set(['shaft', 'wArm', 'gem', 'hubRing', 'wRing', 'cuffRing', 'lanceLight']);
+  const part = (name, shape, opt) => { if (o.lod) { if (SKIP.has(name)) return; if (opt.h && !KEEP.has(name)) opt.h *= PLATES.has(name) ? 1.5 : 1.9; } m.part(name, shape, opt); };
+  const s = shapes(), m = new Model(o.lod ? 'yuria_lo' : 'yuria', { toon: 1, line: 0.0024, aoR: 0.32, height: 5.9, faceRect: [0, HY, 1 / 2.2, 0], grip: GRIP, lance: [LANCE.z0, LANCE.z1] });
   const mat = (n, d) => m.mat(n, d);
   mat('face', { col: '#ffe1d0', kind: 'face', spec: 0.1, gloss: 20, rim: 0.2, shade: '#ffcdbd' });
   mat('skin', { col: '#ffe1d0', kind: 'skin', spec: 0.12, gloss: 24, rim: 0.28, shade: '#ffc8b8' });
@@ -234,68 +238,67 @@ export function buildYuria() {
   const both2 = (bone) => [{ bone: bone + 'R' }, { bone: bone + 'L', mirror: true }];
   const tipY = (y0, w) => [['hairTip', (x, y, z) => y - y0, w]];
   // ---- 部品: 頭と髪
-  m.part('head', s.head, { h: 0.055, mat: 'face', bone: 'head' });
-  m.part('hair', s.hair, { h: 0.054, mat: 'hair', bone: 'head' });
-  m.part('sideLock', s.sideLock, { h: 0.04, mat: 'hair', mask: tipY(3.5, 0.5), copies: both2('lock') });
-  m.part('backHair', s.backHair, { h: 0.07, mat: 'hair', mask: tipY(2.55, 1.0), bone: hairW });
-  m.part('sideTail', s.sideTail, { h: 0.065, mat: 'hair', mask: tipY(3.6, 0.9), bone: tailW });
-  m.part('hub', s.hubS, { h: 0.04, mat: 'black', bone: 'head' });
-  m.part('hubRing', s.hubRing, { h: 0.022, mat: 'cyan', bone: 'head', ao: false, cast: false });
-  m.part('hubCap', s.hubCap, { h: 0.025, mat: 'black', bone: 'head', ao: false });
-  m.part('horns', s.horns, { h: 0.036, mat: 'yellow', bone: 'head', ao: false });
-  m.part('hornBase', s.hornBase, { h: 0.03, mat: 'black', bone: 'head' });
-  m.part('hornDot', s.hornDot, { h: 0.022, mat: 'cyan', bone: 'head', ao: false, cast: false });
-  m.part('pins', s.pins, { mat: 'pin', bone: 'head' });
+  part('head', s.head, { h: 0.055, mat: 'face', bone: 'head' });
+  part('hair', s.hair, { h: 0.046, mat: 'hair', bone: 'head' });
+  part('sideLock', s.sideLock, { h: 0.04, mat: 'hair', mask: tipY(3.5, 0.5), copies: both2('lock') });
+  part('backHair', s.backHair, { h: 0.07, mat: 'hair', mask: tipY(2.55, 1.0), bone: hairW });
+  part('sideTail', s.sideTail, { h: 0.065, mat: 'hair', mask: tipY(3.6, 0.9), bone: tailW });
+  part('hub', s.hubS, { h: 0.04, mat: 'black', bone: 'head' });
+  part('hubRing', s.hubRing, { h: 0.022, mat: 'cyan', bone: 'head', ao: false, cast: false });
+  part('hubCap', s.hubCap, { h: 0.025, mat: 'black', bone: 'head', ao: false });
+  part('horns', s.horns, { h: 0.036, mat: 'yellow', bone: 'head', ao: false });
+  part('hornBase', s.hornBase, { h: 0.03, mat: 'black', bone: 'head' });
+  part('hornDot', s.hornDot, { h: 0.022, mat: 'cyan', bone: 'head', ao: false, cast: false });
+  part('pins', s.pins, { mat: 'pin', bone: 'head' });
   // ---- 体・袖・手
-  m.part('body', s.body, { h: 0.048, mat: 'skin', mask: [['suit', s.suitF], ['black', s.blackF]], bone: wts });
-  m.part('gem', s.gem, { h: 0.02, mat: 'cyan', bone: 'chest', ao: false, cast: false });
-  m.part('belt', s.belt, { h: 0.034, mat: 'armor', bone: wts, cast: false });
-  m.part('chev', s.chev, { h: 0.018, mat: 'yellow', bone: wts, cast: false, ao: false });
-  m.part('sleeve', s.sleeve, { h: 0.055, mat: 'cloth', mask: [['yellow', s.sleeveTop], ['black', s.sleeveCuff]], bone: armW, copies: [{}, { mirror: true }] });
-  m.part('cuffRing', s.cuffRing, { h: 0.04, mat: 'yellow', copies: both2('fore'), ao: false });
-  m.part('fist', s.fist, { h: 0.028, mat: 'armor', bone: 'handR' });
-  m.part('openHand', s.openHand, { h: 0.026, mat: 'armor', copies: [{ mirror: true, bone: 'handL' }] });
+  part('body', s.body, { h: 0.048, mat: 'skin', mask: [['suit', s.suitF], ['black', s.blackF]], bone: wts });
+  part('gem', s.gem, { h: 0.02, mat: 'cyan', bone: 'chest', ao: false, cast: false });
+  part('chev', s.chev, { h: 0.018, mat: 'yellow', bone: wts, cast: false, ao: false });
+  part('sleeve', s.sleeve, { h: 0.055, mat: 'cloth', mask: [['yellow', s.sleeveTop], ['black', s.sleeveCuff]], bone: armW, copies: [{}, { mirror: true }] });
+  part('cuffRing', s.cuffRing, { h: 0.04, mat: 'yellow', copies: both2('fore'), ao: false });
+  part('fist', s.fist, { h: 0.028, mat: 'armor', bone: 'handR' });
+  part('openHand', s.openHand, { h: 0.026, mat: 'armor', copies: [{ mirror: true, bone: 'handL' }] });
   // ---- 腰の留め具と刃
-  m.part('hipHub', s.hipHub, { h: 0.026, mat: 'black', copies: both2('hip') });
-  m.part('hipDot', s.hipDot, { h: 0.02, mat: 'yellow', copies: both2('hip'), ao: false });
+  part('hipHub', s.hipHub, { h: 0.026, mat: 'black', copies: both2('hip') });
+  part('hipDot', s.hipDot, { h: 0.02, mat: 'yellow', copies: both2('hip'), ao: false });
   const hb = [];
   for (const [dir, nor, len, off] of [[[0.36, -1, 0.12], [1, 0.3, 0.1], 1.0, [0.1, -0.04, 0.02]], [[0.3, -1, -0.42], [1, 0.25, -0.35], 0.74, [0.08, -0.04, -0.1]]]) {
     const R = bladeR(dir, nor).map((r) => [r[0], r[1] * len, r[2]]), c = { R, t: V.add(J.hub, off), bone: 'hipR' }; hb.push(c, mirrored(c, 'hipL'));
   }
-  m.part('hipBlade', s.hipBlade, { h: 0.034, mat: 'yellow', mask: [['black', (x, y, z) => y - 0.13]], copies: hb, ao: false, cast: false });
+  part('hipBlade', s.hipBlade, { h: 0.034, mat: 'yellow', mask: [['black', (x, y, z) => y - 0.13]], copies: hb, ao: false, cast: false });
   // ---- ブーツ
-  m.part('bootU', s.bootU, { h: 0.04, mat: 'armor', mask: [['yellow', s.bootYel], ['black', s.bootBlk]], copies: both2('shin') });
-  m.part('bootF', s.bootF, { h: 0.036, mat: 'armor', mask: [['black', s.footBlk]], copies: both2('foot') });
-  m.part('shinBlade', s.shinBlade, { h: 0.03, mat: 'yellow', copies: both2('shin'), ao: false });
+  part('bootU', s.bootU, { h: 0.04, mat: 'armor', mask: [['yellow', s.bootYel], ['black', s.bootBlk]], copies: both2('shin') });
+  part('bootF', s.bootF, { h: 0.036, mat: 'armor', mask: [['black', s.footBlk]], copies: both2('foot') });
+  part('shinBlade', s.shinBlade, { h: 0.03, mat: 'yellow', copies: both2('shin'), ao: false });
   const cf = [];
   for (const [dir, nor, len, p] of [[[0.5, 0.8, -0.5], [0.3, 0.2, 1], 0.95, [0.6, 0.9, -0.2]], [[0.62, 0.45, -0.7], [0.3, 0.3, 1], 0.7, [0.6, 0.68, -0.22]]]) {
     const R = bladeR(dir, nor).map((r) => [r[0], r[1] * len, r[2]]), c = { R, t: p, bone: 'shinR' }; cf.push(c, mirrored(c, 'shinL'));
   }
-  m.part('calfFin', s.calfFin, { h: 0.03, mat: 'armor', mask: [['yellow', (x, y, z) => 0.55 - y]], copies: cf, ao: false, cast: false });
-  m.part('bootLight', s.bootLight, { h: 0.016, mat: 'cyan', copies: [{ bone: 'shinR' }, { bone: 'shinL', mirror: true }], ao: false, cast: false });
+  part('calfFin', s.calfFin, { h: 0.03, mat: 'armor', mask: [['yellow', (x, y, z) => 0.55 - y]], copies: cf, ao: false, cast: false });
+  part('bootLight', s.bootLight, { h: 0.016, mat: 'cyan', copies: [{ bone: 'shinR' }, { bone: 'shinL', mirror: true }], ao: false, cast: false });
   // ---- 翼
-  m.part('wHub', s.wHub, { h: 0.04, mat: 'black', copies: both2('wing') });
-  m.part('wRing', s.wRing, { h: 0.03, mat: 'cyan', copies: both2('wing'), ao: false, cast: false });
-  m.part('wArm', s.wArm, { h: 0.03, mat: 'black', copies: both2('wing'), ao: false, cast: false });
+  part('wHub', s.wHub, { h: 0.04, mat: 'black', copies: both2('wing') });
+  part('wRing', s.wRing, { h: 0.03, mat: 'cyan', copies: both2('wing'), ao: false, cast: false });
+  part('wArm', s.wArm, { h: 0.03, mat: 'black', copies: both2('wing'), ao: false, cast: false });
   const bc = [];
   BLADES.forEach(([a, L], i) => {
     const r = (a - 90) * D2R, R0 = rotZ(r), R = R0.map((row) => [row[0] * (0.8 + 0.1 * L), row[1] * L, row[2]]), c = { R, t: [J.wing[0], J.wing[1], J.wing[2] + 0.03 * (i % 2 ? 1 : -1)], bone: 'wb' + i + 'R' };
     bc.push(c, mirrored(c, 'wb' + i + 'L'));
   });
-  m.part('blade', s.blade, { h: 0.03, mat: 'armor', mask: [['yellow', (x, y, z) => 0.76 - y + 0.5 * abs(x)], ['black', (x, y, z) => y - 0.37]], copies: bc, ao: false, cast: false });
-  m.part('bladeLight', s.bladeLight, { h: 0.014, mat: 'cyan', copies: bc, ao: false, cast: false });
+  part('blade', s.blade, { h: 0.03, mat: 'armor', mask: [['yellow', (x, y, z) => 0.76 - y + 0.5 * abs(x)], ['black', (x, y, z) => y - 0.37]], copies: bc, ao: false, cast: false });
+  part('bladeLight', s.bladeLight, { h: 0.014, mat: 'cyan', copies: bc, ao: false, cast: false });
   const membW = (x, y, z) => {
     const a = Math.atan2(y - J.wing[1], abs(x) - J.wing[0]) / D2R;
     for (let i = 0; i + 1 < BLADES.length; i++) { const a0 = BLADES[i][0], a1 = BLADES[i + 1][0]; if (a <= a0 + 1e-6 && a >= a1 - 1e-6) { const u = (a0 - a) / (a0 - a1); return [['wb' + i + 'R', 1 - u + 1e-3], ['wb' + (i + 1) + 'R', u + 1e-3]]; } }
     return a > BLADES[0][0] ? [['wb0R', 1]] : [['wb' + (BLADES.length - 1) + 'R', 1]];
   };
-  m.part('memb', s.memb, { mat: 'film', bone: membW, copies: [{}, { mirror: true }], alpha: true, ao: false, cast: false });
+  part('memb', s.memb, { mat: 'film', bone: membW, copies: [{}, { mirror: true }], alpha: true, ao: false, cast: false });
   // ---- 槍
-  m.part('shaft', s.shaft, { h: 0.036, mat: 'black', bone: 'lance', ao: false });
-  m.part('lanceMain', s.lanceMain, { h: 0.034, mat: 'armor', mask: [['yellow', (x, y, z) => { const zz = z - GRIP[2], w = zz < 2.9 ? 0.2 + (zz - 2.3) * 0.4 : zz < 4.3 ? 0.44 - (zz - 2.9) * 0.1 : 0.3 * (5.7 - zz) / 1.4; return (w - 0.12) - abs(y - GRIP[1]); }], ['black', (x, y, z) => max(abs(y - GRIP[1]) - 0.085, z - GRIP[2] - 4.35)]], bone: 'lance', ao: false });
-  m.part('lanceCross', s.lanceCross, { h: 0.034, mat: 'yellow', mask: [['black', (x, y, z) => abs(x - GRIP[0]) - 0.06]], bone: 'lance', ao: false });
-  m.part('guard', s.guard, { h: 0.034, mat: 'yellow', mask: [['black', (x, y, z) => hypot(x - GRIP[0], y - GRIP[1]) - 0.2]], bone: 'lance', ao: false });
-  m.part('butt', s.butt, { h: 0.03, mat: 'yellow', bone: 'lance', ao: false });
-  m.part('lanceLight', s.lanceLight, { h: 0.03, mat: 'cyan', bone: 'lance', ao: false, cast: false });
+  part('shaft', s.shaft, { h: 0.036, mat: 'black', bone: 'lance', ao: false });
+  part('lanceMain', s.lanceMain, { h: 0.034, mat: 'armor', mask: [['yellow', (x, y, z) => { const zz = z - GRIP[2], w = zz < 2.9 ? 0.2 + (zz - 2.3) * 0.4 : zz < 4.3 ? 0.44 - (zz - 2.9) * 0.1 : 0.3 * (5.7 - zz) / 1.4; return (w - 0.12) - abs(y - GRIP[1]); }], ['black', (x, y, z) => max(abs(y - GRIP[1]) - 0.085, z - GRIP[2] - 4.35)]], bone: 'lance', ao: false });
+  part('lanceCross', s.lanceCross, { h: 0.034, mat: 'yellow', mask: [['black', (x, y, z) => abs(x - GRIP[0]) - 0.06]], bone: 'lance', ao: false });
+  part('guard', s.guard, { h: 0.034, mat: 'yellow', mask: [['black', (x, y, z) => hypot(x - GRIP[0], y - GRIP[1]) - 0.2]], bone: 'lance', ao: false });
+  part('butt', s.butt, { h: 0.03, mat: 'yellow', bone: 'lance', ao: false });
+  part('lanceLight', s.lanceLight, { h: 0.03, mat: 'cyan', bone: 'lance', ao: false, cast: false });
   return m;
 }

@@ -541,7 +541,7 @@ export class Strike {
       const rw = norm(cross(uw, fw)); for (const [x, y] of [[3.3, -0.25], [-3.3, -0.25], [4.7, 0], [-4.7, 0]]) glow(add3(add3(add3(bw, rw, x * BS), uw, y * BS), fw, -3.5 * BS), 1.1 * BS, [1, 0.5, 0.2], 0.6, 0.2);
       // 艦橋の上に立つ隊長
       const cw = add3(add3(bw, uw, 1.7 * BS), fw, -2.5 * BS), mood = b.dead ? 'shock' : b.phase === 2 ? 'shout' : 'smug', cf = sub3(cam.ro, cw);
-      C.buncho(mood, place(cw, [cf[0], 0, cf[2]], uw, 0.42 * BS, [0, -0.62, 0]), { t: now, gear: 'cmd' }, { tint: [1, 1, 1, dying * 0.9] });
+      C.buncho(mood, place(cw, [cf[0], 0, cf[2]], uw, 0.42 * BS, [0, -0.62, 0]), { t: now, gear: 'cmd', lod: 1 }, { tint: [1, 1, 1, dying * 0.9] });
       // 主砲: ねらいの線 → 光線。当たるのは、手前の赤い輪の中
       const c = b.cannon, gun = b.parts[6];
       if (gun.alive && c.st !== 'idle' && !b.dead) {
@@ -561,7 +561,7 @@ export class Strike {
         // ロケット弾・ミサイル（3D）。うしろに噴射の炎
         const sh = u.kind === 'shell', sc = (sh ? 0.36 : 0.3) * Math.max(1, 0.05 * dist) * fa, tail = add3(w, d, (sh ? -0.7 : -0.84) * sc), fk = 1 + 0.3 * Math.sin(now * 43 + u.t * 7);
         C.prop(sh ? 'rocket' : 'missile', place(w, d, [0, 1, 0], sc, Z3, sh ? now * 5 : 0), { tint: [1, 1, 1, (u.flash || 0) * 0.5] });
-        glow(tail, 0.5 * sc * fk, [1, 0.5, 0.18], 0.9); glow(add3(tail, d, -0.25 * sc), 0.28 * sc, [1, 0.9, 0.6], 0.9);
+        glow(tail, 0.75 * sc * fk, [1, 0.5, 0.18], 0.9); glow(add3(tail, d, -0.25 * sc), 0.36 * sc, [1, 0.9, 0.6], 0.9);
       } else if (u.kind === 'mine') {
         // 機雷（3D）: ゆっくり回りながら寄ってくる、角のある黒い玉。赤い灯がまたたく
         const sc = 0.085 * Math.max(U, 0.016 * dist / u.r) * fa, a = now * 1.7 + u.t * 2 + u.X * 9;
@@ -624,7 +624,7 @@ export class Strike {
       const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0, tn = ease01(P.turn), zq = -0.42 * tn, kq = this.k(zq), yw = this.W(P.X * kq, P.Y * kq, zq), ga = 0.12 + 0.4 * P.power + 0.15 * L.night;
       const key = norm([-0.45 * F0.r[0] + 0.55 * F0.u[0] - 0.7 * F0.f[0], -0.45 * F0.r[1] + 0.55 * F0.u[1] - 0.7 * F0.f[1], -0.45 * F0.r[2] + 0.55 * F0.u[2] - 0.7 * F0.f[2]]);
       glow(pw, 0.3 * U, GOLD, ga * (1 - tn), 0.03);
-      C.yuria(place(yw, F0.f, F0.u, HEADR * U, YPIV), { t: now, sway: clamp(P.vx * 0.5, -1, 1), power: P.lance >= 1 ? Math.max(P.power, 0.35) : P.power, turn: P.turn, mood: P.mood, wave: this.mode === 'result' ? 1 : 0, thrust: sat(P.lanceT / 0.12) * sat((1.35 - P.lanceT) / 0.4), hurt: P.hurt, aim: this.lanceDir() },
+      C.yuria(place(yw, F0.f, F0.u, HEADR * U, YPIV), { t: now, sway: clamp(P.vx * 0.5, -1, 1), power: P.lance >= 1 ? Math.max(P.power, 0.35) : P.power, turn: P.turn, mood: P.mood, wave: this.mode === 'result' ? 1 : 0, thrust: sat(P.lanceT / 0.12) * sat((1.35 - P.lanceT) / 0.4), hurt: P.hurt, aim: this.lanceDir(), lod: P.turn < 0.02 },
         { tint: [1, 1, 1, blink ? 0.13 : P.hurt * 0.2], key: [key[0], key[1], key[2], tn] });
       if (P.hurt > 0.05) glow(pw, 0.5 * U, [1, 0.3, 0.2], P.hurt * 0.8, -0.03);
       // 当たるところ（胸の水色の光。赤い印が近いときだけ、はっきり見せる）
@@ -635,9 +635,9 @@ export class Strike {
 
     // ---- 題の画面: 手前に大きく、正面を向いたユリア
     if (this.mode === 'title' && C.ok) {
-      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.2 : 0.5) * hw * kt, (tall ? 0.0 : -0.1) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
+      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.26 : 0.5) * hw * kt, (tall ? -0.12 : -0.1) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
       const tf = norm([-F0.f[0] - 0.32 * F0.r[0], -F0.f[1] - 0.32 * F0.r[1], -F0.f[2] - 0.32 * F0.r[2]]), tk = norm([-0.5 * F0.r[0] + 0.5 * F0.u[0] - 0.7 * F0.f[0], -0.5 * F0.r[1] + 0.5 * F0.u[1] - 0.7 * F0.f[1], -0.5 * F0.r[2] + 0.5 * F0.u[2] - 0.7 * F0.f[2]]);
-      C.yuria(place(tp, tf, F0.u, (tall ? 0.027 : 0.044) * U, [0, 3.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
+      C.yuria(place(tp, tf, F0.u, (tall ? 0.026 : 0.044) * U, [0, 3.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
     }
     // ---- 風景と仕上げ
     const Po = R.post; Po.fade = this.fade; Po.flash = Math.min(1, this.flash); Po.rush = 0; Po.bloom = 0.46;

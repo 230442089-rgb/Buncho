@@ -5,7 +5,7 @@
 import { HEAD } from '../../flight/src/shaders.js';
 
 const { cos, sin, PI, hypot } = Math, D2R = PI / 180;
-export const MAXB = 56, MAXM = 32;
+export const MAXB = 44, MAXM = 32;                  // 骨と材質の上限（頂点シェーダーに渡せる数は端末ごとに限りがあるので、控えめに）
 
 // ---- 4×3 行列（列ごとに 12 個: 右・上・前・位置）。骨の姿勢に使う
 const mul = (o, oo, a, ao, b, bo) => {
@@ -209,6 +209,7 @@ function readModels(buf) {
       ranges[pass ? 'alpha' : 'solid'] = [start, i0 - start];
     }
     // 骨: 休みの姿勢（モデルの座標）と、その逆、親から見た休みの姿勢
+    if (h.bones.length > MAXB || h.mats.length > MAXM) throw new Error(`model ${h.name}: too many bones or materials`);
     const nb = h.bones.length, bind = new Float32Array(nb * 12), ibind = new Float32Array(nb * 12), rest = new Float32Array(nb * 12), bi = {};
     h.bones.forEach((b, i) => { bind.set(b.m, i * 12); ibind.set(inv(b.m), i * 12); bi[b.n] = i; });
     h.bones.forEach((b, i) => { if (b.p < 0) rest.set(b.m, i * 12); else mul(rest, i * 12, ibind, b.p * 12, bind, i * 12); });

@@ -13,10 +13,11 @@ fs.mkdirSync(CACHE, { recursive: true });
 const only = process.argv.slice(2);
 const B = () => import('../strike/model/buncho.mjs'), P = () => import('../strike/model/props.mjs'), Y = () => import('../strike/model/yuria.mjs');
 const LIST = [
-  ['yuria', async () => (await Y()).buildYuria()],
+  ['yuria', async () => (await Y()).buildYuria()], ['yuria_lo', async () => (await Y()).buildYuria({ lod: true })],
   ['buncho', async () => (await B()).buildBuncho()],
   ['buncho_lo', async () => (await B()).buildBuncho({ lod: 1 })], ['buncho_far', async () => (await B()).buildBuncho({ lod: 2 })],
   ['jetpack', async () => (await P()).buildJetpack()], ['bazooka', async () => (await P()).buildBazooka()], ['gatling', async () => (await P()).buildGatling()],
+  ['jetpack_lo', async () => (await P()).buildJetpack(true)], ['bazooka_lo', async () => (await P()).buildBazooka(true)], ['gatling_lo', async () => (await P()).buildGatling(true)],
   ['shades', async () => (await P()).buildShades()], ['cap', async () => (await P()).buildCap()], ['cape', async () => (await P()).buildCape()], ['chute', async () => (await P()).buildChute()],
   ['round', async () => (await P()).buildRound('round', { trace: '#ff7a30' })], ['slug', async () => (await P()).buildRound('slug', { r: 0.24, len: 0.9, blunt: 0.4, trace: '#7dff6a', nose: 'dark' })], ['bullet', async () => (await P()).buildRound('bullet', { r: 0.11, len: 1.0, blunt: 0.12, trace: '#ffd54a', nose: 'brass' })],
   ['rocket', async () => (await P()).buildRocket()], ['missile', async () => (await P()).buildMissile()], ['mine', async () => (await P()).buildMine()], ['gem', async () => (await P()).buildGem()], ['arrow', async () => (await P()).buildArrow()],

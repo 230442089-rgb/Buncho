@@ -165,14 +165,14 @@ export class Cast {
   pose(name) { const l = this.pool[name] || (this.pool[name] = []), i = this.used[name] || 0; this.used[name] = i + 1; return l[i] || (l[i] = this.figs.pose(name)); }
   // 動かない物（弾・装備）: 姿勢は 1 つを使い回す
   prop(name, m, opt) { const p = this.still[name] || (this.still[name] = this.figs.pose(name)); this.figs.draw(p, m, opt); }
-  // ユリア。o: poseYuria の指定 + { mood }。戻り値は姿勢（槍の先などを取り出せる）
-  yuria(m, o, opt = {}) { const p = this.pose('yuria'); poseYuria(p, o).update(); this.figs.draw(p, m, { face: this.faces.get(o.mood, o.t || 0), ...opt }); return p; }
+  // ユリア。o: poseYuria の指定 + { mood, lod: 小さく映るときの粗い版 }。戻り値は姿勢（槍の先などを取り出せる）
+  yuria(m, o, opt = {}) { const p = this.pose(o.lod && this.figs.models.yuria_lo ? 'yuria_lo' : 'yuria'); poseYuria(p, o).update(); this.figs.draw(p, m, { face: this.faces.get(o.mood, o.t || 0), ...opt }); return p; }
   // マッスル文鳥と、その装備。kind: 'trooper' | 'gunner' | 'smug' | 'shout' | 'shock' | 'fall' | 'chute' | 'flex'。o: { t, ph, fire, lod: 0 = 細かい / 1 = 戦いの中 / 2 = 遠くの小さな姿, gear: 装備の組, open: 落下傘のひらき }
   buncho(kind, m, o = {}, opt = {}) {
     const name = o.lod === 2 && this.figs.models.buncho_far ? 'buncho_far' : o.lod ? 'buncho_lo' : 'buncho', p = this.pose(name); poseBuncho(p, { ...o, kind }).update(); this.figs.draw(p, m, opt);
-    for (const [name, bone] of GEAR[o.gear || kind] || []) {
-      const am = attach(m, p, bone);
-      if (name === 'gatling') { const g = this.pose('gatling'); g.reset().rot('spin', 0, 0, ((o.t || 0) * (200 + 1400 * sat(o.fire || 0))) % 360).update(); this.figs.draw(g, am, opt); }
+    for (const [n0, bone] of GEAR[o.gear || kind] || []) {
+      const am = attach(m, p, bone), name = o.lod && this.figs.models[n0 + '_lo'] ? n0 + '_lo' : n0;            // 小さく映るときは、装備も粗い版
+      if (n0 === 'gatling') { const g = this.pose(name); g.reset().rot('spin', 0, 0, ((o.t || 0) * (200 + 1400 * sat(o.fire || 0))) % 360).update(); this.figs.draw(g, am, opt); }
       else this.prop(name, am, opt);
     }
     if (kind === 'chute') this.prop('chute', scaledAbout(m, [0, 4.0, 0], Math.max(0.02, o.open ?? 1)), opt);

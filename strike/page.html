@@ -23,7 +23,8 @@
   --stripe: repeating-linear-gradient(-45deg, var(--yel) 0 10px, #15161c 10px 20px);
 }
 *, *::before, *::after { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; margin: 0; }
+[hidden] { display: none !important; }
 body { background: var(--ink); color: var(--paper); font-family: var(--font-body); font-weight: 500; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 #app { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--ink); }
 #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
@@ -62,9 +63,9 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 /* ---- 3D モデルを見る */
 #gallery { display: grid; grid-template-rows: 1fr auto; row-gap: 12px; background: linear-gradient(180deg, rgba(7, 8, 14, 0.5) 0%, rgba(7, 8, 14, 0) 26%, rgba(7, 8, 14, 0) 70%, rgba(7, 8, 14, 0.55) 100%); }
 .gal-head::after { display: none; }
-.gal-name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(24px, 6vh, 44px); line-height: 1.15; letter-spacing: 0.03em; text-shadow: 0.05em 0.05em 0 #15161c, 0 4px 20px rgba(4, 5, 10, 0.6); }
+.gal-name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: min(clamp(24px, 6vh, 44px), 8vw); line-height: 1.15; letter-spacing: 0.03em; text-shadow: 0.05em 0.05em 0 #15161c, 0 4px 20px rgba(4, 5, 10, 0.6); }
 .gal-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.gal-bar .btn { padding: 9px 16px; }
+.gal-bar .btn { flex: 0 0 auto; padding: 9px 16px; }
 .gal-count { min-width: 3.6em; text-align: center; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 0.08em; text-shadow: 0 1px 8px rgba(4, 5, 10, 0.9); }
 .gal-hint { margin-left: 6px; font-size: 12px; letter-spacing: 0.06em; color: rgba(247, 245, 238, 0.75); text-shadow: 0 1px 8px rgba(4, 5, 10, 0.9); }
 .credit { position: absolute; left: var(--gutter-l); bottom: 1px; margin: 0; font-size: 10px; letter-spacing: 0.03em; color: rgba(247, 245, 238, 0.5); }
