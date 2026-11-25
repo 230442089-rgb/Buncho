@@ -331,7 +331,7 @@ export class Game {
         if (m.taken) continue;
         if (++shown > 70) break;
         const p = [m.p[0], m.p[1] + 0.03 * Math.sin(now * 2.2 + m.ph), m.p[2]], tw = 0.8 + 0.2 * Math.sin(now * 5 + m.ph * 3);
-        const a = tw * smoothstep(46, 30, m.s - this.prog);
+        const a = tw * smoothstep(46, 30, m.s - this.prog) * smoothstep(0.18, 0.55, dot(sub3(p, cam.ro), cam.fwd));     // カメラのすぐ前では消す（大きく光りすぎるので）
         B.billboard(p, 0.062, 0.062, FX.glow, [1.0 * a, 0.80 * a, 0.42 * a, 0], 0, 1);
         B.billboard(p, 0.034, 0.034, FX.spark, [a, 0.95 * a, 0.8 * a, 0], 0, 1, now * 0.8 + m.ph);
       }
