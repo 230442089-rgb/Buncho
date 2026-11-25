@@ -340,6 +340,7 @@ export function limb(c, pts, r = [0.16, 0.13], col = SKIN, handR = 0.16) {
   const h = pts[pts.length - 1]; if (handR) parts.push(() => c.arc(h[0], h[1], handR, 0, TAU)); group(c, col, parts);
 }
 export const COLORS = { SKIN, CARD, HAIR, BLUSH };
+export { features };
 // 別の向きの絵（飛行ゲームの後ろ姿）を同じ筆づかいで描くための部品
 export { lock, cap, group, capsule, S as strokeLine, F as fillShape, FS as fillStroke };
 

@@ -10,19 +10,23 @@ import { buildRail, DCAM } from './rail.js';
 import { A } from './art.js';
 import { matrix } from './mesh.js';
 import { SCRIPT, makeEnemy } from './enemies.js';
-import { SPRITE_SPAN, SPRITE_PIVOT_Y } from './yuria.js';
+import { place, xf, YPIV, BPIV, LANCE_REST } from './cast.js';
 import { drawDragon } from './dragon.js';
 
 const HEADR = 0.030, SPEED = 1.8, ORBIT_SPEED = 2.5, TAU = Math.PI * 2;
 const AIM_DY = 0.30;                       // ねらいの中心は、ユリアのすこし上（画面の高さの 15%）
 const BS = 0.9;                            // 旗艦の大きさ（模型は全長 13）
 const MARK_T = 1.0;                        // 着弾の何秒前から、赤い印を出すか
-const KIND = { orb: { r: 0.046, hit: 0.044 }, orb2: { r: 0.052, hit: 0.048 }, needle: { r: 0.04, hit: 0.038 } };
+const KIND = { orb: { r: 0.046, hit: 0.044 }, orb2: { r: 0.052, hit: 0.048 }, needle: { r: 0.04, hit: 0.038 }, mine: { r: 0.05, hit: 0.046 } };
 const ex = (dt, k) => 1 - Math.exp(-dt * k);
 const add3 = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k];
 const sub3 = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const rnd = (a = 1, b = 0) => b + Math.random() * (a - b);
-const GOLD = [1.0, 0.80, 0.34], RED = [1.0, 0.24, 0.16];
+const GOLD = [1.0, 0.80, 0.34], RED = [1.0, 0.24, 0.16], Z3 = [0, 0, 0];
+const BSC = 0.205;                          // マッスル文鳥の大きさ（模型は身長 6.1）
+// 銃弾の見た目: 模型の大きさ・光の筋の太さと長さ・光の大きさ・曳光の色
+const BUL = { round: { s: 0.17, w: 0.2, len: 2.6, g: 0.6, col: [1, 0.5, 0.2] }, slug: { s: 0.15, w: 0.26, len: 2.0, g: 0.66, col: [0.45, 1, 0.4] }, bullet: { s: 0.17, w: 0.13, len: 3.6, g: 0.46, col: [1, 0.85, 0.3] } };
+const ease01 = (x) => { x = sat(x); return x * x * (3 - 2 * x); };
 
 // ユリアのことば（一人称「あーし」。資料の口調）と、B.U.N の隊長のことば。[文, 表情, だれ]
 export const LINES = {
@@ -60,9 +64,21 @@ function makeArmada() {
   return out;
 }
 
+// 「3D モデルを見る」に並べるもの。size: 画面に収める高さ（模型の単位）, pivot: 画面のまん中に来る点
+export const GALLERY = [
+  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。顔はときどき変わる。', size: 8.0, pivot: [0, 3.5, 0] },
+  { id: 'fly', name: 'ユリア（飛ぶ姿）', note: '戦いのあいだ、うしろから見ている姿。髪も翼も動く。', size: 8.4, pivot: [0, 3.2, 0.6], back: 1 },
+  { id: 'flex', name: 'マッスル文鳥', note: 'B.U.N の兵。頭は文鳥、体は筋肉。', size: 7.2, pivot: [0, 2.6, 0] },
+  { id: 'trooper', name: '兵（バズーカ）', note: '背中の噴射装置で浮かび、肩の筒からロケット弾を撃つ。', size: 7.6, pivot: [0, 2.7, 0] },
+  { id: 'gunner', name: '砲手（ガトリング）', note: '6 本の銃身が回る。撃つときは、もっと速く回る。', size: 7.6, pivot: [0, 2.6, 0.6] },
+  { id: 'cmd', name: '隊長', note: '旗艦の艦橋に立つ。帽子とマントと色眼鏡。', size: 7.8, pivot: [0, 2.9, 0] },
+  { id: 'chute', name: '脱出した文鳥', note: '機体を落とされても、落下傘で帰っていく。だれも倒れない。', size: 12.5, pivot: [0, 5.6, 0] },
+  { id: 'ammo', name: '弾と兵器', note: '機関砲の弾・太い弾・細い弾・ロケット弾・ミサイル・機雷・光の結晶。', size: 5.8, pivot: [0, 0, 0] },
+];
+
 export class Strike {
-  constructor({ T, R, meshes, input, sound, sprite, tex, hooks }) {
-    this.T = T; this.R = R; this.meshes = meshes; this.input = input; this.sound = sound; this.sprite = sprite; this.tex = tex; this.hooks = hooks || {};
+  constructor({ T, R, meshes, cast, input, sound, tex, hooks }) {
+    this.T = T; this.R = R; this.meshes = meshes; this.cast = cast; this.input = input; this.sound = sound; this.tex = tex; this.hooks = hooks || {};
     this.rail = buildRail(T);
     // 決戦が始まるのは、湖の岸の周回に入ったところ
     this.bossAt = (this.rail.loopS + 4 - 0.5) / SPEED;
@@ -96,6 +112,11 @@ export class Strike {
     this.emit('mode', mode);
   }
   start() { this.reset('play'); }
+  // 3D モデルを見る（題から）。i: 何番めを見るか
+  gallery(i = 0) { this.reset('gallery'); this.gal = { i: 0, yaw: 0.45, zoom: 1, hold: 0, t: 0 }; this.galSet(i); }
+  galSet(i) { const n = GALLERY.length, g = this.gal; g.i = ((i % n) + n) % n; g.yaw = 0.45; g.t = 0; this.emit('gallery', { i: g.i, n, ...GALLERY[g.i] }); }
+  galTurn(d) { if (this.gal) { this.gal.yaw += d; this.gal.hold = 2.5; } }
+  galZoom(k) { if (this.gal) this.gal.zoom = clamp(k, 0.8, 2.2); }
   toTitle() { this.reset('title'); }
   // 力つきたあと、その場から続ける
   resume() { if (this.mode !== 'down') return; this.mode = this.boss ? 'boss' : 'play'; this.P.shield = 5; this.P.inv = 3; this.P.waves = Math.max(this.P.waves, 2); this.P.turnTo = 0; this.cont++; this.bul.length = 0; this.emit('mode', this.mode); }
@@ -115,7 +136,11 @@ export class Strike {
   dirW(dX, dY, dz) { const F = this.fr; return norm([F.r[0] * dX + F.u[0] * dY + F.f[0] * dz, F.r[1] * dX + F.u[1] * dY + F.f[1] * dz, F.r[2] * dX + F.u[2] * dY + F.f[2] * dz]); }
   k(z) { return 1 + z / DCAM; }                                    // その奥行きで、画面の同じ位置にあたる左右・上下の倍率
   // 槍の先（枠の中の位置）
-  tipL() { const P = this.P, t = this.sprite.tip, h = HEADR * this.U; return [P.X + t[0] * h, P.Y + (SPRITE_PIVOT_Y - t[1]) * h, 0.03]; }
+  tipL() { const g = this.gripL(), d = this.lanceDir(g), L = this.cast.tipZ * HEADR * this.U; return [g[0] + d[0] * L, g[1] + d[1] * L, g[2] + d[2] * L]; }
+  // 槍のにぎり（枠の中の位置）と、槍の向き（ねらいの先へ）
+  gripL() { const P = this.P, g = this.cast.grip, h = HEADR * this.U; return [P.X + g[0] * h, P.Y + g[1] * h, g[2] * h]; }
+  // ふだんは右ななめ前へ構え、槍の光線を放つあいだは、ねらいの先へ向ける
+  lanceDir(g = this.gripL()) { const a = this.aimL(), e = ease01(this.P.power), d = norm([a[0] - g[0], a[1] - g[1], Math.max(1, a[2] - g[2])]); return norm([lerp(LANCE_REST[0], d[0], e), lerp(LANCE_REST[1], d[1], e), lerp(LANCE_REST[2], d[2], e)]); }
 
   // ---- 出す
   spawn(type, move, o) { const e = makeEnemy(this, type, move, o); if (move === 'over') e.ghost = true; this.en.push(e); return e; }
@@ -155,6 +180,7 @@ export class Strike {
     this.fade += (this.fadeTo - this.fade) * ex(dt, 3.2); this.flash *= Math.exp(-dt * 4.5); this.shake *= Math.exp(-dt * 7);
     if (this.paused) return;
     this.lens();
+    if (this.mode === 'gallery') { const g = this.gal; g.t += dt; g.hold -= dt; if (g.hold <= 0 && !this.reduced) g.yaw += dt * 0.45; this.setFrame(dt, false); return; }
     const P = this.P, now = this.clock, live = this.mode === 'play' || this.mode === 'boss' || this.mode === 'title';
     // 道を進む（決戦は湖の岸を回りつづける）
     const slow = this.mode === 'down' ? 0.3 : this.fin ? lerp(1, 0.4, sat(this.fin.t / 1.0)) : 1;
@@ -236,7 +262,7 @@ export class Strike {
   aimL() { const a = this.aim, k = this.k(a.z); return [a.nx * this.hw * k, a.ny * this.hh * k, a.z]; }
   shoot() {
     const P = this.P, tip = this.tipL(), g = this.lock, kk = this.k(14);
-    for (const s of [-1, 1]) this.shots.push({ X0: tip[0] + s * 0.022, Y0: tip[1], X: tip[0], Y: tip[1], z: 0.05, tg: g, Xt: P.nx * this.hw * kk, Yt: (P.ny + AIM_DY) * this.hh * kk, zt: 14, t: 0, rot: 0 });
+    for (const s of [-1, 1]) this.shots.push({ X0: tip[0] + s * 0.022, Y0: tip[1], X: tip[0], Y: tip[1], z: tip[2], tg: g, Xt: P.nx * this.hw * kk, Yt: (P.ny + AIM_DY) * this.hh * kk, zt: 14, t: 0, rot: 0 });
     this.sound.play('shot', { gain: 0.3, rate: 0.96 + Math.random() * 0.1, gap: 0.2 });
   }
   hurt(e, dmg) {
@@ -389,7 +415,7 @@ export class Strike {
       else if (c.st === 'fire') { if (Math.hypot(P.X - c.X, P.Y - c.Y) < 0.19 * this.U) this.damage(); if (c.t <= 0) { c.st = 'idle'; c.t = b.phase === 2 ? 6.5 : 9; } }
     } else c.st = 'idle';
     // 第 2 段: 芯がむき出しになり、ユリアを囲む輪になった弾を放つ（まん中にいるか、すき間から出る）
-    if (b.phase === 2) { b.ringT -= dt; if (b.ringT <= 0) { b.ringT = 3.0; const core = b.parts[7], n = 9, a0 = rnd(TAU); for (let i = 0; i < n; i++) { const a = a0 + i / n * TAU; this.bullet({ kind: 'orb', from: core, speed: 7.5, tx: Math.cos(a) * 0.3, ty: Math.sin(a) * 0.3 }); } this.sound.play('pew', { gain: 0.3, rate: 0.7 }); } }
+    if (b.phase === 2) { b.ringT -= dt; if (b.ringT <= 0) { b.ringT = 3.0; const core = b.parts[7], n = 9, a0 = rnd(TAU); for (let i = 0; i < n; i++) { const a = a0 + i / n * TAU; this.bullet({ kind: 'mine', from: core, speed: 7.5, tx: Math.cos(a) * 0.3, ty: Math.sin(a) * 0.3 }); } this.sound.play('pew', { gain: 0.3, rate: 0.7 }); } }
   }
   partDown(p) {
     const b = this.boss; p.alive = false; this.boom(this.W(p.X, p.Y, p.z), p.kind === 'core' ? 2.2 : 1.0); this.addScore(p.kind === 'core' ? 10000 : 500);
@@ -464,10 +490,16 @@ export class Strike {
     const R = this.R, gl = R.gl, P = this.P, now = this.clock, B = R.batch, M = this.meshes;
     const cam = this.view(), L = daylight(this.day, now), hw = this.hw, hh = this.hh, U = this.U;
     const glare = Math.pow(sat(dot(cam.fwd, L.sun)), 3) * sat(L.e * 9 + 0.25); this.glare = lerp(this.glare ?? glare, glare, 0.06); L.exposure *= 1 - 0.34 * this.glare;
-    this.cam = cam; B.begin(cam); M.begin();
+    const C = this.cast, F0 = this.fr; this.cam = cam; B.begin(cam); M.begin(); C.begin(); C.figs.begin();
     const amb = ambientTint(L), lit = [0, 1, 2].map((i) => clamp(lerp(amb[i], 1, 0.5), 0, 1));
     const glow = (w, s, col, a, bias = 0) => B.billboard(w, s, s, FX.glow, [col[0] * a, col[1] * a, col[2] * a, 0], 0, 1, 0, bias);
     const playing = this.mode === 'play' || this.mode === 'boss' || this.mode === 'title';
+    if (this.mode === 'gallery') {
+      this.drawGallery(cam, glow);
+      const Po = R.post; Po.fade = this.fade; Po.flash = 0; Po.rush = 0; Po.bloom = 0.4;
+      R.render(cam, L, { time: now * 1.25, cloudT: now * 0.016 + this.day * 1.2, yuPos: this.W(0, 0, 0), yuGlow: [0, 0, 0], tex: this.tex, shadowPasses: 2, meshes: (ctx) => { M.flush(ctx, L, cam); C.figs.flush({ ...ctx, time: now }, L, cam); } });
+      return;
+    }
 
     // ---- 遠くの編隊（背景）
     const flee = this.fin ? Math.max(0, this.fin.t - 5.0) : this.mode === 'result' ? 60 : 0;
@@ -485,11 +517,11 @@ export class Strike {
         if (e.stun > 0) B.billboard(e.w, T.r * 1.5, T.r * 1.5, A.shock, [GOLD[0] * 0.5, GOLD[1] * 0.5, GOLD[2] * 0.5, 0], 1, 1, now * 2);     // 波で止まっている
         if (e.type === 'gunship') { const r = norm(cross([0, 1, 0], e.fwd)); for (const s of [-1, 1]) M.draw('turret', matrix(add3(add3(e.w, r, s * 1.0), [0, 1, 0], -0.34), e.fwd, [0, -1, 0], 0, 1.2), [1, 1, 1, fl * 0.3]); M.draw('turret', matrix(add3(e.w, [0, 1, 0], 0.3), e.fwd, [0, 1, 0], 0, 1.2), [1, 1, 1, fl * 0.3]); }
       } else {
-        // マッスル文鳥（絵）。噴射の炎は光の粒で足す
-        const fr = e.fireAnim > 0.4 ? 1 : 0, uv = (e.type === 'gunner' ? A.gatling : A.trooper)[fr], hs = 0.72, wob = 0.06 * Math.sin(now * 3 + e.ph);
-        for (const s of [-1, 1]) glow(add3(add3(e.w, cam.right, s * 0.16), cam.up, -0.14 - 0.03 * Math.sin(now * 30 + s)), 0.25, [1, 0.6, 0.25], 0.9, 0.02);
-        B.billboard(e.w, hs, hs, uv, [lit[0], lit[1], lit[2], 1], 1, 0, wob);
-        if (fl > 0.05) B.billboard(e.w, hs, hs, uv, [fl * 0.45, fl * 0.45, fl * 0.45, 0], 1, 1, wob, -0.01);
+        // マッスル文鳥（3D）。こちらを向いて浮かび、背中の噴射装置から炎を出す。撃った瞬間は、銃口が光る
+        const gun = e.type === 'gunner', m = place(e.w, e.fwd || this.dirW(0, 0, -1), [0, 1, 0], BSC, BPIV, (e.roll || 0) + 0.05 * Math.sin(now * 3 + e.ph));
+        C.buncho(gun ? 'gunner' : 'trooper', m, { t: now, ph: e.ph, fire: e.fireAnim, lod: 1 }, { tint: [1, 1, 1, fl * 0.4] });
+        for (const sd of [-1, 1]) { const j = xf(m, [0.56 * sd, 1.7, -1.06]), fk = 1 + 0.25 * Math.sin(now * 31 + sd + e.ph); glow(j, 0.2 * fk, [1, 0.55, 0.2], 0.9, 0.02); glow(add3(j, [0, -0.1, 0]), 0.1, [1, 0.9, 0.6], 0.9, 0.02); }
+        if (e.fireAnim > 0.3) glow(xf(m, gun ? [1.4, 1.3, 3.5] : [1.3, 4.05, 1.6]), (gun ? 0.3 : 0.42) * e.fireAnim, [1, 0.8, 0.4], 0.9, -0.05);
       }
     }
     // ---- 旗艦
@@ -508,8 +540,8 @@ export class Strike {
       // 噴射口の光
       const rw = norm(cross(uw, fw)); for (const [x, y] of [[3.3, -0.25], [-3.3, -0.25], [4.7, 0], [-4.7, 0]]) glow(add3(add3(add3(bw, rw, x * BS), uw, y * BS), fw, -3.5 * BS), 1.1 * BS, [1, 0.5, 0.2], 0.6, 0.2);
       // 艦橋の上に立つ隊長
-      const cw = add3(add3(bw, uw, 3.1 * BS), fw, -2.5 * BS), mood = b.dead ? 'shock' : b.phase === 2 ? 'shout' : 'smug';
-      B.billboard(cw, 1.5 * BS, 1.5 * BS, A.cmd[mood], [lit[0], lit[1], lit[2], 1], 1, 0, 0.03 * Math.sin(now * 2));
+      const cw = add3(add3(bw, uw, 1.7 * BS), fw, -2.5 * BS), mood = b.dead ? 'shock' : b.phase === 2 ? 'shout' : 'smug', cf = sub3(cam.ro, cw);
+      C.buncho(mood, place(cw, [cf[0], 0, cf[2]], uw, 0.42 * BS, [0, -0.62, 0]), { t: now, gear: 'cmd' }, { tint: [1, 1, 1, dying * 0.9] });
       // 主砲: ねらいの線 → 光線。当たるのは、手前の赤い輪の中
       const c = b.cannon, gun = b.parts[6];
       if (gun.alive && c.st !== 'idle' && !b.dead) {
@@ -524,17 +556,29 @@ export class Strike {
     // ---- 弾と、着弾の予告
     for (const u of this.bul) {
       const w = this.W(u.X, u.Y, u.z), dist = u.z + DCAM, tt = u.z / -u.vz;
+      const d = this.dirW(u.vX, u.vY, u.vz), fa = sat((u.z + 0.06) / 0.3);
       if (u.kind === 'missile' || u.kind === 'shell') {
-        const d = this.dirW(u.vX, u.vY, u.vz); M.draw('missile', matrix(w, d, [0, 1, 0], now * 5, u.kind === 'shell' ? 1.7 : 1.2), [1, 1, 1, (u.flash || 0) * 0.5]);
-        glow(add3(w, d, -0.22), 0.2, [1, 0.5, 0.2], 0.9);
+        // ロケット弾・ミサイル（3D）。うしろに噴射の炎
+        const sh = u.kind === 'shell', sc = (sh ? 0.36 : 0.3) * Math.max(1, 0.05 * dist) * fa, tail = add3(w, d, (sh ? -0.7 : -0.84) * sc), fk = 1 + 0.3 * Math.sin(now * 43 + u.t * 7);
+        C.prop(sh ? 'rocket' : 'missile', place(w, d, [0, 1, 0], sc, Z3, sh ? now * 5 : 0), { tint: [1, 1, 1, (u.flash || 0) * 0.5] });
+        glow(tail, 0.5 * sc * fk, [1, 0.5, 0.18], 0.9); glow(add3(tail, d, -0.25 * sc), 0.28 * sc, [1, 0.9, 0.6], 0.9);
+      } else if (u.kind === 'mine') {
+        // 機雷（3D）: ゆっくり回りながら寄ってくる、角のある黒い玉。赤い灯がまたたく
+        const sc = 0.085 * Math.max(U, 0.016 * dist / u.r) * fa, a = now * 1.7 + u.t * 2 + u.X * 9;
+        C.prop('mine', place(w, [Math.sin(a), 0.3, Math.cos(a)], [0.3 * Math.cos(a), 1, 0], sc));
+        glow(w, sc * 1.5, [1, 0.25, 0.15], (0.35 + 0.3 * Math.sin(now * 9 + u.X * 20)) * fa, 0.01);
       } else {
-        const s = Math.max(u.r * U, 0.016 * dist) * 1.3, uv = u.kind === 'orb2' ? A.orb2 : u.kind === 'needle' ? A.needle : A.orb;
-        const fa = sat((u.z + 0.06) / 0.3); B.billboard(w, s, s, uv, [fa, fa, fa, fa], 1, 0, u.kind === 'needle' ? Math.atan2(-u.vX, -u.vY) : 0);
+        // 銃弾（3D）: 真ちゅうの弾に、底の曳光の光と、うしろへ引く光の筋
+        const name = u.kind === 'orb2' ? 'slug' : u.kind === 'needle' ? 'bullet' : 'round', B0 = BUL[name], sc = B0.s * Math.max(U, 0.016 * dist / u.r) * fa, c = B0.col;
+        C.prop(name, place(w, d, [0, 1, 0], sc, Z3, now * 9 + u.t * 3));
+        const tail = add3(w, d, -0.5 * sc), tl = add3(tail, d, -B0.len * sc), side = norm(cross(d, sub3(cam.ro, w))), wd = B0.w * sc;
+        B.quad(add3(tail, side, -wd), add3(tl, side, -wd * 0.3), add3(tl, side, wd * 0.3), add3(tail, side, wd), FX.streak, [c[0] * 0.8 * fa, c[1] * 0.8 * fa, c[2] * 0.8 * fa, 0], 0, 1);
+        glow(tail, B0.g * sc, c, 0.75 * fa, 0.01);
       }
       if (tt < MARK_T && tt > 0 && playing) { const k = 1 - tt / MARK_T; this.mark(B, u.X + u.vX * tt, u.Y + u.vY * tt, u.hit * U, sat(k * 6) * (0.5 + 0.5 * k), u.kind === 'shell' ? -now * 2 : 0, 1 + 0.9 * (1 - k), u.kind !== 'shell'); }
     }
     // ---- ユリアの光の矢
-    for (const s of this.shots) { const sz = clamp(0.013 * (s.z + DCAM), 0.022, 1); B.billboard(this.W(s.X, s.Y, s.z), sz * 0.62, sz * 2.0, A.bolt, [1, 1, 1, 0], 1, 1, s.rot); }
+    for (const s of this.shots) { const sz = clamp(0.013 * (s.z + DCAM), 0.022, 1), w = this.W(s.X, s.Y, s.z); C.prop('arrow', place(w, this.dirW(s.Xt - s.X0, s.Yt - s.Y0, s.zt), [0, 1, 0], sz * 4.4, Z3, now * 12 + s.t * 20)); B.billboard(w, sz * 0.5, sz * 1.7, A.bolt, [0.7, 0.7, 0.7, 0], 1, 1, s.rot); }
     // ---- ねらいの印: つかまえた相手のまわりに回る輪。相手がいなければ、ねらいの中心に小さな照準
     if ((this.mode === 'play' || this.mode === 'boss') && !this.fin) {
       const g = this.lock;
@@ -556,14 +600,15 @@ export class Strike {
     // ---- 波（ひろがる輪）
     if (this.waveFx) { const u = this.waveFx.t / 1.2, pw = this.W(P.X, P.Y, 0); for (let i = 0; i < 3; i++) { const q = sat(u * 1.6 - i * 0.18); if (q <= 0 || q >= 1) continue; const s = 0.2 + q * 7, a = (1 - q) * 0.9; B.billboard(add3(pw, cam.fwd, q * 6), s, s, A.shock, [GOLD[0] * a, GOLD[1] * a, GOLD[2] * a, 0], 1, 1); } }
     // ---- 光の結晶・粒・破片・落下傘の文鳥
-    for (const g of this.gems) { const w = this.W(g.X, g.Y, g.z), s = Math.max(0.022, 0.011 * (g.z + DCAM)); B.billboard(w, s, s * 1.5, A.gem, [1, 1, 1, 0.95], 1, 0, 0.4 * Math.sin(now * 6 + g.d * 20)); }
+    for (const g of this.gems) { const w = this.W(g.X, g.Y, g.z), s = Math.max(0.022, 0.011 * (g.z + DCAM)), a = now * 3.2 + g.d * 20; C.prop('gem', place(w, [Math.sin(a), 0, Math.cos(a)], [0.25 * Math.sin(a * 0.7), 1, 0.25 * Math.cos(a * 0.7)], s * 2.0)); glow(w, s * 1.7, GOLD, 0.3, 0.01); }
     for (const p of this.parts) { const u = p.age / p.life, a = (1 - u) * (p.a ?? 1), s = p.size * (1 + (p.grow || 0) * u); if (p.add) B.billboard(p.p, s, s, p.uv, [p.col[0] * a, p.col[1] * a, p.col[2] * a, 0], p.tex, 1, p.age * 2); else B.billboard(p.p, s, s, p.uv, [lit[0] * a, lit[1] * a, lit[2] * a, a], p.tex, 0, p.age); }
     for (const d of this.debris) { const c = Math.cos(d.age * d.sp), sn = Math.sin(d.age * d.sp), f = norm([d.ax[1] * c, d.ax[2] * sn + 0.2, d.ax[0] * c - sn]); M.draw('shard', matrix(d.p, f, d.ax, d.age * d.sp, d.s)); }
     for (const f of this.fly) {
-      const a = sat((f.life - f.age) / 1.2) * sat((dot(sub3(f.p, cam.ro), cam.fwd) - 2.2) / 1.6), open = sat((f.age - 0.7) / 0.4), hs = 0.55 * f.big, rot = open > 0.5 ? 0.2 * Math.sin(now * 2.2 + f.ph) : f.age * f.rot, c = [lit[0] * a, lit[1] * a, lit[2] * a, a];
-      if (a <= 0) continue;
-      if (open > 0) B.billboard(add3(f.p, cam.up, hs * 1.15), hs * 1.1 * open, hs * 1.1 * open, A.chute, c, 1, 0, rot * 0.5, 0.01);
-      B.billboard(f.p, hs, hs, A.eject[f.v0], c, 1, 0, rot);
+      // 放り出された文鳥（3D）: はじめは手足をばたつかせて回り、落下傘がひらくと、ゆれながら降りていく
+      const a = sat((f.life - f.age) / 1.2) * sat((dot(sub3(f.p, cam.ro), cam.fwd) - 2.2) / 1.6), open = sat((f.age - 0.7) / 0.4); if (a <= 0) continue;
+      const sc = 0.16 * f.big * Math.min(1, a * 2.5), tc = sub3(cam.ro, f.p);
+      if (open > 0.5) { const sw = 0.22 * Math.sin(now * 2.2 + f.ph); C.buncho('chute', place(f.p, [tc[0], 0, tc[2]], [sw, 1, 0.5 * sw], sc, BPIV), { t: now, ph: f.ph, lod: 2, open: sat((open - 0.5) * 2) }); }
+      else { const r = f.age * f.rot; C.buncho('fall', place(f.p, [Math.sin(r), 0.3, Math.cos(r)], [Math.cos(r * 0.7), Math.sin(r * 0.7), 0.3], sc, BPIV), { t: now, ph: f.ph, lod: 2 }); }
     }
     // ---- ユリア（決め技のあいだは竜）
     const pw = this.W(P.X, P.Y, 0), fin = this.fin, tau = fin ? fin.t - 1.3 : -1, asDragon = fin && tau > 0 && fin.t < 7.2;
@@ -575,22 +620,52 @@ export class Strike {
       // 光の息（旗艦を光に返す）
       if (tau > 2.9 && tau < 3.7 && b) { const m = pts[0], t = this.W(b.X, b.Y, b.z), side = norm(cross(sub3(t, m), sub3(cam.ro, m))), k = sat((tau - 2.9) / 0.15) * sat((3.7 - tau) / 0.15); for (const [wd, col] of [[1.1, [1, 0.75, 0.25]], [0.42, [1, 1, 0.9]]]) B.quad(add3(m, side, -wd * 0.5), add3(t, side, -wd), add3(t, side, wd), add3(m, side, wd * 0.5), FX.streak, [col[0] * k, col[1] * k, col[2] * k, 0], 0, 1); glow(t, 4.5, GOLD, k, -1); }
     } else {
-      const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0 ? 0.45 : 1;
-      if (this.spT === undefined || now - this.spT > 1 / 40 || now < this.spT) { this.spT = now; this.sxk = this.sprite.draw({ t: now, sway: clamp(P.vx * 0.5, -1, 1), power: P.power, turn: P.turn, mood: P.mood, wave: this.mode === 'result' ? 1 : 0 }); R.g.updateCanvas(this.tex[2], this.sprite.cv); }
-      const half = SPRITE_SPAN * 0.5 * HEADR * U, ga = 0.22 + 0.5 * P.power + 0.2 * L.night, tint = lit.map((v) => clamp(lerp(v, 1, 0.3 + 0.3 * P.power), 0, 1) * blink);
-      glow(pw, 0.3 * U, GOLD, ga, 0.03);
-      B.billboard(pw, half * this.sxk, half, [0, 0, 1, 1], [tint[0], tint[1], tint[2], blink], 2, 0, clamp(-P.vx * 0.12, -0.3, 0.3) * (P.turn > 0.5 ? 0 : 1), -0.02);
+      // ユリア（3D）。ふり向くときは手前へ寄って、大きく見せる（顔に決まった向きの光を当てる）
+      const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0, tn = ease01(P.turn), zq = -0.42 * tn, kq = this.k(zq), yw = this.W(P.X * kq, P.Y * kq, zq), ga = 0.12 + 0.4 * P.power + 0.15 * L.night;
+      const key = norm([-0.45 * F0.r[0] + 0.55 * F0.u[0] - 0.7 * F0.f[0], -0.45 * F0.r[1] + 0.55 * F0.u[1] - 0.7 * F0.f[1], -0.45 * F0.r[2] + 0.55 * F0.u[2] - 0.7 * F0.f[2]]);
+      glow(pw, 0.3 * U, GOLD, ga * (1 - tn), 0.03);
+      C.yuria(place(yw, F0.f, F0.u, HEADR * U, YPIV), { t: now, sway: clamp(P.vx * 0.5, -1, 1), power: P.lance >= 1 ? Math.max(P.power, 0.35) : P.power, turn: P.turn, mood: P.mood, wave: this.mode === 'result' ? 1 : 0, thrust: sat(P.lanceT / 0.12) * sat((1.35 - P.lanceT) / 0.4), hurt: P.hurt, aim: this.lanceDir() },
+        { tint: [1, 1, 1, blink ? 0.13 : P.hurt * 0.2], key: [key[0], key[1], key[2], tn] });
       if (P.hurt > 0.05) glow(pw, 0.5 * U, [1, 0.3, 0.2], P.hurt * 0.8, -0.03);
       // 当たるところ（胸の水色の光。赤い印が近いときだけ、はっきり見せる）
-      if (playing && P.turn < 0.5) { const near = this.bul.some((u) => u.z / -u.vz < MARK_T) || (b && b.cannon.st !== 'idle'); B.billboard(pw, 0.03 * U, 0.03 * U, A.core, [1, 1, 1, 0].map((v) => v * (near ? 1 : 0.35)), 1, 1, 0, -0.05); }
+      if (playing && P.turn < 0.5) { const near = this.bul.some((u) => u.z / -u.vz < MARK_T) || (b && b.cannon.st !== 'idle'); B.billboard(pw, 0.03 * U, 0.03 * U, A.core, [1, 1, 1, 0].map((v) => v * (near ? 1 : 0.35)), 1, 1, 0, -0.08); }
       // 槍の先の光（ためが満ちたら強く光る）
-      if (P.turn < 0.5 && playing) { const tp = this.tipL(), tw = this.W(tp[0], tp[1], 0.02); if (P.lance >= 1) glow(tw, (0.1 + 0.02 * Math.sin(now * 8)) * U, [1, 0.85, 0.4], 0.8, -0.04); else if (this.shots.length) glow(tw, 0.06 * U, [1, 0.9, 0.5], 0.7, -0.04); }
+      if (P.turn < 0.5 && playing) { const tp = this.tipL(), tw = this.W(tp[0], tp[1], tp[2]); if (P.lance >= 1) glow(tw, (0.1 + 0.02 * Math.sin(now * 8)) * U, [1, 0.85, 0.4], 0.8, -0.04); else if (this.shots.length) glow(tw, 0.06 * U, [1, 0.9, 0.5], 0.7, -0.04); }
     }
 
+    // ---- 題の画面: 手前に大きく、正面を向いたユリア
+    if (this.mode === 'title' && C.ok) {
+      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.2 : 0.5) * hw * kt, (tall ? 0.0 : -0.1) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
+      const tf = norm([-F0.f[0] - 0.32 * F0.r[0], -F0.f[1] - 0.32 * F0.r[1], -F0.f[2] - 0.32 * F0.r[2]]), tk = norm([-0.5 * F0.r[0] + 0.5 * F0.u[0] - 0.7 * F0.f[0], -0.5 * F0.r[1] + 0.5 * F0.u[1] - 0.7 * F0.f[1], -0.5 * F0.r[2] + 0.5 * F0.u[2] - 0.7 * F0.f[2]]);
+      C.yuria(place(tp, tf, F0.u, (tall ? 0.027 : 0.044) * U, [0, 3.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
+    }
     // ---- 風景と仕上げ
     const Po = R.post; Po.fade = this.fade; Po.flash = Math.min(1, this.flash); Po.rush = 0; Po.bloom = 0.46;
     const gl2 = 0.012 + 0.12 * P.power + (asDragon ? 0.25 : 0);
-    R.render(cam, L, { time: now * 1.25, cloudT: now * 0.016 + this.day * 1.2, yuPos: pw, yuGlow: [GOLD[0] * gl2, GOLD[1] * gl2, GOLD[2] * gl2], tex: this.tex, shadowPasses: 2, meshes: (ctx) => M.flush(ctx, L, cam) });
+    R.render(cam, L, { time: now * 1.25, cloudT: now * 0.016 + this.day * 1.2, yuPos: pw, yuGlow: [GOLD[0] * gl2, GOLD[1] * gl2, GOLD[2] * gl2], tex: this.tex, shadowPasses: 2, meshes: (ctx) => { M.flush(ctx, L, cam); C.figs.flush({ ...ctx, time: now }, L, cam); } });
+  }
+  // ---- 3D モデルを見る: 画面のまん中に 1 つ置いて、ゆっくり回す
+  drawGallery(cam, glow) {
+    const C = this.cast, F = this.fr, g = this.gal, it = GALLERY[g.i], t = g.t, hw = this.hw, hh = this.hh, tall = hw < hh, z = -0.4, k = this.k(z);
+    const c = this.W(0, (tall ? 0.1 : -0.03) * hh * k, z), s = Math.min(hh * 1.62, hw * 1.9) * k / it.size * g.zoom, ya = g.yaw + (it.back ? Math.PI : 0), cs = Math.cos(ya), sn = Math.sin(ya);
+    const dir = (a, b) => norm([F.r[0] * a - F.f[0] * b, F.r[1] * a - F.f[1] * b, F.r[2] * a - F.f[2] * b]), f = dir(sn, cs);
+    const key = norm([-0.5 * F.r[0] + 0.55 * F.u[0] - 0.7 * F.f[0], -0.5 * F.r[1] + 0.55 * F.u[1] - 0.7 * F.f[1], -0.5 * F.r[2] + 0.55 * F.u[2] - 0.7 * F.f[2]]), opt = { key: [key[0], key[1], key[2], 1] };
+    const m = place(c, f, F.u, s, it.pivot), q = t % 12;
+    if (it.id === 'yuria') C.yuria(m, { t, turn: 1, still: true, wave: q > 8 ? 1 : 0, mood: q > 8 ? 'happy' : q > 4 ? 'grin' : 'smile' }, opt);
+    else if (it.id === 'fly') C.yuria(m, { t, sway: Math.sin(t * 0.7) * 0.6, power: sat(Math.sin(t * 0.5) * 2 - 1), mood: 'grin' }, opt);
+    else if (it.id === 'ammo') {
+      const list = [['round', 1.25], ['slug', 1.3], ['bullet', 1.25], ['rocket', 1.05], ['missile', 0.9], ['mine', 1.0], ['gem', 0.85]], n = list.length, rows = tall ? [4, 3] : [n];
+      let i = 0;
+      rows.forEach((cnt, ri) => { for (let j = 0; j < cnt; j++, i++) {
+        const [name, sc] = list[i], X = (j - (cnt - 1) / 2) * (tall ? 1.25 : 1.45) * s, Y = (rows.length > 1 ? (0.5 - ri) * 1.9 : 0) * s + 0.03 * s * Math.sin(t * 1.7 + i), a = ya + i * 0.5;
+        const p = [c[0] + F.r[0] * X + F.u[0] * Y, c[1] + F.r[1] * X + F.u[1] * Y, c[2] + F.r[2] * X + F.u[2] * Y];
+        C.prop(name, place(p, name === 'gem' || name === 'mine' ? dir(Math.sin(a), Math.cos(a)) : norm(dir(Math.sin(a), Math.cos(a)).map((v, ax) => v + F.u[ax] * 0.35)), F.u, s * sc), opt);
+      } });
+    } else {
+      const mood = it.id === 'cmd' ? (q > 8 ? 'shock' : q > 4 ? 'shout' : 'smug') : it.id, fire = it.id === 'gunner' ? sat(Math.sin(t * 1.3) * 3) : it.id === 'trooper' ? Math.exp(-((t % 3.2)) * 5) : 0;
+      C.buncho(mood, m, { t, fire, gear: it.id === 'cmd' ? 'cmd' : it.id, open: 1 }, opt);
+      if (it.id === 'trooper' || it.id === 'gunner') for (const sd of [-1, 1]) { const j = xf(m, [0.56 * sd, 1.7, -1.06]); glow(j, 0.9 * s, [1, 0.55, 0.2], 0.8, 0.0); }
+    }
   }
   // 着弾の予告: ユリアのいる面に出る赤い輪。r: 当たる半径, a: 濃さ, grow: 外から縮んでくる輪の大きさ（1 で重なる）
   mark(B, X, Y, r, a, rot = 0, grow = 1, plain = false) {

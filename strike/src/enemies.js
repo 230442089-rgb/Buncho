@@ -57,7 +57,7 @@ const FIRE = {
     if (!e.active) return;
     e.ft = (e.ft ?? 1.4) - G.dt;
     if (e.ft <= 0) { e.ft = 3.2; e.burst = 6; }
-    if (e.burst > 0 && (e.bt = (e.bt || 0) - G.dt) <= 0) { e.burst--; e.bt = 0.12; e.fireAnim = 1; G.bullet({ kind: 'needle', from: e, speed: 9.5, spread: 0.17 }); }
+    if (e.burst > 0 && (e.bt = (e.bt || 0) - G.dt) <= 0) { e.burst--; e.bt = 0.12; e.fireAnim = 1; G.bullet({ kind: 'needle', from: e, dx: -0.28, dy: -0.28, speed: 9.5, spread: 0.17 }); }
   },
   gunship(G, e) {
     if (!e.active) return;

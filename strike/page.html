@@ -51,7 +51,6 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 .title span + span { color: var(--yel); text-shadow: 0.045em 0.045em 0 #15161c, 0 6px 30px rgba(4, 5, 10, 0.6); }
 .head::after { content: ""; width: min(330px, 62vw); height: 9px; background: var(--stripe); }
 .lede { margin: 2px 0 0; max-width: 21em; font-weight: 700; font-size: clamp(13px, 2.4vh, 17px); line-height: 1.7; letter-spacing: 0.06em; text-shadow: 0 1px 10px rgba(4, 5, 10, 0.9); text-wrap: pretty; }
-#titleYuria { position: absolute; right: var(--gutter-r); bottom: 0; height: min(78%, 620px); width: auto; max-width: 52%; pointer-events: none; filter: drop-shadow(0 10px 26px rgba(4, 5, 10, 0.5)); }
 .menu { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; max-width: min(640px, 60%); position: relative; margin-bottom: 16px; }
 .btn { display: grid; gap: 2px; text-align: left; padding: 10px 18px 11px; min-width: 0; background: var(--panel); border: 1.5px solid var(--line); border-radius: 2px; color: var(--paper); font-weight: 900; font-size: 17px; letter-spacing: 0.1em; transition: transform 0.12s, border-color 0.12s; }
 .btn small { font-weight: 500; font-size: 11.5px; letter-spacing: 0.04em; color: var(--dim); }
@@ -60,6 +59,14 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 .btn.primary { background: var(--yel); border-color: var(--yel); color: var(--yel-ink); padding-inline: 26px 30px; font-size: 21px; }
 .btn.primary small { color: rgba(42, 32, 0, 0.8); }
 .btn.ghost { align-content: center; font-size: 13.5px; font-weight: 700; }
+/* ---- 3D モデルを見る */
+#gallery { display: grid; grid-template-rows: 1fr auto; row-gap: 12px; background: linear-gradient(180deg, rgba(7, 8, 14, 0.5) 0%, rgba(7, 8, 14, 0) 26%, rgba(7, 8, 14, 0) 70%, rgba(7, 8, 14, 0.55) 100%); }
+.gal-head::after { display: none; }
+.gal-name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(24px, 6vh, 44px); line-height: 1.15; letter-spacing: 0.03em; text-shadow: 0.05em 0.05em 0 #15161c, 0 4px 20px rgba(4, 5, 10, 0.6); }
+.gal-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.gal-bar .btn { padding: 9px 16px; }
+.gal-count { min-width: 3.6em; text-align: center; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: 0.08em; text-shadow: 0 1px 8px rgba(4, 5, 10, 0.9); }
+.gal-hint { margin-left: 6px; font-size: 12px; letter-spacing: 0.06em; color: rgba(247, 245, 238, 0.75); text-shadow: 0 1px 8px rgba(4, 5, 10, 0.9); }
 .credit { position: absolute; left: var(--gutter-l); bottom: 1px; margin: 0; font-size: 10px; letter-spacing: 0.03em; color: rgba(247, 245, 238, 0.5); }
 
 /* ---- 戦闘中 */
@@ -166,7 +173,6 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
   .menu { max-width: 100%; }
   .btn { flex: 1 1 150px; font-size: 15.5px; padding: 10px 14px; }
   .btn.primary { font-size: 19px; }
-  #titleYuria { height: min(44%, 400px); max-width: 66%; bottom: 150px; }
   #title { background: linear-gradient(180deg, rgba(7, 8, 14, 0.62) 0%, rgba(7, 8, 14, 0.1) 46%, rgba(7, 8, 14, 0.5) 100%); }
   #talk { max-width: calc(100% - var(--gutter-l) - var(--gutter-r)); bottom: 122px; }
   #face { width: 54px; height: 54px; }
@@ -218,12 +224,28 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
       <h1 class="title"><span>B.U.N</span><span>襲来</span></h1>
       <p class="lede">空から押しよせる黒い機体と、武装した文鳥たち。槍と波で、ぜんぶ蹴散らす。</p>
     </div>
-    <canvas id="titleYuria" width="640" height="760" aria-hidden="true"></canvas>
     <div class="menu">
       <button id="btnStart" class="btn primary" type="button">出撃<small>旗艦を止めるまで、およそ 3 分</small></button>
       <button id="btnHow" class="btn ghost" type="button">あそびかた・設定</button>
+      <button id="btnGallery" class="btn ghost" type="button">3D モデルを見る</button>
     </div>
     <p class="credit" id="credit"></p>
+  </section>
+
+  <section id="gallery" class="layer" hidden>
+    <div class="head gal-head">
+      <p class="kicker">3D モデル</p>
+      <h2 id="galName" class="gal-name"></h2>
+      <p id="galNote" class="lede"></p>
+    </div>
+    <div class="gal-bar">
+      <button id="btnGalPrev" class="btn ghost" type="button" aria-label="前のモデル">◀</button>
+      <span id="galCount" class="gal-count"></span>
+      <button id="btnGalNext" class="btn ghost" type="button" aria-label="次のモデル">▶</button>
+      <button id="btnGalZoom" class="btn ghost" type="button">寄る・引く</button>
+      <button id="btnGalBack" class="btn ghost" type="button">題にもどる</button>
+      <span class="gal-hint">ドラッグで回せます</span>
+    </div>
   </section>
 
   <section id="hud" class="layer" hidden>

@@ -17,7 +17,7 @@ const dev = process.argv.includes('--dev');
 const res = await build({ entryPoints: [path.join(SRC, 'src/main.js')], bundle: true, format: 'iife', target: 'es2020', minify: !dev, write: false, legalComments: 'none', charset: 'utf8' });
 const js = res.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 
-const MIME = { '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.png': 'image/png', '.jpg': 'image/jpeg' };
+const MIME = { '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.png': 'image/png', '.jpg': 'image/jpeg', '.bin': 'application/octet-stream' };
 const assets = {};
 const adir = path.join(SRC, 'assets');
 if (fs.existsSync(adir)) for (const f of fs.readdirSync(adir).sort()) {

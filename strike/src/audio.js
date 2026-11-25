@@ -28,7 +28,7 @@ export class Sound {
     }
     const t = this.tr[this.cur]; if (t) t.g.gain.setTargetAtTime(this.level, ctx.currentTime, 1.0);
     const dec = (ab) => new Promise((res, rej) => { const p = ctx.decodeAudioData(ab, res, rej); if (p && p.catch) p.catch(rej); });
-    await Promise.all(Object.keys(this.a).filter((k) => !TRACKS.includes(k)).map(async (k) => { try { this.buf[k] = await dec(b64(this.a[k])); } catch (e) { /* その音だけ鳴らない */ } }));
+    await Promise.all(Object.keys(this.a).filter((k) => !TRACKS.includes(k) && this.a[k].startsWith('data:audio')).map(async (k) => { try { this.buf[k] = await dec(b64(this.a[k])); } catch (e) { /* その音だけ鳴らない */ } }));
     if (this.buf.wind) this.startWind();
     document.addEventListener('visibilitychange', () => {
       if (!this.ctx) return;

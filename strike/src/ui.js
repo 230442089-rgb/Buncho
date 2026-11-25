@@ -1,5 +1,5 @@
 // ui.js — 風景の上に重ねる文字とボタン（DOM）。
-import { drawBattleFace, drawBattleFront } from './yuria.js';
+import { drawBattleFace } from './yuria.js';
 import { head as birdHead, setLine } from './buncho.js';
 import { STYLE } from '../../chase/src/chibi.js';
 
@@ -20,6 +20,7 @@ export class UI {
     const on = (id, fn) => $(id).addEventListener('click', (e) => { e.preventDefault(); this.act.click(); fn(e); if ($(id).closest('#hud') && $('panel').hidden) $('view').focus({ preventScroll: true }); });
     on('btnStart', () => this.act.start());
     on('btnHow', () => this.openPanel('title'));
+    on('btnGallery', () => this.act.gallery()); on('btnGalPrev', () => this.act.galStep(-1)); on('btnGalNext', () => this.act.galStep(1)); on('btnGalZoom', () => this.act.galZoom()); on('btnGalBack', () => this.act.title());
     on('btnPause', () => this.act.pause());
     on('btnSound', () => this.set('sound', !this.settings.sound));
     on('btnResume', () => this.act.resume());
@@ -41,7 +42,7 @@ export class UI {
     };
     hold('btnLance', (v) => this.act.lance(v));
     hold('btnWave', (v) => { if (v) this.act.wave(); });
-    this.faceCtx = $('face').getContext('2d'); this.titleCtx = $('titleYuria').getContext('2d');
+    this.faceCtx = $('face').getContext('2d');
     this.pips = [...$('shield').children]; this.stock = [...$('stock').children];
     this.sync();
   }
@@ -60,7 +61,7 @@ export class UI {
     const prev = this.mode; this.mode = mode;
     const fight = mode === 'play' || mode === 'boss' || mode === 'fin' || mode === 'down' || mode === 'result';
     $('boot').hidden = true;
-    $('title').hidden = mode !== 'title';
+    $('title').hidden = mode !== 'title'; $('gallery').hidden = mode !== 'gallery';
     $('hud').hidden = !fight;
     $('down').hidden = mode !== 'down';
     $('panel').hidden = true; this.panelFor = null;
@@ -121,19 +122,13 @@ export class UI {
     $('btnAgain').focus({ preventScroll: true });
   }
 
+  // 3D モデルを見る: いま見ているものの名前と説明
+  gallery(d) { $('galName').textContent = d.name; $('galNote').textContent = d.note; $('galCount').textContent = `${d.i + 1} / ${d.n}`; }
   // 毎フレーム
   update(game, t) {
     const now = this.now = t; this.frame++;
-    if (this.mode === 'title') {
-      if (this.frame % 2 && this.titleDrawn) return;
-      this.titleDrawn = true;
-      const c = this.titleCtx, cv = c.canvas;
-      c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
-      c.setTransform(80, 0, 0, 80, cv.width * 0.5, 290 + 8 * Math.sin(t * 1.6)); STYLE.lw = 1.15;
-      drawBattleFront(c, { t, mood: (t % 9) > 7.4 ? 'happy' : (t % 9) > 4.2 ? 'grin' : 'cool', wave: 0 }); STYLE.lw = 1;
-      return;
-    }
-    if (this.mode === 'boot') return;
+    if (this.mode === 'title') return;                    // 題の画面のユリアは、3D の場面の中に描く（game.js）
+    if (this.mode === 'boot' || this.mode === 'gallery') return;
     const P = game.P, S = this.shown, set = (k, v, fn) => { if (S[k] !== v) { S[k] = v; fn(v); } };
     // 顔（しゃべっているあいだはその表情。ユリアはまばたきするので、ときどき描き直す）
     const talking = now < this.talkUntil;
