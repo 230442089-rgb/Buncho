@@ -12,7 +12,7 @@ import { matrix } from './mesh.js';
 import { SCRIPT, makeEnemy } from './enemies.js';
 import { place, xf, YPIV, BPIV, LANCE_REST } from './cast.js';
 
-const HEADR = 0.0136, SPEED = 1.8, ORBIT_SPEED = 2.5, TAU = Math.PI * 2;
+const HEADR = 0.030, SPEED = 1.8, ORBIT_SPEED = 2.5, TAU = Math.PI * 2;
 const AIM_DY = 0.30;                       // ねらいの中心は、ユリアのすこし上（画面の高さの 15%）
 const BS = 0.9;                            // 旗艦の大きさ（模型は全長 13）
 const MARK_T = 1.0;                        // 着弾の何秒前から、赤い印を出すか
@@ -65,8 +65,8 @@ function makeArmada() {
 
 // 「3D モデルを見る」に並べるもの。size: 画面に収める高さ（模型の単位）, pivot: 画面のまん中に来る点
 export const GALLERY = [
-  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。顔はときどき変わる。', size: 18.5, pivot: [0, 7.8, 0], zoomTo: 3.0, zoomPivot: [0, 12.2, 0] },         // 「寄る」は、顔と肩まわりへ
-  { id: 'fly', name: 'ユリア（飛ぶ姿）', note: '戦いのあいだ、うしろから見ている姿。髪も翼も動く。', size: 19.5, pivot: [0, 8.6, 1.2], back: 1 },
+  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。3 頭身のデフォルメ。顔はときどき変わる。', size: 8.0, pivot: [0, 3.5, 0], zoomTo: 2.1, zoomPivot: [0, 4.5, 0] },           // 「寄る」は、顔のまわりへ
+  { id: 'fly', name: 'ユリア（飛ぶ姿）', note: '戦いのあいだ、うしろから見ている姿。髪も翼も動く。', size: 8.4, pivot: [0, 3.2, 0.6], back: 1 },
   { id: 'flex', name: 'マッスル文鳥', note: 'B.U.N の兵。頭は文鳥、体は筋肉。', size: 7.2, pivot: [0, 2.6, 0] },
   { id: 'trooper', name: '兵（バズーカ）', note: '背中の噴射装置で浮かび、肩の筒からロケット弾を撃つ。', size: 7.6, pivot: [0, 2.7, 0] },
   { id: 'gunner', name: '砲手（ガトリング）', note: '6 本の銃身が回る。撃つときは、もっと速く回る。', size: 7.6, pivot: [0, 2.6, 0.6] },
@@ -437,7 +437,7 @@ export class Strike {
       this.say('fin2'); b.gone = true; this.addScore(5000);
       for (let i = 0; i < 40; i++) this.gem(b.X + rnd(4, -4), b.Y + rnd(2, -1), b.z + rnd(3, -3));
     }
-    if (f.t > 7.2 && !f.s3) { f.s3 = 1; this.flash = 0.7; P.turnTo = 1; const tall = this.hw < this.hh; P.tx = tall ? 0 : 0.42; P.ty = tall ? 0.36 : 0.04; }
+    if (f.t > 7.2 && !f.s3) { f.s3 = 1; this.flash = 0.7; P.turnTo = 1; const tall = this.hw < this.hh; P.tx = tall ? 0 : 0.42; P.ty = tall ? 0.34 : -0.1; }
     if (f.t > 8.8 && !this.resultShown) { this.resultShown = true; this.mode = 'result'; this.say('end'); this.emit('mode', 'result'); this.emit('result', this.result()); }
   }
   // 竜の体がたどる道すじ。現れる前（tau < 0）のぶんは、ユリアの前で巻いた とぐろ（そこから体がほどけて出てくる）
@@ -636,7 +636,7 @@ export class Strike {
       if (br > 0 && b) { const m = dg.mouth, t = bw2, side = norm(cross(sub3(t, m), sub3(cam.ro, m))); for (const [wd, col] of [[1.1, [1, 0.75, 0.25]], [0.42, [1, 1, 0.9]]]) B.quad(add3(m, side, -wd * 0.3), add3(t, side, -wd), add3(t, side, wd), add3(m, side, wd * 0.3), FX.streak, [col[0] * br, col[1] * br, col[2] * br, 0], 0, 1); glow(m, 1.1, [1, 0.9, 0.6], br, -0.3); glow(t, 4.5, GOLD, br, -1); }
     } else {
       // ユリア（3D）。ふり向くときは手前へ寄って、大きく見せる（顔に決まった向きの光を当てる）
-      const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0, tn = ease01(P.turn), zq = -0.3 * tn, kq = this.k(zq), yw = this.W(P.X * kq, P.Y * kq, zq), ga = 0.12 + 0.4 * P.power + 0.15 * L.night;
+      const blink = P.inv > 0 && Math.floor(now * 14) % 2 === 0, tn = ease01(P.turn), zq = -0.42 * tn, kq = this.k(zq), yw = this.W(P.X * kq, P.Y * kq, zq), ga = 0.12 + 0.4 * P.power + 0.15 * L.night;
       const key = norm([-0.45 * F0.r[0] + 0.55 * F0.u[0] - 0.7 * F0.f[0], -0.45 * F0.r[1] + 0.55 * F0.u[1] - 0.7 * F0.f[1], -0.45 * F0.r[2] + 0.55 * F0.u[2] - 0.7 * F0.f[2]]);
       glow(pw, 0.3 * U, GOLD, ga * (1 - tn), 0.03);
       C.yuria(place(yw, F0.f, F0.u, HEADR * U, YPIV), { t: now, sway: clamp(P.vx * 0.5, -1, 1), power: P.lance >= 1 ? Math.max(P.power, 0.35) : P.power, turn: P.turn, mood: P.mood, wave: this.mode === 'result' ? 1 : 0, thrust: sat(P.lanceT / 0.12) * sat((1.35 - P.lanceT) / 0.4), hurt: P.hurt, aim: this.lanceDir(), lod: P.turn < 0.02 },
@@ -650,9 +650,9 @@ export class Strike {
 
     // ---- 題の画面: 手前に大きく、正面を向いたユリア
     if (this.mode === 'title' && C.ok) {
-      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.26 : 0.5) * hw * kt, (tall ? -0.1 : -0.04) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
+      const tall = hw < hh, zt = -0.48, kt = this.k(zt), tp = this.W((tall ? 0.26 : 0.5) * hw * kt, (tall ? -0.12 : -0.1) * hh * kt + 0.004 * Math.sin(now * 1.6), zt), tq = now % 9;
       const tf = norm([-F0.f[0] - 0.32 * F0.r[0], -F0.f[1] - 0.32 * F0.r[1], -F0.f[2] - 0.32 * F0.r[2]]), tk = norm([-0.5 * F0.r[0] + 0.5 * F0.u[0] - 0.7 * F0.f[0], -0.5 * F0.r[1] + 0.5 * F0.u[1] - 0.7 * F0.f[1], -0.5 * F0.r[2] + 0.5 * F0.u[2] - 0.7 * F0.f[2]]);
-      C.yuria(place(tp, tf, F0.u, (tall ? 0.0115 : 0.0182) * U, [0, 7.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
+      C.yuria(place(tp, tf, F0.u, (tall ? 0.026 : 0.044) * U, [0, 3.3, 0]), { t: now + 3, turn: 1, still: true, mood: tq > 7.4 ? 'happy' : tq > 4.2 ? 'grin' : 'cool' }, { key: [tk[0], tk[1], tk[2], 1] });
     }
     // ---- 風景と仕上げ
     const Po = R.post; Po.fade = this.fade; Po.flash = Math.min(1, this.flash); Po.rush = 0; Po.bloom = 0.46;
