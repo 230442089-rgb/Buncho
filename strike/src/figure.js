@@ -73,13 +73,14 @@ void main(){
   int ia = int(vMat.x) * 3, ib = int(vMat.y) * 3, ic = int(vMat.z) * 3;
   vec4 p0 = mix(mix(uPal[ia], uPal[ib], s1), uPal[ic], s2), p1 = mix(mix(uPal[ia + 1], uPal[ib + 1], s1), uPal[ic + 1], s2), p2 = mix(mix(uPal[ia + 2], uPal[ib + 2], s1), uPal[ic + 2], s2);
   float kind = s2 > 0.5 ? uPal[ic].a : s1 > 0.5 ? uPal[ib].a : uPal[ia].a;
-  vec3 alb = p0.rgb; float spec = p1.x, gloss = p1.y, rim = p1.z, emis = p1.w; vec3 shade = p2.rgb; float toon = uToon * p2.a;
+  vec3 alb = p0.rgb; float spec = p1.x, gloss = p1.y, rim = p1.z, emis = p1.w; vec3 shade = p2.rgb; float toon = uToon * min(p2.a, 1.0);
   vec3 v = normalize(uCam - vW), n = normalize(vN);
   if (!gl_FrontFacing) n = -n;
   vec3 Ld = normalize(mix(uSun, uKey.xyz, uKey.w));                // 見せ場では、決まった向きの光を当てる（顔が影にならないように）
   float nv = max(dot(n, v), 0.0), ndl = dot(n, Ld), ao = vAO;
   // ---- 輪郭線の回: 地の色を濃くした線
   if (uLine > 0.0) {
+    if (p2.a > 1.5) discard;                                     // 輪郭線を引かない材質（とじたまぶた。顔の面とひとつづきに見せる）
     vec3 amb0 = (mix(uHor, uTop, 0.6) * 1.6 + uSunCol * 0.6) * 0.25;
     vec3 lc = alb * shade * 0.5 * amb0 * uExposure;
     lc = toSRGB(softclip(lc));

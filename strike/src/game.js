@@ -65,7 +65,7 @@ function makeArmada() {
 
 // 「3D モデルを見る」に並べるもの。size: 画面に収める高さ（模型の単位）, pivot: 画面のまん中に来る点
 export const GALLERY = [
-  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。顔はときどき変わる。', size: 18.5, pivot: [0, 7.8, 0] },
+  { id: 'yuria', name: 'ユリア（戦闘形態）', note: '白い髪に黄色の毛先、機械の翼と槍。顔はときどき変わる。', size: 18.5, pivot: [0, 7.8, 0], zoomTo: 3.0, zoomPivot: [0, 12.2, 0] },         // 「寄る」は、顔と肩まわりへ
   { id: 'fly', name: 'ユリア（飛ぶ姿）', note: '戦いのあいだ、うしろから見ている姿。髪も翼も動く。', size: 19.5, pivot: [0, 8.6, 1.2], back: 1 },
   { id: 'flex', name: 'マッスル文鳥', note: 'B.U.N の兵。頭は文鳥、体は筋肉。', size: 7.2, pivot: [0, 2.6, 0] },
   { id: 'trooper', name: '兵（バズーカ）', note: '背中の噴射装置で浮かび、肩の筒からロケット弾を撃つ。', size: 7.6, pivot: [0, 2.7, 0] },
@@ -662,10 +662,11 @@ export class Strike {
   // ---- 3D モデルを見る: 画面のまん中に 1 つ置いて、ゆっくり回す
   drawGallery(cam, glow) {
     const C = this.cast, F = this.fr, g = this.gal, it = GALLERY[g.i], t = g.t, hw = this.hw, hh = this.hh, tall = hw < hh, z = -0.4, k = this.k(z);
-    const c = this.W(0, (tall ? 0.1 : -0.03) * hh * k, z), s = Math.min(hh * 1.62, hw * 1.9) * k / it.size * g.zoom, ya = g.yaw + (it.back ? Math.PI : 0), cs = Math.cos(ya), sn = Math.sin(ya);
+    const zk = sat((g.zoom - 1) / 0.7), zs = it.zoomTo ? lerp(1, it.zoomTo, zk) : g.zoom, piv = it.zoomPivot ? it.pivot.map((v, i) => lerp(v, it.zoomPivot[i], zk)) : it.pivot;
+    const c = this.W(0, (tall ? 0.1 : -0.03) * hh * k, z), s = Math.min(hh * 1.62, hw * 1.9) * k / it.size * zs, ya = g.yaw + (it.back ? Math.PI : 0), cs = Math.cos(ya), sn = Math.sin(ya);
     const dir = (a, b) => norm([F.r[0] * a - F.f[0] * b, F.r[1] * a - F.f[1] * b, F.r[2] * a - F.f[2] * b]), f = dir(sn, cs);
     const key = norm([-0.5 * F.r[0] + 0.55 * F.u[0] - 0.7 * F.f[0], -0.5 * F.r[1] + 0.55 * F.u[1] - 0.7 * F.f[1], -0.5 * F.r[2] + 0.55 * F.u[2] - 0.7 * F.f[2]]), opt = { key: [key[0], key[1], key[2], 1] };
-    const m = place(c, f, F.u, s, it.pivot), q = t % 12;
+    const m = place(c, f, F.u, s, piv), q = t % 12;
     if (it.id === 'yuria') C.yuria(m, { t, turn: 1, still: true, wave: q > 8 ? 1 : 0, mood: q > 8 ? 'happy' : q > 4 ? 'grin' : 'smile' }, opt);
     else if (it.id === 'fly') C.yuria(m, { t, sway: Math.sin(t * 0.7) * 0.6, power: sat(Math.sin(t * 0.5) * 2 - 1), mood: 'grin' }, opt);
     else if (it.id === 'dragon') {

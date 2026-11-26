@@ -28,6 +28,8 @@ export class Model {
       // 形のかわりに { raw: { pos, nor, quads } } を渡すと、その網目をそのまま使う（厚みのない膜など）
       if (p.shape.raw) { const r = p.shape.raw; p.m = { pos: r.pos, nor: r.nor, quads: r.quads, nv: r.pos.length / 3, nq: r.quads.length / 4 }; p.ao = false; p.cast = false; p.h = p.h || 0.05; }
       else p.m = surfaceNets(p.shape, p.h, { bb: p.bb || p.shape.bb });
+      // nrm: 法線を別の形の場から取る（顔の面に重ねる薄い部品が、顔と同じ陰影になるように）
+      if (p.nrm) { const f = p.nrm.d, e = p.h * 0.4, { pos, nor, nv } = p.m; for (let v = 0; v < nv; v++) { const x = pos[v * 3], y = pos[v * 3 + 1], z = pos[v * 3 + 2], gx = f(x + e, y, z) - f(x - e, y, z), gy = f(x, y + e, z) - f(x, y - e, z), gz = f(x, y, z + e) - f(x, y, z - e), l = Math.hypot(gx, gy, gz) || 1; nor[v * 3] = gx / l; nor[v * 3 + 1] = gy / l; nor[v * 3 + 2] = gz / l; } }
       if (p.m.nv > 65535) throw new Error(`${this.name}/${p.name}: 頂点が多すぎる（${p.m.nv}）`);
       if (p.m.nv === 0) throw new Error(`${this.name}/${p.name}: 形が空`);
       p.copies = p.copies || [{}];

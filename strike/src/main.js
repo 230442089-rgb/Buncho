@@ -190,7 +190,7 @@ async function start() {
       let m = [cs * s2, 0, -sn * s2, 0, 0, s2, 0, 0, sn * s2, 0, cs * s2, 0, c[0] + off[0], c[1] - h0 * sc + off[1], c[2] + off[2], 1];
       if (it.on) m = attach(F.viewM[it.on], F.poses[it.on], it.bone);
       (F.viewM = F.viewM || {})[key] = m;
-      figs.draw(pose, m, { ...(it.opt || {}), ...(it.face ? { face: faces.get(it.face, o.time ?? 3) } : {}) });
+      figs.draw(pose, m, { ...(it.opt || {}), ...(it.face ? { face: faces.get(it.face, o.time ?? 3).tex } : {}) });
     }
     R.render(cam, L, { time: o.time ?? 3, cloudT: 0.5, shadowForce: true, tex: [T.noise, T.noise, T.noise], meshes: (ctx) => { meshes.flush(ctx, L, cam); figs.flush({ ...ctx, time: o.time ?? 3 }, L, cam); } });
     const px = new Uint8Array(4); g.gl.readPixels(0, 0, 1, 1, g.gl.RGBA, g.gl.UNSIGNED_BYTE, px);

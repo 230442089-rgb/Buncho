@@ -15,9 +15,9 @@ const sstep = (a, b, x) => { const t = min(1, max(0, (x - a) / (b - a))); return
 // 関節（腕は 30° ひらいた姿勢で作る）
 export const YJ = {
   pelvis: [0, 7.6, 0], spine: [0, 8.75, 0], chest: [0, 9.95, 0], neck: [0, 11.7, -0.08], head: [0, 12.2, 0],
-  S: [1.32, 11.38, -0.08], E: [2.5, 9.3, -0.12], W: [3.58, 7.38, 0.0],
+  S: [1.5, 11.38, -0.08], E: [2.68, 9.3, -0.12], W: [3.76, 7.38, 0.0],
   hip: [0.74, 7.5, 0], knee: [0.66, 3.75, 0.06], ankle: [0.62, 0.8, -0.1],
-  hub: [1.44, 8.02, 0.12], wing: [2.35, 11.7, -1.75],
+  hub: [1.44, 8.02, 0.12], wing: [2.5, 11.7, -1.75],
   hair1: H(0, 0.0, -0.9), hair2: H(0, -3.4, -1.05), hair3: H(0, -7.0, -1.0),
   tail1: H(-0.8, 0.72, -0.3), tail2: H(-2.2, -1.6, -0.6), lock: H(0.82, 0.3, 0.4),
 };
@@ -58,9 +58,24 @@ function boxes(list) {
 
 function shapes() {
   // ---- 頭: たまご形の頭に、ほお・細いあご・小さな鼻・くちびるのふくらみ。目のところは浅くくぼませる。耳
-  const skull = blend(0.3, ellipsoid(H(0, 0.1, -0.04), [0.9, 0.92, 0.95]), mirror(sphere(H(0.36, -0.38, 0.3), 0.44)), sphere(H(0, -0.68, 0.36), 0.3));
-  const face0 = blend(0.08, skull, sphere(H(0, -0.3, 0.9), 0.045));                // 鼻は、先がほんの少し出るだけ
-  const head = blend(0.05, face0, mirror(ellipsoid(H(0.88, -0.14, -0.06), [0.08, 0.22, 0.14], euler(0, -22, -8))));
+  // ---- 頭: 絵のような顔だち。ひたいは丸く、ほおからあごへ すぼまり、あごは小さくとがる。鼻は小さく、鼻すじはごく低い
+  const skull = blend(0.2, ellipsoid(H(0, 0.12, -0.05), [0.9, 0.9, 0.96]), rcone(H(0, -0.16, 0.12), H(0, -0.74, 0.4), 0.74, 0.2), mirror(sphere(H(0.4, -0.3, 0.36), 0.35)), sphere(H(0, -0.85, 0.45), 0.14));
+  const face0 = blend(0.09, skull, rcone(H(0, -0.1, 0.82), H(0, -0.27, 0.9), 0.03, 0.05), sphere(H(0, -0.3, 0.915), 0.048));
+  // 目: 絵と同じ形（上は高い弧、下はゆるい弧）の浅いくぼみを彫る。くぼみの底が白目で、そこへ ひとみ の絵が乗る。上のふちには立体のまつげ
+  const EW = 0.215, EH = 0.195, EC = [0.365, HY - 0.165, 0], bez = (p0, p1, p2, p3, n) => { const o = []; for (let k = 0; k < n; k++) { const t = k / n, u = 1 - t; o.push([u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0], u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]]); } return o; };
+  const upper = bez([-EW, -0.06], [-EW * 0.8, EH * 1.25], [EW * 0.6, EH * 1.35], [EW, 0.02], 9), lower = bez([EW, 0.02], [EW * 0.95, -EH * 1.0], [-EW * 0.7, -EH * 1.2], [-EW, -0.06], 9);      // 局所の座標（x: 目じりへ、y: 上へ）
+  const eP = surfaceAlong(skull, EC, [0, 0, 1], 0.1, 2), eN = gradient(skull, eP), eR = look(eN), e3 = (x, y, d = 0) => [eP[0] + eR[0][0] * x + eR[0][1] * y + eN[0] * d, eP[1] + eR[1][0] * x + eR[1][1] * y + eN[1] * d, eP[2] + eR[2][0] * x + eR[2][1] * y + eN[2] * d];
+  const onFace = (p, lift) => { const d = skull.d(p[0], p[1], p[2]), g = gradient(skull, p); return [p[0] - g[0] * (d - lift), p[1] - g[1] * (d - lift), p[2] - g[2] * (d - lift)]; };
+  const eyeCut = mirror(both(plate(e3(0, 0), eR, [...upper, ...lower], 0.4, { round: 0.012 }), ellipsoid(e3(0, 0, 0.25), [0.44, 0.42, 0.3], eR), 0.02));
+  const lashPts = [...upper, [EW, 0.02], [EW + 0.085, 0.115]], lashR = [0.008, 0.014, 0.019, 0.022, 0.024, 0.024, 0.024, 0.023, 0.022, 0.02, 0.007];
+  const lash = tube(lashPts.map((q, k) => [...onFace(e3(q[0], q[1]), 0.008), lashR[k]]), 22);
+  const lid = mirror(both(grow(skull, 0.004), ellipsoid(e3(0, 0, 0.25), [0.47, 0.45, 0.3], eR), 0.004));          // とじたまぶた: くぼみを、顔の面とひとつづきに埋める（ふちに段を作らない）
+  // 口: あけて笑った形（上はまっすぐ、下は丸い）に彫る。中は暗い赤で、上の歯と八重歯、舌が見える
+  const mz = surfaceAlong(skull, [0, HY - 0.6, 0], [0, 0, 1], 0.1, 2)[2];
+  const mouthCut = both(ellipsoid(H(0, -0.55, mz - 0.02), [0.116, 0.125, 0.15]), { bb: [-1, HY - 1, -1, 1, HY, 2], d: (x, y, z) => y - (HY - 0.548) + 0.16 * abs(x) * abs(x) / 0.116 }, 0.012);
+  const teeth = union(rbox(H(0, -0.565, mz - 0.045), [0.084, 0.02, 0.03], 0.012), cone(H(0.062, -0.555, mz - 0.03), H(0.056, -0.64, mz - 0.025), 0.028, 0.006, 0.004));
+  const tongue = ellipsoid(H(0, -0.652, mz - 0.07), [0.068, 0.03, 0.07]);
+  const head = blend(0.05, cut(cut(face0, eyeCut, 0.03), mouthCut, 0.012), mirror(ellipsoid(H(0.88, -0.14, -0.06), [0.08, 0.22, 0.14], euler(0, -22, -8))));
   // ---- 髪。頭をおおう面（顔のところをくりぬく）に、前髪の束を重ねる
   const hp = (az, el, r, rad) => [0.9 * r * cos(el * D2R) * sin(az * D2R), HY + 0.1 + 0.92 * r * sin(el * D2R), -0.04 + 0.95 * r * cos(el * D2R) * cos(az * D2R), rad];
   const radial = (az, el) => [cos(el * D2R) * sin(az * D2R), sin(el * D2R), cos(el * D2R) * cos(az * D2R)];
@@ -126,19 +141,19 @@ function shapes() {
 
   // ---- 体。胸郭・くびれ・骨盤・おしり・胸をなめらかにつなぎ、首と肩、腕、ももを付ける
   const { S, E, W, hip, knee, ankle } = YJ;
-  const core = blend(0.42, ellipsoid([0, 10.5, -0.1], [1.1, 1.3, 0.78]), ellipsoid([0, 11.12, -0.14], [1.24, 0.46, 0.6]), ellipsoid([0, 9.05, 0], [0.82, 0.98, 0.6]), ellipsoid([0, 8.35, 0.1], [0.95, 0.75, 0.62]), ellipsoid([0, 7.7, -0.05], [1.34, 0.98, 0.9]));
-  const trunk0 = blend(0.26, core, mirror(sphere([0.62, 7.42, -0.5], 0.8)), rcone([0, 11.2, -0.12], [0, 12.4, 0.0], 0.43, 0.38), mirror(rcone([0.3, 11.72, -0.22], [1.08, 11.44, -0.14], 0.28, 0.25)));
+  const core = blend(0.42, ellipsoid([0, 10.5, -0.1], [1.14, 1.3, 0.78]), ellipsoid([0, 11.1, -0.14], [1.4, 0.46, 0.6]), ellipsoid([0, 9.05, 0], [0.82, 0.98, 0.6]), ellipsoid([0, 8.35, 0.1], [0.95, 0.75, 0.62]), ellipsoid([0, 7.7, -0.05], [1.34, 0.98, 0.9]));
+  const trunk0 = blend(0.26, core, mirror(sphere([0.62, 7.42, -0.5], 0.8)), rcone([0, 11.2, -0.12], [0, 12.4, 0.0], 0.43, 0.38), mirror(rcone([0.3, 11.76, -0.22], [1.26, 11.5, -0.14], 0.27, 0.24)), mirror(rcone([0.14, 11.5, 0.36], [1.3, 11.64, 0.1], 0.075, 0.062)));
   // 胸: 鎖骨の下からなだらかに下り、下のほうでふくらむ。左右は服の下でつながる（球を 2 つ貼った形にしない）
   const slope = mirror(ellipsoid([0.5, 10.62, 0.36], [0.6, 0.86, 0.46], euler(-20, 8, 0)));
   const full = mirror(ellipsoid([0.54, 10.16, 0.52], [0.54, 0.47, 0.5], euler(-8, 10, 0)));
   const bridge = ellipsoid([0, 10.24, 0.4], [0.52, 0.42, 0.3]);
   const trunk = blend(0.2, blend(0.5, trunk0, slope, bridge), full);
-  const arm = blend(0.1, ellipsoid(V.add(S, [0.06, -0.12, 0]), [0.42, 0.5, 0.42]), rcone(S, E, 0.36, 0.28), sphere(E, 0.285), rcone(E, W, 0.29, 0.19), ellipsoid(V.add(V.lerp(E, W, 0.25), [0.02, 0, 0.02]), [0.3, 0.3, 0.6], look(dF)));
+  const arm = blend(0.1, ellipsoid(V.add(S, [0.04, -0.2, 0]), [0.44, 0.64, 0.46]), rcone(S, E, 0.36, 0.28), sphere(E, 0.285), rcone(E, W, 0.29, 0.19), ellipsoid(V.add(V.lerp(E, W, 0.25), [0.02, 0, 0.02]), [0.3, 0.3, 0.6], look(dF)));
   const thigh = blend(0.2, rcone(hip, knee, 0.8, 0.47), ellipsoid(V.add(V.lerp(hip, knee, 0.3), [0.05, 0, 0.08]), [0.76, 1.35, 0.8]), sphere(knee, 0.47), rcone(knee, V.add(knee, [0, -0.9, -0.03]), 0.44, 0.4));
   const body = blend(0.16, trunk, mirror(arm), mirror(thigh));
   // 体の装甲（白）の範囲と、その中の黒い面。場が負の側がその色
   //   えり → 胸の中央 → 胸・腹 → 脚ぐりは高く切れ上がる。肩と背中の上は出ている。腰には、留め具へのびる白い帯
-  const suit0 = (x, y, z) => { const ax = abs(x), slope = 1.05 + 0.8 * sstep(-0.3, 0.3, z), top = 10.95 + 1.11 * sstep(0.74, 0.3, ax); return max(6.95 + slope * ax - y, y - top, ax - (1.0 + 0.5 * sstep(10.7, 9.9, y))); };
+  const suit0 = (x, y, z) => { const ax = abs(x), slope = 1.05 + 0.8 * sstep(-0.3, 0.3, z), top = 10.95 + 1.11 * sstep(0.74, 0.3, ax); return max(6.95 + slope * ax - y, y - top, ax - (1.1 + 0.5 * sstep(10.7, 9.9, y))); };
   const suitF = (x, y, z) => min(suit0(x, y, z), max(abs(y - (7.52 + 0.34 * abs(x))) - 0.1, abs(x) - 1.6, y - 8.3));
   const blackF = (x, y, z) => {
     const ax = abs(x), collar = max(11.78 - y, ax - 0.7), side = max(0.5 + 0.2 * sstep(8.9, 10.0, y) + 0.12 * sstep(8.9, 7.9, y) - ax, y - 10.02);
@@ -206,13 +221,13 @@ function shapes() {
   const butt = union(plate(lz(0), PY, [[0.16, -6.2], [0, -7.8], [-0.16, -6.2]], 0.1, { edge: 0.13, round: 0.012, thin: 0.45 }),
     plate(lz(0), PY, buttPts, 0.1, { edge: 0.15, round: 0.012, thin: 0.45 }), plate(lz(0), PY, buttPts.map(([a, b]) => [-a, b]).reverse(), 0.1, { edge: 0.15, round: 0.012, thin: 0.45 }));
   const lanceLight = union(rbox(lz(7.5, 0.0, 0), [0.185, 0.06, 1.7], 0.03), rbox(lz(6.8, 0, 0), [0.06, 0.15, 1.1], 0.03));
-  return { head, hair, sideLock, backHair, sideTail, hubS, hubRing, hubCap, horns, hornBase, hornDot, pins, body, trunk, suitF, blackF, gem, chev, sleeve, cuffRing, sleeveTop, sleeveCuff, fist, openHand,
+  return { head, skull, eyeCut, mouthCut, lash, lid, teeth, tongue, hair, sideLock, backHair, sideTail, hubS, hubRing, hubCap, horns, hornBase, hornDot, pins, body, trunk, suitF, blackF, gem, chev, sleeve, cuffRing, sleeveTop, sleeveCuff, fist, openHand,
     hipHub, hipDot, hipBlade, bootU, bootF, bootYel, bootBlk, footBlk, shinBlade, calfFin, bootLight, wHub, wRing, wArm, blade, bladeLight, memb, shaft, lanceMain, lanceCross, guard, butt, lanceLight };
 }
 
 // lod: 戦いのあいだの小さなうしろ姿に使う、粗い版（細かい灯は省く）
 export function buildYuria(o = {}) {
-  const PLATES = new Set(['horns', 'hipBlade', 'shinBlade', 'calfFin', 'blade', 'lanceMain', 'lanceCross', 'guard', 'butt']), SKIP = new Set(['chev', 'hipDot', 'hornDot', 'bladeLight', 'bootLight', 'hubCap']), KEEP = new Set(['wArm', 'gem', 'hubRing', 'wRing', 'cuffRing', 'lanceLight', 'hub', 'hornBase', 'shaft', 'fist', 'openHand']);
+  const PLATES = new Set(['horns', 'hipBlade', 'shinBlade', 'calfFin', 'blade', 'lanceMain', 'lanceCross', 'guard', 'butt']), SKIP = new Set(['lash', 'lid', 'teeth', 'tongue', 'chev', 'hipDot', 'hornDot', 'bladeLight', 'bootLight', 'hubCap']), KEEP = new Set(['wArm', 'gem', 'hubRing', 'wRing', 'cuffRing', 'lanceLight', 'hub', 'hornBase', 'shaft', 'fist', 'openHand']);
   const part = (name, shape, opt) => { if (o.lod) { if (SKIP.has(name)) return; if (opt.h && !KEEP.has(name)) opt.h *= PLATES.has(name) ? 1.6 : 2.3; } m.part(name, shape, opt); };
   const s = shapes(), m = new Model(o.lod ? 'yuria_lo' : 'yuria', { toon: 1, soft: 0.6, line: 0.0015, aoR: 0.5, height: 14.1, faceRect: [0, HY, 1 / 2.2, 0], grip: GRIP, lance: [LANCE.z0, LANCE.z1] });
   const mat = (n, d) => m.mat(n, d);
@@ -227,11 +242,18 @@ export function buildYuria(o = {}) {
   mat('armor', { col: '#f8f8fe', kind: 'gloss', spec: 0.8, gloss: 60, rim: 0.3, shade: '#bdc4e0' });
   mat('cyan', { col: '#5cf4ec', kind: 'glow', emis: 1 });
   mat('pin', { col: '#2b2a33', kind: 'matte', spec: 0.1, gloss: 20, rim: 0.05, shade: '#15151c' });
+  mat('lid', { col: '#ffe3d3', kind: 'face', spec: 0.1, gloss: 20, rim: 0.2, shade: '#f7bfb0', toon: 2 });      // toon: 2 = 絵のような陰影で、輪郭線は引かない
+  mat('eyeW', { col: '#ffffff', kind: 'face', spec: 0.1, gloss: 20, rim: 0.0, shade: '#dfe2f4' });
+  mat('mouthIn', { col: '#a23c4c', kind: 'matte', spec: 0.1, gloss: 20, rim: 0.0, shade: '#6a2030' });
+  mat('lash', { col: '#3c2e3e', kind: 'matte', spec: 0.05, gloss: 20, rim: 0.0, shade: '#241b28' });
+  mat('tooth', { col: '#ffffff', kind: 'matte', spec: 0.3, gloss: 30, rim: 0.0, shade: '#dcdcec' });
+  mat('tongue', { col: '#f78c9a', kind: 'matte', spec: 0.3, gloss: 30, rim: 0.0, shade: '#c45a6c' });
   mat('film', { col: '#ffd94e', kind: 'film', emis: 0.75, rim: 0.3, shade: '#ffb21e' });
   // ---- 骨
   const J = YJ, mx = (p) => [-p[0], p[1], p[2]];
   m.bone('root', null, [0, 0, 0]);
   m.bone('pelvis', 'root', J.pelvis); m.bone('spine', 'pelvis', J.spine); m.bone('chest', 'spine', J.chest); m.bone('neck', 'chest', J.neck); m.bone('head', 'neck', J.head);
+  m.bone('eyeO', 'head', J.head); m.bone('eyeC', 'head', J.head);          // 目をあけているときの部品（まつげ）と、とじているときの部品（まぶた）。使わないほうは、大きさを 0 にして隠す
   m.bone('hair1', 'head', J.hair1); m.bone('hair2', 'hair1', J.hair2); m.bone('hair3', 'hair2', J.hair3); m.bone('tail1', 'head', J.tail1); m.bone('tail2', 'tail1', J.tail2);
   for (const [sd, f] of [['R', (p) => p], ['L', mx]]) {
     m.bone('lock' + sd, 'head', f(J.lock));
@@ -242,7 +264,7 @@ export function buildYuria(o = {}) {
   }
   m.bone('lance', 'handR', GRIP);
   const wts = autoWeights(bothSides([
-    ['pelvis', [0, 7.2, 0], [0, 7.9, 0], 1.25], ['pelvis', [-0.7, 7.5, -0.3], [0.7, 7.5, -0.3], 0.9], ['spine', [0, 8.6, 0], [0, 9.3, 0], 0.95], ['chest', [0, 10.0, 0], [0, 11.0, 0], 1.2], ['chest', [-0.9, 11.2, 0], [0.9, 11.2, 0], 0.85],
+    ['pelvis', [0, 7.2, 0], [0, 7.9, 0], 1.25], ['pelvis', [-0.7, 7.5, -0.3], [0.7, 7.5, -0.3], 0.9], ['spine', [0, 8.6, 0], [0, 9.3, 0], 0.95], ['chest', [0, 10.0, 0], [0, 11.0, 0], 1.2], ['chest', [-1.05, 11.2, 0], [1.05, 11.2, 0], 0.85],
     ['neck', [0, 11.8, -0.05], [0, 12.4, 0], 0.55], ['arm#', J.S, J.E, 0.6], ['fore#', J.E, J.W, 0.52], ['thigh#', J.hip, J.knee, 0.86], ['shin#', V.add(J.knee, [0, -0.35, 0]), V.add(J.knee, [0, -1.2, 0]), 0.6],
   ]), 6);
   const armW = autoWeights(bothSides([['arm#', J.S, J.E, 0.7], ['fore#', J.E, V.add(J.W, dF, 1.4), 0.7]]), 5);
@@ -251,7 +273,11 @@ export function buildYuria(o = {}) {
   const both2 = (bone) => [{ bone: bone + 'R' }, { bone: bone + 'L', mirror: true }];
   const tipY = (y0, w) => [['hairTip', (x, y, z) => y - y0, w]];
   // ---- 部品: 頭と髪
-  part('head', s.head, { h: 0.056, mat: 'face', bone: 'head' });
+  part('head', s.head, { h: 0.042, mat: 'face', mask: [['eyeW', (x, y, z) => s.eyeCut.d(x, y, z) - 0.02], ['mouthIn', (x, y, z) => s.mouthCut.d(x, y, z) - 0.014]], bone: 'head' });
+  part('lash', s.lash, { h: 0.011, mat: 'lash', copies: [{ bone: 'eyeO' }, { bone: 'eyeO', mirror: true }], ao: false });
+  part('lid', s.lid, { h: 0.026, mat: 'lid', nrm: s.skull, bone: 'eyeC', cast: false });
+  part('teeth', s.teeth, { h: 0.012, mat: 'tooth', bone: 'head', ao: false, cast: false });
+  part('tongue', s.tongue, { h: 0.02, mat: 'tongue', bone: 'head', ao: false, cast: false });
   part('hair', s.hair, { h: 0.052, mat: 'hair', bone: 'head' });
   part('sideLock', s.sideLock, { h: 0.045, mat: 'hair', mask: tipY(10.2, 1.0), copies: both2('lock') });
   part('backHair', s.backHair, { h: 0.125, mat: 'hair', mask: tipY(6.3, 2.6), bone: hairW });
