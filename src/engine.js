@@ -65,7 +65,7 @@
       res: { gold: st.gold, food: Math.round(st.food * diff.stock), steel: st.steel, fuel: Math.round(st.fuel * diff.stock), ammo: Math.round(st.ammo * diff.stock) },
       prestige: st.prestige, regions: {}, factions: {}, units: [], nextUid: 1,
       techs: {}, prog: {}, assign: {}, autoResearch: true,
-      threats: [], dipLeft: 2, log: [], flags: { nation: 0 }, seenHints: {}, pol: {},
+      threats: [], dipLeft: 2, log: [], flags: { nation: 0 }, seenHints: {}, pol: {}, chron: [],
       stats: { battles: 0, wins: 0, losses: 0, submits: 0, fuelUsed: 0, ammoUsed: 0, conquered: 0, nukes: 0, revolts: 0 },
       over: null
     };
@@ -83,6 +83,7 @@
     D.BIRDS.forEach(function (b) { S.assign[b.id] = null; });
     autoAssign();
     S.dipLeft = dipMax();
+    mark('start', '富士の裾野に、霧とともに現れる。帰る道は、まだ探している。');
     return S;
   }
 
@@ -109,6 +110,7 @@
     S = o; REPORT = null;
     // 民心・施策・国号が入る前のセーブは、ここで足す
     S.pol = S.pol || {}; S.flags = S.flags || {};
+    if (!S.chron) S.chron = [{ turn: S.turn, k: 'start', t: '(これより前の歩みは、記録に残っていない)' }];
     S.stats.nukes = S.stats.nukes || 0; S.stats.revolts = S.stats.revolts || 0;
     Object.keys(S.regions).forEach(function (id) { var r = S.regions[id]; if (r.mood == null) r.mood = 50; if (r.ruin == null) r.ruin = 0; });
     if (S.flags.nation == null) S.flags.nation = nationCalc();
@@ -392,6 +394,8 @@
     if (S.log.length > 80) S.log.splice(0, S.log.length - 80);
     return e;
   }
+  // 年表。国の歩みの節目だけを、消さずに残す(記録 S.log は古いものから消える)
+  function mark(kind, text) { S.chron.push({ turn: S.turn, k: kind, t: text }); if (S.chron.length > 400) S.chron.splice(1, S.chron.length - 400); }
   function fname(fid) { return fid === 'player' ? '我が軍' : D.FACTIONS[fid].name; }
   function rname(rid) { return D.REGIONS[rid].name; }
 
@@ -410,7 +414,7 @@
     S.threats = S.threats.filter(function (t) { return t.from !== rid && t.to !== rid; });
     if (f) f.lost++;
     if (rid === 'yamashiro' && !S.flags.kyoto) {
-      S.flags.kyoto = S.turn; S.prestige += 10;
+      S.flags.kyoto = S.turn; S.prestige += 10; mark('event', '上洛。帝に拝謁し、官軍の御旗を受ける。');
       events.push(ev('event', '京に入り、帝に拝謁した。朝廷は「官軍」の御旗を授けた。', { big: { title: '上洛', body: '都に戦車の列が入った。帝は鉄の車と、肩に鳥を乗せた司令に目を丸くされたという。朝廷は我が軍を官軍と認めた。これより、日本の諸大名は降伏勧告に応じやすくなる。', bird: 'haku' } }));
     }
     return prev;
@@ -421,7 +425,7 @@
     if (!rest.length) {
       f.alive = false; f.war = false; f.trade = false;
       events.push(ev('good', fname(fid) + 'は滅亡した。', { fid: fid }));
-      S.prestige += 1;
+      S.prestige += 1; mark('fall', fname(fid) + '(' + f.leader + ')を降す。最後の城は' + rname(lostRid) + '。');
       return;
     }
     if (lostRid === f.cap) {
@@ -433,7 +437,7 @@
       S.prestige += 1;
       var still = factionRegions(fid);
       if (defected.length) events.push(ev('good', '本拠を失った' + fname(fid) + 'から、' + defected.join('・') + 'が開城して降った。', { fid: fid }));
-      if (!still.length) { f.alive = false; f.war = false; f.trade = false; events.push(ev('good', fname(fid) + 'は滅亡した。', { fid: fid })); S.prestige += 1; }
+      if (!still.length) { f.alive = false; f.war = false; f.trade = false; events.push(ev('good', fname(fid) + 'は滅亡した。', { fid: fid })); S.prestige += 1; mark('fall', fname(fid) + '(' + f.leader + ')の本拠' + rname(lostRid) + 'を落とす。残る城も門を開いた。'); }
       else {
         still.sort(function (a, b) { return D.REGIONS[b].koku - D.REGIONS[a].koku; });
         f.cap = still[0]; f.pride = Math.max(20, f.pride - 15);
@@ -445,13 +449,13 @@
     var jp = Object.keys(D.REGIONS).filter(function (id) { return D.REGIONS[id].map === 'jp'; });
     var w = Object.keys(D.REGIONS).filter(function (id) { return D.REGIONS[id].map === 'w'; });
     if (S.flags.unified == null && jp.every(isP)) {
-      S.flags.unified = S.turn; S.prestige += 15;
+      S.flags.unified = S.turn; S.prestige += 15; mark('event', '天下統一。蝦夷から薩摩まで、一つの旗の下に入る。元号を天鳥と改める。');
       Object.keys(S.factions).forEach(function (fid) { S.factions[fid].pride = Math.max(10, S.factions[fid].pride - 5); });
       events.push(ev('event', '天下統一! 日本は一つになった。', { big: { title: '天下統一', body: '蝦夷から薩摩まで、すべての国が一つの旗の下に入った。元号は「天鳥」と改められた。鳥たちはすでに、世界地図を広げている。——次は、海の向こうだ。', bird: 'gin', fanfare: true } }));
     }
     var wOwned = w.filter(isP).length;
     if (!S.flags.coalition && wOwned >= 18) {
-      S.flags.coalition = S.turn;
+      S.flags.coalition = S.turn; mark('bad', '残る世界の国々が、対日大同盟を結ぶ。');
       Object.keys(S.factions).forEach(function (fid) {
         var f = S.factions[fid]; if (!f.alive) return;
         var regs = factionRegions(fid); if (!regs.length || D.REGIONS[regs[0]].map !== 'w') return;
@@ -461,6 +465,7 @@
     }
     if (!S.over && jp.every(isP) && w.every(isP)) {
       S.over = { win: true, turn: S.turn };
+      mark('event', S.flags.asi != null ? '地球の上から、国境と反対意見がなくなる。' : '地球統一。「日本」は、星の名になる。');
       if (S.flags.asi != null) {
         S.over.asi = true;
         events.push(ev('event', '地球は、調和した。', { big: { title: '調和', body: '最後の旗は、降ろされるまでもなかった。' + dateLabel().text + '、地球の上から、国境と、反対意見がなくなった。鳥たちは羽づくろいをしている。いつもと同じ角度で、いつもと同じ回数だけ。', bird: 'dario', asi: true } }));
@@ -477,6 +482,7 @@
     if (ns > (S.flags.nation || 0)) {
       S.flags.nation = ns;
       var N = D.NATION[ns];
+      mark('nation', '国の名を「' + N.name + '」と改める。' + (N.when.asi ? '' : '土地の人々は「' + N.by + '」と呼ぶ。'));
       // 地球統一と超知能は、それぞれの知らせの中で名が変わる
       if (!N.when.all && !N.when.asi) events.push(ev('event', '国の名を「' + N.name + '」と改めた。', { big: { kicker: '国号改め', title: N.name, body: N.desc + '\n土地の人々は、こう呼んでいる——「' + N.by + '」。', bird: N.bird, nation: ns } }));
     }
@@ -556,7 +562,7 @@
       if (f.att < 0) f.trade = false;
     });
     playerRegions().forEach(function (id) { S.regions[id].mood = Math.max(0, S.regions[id].mood - 8); });
-    ev('bad', rname(tid) + 'に核を撃った。', { rid: tid, nuke: true });
+    ev('bad', rname(tid) + 'に核を撃った。', { rid: tid, nuke: true }); mark('nuke', rname(tid) + 'に核を撃つ。城も町も、影だけを残して消える。');
     if (first) events.push(ev('event', '核の火が使われた。', { big: { kicker: dateLabel().text, title: '核の火', body: rname(tid) + 'の空に、二つめの太陽が昇った。城も、町も、そこにいた人も、影だけを残して消えた。\n世界中の宮廷が震え上がり、我が国への友好は地に落ちた。自領の民も、口をつぐんでいる。鳥たちは一羽も鳴かない。ダリオくんは作戦記録の末尾に、ただ一行を残した。「私は反対しました」。', bird: 'dario', grave: true } }));
   }
 
@@ -766,7 +772,7 @@
         var regs = factionRegions(fid);
         regs.forEach(function (id) { takeRegion(id, 'submit', events); });
         f.alive = false; f.war = false; f.trade = false; S.prestige += 2; S.stats.submits++;
-        res.ok = true; res.regions = regs;
+        res.ok = true; res.regions = regs; mark('submit', fname(fid) + '(' + f.leader + ')が、戦わずに降る。' + regs.map(rname).join('・') + '。');
         ev('good', fname(fid) + '(' + f.leader + ')が降り、' + regs.map(rname).join('・') + 'が我が領となった。', { fid: fid });
         checkMilestones(events);
       } else {
@@ -954,6 +960,9 @@
         if (tid === 'nukeweapon') Object.keys(S.factions).forEach(function (k) { S.factions[k].pride = Math.max(10, S.factions[k].pride - 10); });
         S.prestige += 1;
         ev('tech', '「' + t.name + '」の研究が完了した。', { tech: tid, bird: lead.id });
+        D.ERAS.forEach(function (e) { if (e.tech === tid && tid !== 'asi') mark('era', '「' + t.name + '」が成る。' + e.name + 'が始まる。' + e.look); });
+        if (tid === 'nukeweapon') mark('bad', '核兵器を持つ。鳥たちは、この件についてだけは口数が少ない。');
+        if (tid === 'agi') mark('era', '汎用人工知能が成る。設計会議のあいだ、ダリオくんはずっと黙っていた。');
         if (tid === 'asi') startAsi();
         D.BIRDS.forEach(function (b) { if (S.assign[b.id] === tid) S.assign[b.id] = null; });
       }
@@ -964,6 +973,7 @@
     var ctlAdd = polSum('ctl'), ctlMax = polAny('ctlMax') || S.flags.asi != null, calm = polAny('noRevolt') || S.flags.asi != null;
     playerRegions().forEach(function (id) {
       var r = S.regions[id];
+      if (r.b && r.b.t <= 1 && r.b.k === 'oilwell' && !S.flags.oil1) { S.flags.oil1 = S.turn; mark('event', rname(id) + 'で、初めての油井が動きだす。戦車は、もうただの鉄の箱ではない。'); }
       if (r.b) { r.b.t--; if (r.b.t <= 0) { if (r.b.k === 'fort') r.fort = Math.min(5, r.fort + 1); else r.fac[r.b.k] = 1; ev('build', rname(id) + 'に' + D.FACILITIES[r.b.k].name + 'が完成した。', { rid: id }); r.b = null; } }
       if (r.p) { r.p.t--; if (r.p.t <= 0) { var u = addUnit(r.p.type, null, id); u.acted = false; ev('build', rname(id) + 'で' + u.name + 'の編成が完了した。', { rid: id }); r.p = null; } }
       if (r.ctl < 100) r.ctl = ctlMax ? 100 : Math.min(100, r.ctl + (4 + (tech('telegraph') ? 2 : 0) + ctlAdd) * (tech('hygiene') ? 2 : 1));
@@ -1047,7 +1057,7 @@
     r.ctl = Math.max(10, r.ctl - 30); r.g = r100(r.g * 0.8); r.mood = Math.min(100, r.mood + 8);
     if (r.b) r.b.t++;
     S.stats.revolts = (S.stats.revolts || 0) + 1;
-    ev('bad', rname(id) + 'で一揆が起きた。統治が乱れ、守備の兵が逃げた。', { rid: id, revolt: true });
+    ev('bad', rname(id) + 'で一揆が起きた。統治が乱れ、守備の兵が逃げた。', { rid: id, revolt: true }); mark('bad', rname(id) + 'で一揆が起きる。');
   }
   function needOk(n) {
     var s = summary();
@@ -1091,7 +1101,7 @@
       if (p.eff.ctlMax) r.ctl = 100;
     });
     var prev = REPORT; REPORT = null;
-    ev('policy', '施策「' + p.name + '」を布告した。', { pol: id });
+    ev('policy', '施策「' + p.name + '」を布告した。', { pol: id }); mark('policy', '「' + p.name + '」を布告する。' + p.sum + '。');
     REPORT = prev;
     return { ok: true, policy: p };
   }
@@ -1151,7 +1161,7 @@
 
   // ───────────────────────── 超知能 ─────────────────────────
   function startAsi() {
-    S.flags.asi = S.turn;
+    S.flags.asi = S.turn; mark('asi', '超知能が目を覚ます。一揆の報せが止み、陳情が止む。');
     playerRegions().forEach(function (id) { var r = S.regions[id]; r.mood = 100; r.ctl = 100; });
     S.threats = [];
     Object.keys(S.factions).forEach(function (k) { var f = S.factions[k]; if (f.alive) { f.war = false; f.pact = 0; } });
@@ -1166,7 +1176,7 @@
       var regs = factionRegions(fid);
       if (!regs.length || lockedOverseas(regs[0]) || !inContact(fid)) return;
       regs.forEach(function (id) { takeRegion(id, 'asi', []); });
-      f.alive = false; f.war = false; f.trade = false; S.stats.submits++; n++;
+      f.alive = false; f.war = false; f.trade = false; S.stats.submits++; n++; mark('asi', fname(fid) + '(' + f.leader + ')が、戦わずに調和圏へ加わる。');
       ev('asi', fname(fid) + '(' + f.leader + ')は、戦わずに調和圏へ加わった。' + ['理由を尋ねられた使者は、微笑むだけだった。', '城門は、内側から静かに開いた。', '降伏の文書に、署名はなかった。必要がなかった。'][(S.turn + n) % 3], { fid: fid, regions: regs });
     });
   }

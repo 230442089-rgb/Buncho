@@ -21,6 +21,7 @@ section('古いセーブ(民心・施策が入る前)を読み込める', () => 
   E.load(old);
   const S = E.S;
   ok(S.pol && typeof S.pol === 'object', '施策の入れ物ができる');
+  ok(Array.isArray(S.chron) && S.chron.length === 1, '年表の入れ物ができる');
   ok(Object.values(S.regions).every(r => r.mood === 50 && r.ruin === 0), 'すべての地域に民心と焦土が入る');
   ok(S.flags.nation >= 1, '領地に見合った国号になる: ' + E.nation().name);
   const before = S.turn;
@@ -45,6 +46,7 @@ section('施策', () => {
   ok(E.income().gross.gold > g0 * 1.07, '資金の収入が増える');
   ok(E.enact('sekisho').error === '布告済み', '二度は布告できない');
   ok(S.log.some(e => e.k === 'policy'), '記録に残る');
+  ok(S.chron[0].k === 'start' && S.chron.some(e => e.k === 'policy' && /関所の撤廃/.test(e.t)), '年表に残る');
   for (const id of Object.keys(S.regions)) if (D.REGIONS[id].map === 'jp') S.regions[id].o = 'player';
   const a0 = S.factions.spain.att; E.enact('jinshin');
   ok(S.factions.spain.att === a0 - 15, '人買いの禁止で南蛮との友好が下がる');
@@ -87,6 +89,7 @@ section('核ミサイルと軌道砲', () => {
   ok(S.factions.ming.att === Math.max(-100, att0 - 25), '世界中の友好が下がる');
   ok(S.regions.izu.mood === mood0 - 8 && S.prestige <= pre0 - 9, '自領の民心と威信も下がる');
   ok(S.stats.nukes === 1 && res.events.some(e => e.big && e.big.grave), '最初の一発には重い知らせが出る');
+  ok(S.chron.some(e => e.k === 'nuke'), '年表に核の使用が残る');
   const y = E.regionYield('izu'); ok(Number.isFinite(y.gold), '収支が壊れない');
   // 軌道砲は何度でも
   const r2 = E.attack('huabei', [orb.id]);
@@ -179,6 +182,7 @@ section('超知能', () => {
   while (!S.over && guard++ < 200) E.endTurn();
   ok(S.over && S.over.win && S.over.asi, '放っておいても世界は調和する(T' + S.turn + ')');
   ok(S.flags.unified != null, '途中で天下統一を通る');
+  ok(S.chron.filter(e => e.k === 'asi').length > 5 && S.chron.length <= 400, '年表に調和の広がりが残る(' + S.chron.length + '件)');
 });
 
 section('民の声(全地域・全時代)', () => {

@@ -960,11 +960,20 @@
     } else if (st.flags.unified == null) h += '<p class="dim" style="font-size:12px">天下を統一すると、降った武将たちのその後がここに並ぶ。</p>';
     return h;
   }
+  var CH_MARK = { start: '霧', nation: '号', policy: '布', era: '世', event: '★', submit: '降', fall: '戦', nuke: '核', asi: '和', bad: '×' };
+  function nationChron() { // 国の歩み。新しいものが上
+    var st = S(), L = st.chron.slice().reverse(), last = -1, h = '<p class="dim">' + esc(E.nation().name) + 'の歩み。国の名、布告、時代の変わり目、降した相手を、起きた順に残している。</p><div class="chron">';
+    L.forEach(function (e) {
+      if (e.turn !== last) { last = e.turn; h += '<div class="sec" style="margin:10px 0 2px">' + (D.START.year + Math.floor(e.turn / 4)) + '年 ' + D.SEASONS[e.turn % 4] + '</div>'; }
+      h += '<div class="ev ch-' + e.k + '"><span class="k">' + (CH_MARK[e.k] || '・') + '</span><span>' + esc(e.t) + '</span></div>';
+    });
+    return h + '</div>';
+  }
   function panelNation() {
     var st = S(), npol = E.policyOptions().filter(function (p) { return p.ok; }).length, tab = ui.ntab || 'sum';
     function tb(k, label) { return '<button data-act="ntab" data-t="' + k + '" class="' + (tab === k ? 'on' : '') + '">' + label + '</button>'; }
-    var h = '<div class="seg wide">' + tb('sum', '概況') + tb('pol', '施策' + (npol ? ' <em>' + npol + '</em>' : '')) + tb('voice', '民の声') + '</div>';
-    h += tab === 'pol' ? nationPolicies() : (tab === 'voice' ? nationVoices() : nationSummary());
+    var h = '<div class="seg wide">' + tb('sum', '概況') + tb('pol', '施策' + (npol ? ' <em>' + npol + '</em>' : '')) + tb('voice', '民の声') + tb('chron', '年表') + '</div>';
+    h += tab === 'pol' ? nationPolicies() : (tab === 'voice' ? nationVoices() : (tab === 'chron' ? nationChron() : nationSummary()));
     return panelWrap('国勢', esc(E.nation().name) + ' ・ 威信 ' + fmt(st.prestige), h);
   }
   function openPolicy(pid) {
