@@ -42,13 +42,13 @@
   var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   function sfx(n, o) { if (TF.sfx) TF.sfx.play(n, o); }
   function loadOpts() {
-    var o = { sound: true, anim: true };
-    try { var j = JSON.parse(localStorage.getItem(OPT_KEY) || '{}'); if (j.sound === false) o.sound = false; if (j.anim === false) o.anim = false; } catch (e) { /* 既定のまま */ }
+    var o = { sound: true, anim: true, ringer: true };
+    try { var j = JSON.parse(localStorage.getItem(OPT_KEY) || '{}'); if (j.sound === false) o.sound = false; if (j.anim === false) o.anim = false; if (j.ringer === false) o.ringer = false; } catch (e) { /* 既定のまま */ }
     return o;
   }
   function saveOpts() { try { localStorage.setItem(OPT_KEY, JSON.stringify(ui.opts)); } catch (e) { /* 保存できない環境 */ } }
   ui.opts = loadOpts();
-  if (TF.sfx) TF.sfx.setEnabled(ui.opts.sound);
+  if (TF.sfx) { TF.sfx.setEnabled(ui.opts.sound); TF.sfx.setBypass(ui.opts.ringer); }
   function animOn() { return ui.opts.anim && !reduce && TF.Battle3D && TF.Battle3D.available(); }
 
   // ───────────────────────── 演出 ─────────────────────────
@@ -938,10 +938,21 @@
   }
 
   // ───────────────────────── メニュー・表紙 ─────────────────────────
+  // 音がいま出せる状態かを、言葉で返す(鳴らないときの手がかり)
+  function soundStatus() {
+    if (!TF.sfx || !TF.sfx.supported()) return 'この端末・アプリでは音を出す機能が使えません。';
+    var s = TF.sfx.status();
+    if (!ui.opts.sound) return '効果音は「切」です。';
+    var t = s.state === 'running' ? '音を出せる状態です。聞こえないときは、本体の音量' + (TF.sfx.ios() ? 'と、下の「マナーモードでも鳴らす」' : '') + 'を確かめてください。'
+      : (s.state === 'none' || s.state === 'suspended' ? 'まだ始まっていません。ここを押すと始まります。' : '止められています(' + s.state + ')。ここを押してください。');
+    return t + '[' + s.state + ' / ' + (s.rate || 0) + 'Hz / 再生' + s.played + '回' + (s.media !== 'off' ? ' / ' + s.media : '') + (s.err ? ' / ' + s.err : '') + ']';
+  }
   function openMenu() {
     var can3d = !!(TF.Battle3D && TF.Battle3D.available());
     showModal('<div class="card-body"><h2>メニュー</h2><div class="list">' +
       '<button class="row' + (ui.opts.sound ? ' on' : '') + '" data-act="opt-sound">' + icon(ui.opts.sound ? 'sound' : 'mute', 'big') + '<div><h3>効果音</h3><p>戦闘、制圧、研究完了などの音。' + (TF.sfx && TF.sfx.supported() ? '' : 'この端末では鳴らせません。') + '</p></div><div class="side"><b>' + (ui.opts.sound ? '入' : '切') + '</b></div></button>' +
+      '<button class="row" data-act="sound-test"' + (ui.opts.sound ? '' : ' disabled') + '>' + icon('sound', 'big') + '<div><h3>音を試す</h3><p id="snd-status">' + esc(soundStatus()) + '</p></div><span></span></button>' +
+      (TF.sfx && TF.sfx.ios() ? '<button class="row' + (ui.opts.ringer ? ' on' : '') + '" data-act="opt-ringer">' + icon('sound', 'big') + '<div><h3>マナーモードでも鳴らす</h3><p>iPhone は消音スイッチが入っていると鳴りません。入にすると、動画と同じ扱いで鳴ります(音量は本体のボタンで)。</p></div><div class="side"><b>' + (ui.opts.ringer ? '入' : '切') + '</b></div></button>' : '') +
       '<button class="row' + (ui.opts.anim && can3d ? ' on' : '') + '" data-act="opt-anim"' + (can3d && !reduce ? '' : ' disabled') + '>' + icon('film', 'big') + '<div><h3>戦闘の3Dアニメ</h3><p>' + (!can3d ? 'この端末では3D表示が使えません。' : (reduce ? '端末の「視差効果を減らす」設定に合わせて止めています。' : '攻撃のたびに再生。スキップもできる。')) + '</p></div><div class="side"><b>' + (ui.opts.anim && can3d && !reduce ? '入' : '切') + '</b></div></button>' +
       '<button class="row" data-act="help">' + icon('scroll', 'big') + '<div><h3>遊び方</h3><p>目的、燃料と弾薬、攻め方、外交。</p></div><span></span></button>' +
       '<button class="row" data-act="log">' + icon('map', 'big') + '<div><h3>これまでの記録</h3><p>最近の出来事を読み返す。</p></div><span></span></button>' +
@@ -1005,7 +1016,7 @@
 
   // ───────────────────────── 操作の受け口 ─────────────────────────
   // 押したときの音。null は、その操作の結果に合わせて別に鳴らすもの
-  var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'io-load': null,
+  var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'opt-ringer': null, 'sound-test': null, 'io-load': null,
     tab: 'open', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
     'atk-toggle': 'select', pick: 'select', goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch' };
   function onClick(e) {
@@ -1058,6 +1069,11 @@
         if (act === 'opt-sound') openMenu();
         break;
       case 'opt-anim': ui.opts.anim = !ui.opts.anim; saveOpts(); openMenu(); break;
+      case 'opt-ringer': ui.opts.ringer = !ui.opts.ringer; saveOpts(); if (TF.sfx) { TF.sfx.setBypass(ui.opts.ringer); TF.sfx.unlock(); } sfx('chirp', { n: 2 }); openMenu(); break;
+      case 'sound-test': // 勝利の音を鳴らして、少しあとに状態を書き直す
+        sfx('victory');
+        setTimeout(function () { var el = $('#snd-status'); if (el) el.textContent = soundStatus(); }, 700);
+        break;
       case 'help': openHelp(); break;
       case 'log': openLog(); break;
       case 'io': openIO(); break;
@@ -1079,7 +1095,9 @@
   function boot(hot) {
     E.init(MAP);
     document.addEventListener('click', onClick);
-    document.addEventListener('pointerdown', function () { if (TF.sfx) TF.sfx.unlock(); }, { passive: true }); // 音は最初のタップから鳴らせる
+    ['pointerup', 'touchend', 'click', 'keydown'].forEach(function (ev) { // ブラウザが音の開始を許すのは、指を離した瞬間・クリック・キー入力の中だけ
+      document.addEventListener(ev, function () { if (TF.sfx) TF.sfx.unlock(); }, { capture: true, passive: true });
+    });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (ui.modal) closeModal(); else if (ui.mv) { ui.mv = null; refreshAll(); } else if (ui.panel) { ui.panel = null; renderPanel(); renderNav(); } else if (ui.sel) select(null); } });
     bindMap();
     var live = hot && hot.save;

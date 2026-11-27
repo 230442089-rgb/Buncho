@@ -298,7 +298,7 @@
   function blast(x, z, r, p, sky, quiet, vr) { // vr: 見た目の大きさ(効果の半径と別にしたいとき)
     boomFx(x, z, vr || r);
     B.shake = Math.min(1.7, B.shake + 0.3 * p);
-    if (!quiet && B.t - B.lastBoom > 0.075) { B.lastBoom = B.t; sfx('boom', { size: clamp(r / 3.6, 0.7, 1.7), gain: 0.5 }); }
+    if (!quiet && B.t - B.lastBoom > 0.09) { B.lastBoom = B.t; sfx('boom', { size: clamp(r / 3.6, 0.7, 1.7), gain: 0.42 }); }
     var i, N = B.N, r2 = r * r, skyP = sky == null ? 0.22 * p : sky;
     for (i = 0; i < N; i++) {
       var st = B.st[i]; if (st === 3) continue;
@@ -360,7 +360,7 @@
       c.fly = true; c.vx = rnd(-7, 7) * power; c.vy = rnd(9, 17) * power; c.vz = rnd(-5, 8) * power; c.wx = rnd(-4, 4); c.wy = rnd(-3, 3); c.wz = rnd(-4, 4);
       boomFx(c.m.position.x + rnd(-1, 1), c.m.position.z + 1.5, 4.2, c.m.position.y);
     });
-    if (left.length) { B.shake = Math.min(1.7, B.shake + 0.7); if (B.t - B.lastBoom > 0.075) { B.lastBoom = B.t; sfx('boom', { size: 1.6, gain: 0.6 }); } }
+    if (left.length) { B.shake = Math.min(1.7, B.shake + 0.7); if (B.t - B.lastBoom > 0.09) { B.lastBoom = B.t; sfx('boom', { size: 1.6, gain: 0.5 }); } }
   }
 
   // ── 進行表 ──
