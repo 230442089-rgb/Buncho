@@ -12,8 +12,8 @@
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmt(n) { return Math.round(n).toLocaleString('ja-JP'); }
-  // 上の帯に収まるよう、1万以上は「2.86万」のように詰める
-  function compact(n) { n = Math.round(n); var a = Math.abs(n); if (a < 10000) return n.toLocaleString('ja-JP'); return (n / 10000).toFixed(a < 100000 ? 2 : (a < 1000000 ? 1 : 0)) + '万'; }
+  // 上の帯に収まるよう、1万以上は「2.9万」のように詰める
+  function compact(n) { n = Math.round(n); var a = Math.abs(n); if (a < 10000) return n.toLocaleString('ja-JP'); return (n / 10000).toFixed(a < 100000 ? 1 : 0) + '万'; }
   function csgn(n) { n = Math.round(n); return (n > 0 ? '+' : (n < 0 ? '−' : '±')) + compact(Math.abs(n)); }
   function sgn(n) { n = Math.round(n); return (n > 0 ? '+' : (n < 0 ? '−' : '±')) + Math.abs(n).toLocaleString('ja-JP'); }
   function men(n) { return n >= 10000 ? (Math.round(n / 1000) / 10) + '万' : (n >= 1000 ? (Math.round(n / 100) / 10) + '千' : String(n)); }
@@ -111,7 +111,7 @@
         var pos = exitPos(w, cross[w]);
         cross[w].forEach(function (jp) { var c = m.regions[jp].c; over.push('<path class="route" d="M' + c[0] + ' ' + c[1] + 'L' + pos[0].toFixed(1) + ' ' + pos[1].toFixed(1) + '"/>'); });
         var nm = short(w), wd = nm.length * 11 + 26;
-        marks.push('<g class="mk exit" data-jump="' + w + '" style="--x:' + pos[0].toFixed(1) + 'px;--y:' + pos[1].toFixed(1) + 'px"><rect x="' + (-wd / 2) + '" y="-11" width="' + wd + '" height="22" rx="11" style="fill:' + (E.isP(w) ? D.PLAYER_COLOR : '') + '"/><text y="4">' + esc(nm) + ' ▸</text></g>');
+        marks.push('<g class="mk exit' + (E.isP(w) ? ' own' : '') + '" data-jump="' + w + '" data-x="' + pos[0].toFixed(1) + '" data-y="' + pos[1].toFixed(1) + '"><rect x="' + (-wd / 2) + '" y="-11" width="' + wd + '" height="22" rx="11"/><text y="4">' + esc(nm) + ' ▸</text></g>');
       } else {
         var cw = m.regions[w].c, cj = m.regions.japan.c;
         over.push('<path class="route" d="M' + cw[0] + ' ' + cw[1] + 'L' + cj[0] + ' ' + cj[1] + '"/>');
@@ -124,15 +124,15 @@
       over.push('<path class="threat" d="M' + a[0] + ' ' + a[1] + 'L' + b[0] + ' ' + b[1] + '"/>');
     });
     // 選択中・移動先の枠
-    if (mvT) Object.keys(mvT).forEach(function (id) { if (mvT[id].ok && mapOf(id) === key) over.push('<path class="rg mv" style="fill:none;pointer-events:none" d="' + m.regions[id].d + '"/>'); });
-    if (ui.sel && mapOf(ui.sel) === key) over.push('<path class="rg sel" style="fill:none;pointer-events:none" d="' + m.regions[ui.sel].d + '"/>');
+    if (mvT) Object.keys(mvT).forEach(function (id) { if (mvT[id].ok && mapOf(id) === key) over.push('<path class="rg mv" fill="none" pointer-events="none" d="' + m.regions[id].d + '"/>'); });
+    if (ui.sel && mapOf(ui.sel) === key) over.push('<path class="rg sel" fill="none" pointer-events="none" d="' + m.regions[ui.sel].d + '"/>');
     $('#over').innerHTML = over.join('');
     // 目印
     var threatened = {}; st.threats.forEach(function (t) { threatened[t.to] = 1; });
     Object.keys(m.regions).forEach(function (id) {
       var gr = m.regions[id], s = '';
       if (id === 'japan') {
-        marks.push('<g class="mk" data-area="' + gr.area + '" style="--x:' + gr.c[0] + 'px;--y:' + gr.c[1] + 'px"><circle class="hit" r="15" data-jumpmap="japan"/><text class="lbl" y="4">日本</text></g>');
+        marks.push('<g class="mk" data-area="' + gr.area + '" data-x="' + gr.c[0] + '" data-y="' + gr.c[1] + '"><circle class="hit" r="15" data-jumpmap="japan"/><text class="lbl" y="4">日本</text></g>');
         return;
       }
       var r = st.regions[id], d = reg(id), own = r.o === 'player', f = st.factions[r.o];
@@ -146,8 +146,9 @@
         sites.forEach(function (k, i) {
           var x = (i - (n - 1) / 2) * 13, fk = k === 'coal' ? 'coalmine' : (k === 'gold' ? 'mine' : (k === 'iron' ? 'ironmine' : (k === 'oil' ? 'oilwell' : 'bauxite')));
           var built = own && r.fac[fk];
-          s += '<g class="site" transform="translate(' + x + ' ' + sy + ')"><circle r="5.600" fill="' + (own && !built ? '#1a2740' : SITE_COLOR[k]) + '"' + (own && !built ? ' style="stroke:' + SITE_COLOR[k] + ';stroke-width:1.600"' : '') + '/>' +
-            '<path transform="translate(-4.200 -4.200) scale(.35)" d="' + TF.iconPath(TF.SITE_ICON[k]) + '"' + (own && !built ? ' style="fill:' + SITE_COLOR[k] + '"' : '') + '/></g>';
+          var todo = own && !built; // 自領でまだ掘っていない資源は、白抜きで示す
+          s += '<g class="site" transform="translate(' + x + ' ' + sy + ')"><circle r="5.600" fill="' + (todo ? '#1a2740' : SITE_COLOR[k]) + '" stroke="' + (todo ? SITE_COLOR[k] : 'rgba(10,16,30,.9)') + '" stroke-width="' + (todo ? 1.6 : 1) + '"/>' +
+            '<path transform="translate(-4.200 -4.200) scale(.35)" fill="' + (todo ? SITE_COLOR[k] : '#10192b') + '" d="' + TF.iconPath(TF.SITE_ICON[k]) + '"/></g>';
         });
         s += '</g>';
       }
@@ -159,10 +160,17 @@
       }
       if (threatened[id]) s += '<g class="alert" transform="translate(19 -8)"><circle r="7.500"/><text y="4">!</text></g>';
       if (own && (r.b || r.p)) s += '<g class="bld" transform="translate(-19 -8)"><circle r="4"/></g>';
-      marks.push('<g class="mk" data-area="' + gr.area + '" data-rid="' + id + '" style="--x:' + gr.c[0] + 'px;--y:' + gr.c[1] + 'px">' + s + '</g>');
+      marks.push('<g class="mk" data-area="' + gr.area + '" data-rid="' + id + '" data-x="' + gr.c[0] + '" data-y="' + gr.c[1] + '">' + s + '</g>');
     });
     $('#marks').innerHTML = marks.join('');
+    placeMarks();
     markVisibility();
+  }
+  // 目印は地図を拡大縮小しても画面上の大きさが変わらないよう、縮尺に合わせて描き直す
+  function placeMarks() {
+    var u = (ui.u || 1).toFixed(4);
+    $$('#marks .mk').forEach(function (g) { g.setAttribute('transform', 'translate(' + g.getAttribute('data-x') + ' ' + g.getAttribute('data-y') + ') scale(' + u + ')'); });
+    ui.placedU = ui.u;
   }
   function mix(a, b, t) {
     function p(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
@@ -177,6 +185,8 @@
     });
   }
 
+  // どこまで引けるか。縦長の画面で横長の世界図が豆粒にならないよう、地図の高さが画面の半分弱を保つところで止める
+  function maxViewW(m, asp) { return Math.min(Math.max(m.w, m.h / asp) * 1.06, m.h / (0.45 * asp)); }
   function stageSize() { var r = $('#map').getBoundingClientRect(); return { w: Math.max(50, r.width), h: Math.max(50, r.height) }; }
   function defaultView(key) {
     var sz = stageSize(), m = MAP[key];
@@ -185,7 +195,7 @@
   }
   function applyView() {
     var m = MAP[ui.map], v = ui.view[ui.map] || (ui.view[ui.map] = defaultView(ui.map)), sz = stageSize(), asp = sz.h / sz.w;
-    var maxW = Math.max(m.w, m.h / asp) * 1.06, minW = ui.map === 'japan' ? 105 : 170;
+    var maxW = maxViewW(m, asp), minW = ui.map === 'japan' ? 105 : 170;
     v.w = clamp(v.w, minW, maxW);
     var vh = v.w * asp;
     v.cx = clamp(v.cx, Math.min(v.w * 0.35, m.w / 2), Math.max(m.w - v.w * 0.35, m.w / 2));
@@ -193,14 +203,14 @@
     var svg = $('#map');
     svg.setAttribute('viewBox', (v.cx - v.w / 2).toFixed(2) + ' ' + (v.cy - vh / 2).toFixed(2) + ' ' + v.w.toFixed(2) + ' ' + vh.toFixed(2));
     ui.u = v.w / sz.w;
-    svg.style.setProperty('--u', ui.u.toFixed(4));
+    if (ui.placedU !== ui.u) placeMarks();
     markVisibility();
   }
   function zoomAt(f, px, py) { // 画面上の点 (px,py) を動かさずに拡大縮小
     var v = ui.view[ui.map], sz = stageSize(), asp = sz.h / sz.w;
     if (px == null) { px = sz.w / 2; py = sz.h / 2; }
     var mx = v.cx - v.w / 2 + px * (v.w / sz.w), my = v.cy - v.w * asp / 2 + py * (v.w / sz.w);
-    var m = MAP[ui.map], maxW = Math.max(m.w, m.h / asp) * 1.06, minW = ui.map === 'japan' ? 105 : 170;
+    var m = MAP[ui.map], maxW = maxViewW(m, asp), minW = ui.map === 'japan' ? 105 : 170;
     var nw = clamp(v.w * f, minW, maxW);
     v.cx = mx - (px / sz.w - 0.5) * nw; v.cy = my - (py / sz.h - 0.5) * nw * asp; v.w = nw;
     applyView();
@@ -464,6 +474,7 @@
     ui.mv = null; save(); ui.sel = id; ui.pick = {};
     if (mapOf(id) !== ui.map) focusRegion(id, { zoom: true });
     refreshAll();
+    ensureVisible(id); refreshMap();
   }
 
   // ───────────────────────── 攻撃 ─────────────────────────
@@ -538,6 +549,7 @@
     res.events.forEach(function (e) { if (e.big) bigs.push(e); else h += '<div class="ev ' + e.k + '"><span class="k">' + (e.k === 'good' ? '◎' : (e.k === 'bad' ? '×' : '・')) + '</span><span>' + esc(e.t) + '</span></div>'; });
     ui.sel = res.win ? res.rid : ui.sel; ui.pick = {};
     refreshAll();
+    if (ui.sel) { ensureVisible(ui.sel); refreshMap(); }
     showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">よし</button></div>', { replace: true });
     bigs.forEach(function (e) { queueStory(e.big); });
     if (S().over) queueEnding();
