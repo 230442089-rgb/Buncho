@@ -311,3 +311,52 @@ textarea.io { width: 100%; min-height: 90px; background: var(--ink); color: var(
 .dsay .bird { width: 22px; height: 22px; }
 .btn:not(:disabled):active, .row:not(:disabled):active, .nav button:active { transform: scale(.97); }
 @media (prefers-reduced-motion: reduce) { .shake, .chip.pop b, .card h2.slam, .b-stamp.in b, .b-stamp.in small, .b-dario.in { animation: none; } }
+.battle.cine .b-skip, .battle.cine .b-dario, .battle.cine .b-top, .battle.cine .b-stamp { display: none !important; }
+
+/* 核攻撃の画面:数えない、飾らない */
+.battle.grave .b-kills { display: none; }
+.battle.grave .b-title { color: #f1e9dc; text-shadow: 0 1px 6px rgba(0, 0, 0, .7); }
+.b-stamp.grave b { color: #f1e9dc; border: 0; border-top: 1px solid rgba(241, 233, 220, .6); border-bottom: 1px solid rgba(241, 233, 220, .6); border-radius: 0; background: rgba(20, 16, 14, .78); box-shadow: none; transform: none; font-size: clamp(34px, 11vw, 60px); letter-spacing: .32em; padding: 14px 8px 16px 26px; white-space: nowrap; }
+.b-stamp.grave small { color: #f1e9dc; background: none; transform: none; font-family: var(--f-body); font-weight: 400; font-size: 14px; letter-spacing: .08em; text-shadow: 0 1px 6px rgba(0, 0, 0, .8); }
+.b-stamp.grave.in b, .b-stamp.grave.in small { animation: grave-in 1.6s ease-out both; }
+@keyframes grave-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ───────── 国号・民心・施策・未来の研究 ───────── */
+.story p { white-space: pre-line; }
+.npill { min-width: 0; flex: 0 1 auto; display: grid; text-align: left; padding: 4px 10px 5px; border-radius: 8px; background: rgba(14, 22, 38, .9); border: 1px solid var(--line); line-height: 1.25; }
+.npill b { font-family: var(--f-display); font-weight: 400; font-size: 14px; letter-spacing: .04em; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.npill small { font-size: 10px; color: var(--fg-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vox { background: var(--panel-2); border-radius: 8px; padding: 7px 9px 8px; display: grid; gap: 5px; }
+.vox p { font-size: 13px; line-height: 1.6; color: var(--fg); }
+.vox p b { font-weight: 400; font-size: 11px; color: var(--fg-dim); margin-right: 4px; }
+.vox-m { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.vox-m > span { font-size: 10.5px; color: var(--fg-dim); letter-spacing: .04em; }
+.vox-m b { font-family: var(--f-num); font-size: 15px; }
+.vox-m small { font-size: 10.5px; color: var(--fg-dim); font-family: var(--f-num); }
+.bar.mood { position: relative; margin-top: 0; height: 6px; overflow: visible; }
+.bar.mood i { background: var(--good); } .bar.mood.warn i { background: var(--warn); } .bar.mood.bad i { background: var(--bad); }
+.bar.mood u { position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; background: var(--fg); border-radius: 1px; opacity: .8; }
+.ncard { background: linear-gradient(160deg, #2a3854, var(--panel)); border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 10px; display: grid; gap: 6px; }
+.ncard h3 { font-family: var(--f-display); font-weight: 400; font-size: 27px; letter-spacing: .08em; color: var(--gold); line-height: 1.2; }
+.ncard p { font-size: 13px; line-height: 1.7; }
+.ncard .by { font-size: 12px; color: var(--fg-dim); }
+.seg.wide { display: flex; }
+.seg.wide button { flex: 1; padding: 8px 6px; }
+.seg em { font-style: normal; display: inline-block; min-width: 16px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #1c1503; font-family: var(--f-num); font-size: 10.5px; font-weight: 700; line-height: 16px; }
+.seg button.on em { background: #1c1503; color: var(--gold); }
+.row.voice .vq { color: var(--fg); font-size: 13.5px; line-height: 1.6; }
+.tier.future { color: #9cc8ff; }
+.row.manual { border-style: dashed; }
+.card h2.grave { color: #d9d2c6; letter-spacing: .3em; }
+.grave-card h2 { color: #d9d2c6; }
+.asi-card { background: linear-gradient(#f4f7fb, #dfe6ef); color: #1c2433; border-radius: inherit; }
+.asi-card h2, .asi-card h2.grave { color: #1c2433; }
+.asi-card .eyebrow, .asi-card .dim { color: #5b6880; }
+.asi-card .note { color: #4a566c; }
+.asi-card .fact { background: rgba(28, 36, 51, .07); } .asi-card .fact > span { color: #5b6880; }
+.dio { width: 100%; aspect-ratio: 4 / 3; min-height: 220px; border-radius: 10px; overflow: hidden; background: #cfe6f5; position: relative; }
+.dio canvas { display: block; width: 100%; height: 100%; }
+/* 超知能のあと:朱も金も、良いも悪いも、同じ静かな色になる */
+body.asi { --shu: #aebbd0; --gold: #dfe6f0; --gold-deep: #9aa7ba; --good: #c5d0e0; --bad: #c5d0e0; --warn: #c5d0e0; }
+body.asi #map { filter: saturate(.25) brightness(1.06); }
+body.asi .nav .end { background: #c9d3e2; color: #1c2433; }

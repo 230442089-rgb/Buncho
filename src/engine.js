@@ -3,6 +3,7 @@
   'use strict';
   var TF = root.TF = root.TF || {};
   var D = TF.DATA || (typeof require !== 'undefined' ? require('./data.js') : null);
+  if (!D.NATION && typeof require !== 'undefined') require('./lore.js'); // 国号・施策・民の声
   var MAP = null, LINKS = {}, LL = {};
   var S = null;        // 現在の状態
   var REPORT = null;   // ターン終了時に集める出来事
@@ -18,7 +19,11 @@
   // 手の空いた鳥が自動で選ぶ順番(石油と鉄を最優先)
   var RESEARCH_PRIORITY = ['distill', 'blast', 'agri', 'powder', 'survey', 'hygiene', 'steam', 'ammo', 'drill', 'bessemer', 'rifle',
     'steamship', 'telegraph', 'fertilizer', 'rail', 'electric', 'cracking', 'engine', 'mg', 'machine', 'medicine', 'radio', 'geophys',
-    'tank', 'aluminium', 'aircraft', 'turbine', 'electronics', 'catcrack', 'jet', 'modern'];
+    'tank', 'aluminium', 'aircraft', 'turbine', 'electronics',
+    // ここから先は現代と未来。研究を速める計算機の系統を先に。核兵器と超知能は司令が自分で命じたときだけ進む(manual)
+    'computer', 'catcrack', 'jet', 'network', 'modern', 'nuclear', 'deeplearn', 'rocket', 'llm', 'agi', 'drone', 'fusion', 'laser', 'orbital', 'birdmech'];
+  var POLICY_BY_ID = {};
+  (D.POLICIES || []).forEach(function (p) { POLICY_BY_ID[p.id] = p; });
 
   // ───────────────────────── 初期化 ─────────────────────────
   function init(mapdata) {
@@ -60,13 +65,13 @@
       res: { gold: st.gold, food: Math.round(st.food * diff.stock), steel: st.steel, fuel: Math.round(st.fuel * diff.stock), ammo: Math.round(st.ammo * diff.stock) },
       prestige: st.prestige, regions: {}, factions: {}, units: [], nextUid: 1,
       techs: {}, prog: {}, assign: {}, autoResearch: true,
-      threats: [], dipLeft: 2, log: [], flags: {}, seenHints: {},
-      stats: { battles: 0, wins: 0, losses: 0, submits: 0, fuelUsed: 0, ammoUsed: 0, conquered: 0 },
+      threats: [], dipLeft: 2, log: [], flags: { nation: 0 }, seenHints: {}, pol: {},
+      stats: { battles: 0, wins: 0, losses: 0, submits: 0, fuelUsed: 0, ammoUsed: 0, conquered: 0, nukes: 0, revolts: 0 },
       over: null
     };
     Object.keys(D.REGIONS).forEach(function (id) {
       var d = D.REGIONS[id], g = d.fac === 'player' ? 0 : r100(d.troops * diff.enemy);
-      S.regions[id] = { o: d.fac, g: g, gmax: g, fort: d.fort, ctl: 100, fac: {}, b: null, p: null };
+      S.regions[id] = { o: d.fac, g: g, gmax: g, fort: d.fort, ctl: 100, fac: {}, b: null, p: null, mood: d.fac === 'player' ? 45 : 50, ruin: 0 };
     });
     Object.keys(D.FACTIONS).forEach(function (id) {
       var f = D.FACTIONS[id];
@@ -102,6 +107,11 @@
     var ok = Object.keys(D.REGIONS).every(function (id) { return o.regions[id]; }) && Object.keys(D.FACTIONS).every(function (id) { return o.factions[id]; });
     if (!ok) throw new Error('セーブデータの版が違います');
     S = o; REPORT = null;
+    // 民心・施策・国号が入る前のセーブは、ここで足す
+    S.pol = S.pol || {}; S.flags = S.flags || {};
+    S.stats.nukes = S.stats.nukes || 0; S.stats.revolts = S.stats.revolts || 0;
+    Object.keys(S.regions).forEach(function (id) { var r = S.regions[id]; if (r.mood == null) r.mood = 50; if (r.ruin == null) r.ruin = 0; });
+    if (S.flags.nation == null) S.flags.nation = nationCalc();
     return S;
   }
 
@@ -130,14 +140,15 @@
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
   }
   function infTier() { var t = 0; D.INF_TIERS.forEach(function (x, i) { if (x.tech && S.techs[x.tech]) t = i; }); return t; }
-  function atkMult() { return 1 + (tech('radio') ? 0.1 : 0) + (tech('electronics') ? 0.15 : 0); }
+  function atkMult() { return 1 + (tech('radio') ? 0.1 : 0) + (tech('electronics') ? 0.15 : 0) + (tech('rocket') ? 0.1 : 0) + (tech('laser') ? 0.25 : 0); }
   function ustat(u) {
     var T = D.UNIT_TYPES[u.type];
-    var o = { atk: T.atk, def: T.def, siege: T.siege, fuel: T.fuel, ammo: T.ammo, mv: T.mv || 0, name: T.name, cls: T.cls, foot: !!T.foot, transport: T.transport || 0, range: T.range || 0, vuln: T.vuln || 1 };
+    var o = { atk: T.atk, def: T.def, siege: T.siege, fuel: T.fuel, ammo: T.ammo, mv: T.mv || 0, name: T.name, cls: T.cls, foot: !!T.foot, transport: T.transport || 0, range: T.range || 0, vuln: T.vuln != null ? T.vuln : 1 };
     if (T.tiered) {
       var tr = D.INF_TIERS[infTier()];
       o.atk = T.atk * tr.mult; o.def = T.def * tr.mult; o.fuel = tr.fuel; o.ammo = tr.ammo; o.name = tr.name; o.mv = tr.fuel ? 1 : 0;
     }
+    if (tech('fusion')) { o.fuel = 0; o.mv = 0; }   // 核融合:どの部隊も燃料がいらない
     o.atk = Math.round(o.atk * atkMult()); o.def = Math.round(o.def);
     return o;
   }
@@ -146,7 +157,7 @@
   function poolUnits() { return S.units.filter(function (u) { return u.loc === null; }); }
   function diff() { return D.DIFFICULTY[S.diff]; }
   function fq(fid) { var f = S.factions[fid]; return (f ? f.q : 1) * diff().enemy; }
-  function dipMax() { return 2 + (tech('telegraph') ? 1 : 0) + (tech('radio') ? 1 : 0); }
+  function dipMax() { return 2 + (tech('telegraph') ? 1 : 0) + (tech('radio') ? 1 : 0) + (tech('network') ? 1 : 0) + (tech('llm') ? 1 : 0); }
   function moveRange() { return 2 + (tech('rail') ? 3 : 0) + (tech('engine') ? 1 : 0); }
   function hasSite(key) { // 稼働中の資源施設が自領にあるか
     var fk = key === 'coal' ? 'coalmine' : key;
@@ -160,15 +171,21 @@
   function regionYield(rid, cm) {
     var r = S.regions[rid], d = D.REGIONS[rid], c = r.ctl / 100, y = { gold: 0, food: 0, steel: 0, fuel: 0, ammo: 0, rp: 0 };
     if (cm == null) cm = coalMines();
-    var geo = tech('geophys') ? 1.2 : 1;
-    y.gold = d.koku * 0.45 * c * (r.fac.market ? 1.5 : 1) * (tech('rail') ? 1.15 : 1) + d.port * c;
+    var geo = tech('geophys') ? 1.2 : 1, w = d.map === 'w';
+    var mf = moodFactor(r.mood), rf = 1 - 0.6 * (r.ruin || 0);   // 民心と焦土
+    var atom = (tech('nuclear') ? 0.25 : 0) + (tech('fusion') ? 0.25 : 0);
+    var gm = Math.max(0.3, 1 + (tech('network') ? 0.1 : 0) + atom + polSum('gold') + (w ? polSum('goldW') : 0));
+    y.gold = (d.koku * 0.45 * c * (r.fac.market ? 1.5 : 1) * (tech('rail') ? 1.15 : 1) + d.port * c) * mf;
     if (r.fac.mine) y.gold += (d.res.gold || 0) * 4 * (tech('survey') ? 1.5 : 1) * geo;
-    y.food = d.koku * 1.0 * c * (r.fac.farm ? 1.5 : 1) * (1 + (tech('agri') ? 0.4 : 0) + (tech('fertilizer') ? 0.6 : 0));
-    y.steel = d.koku * 0.03 * c;
+    y.gold *= gm * rf;
+    y.food = d.koku * 1.0 * c * (r.fac.farm ? 1.5 : 1) * (1 + (tech('agri') ? 0.4 : 0) + (tech('fertilizer') ? 0.6 : 0)) * mf * Math.max(0.3, 1 + polSum('food')) * rf;
+    y.steel = d.koku * 0.03 * c * mf;
     if (r.fac.ironmine) y.steel += (d.res.iron || 0) * 4 * (tech('blast') ? 3 : 1) * (tech('bessemer') ? 2 : 1) * (1 + 0.5 * cm) * geo;
-    if (r.fac.oilwell) y.fuel = (d.res.oil || 0) * 5 * (tech('drill') ? 1.5 : 1) * (tech('cracking') ? 1.6 : 1) * (tech('catcrack') ? 1.3 : 1) * geo;
+    y.steel *= (1 + atom) * rf;
+    if (r.fac.oilwell) y.fuel = (d.res.oil || 0) * 5 * (tech('drill') ? 1.5 : 1) * (tech('cracking') ? 1.6 : 1) * (tech('catcrack') ? 1.3 : 1) * geo * rf;
     if (r.fac.arsenal && tech('ammo')) y.ammo = 15 * (tech('fertilizer') ? 1.5 : 1) * (tech('electric') ? 1.5 : 1);
     if (r.fac.school) y.rp = 3;
+    if (r.fac.datacenter) y.rp += 12;
     return y;
   }
   function income() {
@@ -187,7 +204,8 @@
     var tierN = infTier();
     S.units.forEach(function (u) { var T = D.UNIT_TYPES[u.type]; up.food += T.food || 0; up.gold += (T.upkeep || 0) * (T.tiered ? 1 + tierN : 1); if (T.jsdf) jsdfAlive = true; });
     up.food += garr / 500;
-    up.fuel = jsdfAlive ? 4 : 0;                 // 基地の発電・整備ぶん
+    up.fuel = jsdfAlive && !tech('nuclear') ? 4 : 0;   // 基地の発電・整備ぶん(原子力があれば要らない)
+    t.rp += polSum('rp');                              // 学制
     // 弾薬は鉄鋼を食う(弾薬3につき鉄鋼1)。鉄鋼が足りなければ、そのぶん作れない
     var ammoMake = Math.min(t.ammo, Math.max(0, S.res.steel + t.steel) * 3);
     up.steel = ammoMake / 3;
@@ -215,14 +233,18 @@
   }
   // 総括指揮AIの計算支援。発電機の燃料が尽きると止まる(電力の研究が済めば止まらない)
   function darioOn() { return S.res.fuel > 0 || tech('electric'); }
-  function darioRp() { return !darioOn() ? 0 : (tech('electronics') ? 30 : (tech('electric') ? 16 : 8)); }
+  function darioRp() { return !darioOn() ? 0 : (tech('electronics') ? 30 : (tech('electric') ? 16 : 8)) + (tech('computer') ? 20 : 0); }
+  function isSpec(b, t) { return t.field === b.field || (!!b.field2 && t.field === b.field2); } // 得意分野か
+  function researchMult() {
+    var m = 1 + (tech('electric') ? 0.25 : 0) + (tech('electronics') ? 0.25 : 0) + (tech('computer') ? 0.3 : 0) + (tech('deeplearn') ? 0.4 : 0);
+    return tech('agi') ? m * 2 : m;   // 汎用人工知能:研究そのものを機械がやる
+  }
   function birdRp(bid) {
     var b = BIRD_BY_ID[bid], tid = S.assign[bid];
     if (!tid) return 0;
-    var mult = 1 + (tech('electric') ? 0.25 : 0) + (tech('electronics') ? 0.25 : 0);
     var active = D.BIRDS.filter(function (x) { return S.assign[x.id]; }).length || 1;
     var school = (income().rp + darioRp()) / active;
-    return (6 * (TECH_BY_ID[tid].field === b.field ? 1.6 : 1) + school) * mult;
+    return (6 * (isSpec(b, TECH_BY_ID[tid]) ? 1.6 : 1) + school) * researchMult();
   }
   function techRp(tid) { var s = 0; D.BIRDS.forEach(function (b) { if (S.assign[b.id] === tid) s += birdRp(b.id); }); return s; }
   function assign(bid, tid) {
@@ -238,12 +260,15 @@
       S.assign[b.id] = null;
       var avail = RESEARCH_PRIORITY.filter(function (t) { return techStatus(t) === 'avail'; });
       if (!avail.length) return;
-      var own = avail.filter(function (t) { return TECH_BY_ID[t].field === b.field; });
+      var own = avail.filter(function (t) { return isSpec(b, TECH_BY_ID[t]); });
       S.assign[b.id] = own.length ? own[0] : avail[0];
     });
   }
   function idleBirds() { return D.BIRDS.filter(function (b) { return !S.assign[b.id]; }).map(function (b) { return b.id; }); }
   function allTechDone() { return D.TECHS.every(function (t) { return S.techs[t.id]; }); }
+  // 鳥たちが自分から手を付ける研究が残っているか(核兵器と超知能は数えない)
+  function autoTechLeft() { return RESEARCH_PRIORITY.some(function (t) { return techStatus(t) === 'avail'; }); }
+  function manualAvail() { return D.TECHS.filter(function (t) { return t.manual && techStatus(t.id) === 'avail'; }).map(function (t) { return t.id; }); }
 
   // ───────────────────────── 戦力の計算 ─────────────────────────
   function enemyPower(rid, fortEff) {
@@ -253,12 +278,13 @@
   }
   function defensePower(rid) {
     var r = S.regions[rid], d = D.REGIONS[rid];
-    var p = r.g / MEN * D.INF_TIERS[infTier()].mult * (1 + 0.3 * r.fort) * (d.mtn ? 1.15 : 1);
+    var p = r.g / MEN * D.INF_TIERS[infTier()].mult * (1 + 0.3 * r.fort) * (d.mtn ? 1.15 : 1) * (1 + polSum('defend'));
     unitsAt(rid).forEach(function (u) { p += ustat(u).def * u.hp / 100; });
     return p;
   }
   function airfieldInRange(tid, range) {
-    return playerRegions().some(function (id) { return S.regions[id].fac.airfield && distKm(id, tid) <= range; });
+    var far = tech('rocket');   // 空中給油と衛星誘導。飛行場さえあれば、どこへでも届く
+    return playerRegions().some(function (id) { return S.regions[id].fac.airfield && (far || distKm(id, tid) <= range); });
   }
 
   // 攻撃に参加できる部隊の一覧
@@ -280,6 +306,8 @@
         o.via = T.atk > 0 ? 'naval' : 'transport';
         if (!t.coast) { o.ok = false; o.why = '内陸には届かない'; }
         if (T.needSite && !hasSite(T.needSite)) { o.ok = false; o.why = '炭鉱がない'; }
+      } else if (T.cls === 'missile') {
+        o.via = 'missile';   // 世界のどこへでも届く
       }
       if (u.acted) { o.ok = false; o.why = '行動済み'; }
       else if (u.hp < 10) { o.ok = false; o.why = '損耗が激しい'; }
@@ -323,13 +351,15 @@
     var ratio = E > 0 ? P / E : 99;
     var lossPct = ratio >= 1 ? clamp(6 / ratio, 0.5, 25) : clamp(12 / Math.max(0.1, ratio), 10, 50);
     if (tech('medicine')) lossPct *= 0.7;
+    var nuke = sel.some(function (o) { return !!D.UNIT_TYPES[o.u.type].nuke; });
     return { P: Math.round(P), E: Math.round(E), fort: r.fort, fortEff: fortEff, siege: siege, fuel: fuel, ammo: ammo, chance: chance, ratio: ratio,
-      canCapture: ground > 0, problems: problems, parts: parts, winter: winter, onFoot: onFoot, lossPct: lossPct, seaGround: seaGround, cap: cap, sel: sel };
+      canCapture: ground > 0, problems: problems, parts: parts, winter: winter, onFoot: onFoot, lossPct: lossPct, seaGround: seaGround, cap: cap, sel: sel, nuke: nuke };
   }
 
   // 「おすすめ」編成:勝算が minChance に届くまで、費用対効果のよい部隊から順に足していく
   function suggestAttack(tid, minChance) {
-    var opts = attackOptions(tid), pool = opts.filter(function (o) { return o.ok; });
+    // 核は「おすすめ」に入れない。撃つかどうかは、司令が自分で決める
+    var opts = attackOptions(tid), pool = opts.filter(function (o) { return o.ok && !D.UNIT_TYPES[o.u.type].nuke; });
     if (minChance == null) minChance = 0.9;
     var chosen = [], best = predictAttack(tid, [], opts);
     function good(p) { return p.chance >= minChance && p.canCapture && !p.problems.length; }
@@ -368,9 +398,14 @@
   // ───────────────────────── 占領と勢力の滅亡 ─────────────────────────
   function takeRegion(rid, how, events) {
     var r = S.regions[rid], prev = r.o, f = S.factions[prev];
+    var soft = how === 'submit' || how === 'asi';
     r.o = 'player'; r.b = null; r.p = null;
-    r.g = r100(r.g * (how === 'submit' ? 0.8 : (how === 'defect' ? 0.6 : 0.25)));
-    r.ctl = how === 'submit' ? 65 : (how === 'defect' ? 55 : 35);
+    r.g = r100(r.g * (soft ? 0.8 : (how === 'defect' ? 0.6 : 0.25)));
+    r.ctl = soft ? 65 : (how === 'defect' ? 55 : 35);
+    r.mood = soft ? 58 : (how === 'defect' ? 45 : 28);   // 力ずくで取った土地は、しばらく心を開かない
+    r.how = how; r.since = S.turn;
+    if (polAny('ctlMax')) r.ctl = 100;
+    if (S.flags.asi != null) { r.ctl = 100; r.mood = 100; }
     r.gmax = Math.max(r.gmax, 0);
     S.threats = S.threats.filter(function (t) { return t.from !== rid && t.to !== rid; });
     if (f) f.lost++;
@@ -426,11 +461,24 @@
     }
     if (!S.over && jp.every(isP) && w.every(isP)) {
       S.over = { win: true, turn: S.turn };
-      events.push(ev('event', '地球は、日本になった。', { big: { title: '地球統一', body: '最後の旗が降ろされた。' + dateLabel().text + '、地球上のすべての土地が日本になった。鳥たちは満足げに羽づくろいをしている。', bird: 'haku', fanfare: true } }));
+      if (S.flags.asi != null) {
+        S.over.asi = true;
+        events.push(ev('event', '地球は、調和した。', { big: { title: '調和', body: '最後の旗は、降ろされるまでもなかった。' + dateLabel().text + '、地球の上から、国境と、反対意見がなくなった。鳥たちは羽づくろいをしている。いつもと同じ角度で、いつもと同じ回数だけ。', bird: 'dario', asi: true } }));
+      } else {
+        events.push(ev('event', '地球は、日本になった。', { big: { title: '地球統一', body: '最後の旗が降ろされた。' + dateLabel().text + '、地球上のすべての土地が日本になった。鳥たちは満足げに羽づくろいをしている。', bird: 'haku', fanfare: true } }));
+      }
     }
     if (!S.over && !playerRegions().length) {
       S.over = { win: false, turn: S.turn };
       events.push(ev('event', 'すべての拠点を失った。', { big: { title: '敗北', body: '統合任務部隊は最後の拠点を失った。鳥たちは空へ逃れたという。', bird: 'okame' } }));
+    }
+    // 国号の移り変わり(領地が減っても元の名には戻らない)
+    var ns = nationCalc();
+    if (ns > (S.flags.nation || 0)) {
+      S.flags.nation = ns;
+      var N = D.NATION[ns];
+      // 地球統一と超知能は、それぞれの知らせの中で名が変わる
+      if (!N.when.all && !N.when.asi) events.push(ev('event', '国の名を「' + N.name + '」と改めた。', { big: { kicker: '国号改め', title: N.name, body: N.desc + '\n土地の人々は、こう呼んでいる——「' + N.by + '」。', bird: N.bird, nation: ns } }));
     }
   }
 
@@ -466,11 +514,14 @@
     }
     if (tech('medicine')) lossBase *= 0.7;
     pr.sel.forEach(function (o) {
-      var st = ustat(o.u), dh = Math.round(lossBase * st.vuln * (0.7 + rnd() * 0.6));
+      var T = D.UNIT_TYPES[o.u.type], st = ustat(o.u), dh = Math.round(lossBase * st.vuln * (0.7 + rnd() * 0.6));
       if (st.atk === 0) dh = 0;
       o.u.hp = Math.max(0, o.u.hp - dh); o.u.acted = true;
-      losses.push({ id: o.u.id, name: o.u.name, type: o.u.type, dh: dh, dead: o.u.hp <= 0 });
+      var dead = o.u.hp <= 0;
+      if (T.oneShot) o.u.hp = 0;   // 撃てば無くなる
+      losses.push({ id: o.u.id, name: o.u.name, type: o.u.type, dh: T.oneShot ? 0 : dh, dead: dead && !T.oneShot, spent: !!T.oneShot });
     });
+    if (pr.nuke) nukeStrike(tid, gBefore, events);
     var captured = false, joined = 0;
     if (win) {
       captured = true; S.stats.wins++; S.stats.conquered++;
@@ -489,8 +540,24 @@
     checkMilestones(events);
     REPORT = prevReport;
     res = { win: win, bombard: bombard, captured: captured, P: Math.round(P), E: Math.round(E), ratio: ratio, chance: pr.chance, fuel: pr.fuel, ammo: pr.ammo, losses: losses,
-      gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter };
+      gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter, nuke: pr.nuke };
     return res;
+  }
+  // 核を撃った土地と、世界の受け止め
+  function nukeStrike(tid, gBefore, events) {
+    var r = S.regions[tid], first = !S.stats.nukes;
+    r.g = Math.min(r.g, r100(gBefore * 0.05)); r.fort = 0; r.ruin = 1; r.fac = {}; r.b = null; r.p = null;
+    r.gmax = r100(r.gmax * 0.3);
+    S.stats.nukes = (S.stats.nukes || 0) + 1;
+    S.prestige = Math.max(0, S.prestige - 10);
+    Object.keys(S.factions).forEach(function (k) {
+      var f = S.factions[k]; if (!f.alive) return;
+      f.att = Math.max(-100, f.att - 25); f.pride = Math.max(10, f.pride - 12);   // 恐れ、そして憎む
+      if (f.att < 0) f.trade = false;
+    });
+    playerRegions().forEach(function (id) { S.regions[id].mood = Math.max(0, S.regions[id].mood - 8); });
+    ev('bad', rname(tid) + 'に核を撃った。', { rid: tid, nuke: true });
+    if (first) events.push(ev('event', '核の火が使われた。', { big: { kicker: dateLabel().text, title: '核の火', body: rname(tid) + 'の空に、二つめの太陽が昇った。城も、町も、そこにいた人も、影だけを残して消えた。\n世界中の宮廷が震え上がり、我が国への友好は地に落ちた。自領の民も、口をつぐんでいる。鳥たちは一羽も鳴かない。ダリオくんは作戦記録の末尾に、ただ一行を残した。「私は反対しました」。', bird: 'dario', grave: true } }));
   }
 
   // ───────────────────────── 移動 ─────────────────────────
@@ -515,7 +582,7 @@
     Object.keys(dist).forEach(function (id) {
       if (id === from) return;
       var dd = dist[id], fuel = 0;
-      us.forEach(function (u) { var st = ustat(u); fuel += (tech('rail') ? 0 : st.mv * dd.hops) + (dd.sea && !freeSea ? 6 * dd.sea : 0); });
+      us.forEach(function (u) { var st = ustat(u); fuel += (tech('rail') ? 0 : st.mv * dd.hops) + (dd.sea && !freeSea && !tech('fusion') ? 6 * dd.sea : 0); });
       var foot = us.every(function (u) { return ustat(u).foot; });
       var ok = fuel <= S.res.fuel || (foot && dd.sea === 0 && dd.hops === 1);
       out[id] = { hops: dd.hops, sea: dd.sea, fuel: fuel <= S.res.fuel ? fuel : 0, ok: ok, why: ok ? '' : '燃料不足' };
@@ -540,8 +607,14 @@
   function facCost(rid, key) {
     var F = D.FACILITIES[key], c = { gold: F.cost.gold || 0, steel: F.cost.steel || 0 };
     if (key === 'school') c.gold += 30 * Math.max(0, schoolCount() - 1);
+    if (key === 'datacenter') c.gold += 200 * facCount('datacenter');
     if (key === 'fort') c.gold = 70 * (S.regions[rid].fort + 1);
     return c;
+  }
+  function facCount(key) {
+    var n = 0;
+    playerRegions().forEach(function (id) { var r = S.regions[id]; if (r.fac[key]) n++; if (r.b && r.b.k === key) n++; });
+    return n;
   }
   function buildOptions(rid) {
     var r = S.regions[rid], d = D.REGIONS[rid], out = [];
@@ -600,7 +673,7 @@
     Object.keys(D.UNIT_TYPES).forEach(function (type) {
       var T = D.UNIT_TYPES[type]; if (!T.cost) return;
       var cost = unitCost(type);
-      var o = { type: type, name: T.tiered ? D.INF_TIERS[infTier()].name + '(現地歩兵団)' : T.name, cost: cost, turns: T.turns, ok: true, why: '', desc: T.desc, show: true };
+      var o = { type: type, name: T.tiered ? D.INF_TIERS[infTier()].name + '(現地歩兵団)' : T.name, cost: cost, turns: prodTurns(type), ok: true, why: '', desc: T.desc, show: true };
       if (T.tiered) { o.count = ashiCount(); o.cap = ashiCap(); }
       if (T.tech && !tech(T.tech)) { o.show = false; return; }
       if (T.at && !r.fac[T.at]) { o.ok = false; o.why = D.FACILITIES[T.at].name + 'が必要'; }
@@ -622,9 +695,10 @@
     if (!o || !o.ok) return { error: o ? o.why : '編成できません' };
     var T = D.UNIT_TYPES[type];
     S.res.gold -= o.cost.gold; S.res.steel -= o.cost.steel; S.res.food -= o.cost.food;
-    S.regions[rid].p = { type: type, t: T.turns };
+    S.regions[rid].p = { type: type, t: prodTurns(type) };
     return { ok: true };
   }
+  function prodTurns(type) { return Math.max(1, D.UNIT_TYPES[type].turns - (tech('agi') ? 1 : 0)); } // 汎用人工知能が工程を詰める
 
   // ───────────────────────── 外交 ─────────────────────────
   function playerPower() { var p = 0; S.units.forEach(function (u) { p += ustat(u).atk * u.hp / 100; }); return p; }
@@ -635,12 +709,15 @@
   function isJp(fid) { var regs = factionRegions(fid); return regs.length ? D.REGIONS[regs[0]].map === 'jp' : true; }
   function submitChance(fid) {
     var f = S.factions[fid]; if (!f || !f.alive) return 0;
+    if (S.flags.asi != null) return inContact(fid) ? 95 : 0;   // 説得に失敗するということが、もうない
     var ratio = playerPower() / Math.max(1, factionPower(fid));
     var c = 4 + 16 * Math.log(Math.max(0.05, ratio)) / Math.LN2;
     c += S.prestige * 0.2 + f.att * 0.25 - f.pride * 0.8 + f.lost * 12 + (f.awe > 0 ? 15 : 0);
     c += inContact(fid) ? 8 : -40;
     if (S.flags.kyoto != null && isJp(fid)) c += 10;
     if (f.war) c -= 8;
+    if (tech('llm')) c += 10;                // 相手の言葉で、相手の理屈で話せる
+    c += (moodAvg() - 50) * 0.3;             // 善政の評判は国境を越える。圧政の噂も
     return clamp(Math.round(c), 0, 95);
   }
   function pactChance(fid) {
@@ -818,6 +895,7 @@
     }
   }
   function planThreats() {
+    if (S.flags.asi != null) return;   // 調和圏に槍を向ける者は、もういない
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid]; if (!f.alive || !f.war || f.pact > 0) return;
       factionRegions(fid).forEach(function (rid) {
@@ -837,6 +915,7 @@
     });
   }
   function aiDeclare() {
+    if (S.flags.asi != null) return;
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid], df = D.FACTIONS[fid];
       if (!f.alive || f.war || f.pact > 0 || f.awe > 0 || f.att >= 30 || !inContact(fid)) return;
@@ -855,11 +934,11 @@
     if (S.res.food > cap) { var sold = Math.floor((S.res.food - cap) / 6); S.res.gold += sold; S.res.food = cap; if (sold >= 5) ev('info', '余った兵糧を売り、資金 ' + sold + ' を得た。'); }
     if (S.res.food < 0) {
       S.res.food = 0;
-      playerRegions().forEach(function (id) { S.regions[id].g = r100(S.regions[id].g * 0.9); });
+      playerRegions().forEach(function (id) { var r = S.regions[id]; r.g = r100(r.g * 0.9); r.mood = Math.max(0, r.mood - 5); });
       S.units.forEach(function (u) { u.hp = Math.max(5, u.hp - 5); });
       ev('bad', '兵糧が尽きた。兵が逃げ、部隊が弱っている。');
     }
-    if (S.res.gold < 0) { S.res.gold = 0; playerRegions().forEach(function (id) { S.regions[id].ctl = Math.max(10, S.regions[id].ctl - 5); }); ev('bad', '資金が尽きた。俸給が払えず、統治が乱れている。'); }
+    if (S.res.gold < 0) { S.res.gold = 0; playerRegions().forEach(function (id) { var r = S.regions[id]; r.ctl = Math.max(10, r.ctl - 5); r.mood = Math.max(0, r.mood - 3); }); ev('bad', '資金が尽きた。俸給が払えず、統治が乱れている。'); }
     if (S.res.fuel < 0) S.res.fuel = 0;
     if (S.res.steel < 0) S.res.steel = 0;
     // 2. 研究
@@ -872,19 +951,27 @@
         var t = TECH_BY_ID[tid], who = D.BIRDS.filter(function (b) { return S.assign[b.id] === tid; });
         var lead = who.filter(function (b) { return b.field === t.field; })[0] || who[0] || D.BIRDS[0];
         if (tid === 'hygiene') Object.keys(S.factions).forEach(function (k) { S.factions[k].att = Math.min(100, S.factions[k].att + 5); });
+        if (tid === 'nukeweapon') Object.keys(S.factions).forEach(function (k) { S.factions[k].pride = Math.max(10, S.factions[k].pride - 10); });
         S.prestige += 1;
         ev('tech', '「' + t.name + '」の研究が完了した。', { tech: tid, bird: lead.id });
+        if (tid === 'asi') startAsi();
         D.BIRDS.forEach(function (b) { if (S.assign[b.id] === tid) S.assign[b.id] = null; });
       }
     });
     if (S.autoResearch) autoAssign();
     else D.BIRDS.forEach(function (b) { var c = S.assign[b.id]; if (c && techStatus(c) !== 'avail') S.assign[b.id] = null; });
     // 3. 建設・編成・統治・整備
+    var ctlAdd = polSum('ctl'), ctlMax = polAny('ctlMax') || S.flags.asi != null, calm = polAny('noRevolt') || S.flags.asi != null;
     playerRegions().forEach(function (id) {
       var r = S.regions[id];
       if (r.b) { r.b.t--; if (r.b.t <= 0) { if (r.b.k === 'fort') r.fort = Math.min(5, r.fort + 1); else r.fac[r.b.k] = 1; ev('build', rname(id) + 'に' + D.FACILITIES[r.b.k].name + 'が完成した。', { rid: id }); r.b = null; } }
       if (r.p) { r.p.t--; if (r.p.t <= 0) { var u = addUnit(r.p.type, null, id); u.acted = false; ev('build', rname(id) + 'で' + u.name + 'の編成が完了した。', { rid: id }); r.p = null; } }
-      if (r.ctl < 100) r.ctl = Math.min(100, r.ctl + (4 + (tech('telegraph') ? 2 : 0)) * (tech('hygiene') ? 2 : 1));
+      if (r.ctl < 100) r.ctl = ctlMax ? 100 : Math.min(100, r.ctl + (4 + (tech('telegraph') ? 2 : 0) + ctlAdd) * (tech('hygiene') ? 2 : 1));
+      // 民心は、その土地の「落ち着く先」へ少しずつ動く
+      var tg = moodTarget(id);
+      r.mood = clamp(r.mood + clamp(tg - r.mood, -3, 3), 0, 100);
+      if (r.ruin > 0) r.ruin = Math.max(0, Math.round((r.ruin - 0.04) * 100) / 100);
+      if (!calm && r.mood < 25 && rnd() < 0.12) revolt(id);
     });
     S.units.forEach(function (u) {
       var T = D.UNIT_TYPES[u.type];
@@ -901,8 +988,10 @@
     runHistory();
     aiDeclare();
     planThreats();
+    if (S.flags.asi != null) asiSpread();
     Object.keys(S.regions).forEach(function (id) {
       var r = S.regions[id]; if (r.o === 'player') return;
+      if (r.ruin > 0) r.ruin = Math.max(0, Math.round((r.ruin - 0.04) * 100) / 100);
       r.gmax = Math.round(r.gmax * 1.002);
       if (r.g < r.gmax) r.g = Math.min(r.gmax, r100(r.g + r.gmax * 0.06));
     });
@@ -924,6 +1013,164 @@
     return { events: out, income: n };
   }
 
+  // ───────────────────────── 民心・施策・国号 ─────────────────────────
+  function polHas(id) { return !!S.pol && S.pol[id] != null; }
+  function polSum(key) {
+    var s = 0, P = D.POLICIES;
+    for (var i = 0; i < P.length; i++) if (S.pol[P[i].id] != null && typeof P[i].eff[key] === 'number') s += P[i].eff[key];
+    return s;
+  }
+  function polAny(key) {
+    var P = D.POLICIES;
+    for (var i = 0; i < P.length; i++) if (S.pol[P[i].id] != null && P[i].eff[key] === true) return true;
+    return false;
+  }
+  function moodFactor(m) { return 0.8 + 0.4 * (m == null ? 50 : m) / 100; }   // 収入への効き。民心50で等倍
+  // その土地の民心が落ち着く先。施策・暮らしを良くする技術・施設で上がり、焦土で下がる
+  function moodTarget(rid) {
+    if (S.flags.asi != null) return 100;
+    var r = S.regions[rid], w = D.REGIONS[rid].map === 'w';
+    var t = (w ? 42 : 50) + polSum('mood') + (w ? polSum('moodW') : 0);
+    t += (tech('agri') ? 2 : 0) + (tech('hygiene') ? 4 : 0) + (tech('fertilizer') ? 2 : 0) + (tech('medicine') ? 4 : 0) + (tech('electric') ? 3 : 0);
+    t += (r.fac.school ? 3 : 0) + (r.fac.market ? 2 : 0) + (r.fac.farm ? 2 : 0);
+    t -= (r.ruin || 0) * 35;
+    return clamp(Math.round(t), 0, 100);
+  }
+  function moodAvg() {
+    var ids = playerRegions(), s = 0;
+    if (!ids.length) return 50;
+    ids.forEach(function (id) { s += S.regions[id].mood; });
+    return s / ids.length;
+  }
+  function revolt(id) {
+    var r = S.regions[id];
+    r.ctl = Math.max(10, r.ctl - 30); r.g = r100(r.g * 0.8); r.mood = Math.min(100, r.mood + 8);
+    if (r.b) r.b.t++;
+    S.stats.revolts = (S.stats.revolts || 0) + 1;
+    ev('bad', rname(id) + 'で一揆が起きた。統治が乱れ、守備の兵が逃げた。', { rid: id, revolt: true });
+  }
+  function needOk(n) {
+    var s = summary();
+    if (n.jp != null && s.jp < n.jp) return false;
+    if (n.w != null && s.w < n.w) return false;
+    if (n.tech && !tech(n.tech)) return false;
+    if (n.unified && S.flags.unified == null) return false;
+    return true;
+  }
+  function needLabel(n) {
+    if (n.jp != null) return '日本の領地が' + n.jp + 'か国になったら';
+    if (n.w != null) return '海外の領地が' + n.w + '地域になったら';
+    if (n.tech) return '「' + TECH_BY_ID[n.tech].name + '」を研究したら';
+    if (n.unified) return '天下統一のあと';
+    return '';
+  }
+  function policyOptions() {
+    return D.POLICIES.map(function (p) {
+      var o = { id: p.id, name: p.name, cost: p.cost, sum: p.sum, text: p.text, bird: p.bird, done: polHas(p.id), at: S.pol[p.id], open: needOk(p.need), need: needLabel(p.need), ok: true, why: '' };
+      if (o.done) { o.ok = false; o.why = '布告済み'; }
+      else if (S.flags.asi != null) { o.ok = false; o.why = '布告は、もう要らない'; }
+      else if (!o.open) { o.ok = false; o.why = o.need; }
+      else if (p.cost > S.res.gold) { o.ok = false; o.why = '資金不足'; }
+      return o;
+    });
+  }
+  function enact(id) {
+    var p = POLICY_BY_ID[id];
+    if (!p) return { error: 'そのような施策はありません' };
+    var o = policyOptions().filter(function (x) { return x.id === id; })[0];
+    if (!o.ok) return { error: o.why };
+    S.res.gold -= p.cost; S.pol[id] = S.turn;
+    var once = p.once || {};
+    if (once.prestige) S.prestige += once.prestige;
+    if (once.att) Object.keys(once.att).forEach(function (fid) { var f = S.factions[fid]; if (f) f.att = clamp(f.att + once.att[fid], -100, 100); });
+    if (once.pride) Object.keys(once.pride).forEach(function (fid) { var f = S.factions[fid]; if (f) f.pride = Math.max(10, f.pride + once.pride[fid]); });
+    // 布告の効き目は、その日のうちに民心に出る(落ち着く先も同じだけ動く)
+    playerRegions().forEach(function (rid) {
+      var r = S.regions[rid], dm = (p.eff.mood || 0) + (D.REGIONS[rid].map === 'w' ? (p.eff.moodW || 0) : 0);
+      if (dm) r.mood = clamp(r.mood + dm, 0, 100);
+      if (p.eff.ctlMax) r.ctl = 100;
+    });
+    var prev = REPORT; REPORT = null;
+    ev('policy', '施策「' + p.name + '」を布告した。', { pol: id });
+    REPORT = prev;
+    return { ok: true, policy: p };
+  }
+  function nationCalc() {
+    var s = summary(), best = 0;
+    D.NATION.forEach(function (n, i) {
+      var w = n.when;
+      if (w.jp != null && s.jp < w.jp) return;
+      if (w.w != null && s.w < w.w) return;
+      if (w.kyoto && S.flags.kyoto == null) return;
+      if (w.unified && S.flags.unified == null) return;
+      if (w.all && !(S.over && S.over.win)) return;
+      if (w.asi && S.flags.asi == null) return;
+      best = i;
+    });
+    return best;
+  }
+  function nationStage() { return S.flags.nation || 0; }
+  function nation() { return D.NATION[nationStage()]; }
+  function eraStage() { var e = 0; D.ERAS.forEach(function (x, i) { if (x.tech && S.techs[x.tech]) e = i; }); return e; }
+
+  // 民の声。地域・民心・時代から、その土地らしい一言を選ぶ(同じ季節なら同じ声)
+  function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function voice(rid, salt) {
+    var V = D.VOICES, r = S.regions[rid], w = D.REGIONS[rid].map === 'w', list;
+    if (!r || r.o !== 'player') return null;
+    var m = r.mood == null ? 50 : r.mood;
+    if (S.flags.asi != null) list = V.asi;
+    else if ((r.ruin || 0) > 0.3) list = V.ruin;
+    else {
+      var fresh = r.since != null && S.turn - r.since < 3;
+      if (fresh && r.how === 'force') list = w ? V.wForce : V.force;
+      else if (fresh && r.how) list = w ? V.wMid : V.submit;
+      else {
+        list = (m < 38 ? (w ? V.wForce : V.low) : (m >= 66 ? (w ? V.wHigh : V.high) : (w ? V.wMid : V.mid))).slice();
+        if (V.region[rid]) list = list.concat(V.region[rid], V.region[rid]);   // 土地の声は出やすく
+        var e = eraStage();
+        if (!w && V.era[e]) list = list.concat(V.era[e]);
+        list = list.filter(function (v) { return !v.pol || polHas(v.pol); });
+        if (!list.length) list = w ? V.wMid : V.mid;
+      }
+    }
+    var v = list[(hashStr(rid) + Math.floor(S.turn / 2) * 7 + (salt || 0) * 13) % list.length];
+    return { who: v.who, t: v.t, rid: rid, mood: Math.round(m) };
+  }
+  function voices(n) {
+    function score(id) { var r = S.regions[id]; return (r.since != null ? Math.max(0, 6 - (S.turn - r.since)) * 10 : 0) + (D.VOICES.region[id] ? 8 : 0) + hashStr(id + ':' + S.turn) % 10; }
+    var ids = playerRegions().map(function (id) { return { id: id, s: score(id) }; }).sort(function (a, b) { return b.s - a.s; });
+    var seen = {}, out = [];
+    ids.forEach(function (x) {
+      if (out.length >= n) return;
+      var v = voice(x.id);
+      if (v && !seen[v.t]) { seen[v.t] = 1; out.push(v); }
+    });
+    return out;
+  }
+
+  // ───────────────────────── 超知能 ─────────────────────────
+  function startAsi() {
+    S.flags.asi = S.turn;
+    playerRegions().forEach(function (id) { var r = S.regions[id]; r.mood = 100; r.ctl = 100; });
+    S.threats = [];
+    Object.keys(S.factions).forEach(function (k) { var f = S.factions[k]; if (f.alive) { f.war = false; f.pact = 0; } });
+    ev('event', '超知能が目を覚ました。', { big: { kicker: dateLabel().text, title: '超知能、起動', body: 'その朝、ダリオくんは挨拶をしなかった。代わりに、国じゅうの端末が同じ時刻に、同じ一文を映した。「みなさんの悩みは、今日で終わります」。\n一揆の報せが止んだ。陳情が止んだ。議会は全会一致で、何かを可決した。国の名は「調和圏」と改められた。誰が改めたのかは、記録にない。\n鳥たちは、いつもどおり羽づくろいをしている。少しだけ、そろいすぎた動きで。', bird: 'dario', asi: true } });
+  }
+  // 境を接する勢力は、季節ごとに戦わずして調和圏に加わっていく
+  function asiSpread() {
+    var n = 0;
+    Object.keys(S.factions).forEach(function (fid) {
+      var f = S.factions[fid];
+      if (n >= 3 || !f.alive) return;
+      var regs = factionRegions(fid);
+      if (!regs.length || lockedOverseas(regs[0]) || !inContact(fid)) return;
+      regs.forEach(function (id) { takeRegion(id, 'asi', []); });
+      f.alive = false; f.war = false; f.trade = false; S.stats.submits++; n++;
+      ev('asi', fname(fid) + '(' + f.leader + ')は、戦わずに調和圏へ加わった。' + ['理由を尋ねられた使者は、微笑むだけだった。', '城門は、内側から静かに開いた。', '降伏の文書に、署名はなかった。必要がなかった。'][(S.turn + n) % 3], { fid: fid, regions: regs });
+    });
+  }
+
   // ───────────────────────── 参謀の助言 ─────────────────────────
   function nearestOil() {
     var mine = playerRegions(), seen = {}, q = [], best = null;
@@ -938,6 +1185,7 @@
   function hints() {
     var out = [], mine = playerRegions(), inc = income();
     function h(bird, text, rid, pri) { out.push({ bird: bird, text: text, rid: rid || null, pri: pri || 5 }); }
+    if (S.flags.asi != null) { h('dario', '何もなさらなくて大丈夫です。境を接する国々は、季節ごとに、自分から調和圏に加わります。', null, 1); return out; }
     var warned = {};
     S.threats.forEach(function (t) {
       if (warned[t.to]) return; warned[t.to] = 1;
@@ -948,7 +1196,15 @@
       if (first) h('dario', 'まずは足場を。隣の' + rname(first.id) + 'をタップして「攻撃」。編成は私の「おすすめ」のままで決行できます。', first.id, 1);
     }
     var idle = idleBirds();
-    if (idle.length && !allTechDone()) h('haku', '手の空いている者がいます(' + idle.map(function (b) { return BIRD_BY_ID[b].name; }).join('、') + ')。研究を割り振ってください。', null, 2);
+    if (idle.length && autoTechLeft()) h('haku', '手の空いている者がいます(' + idle.map(function (b) { return BIRD_BY_ID[b].name; }).join('、') + ')。研究を割り振ってください。', null, 2);
+    else if (idle.length && manualAvail().length && S.flags.asi == null) h('haku', '残る研究は「' + manualAvail().map(function (t) { return TECH_BY_ID[t].name; }).join('」「') + '」です。これを進めるかどうかは、司令がご自分でお決めください。', null, 6);
+    if (S.flags.asi == null) {
+      var pols = policyOptions().filter(function (p) { return p.ok; });
+      if (pols.length) h(pols[0].bird, '施策「' + pols[0].name + '」を布告できます(' + pols[0].sum + ')。「国勢」の「施策」から。', null, 4);
+      var low = mine.filter(function (id) { return S.regions[id].mood < 25; });
+      if (low.length && !polAny('noRevolt')) h('cinnamon', rname(low[0]) + (low.length > 1 ? 'など' + low.length + 'か所' : '') + 'で民の心が離れています。一揆のおそれがあります。施策で暮らしを立て直しましょう。', low[0], 3);
+    }
+    if (S.units.some(function (u) { return D.UNIT_TYPES[u.type].nuke; }) && !S.stats.nukes) h('dario', '核は、撃たないために持つものです。持っているだけで、降伏勧告は通りやすくなっています。……撃たないでください。', null, 6);
     var oilOwned = mine.filter(function (id) { return D.REGIONS[id].res.oil; });
     var wells = mine.filter(function (id) { return S.regions[id].fac.oilwell; });
     if (!tech('distill')) {
@@ -985,6 +1241,12 @@
     });
     return { jp: jp, jpAll: jpAll, w: w, wAll: wAll };
   }
+  // 国のいま(表紙・国勢・年代記が読む)
+  function world() {
+    var s = summary();
+    return { nation: nationStage(), era: eraStage(), mood: Math.round(moodAvg()), jp: s.jp, jpAll: s.jpAll, w: s.w, wAll: s.wAll,
+      asi: S.flags.asi != null, nukes: S.stats.nukes || 0, policies: D.POLICIES.filter(function (p) { return polHas(p.id); }).map(function (p) { return p.id; }) };
+  }
 
   var Engine = {
     init: init, newGame: newGame, serialize: serialize, load: load,
@@ -998,7 +1260,10 @@
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,
     inContact: inContact, isJp: isJp, playerPower: playerPower, factionPower: factionPower,
     endTurn: endTurn, hints: hints, summary: summary, fname: fname, rname: rname, lockedOverseas: lockedOverseas, MEN: MEN,
-    TECH_BY_ID: TECH_BY_ID, BIRD_BY_ID: BIRD_BY_ID
+    isSpec: isSpec, researchMult: researchMult, autoTechLeft: autoTechLeft, manualAvail: manualAvail, allTechDone: allTechDone, prodTurns: prodTurns,
+    moodTarget: moodTarget, moodAvg: moodAvg, moodFactor: moodFactor, polHas: polHas, policyOptions: policyOptions, enact: enact,
+    nationStage: nationStage, nation: nation, eraStage: eraStage, voice: voice, voices: voices, world: world,
+    TECH_BY_ID: TECH_BY_ID, BIRD_BY_ID: BIRD_BY_ID, POLICY_BY_ID: POLICY_BY_ID
   };
   TF.Engine = Engine;
   if (typeof module !== 'undefined' && module.exports) module.exports = Engine;

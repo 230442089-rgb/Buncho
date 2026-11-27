@@ -10,7 +10,7 @@ const path = require('path');
   const rows = await p.evaluate(async () => {
     const out = [];
     for (const name of TF.sfx.names()) {
-      const sec = name === 'bigwin' ? 7 : 3;
+      const sec = name === 'bigwin' || name === 'nuke' ? 7 : 4;
       try { const full = await TF.sfx._render(name, {}, sec), small = await TF.sfx._render(name, {}, sec, 350); out.push({ name, peak: full.peak, rms: full.rms, small: small.peak }); }
       catch (e) { out.push({ name, err: String(e) }); }
     }

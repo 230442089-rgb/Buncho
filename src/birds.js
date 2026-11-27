@@ -102,16 +102,22 @@
   }
 
   // 総括指揮AI:琥珀色の顔が映る端末と、その下の計算機ラック
+  // TF.asiLook が立っているあいだ(超知能のあと)は、琥珀色が抜けて、表情が動かなくなる
   function ai() {
-    var s = '';
+    var s = '', asi = !!TF.asiLook, glow = asi ? '#eef4ff' : '#ffb86b';
     s += '<rect x="19" y="72" width="62" height="40" rx="7" fill="#3b475c"/><rect x="26" y="80" width="48" height="5" rx="2.5" fill="#2a3446"/>';
-    s += '<circle cx="31" cy="92" r="2.4" fill="#6fe08a"/><circle cx="39" cy="92" r="2.4" fill="#ffb86b"/><circle cx="47" cy="92" r="2.4" fill="#6fe08a"/><rect x="56" y="89.5" width="16" height="5" rx="2.5" fill="#2a3446"/>';
+    s += '<circle cx="31" cy="92" r="2.4" fill="' + (asi ? glow : '#6fe08a') + '"/><circle cx="39" cy="92" r="2.4" fill="' + glow + '"/><circle cx="47" cy="92" r="2.4" fill="' + (asi ? glow : '#6fe08a') + '"/><rect x="56" y="89.5" width="16" height="5" rx="2.5" fill="#2a3446"/>';
     s += '<rect x="43" y="64" width="14" height="10" fill="#8791a3"/>';
-    s += '<path d="M50 17V8" stroke="#8791a3" stroke-width="2.6" stroke-linecap="round"/><circle cx="50" cy="6.5" r="3.6" fill="#e2492d"/>';
-    s += '<rect x="15" y="15" width="70" height="52" rx="11" fill="#efe8da" stroke="#cbbfa8" stroke-width="1.5"/><rect x="22" y="22" width="56" height="38" rx="7" fill="#14213a"/>';
-    s += '<rect x="34.5" y="31" width="7.5" height="12" rx="3.75" fill="#ffb86b"/><rect x="58" y="31" width="7.5" height="12" rx="3.75" fill="#ffb86b"/>';
-    s += '<path d="M42.5 49.5q7.5 5.5 15 0" fill="none" stroke="#ffb86b" stroke-width="2.8" stroke-linecap="round"/>';
-    s += '<circle cx="30" cy="47.5" r="3" fill="#ff8f6b" opacity=".55"/><circle cx="70" cy="47.5" r="3" fill="#ff8f6b" opacity=".55"/>';
+    s += '<path d="M50 17V8" stroke="#8791a3" stroke-width="2.6" stroke-linecap="round"/><circle cx="50" cy="6.5" r="3.6" fill="' + (asi ? glow : '#e2492d') + '"/>';
+    s += '<rect x="15" y="15" width="70" height="52" rx="11" fill="#efe8da" stroke="#cbbfa8" stroke-width="1.5"/><rect x="22" y="22" width="56" height="38" rx="7" fill="' + (asi ? '#0b1322' : '#14213a') + '"/>';
+    if (asi) {
+      s += '<circle cx="38.2" cy="37" r="5.2" fill="none" stroke="' + glow + '" stroke-width="2.2"/><circle cx="61.8" cy="37" r="5.2" fill="none" stroke="' + glow + '" stroke-width="2.2"/>';
+      s += '<path d="M43 50.5h14" fill="none" stroke="' + glow + '" stroke-width="2.4" stroke-linecap="round"/>';
+    } else {
+      s += '<rect x="34.5" y="31" width="7.5" height="12" rx="3.75" fill="#ffb86b"/><rect x="58" y="31" width="7.5" height="12" rx="3.75" fill="#ffb86b"/>';
+      s += '<path d="M42.5 49.5q7.5 5.5 15 0" fill="none" stroke="#ffb86b" stroke-width="2.8" stroke-linecap="round"/>';
+      s += '<circle cx="30" cy="47.5" r="3" fill="#ff8f6b" opacity=".55"/><circle cx="70" cy="47.5" r="3" fill="#ff8f6b" opacity=".55"/>';
+    }
     s += '<path d="M27 27.5h13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".2"/>';
     return s;
   }
@@ -165,11 +171,17 @@
     chip: 'M9 2h1.500v3h3V2H15v3h1.500A2.500 2.500 0 0 1 19 7.500V9h3v1.500h-3v3h3V15h-3v1.500a2.500 2.500 0 0 1-2.500 2.500H15v3h-1.500v-3h-3v3H9v-3H7.500A2.500 2.500 0 0 1 5 16.500V15H2v-1.500h3v-3H2V9h3V7.500A2.500 2.500 0 0 1 7.500 5H9zM9 9v6h6V9z',
     anchor: 'M12 2.500a2.500 2.500 0 0 1 .9 4.800v1.700h3V10.700h-3v7.500c2.200-.4 3.900-2 4.400-4.200l-1.600.3 2.500-3.300L20.500 15l-1.500-.5c-.8 3.500-3.600 6-7 6s-6.200-2.500-7-6L3.500 15l2.300-4 2.500 3.300-1.600-.3c.5 2.200 2.200 3.800 4.400 4.200v-7.500h-3V9h3V7.300a2.500 2.500 0 0 1 .9-4.800z'
   };
+  P.drone = 'M6 3.500a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 3.500a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 14.500a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 14.500a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.200 7.600l2.300 2.300h3l2.300-2.300 1.100 1.100-2.300 2.300v2l2.300 2.300-1.100 1.100-2.300-2.300h-3l-2.300 2.300-1.100-1.100 2.300-2.300v-2L7.100 8.700z';
+  P.nuke = 'M12 2c2 2 3 5 3 8.500V17l2.500 3.500V22h-4l-.5-1.500h-2L10.500 22h-4v-1.500L9 17v-6.500C9 7 10 4 12 2zM12 7.500a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3z';
+  P.orbital = 'M10 2.500h4v4h-4zM3 3.500h5.500v2H3zM15.500 3.500H21v2h-5.500zM11.200 8h1.600l2.700 13.500h-7z';
+  P.birdmech = 'M12 3c4.400 0 8 3.400 8 7.600 0 3.300-2.200 6.100-5.300 7.200V20h2.300v1.500h-4v-3.200h-2v3.200H7V20h2.300v-2.200C6.200 16.700 4 13.900 4 10.600 4 6.400 7.600 3 12 3zM8.500 8.500a1.200 1.200 0 1 0 0 2.400 1.200 1.200 0 0 0 0-2.400zM15.500 8.500a1.200 1.200 0 1 0 0 2.400 1.200 1.200 0 0 0 0-2.400zM10 12h4l-2 3z';
+  P.heart = 'M12 21l-1.450-1.320C5.400 15.360 2 12.280 2 8.500 2 5.420 4.420 3 7.500 3c1.740 0 3.410.810 4.500 2.090C13.090 3.810 14.760 3 16.500 3 19.580 3 22 5.420 22 8.500c0 3.780-3.400 6.860-8.550 11.540L12 21z';
+  P.globe = 'M12 2.500a9.500 9.500 0 1 1 0 19 9.500 9.500 0 0 1 0-19zM4.300 11.200h3.400c.1-1.700.5-3.300 1.100-4.600a7.700 7.700 0 0 0-4.500 4.600zM9.400 11.200h5.200c-.2-2.800-1.300-5.200-2.600-6.600-1.300 1.400-2.400 3.800-2.600 6.600zM16.300 11.200h3.400a7.700 7.700 0 0 0-4.500-4.600c.6 1.300 1 2.900 1.100 4.600zM4.300 12.800a7.700 7.700 0 0 0 4.500 4.600c-.6-1.300-1-2.900-1.100-4.600zM9.400 12.800c.2 2.800 1.300 5.200 2.600 6.600 1.300-1.400 2.400-3.800 2.600-6.600zM16.300 12.800c-.1 1.700-.5 3.300-1.100 4.600a7.700 7.700 0 0 0 4.500-4.600z';
   function icon(name, cls) {
     var d = P[name] || P.flag;
     return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="' + d + '"/></svg>';
   }
-  var UNIT_ICON = { inf: 'inf', tank: 'tank', arty: 'arty', heli: 'heli', jet: 'jet', ddg: 'ddg', lst: 'lst', ashi: 'ashi', fgun: 'arty', ktank: 'tank', modern: 'tank', kair: 'kair', ironclad: 'ironclad', bb: 'bb' };
+  var UNIT_ICON = { inf: 'inf', tank: 'tank', arty: 'arty', heli: 'heli', jet: 'jet', ddg: 'ddg', lst: 'lst', ashi: 'ashi', fgun: 'arty', ktank: 'tank', modern: 'tank', kair: 'kair', ironclad: 'ironclad', bb: 'bb', drone: 'drone', nuke: 'nuke', orbital: 'orbital', birdmech: 'birdmech' };
   var SITE_ICON = { oil: 'fuel', coal: 'coal', iron: 'iron', gold: 'gold', bauxite: 'bauxite' };
 
   TF.birdSVG = birdSVG;

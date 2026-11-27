@@ -242,7 +242,44 @@
     submit: function (t) { [N.D4, N.G4, N.A4, N.D5, N.G5].forEach(function (f, i) { pluck(t + i * 0.07, f, 0.26); }); SOUNDS.chirp(t + 0.5, { n: 2 }); },
     refuse: function (t) { pluck(t, N.A3 * 2, 0.26); pluck(t + 0.16, N.F3 * 2.12, 0.26); taiko(t + 0.3, 0.26); },
     warn: function (t) { taiko(t, 0.42); taiko(t + 0.22, 0.42); horagai(t + 0.1, 0.9, 0.16); },
-    firework: function (t) { tone(t, { f0: 500, f1: 1500, dur: 0.3, gain: 0.08, attack: 0.05 }); boom(t + 0.32, 0.7, 0.36); for (var i = 0; i < 5; i++) noise(t + 0.4 + rnd(0, 0.35), { type: 'highpass', f0: 4000, dur: 0.03, gain: 0.16 }); }
+    firework: function (t) { tone(t, { f0: 500, f1: 1500, dur: 0.3, gain: 0.08, attack: 0.05 }); boom(t + 0.32, 0.7, 0.36); for (var i = 0; i < 5; i++) noise(t + 0.4 + rnd(0, 0.35), { type: 'highpass', f0: 4000, dur: 0.03, gain: 0.16 }); },
+    // ── 未来の兵装と、その先 ──
+    drone: function (t, o) { // 無人機の群れ:羽音のような唸りが近づいてくる
+      var d = o.dur || 1.4;
+      [182, 207, 233, 261].forEach(function (f, i) { tone(t + i * 0.05, { type: 'sawtooth', f0: f, f1: f * 1.18, dur: d, gain: 0.09, attack: d * 0.35, lp: 1800 }); });
+      noise(t, { type: 'bandpass', f0: 900, f1: 1500, q: 3, dur: d, gain: 0.3, attack: d * 0.4 });
+    },
+    laser: function (t, o) { // 光学兵器:唸りが駆け上がって、抜ける
+      var d = o.dur || 0.9;
+      tone(t, { type: 'sawtooth', f0: 320, f1: 2400, dur: d, gain: 0.16, attack: 0.03, lp: 5000 });
+      tone(t, { f0: 640, f1: 4800, dur: d, gain: 0.12, attack: 0.03 });
+      noise(t + d * 0.15, { type: 'bandpass', f0: 3000, f1: 6000, q: 2, dur: d * 0.85, gain: 0.25, attack: 0.05 });
+    },
+    stomp: function (t, o) { // 機動文鳥の足音
+      var g = o.gain || 0.6;
+      tone(t, { f0: 80, f1: 30, dur: 0.5, gain: g, attack: 0.004 });
+      tone(t, { type: 'triangle', f0: 210, f1: 80, dur: 0.22, gain: g * 0.7, attack: 0.003 });
+      noise(t, { f0: 900, f1: 160, dur: 0.35, gain: g * 0.9 });
+      noise(t + 0.02, { type: 'bandpass', f0: 1200, q: 1, dur: 0.06, gain: g * 0.5 });
+    },
+    bigchirp: function (t) { // 機動文鳥の「ピッ」。機械なので少し低く、長い
+      [1250, 1500].forEach(function (f, i) { var tt = t + i * 0.2; tone(tt, { type: 'square', f0: f, f1: f * 1.5, dur: 0.12, gain: 0.16, lp: 4200 }); tone(tt + 0.1, { type: 'square', f0: f * 1.45, f1: f * 1.02, dur: 0.12, gain: 0.12, lp: 4200 }); });
+    },
+    nuke: function (t) { // 核。音楽はない。遅れて届く、長い地鳴りだけ
+      noise(t, { type: 'highpass', f0: 3000, dur: 0.12, gain: 0.5 });
+      noise(t + 0.15, { f0: 2400, f1: 90, dur: 5.5, gain: 0.9, attack: 0.25 });
+      noise(t + 0.3, { type: 'bandpass', f0: 520, f1: 160, q: 0.7, dur: 5.0, gain: 0.6, attack: 0.5 });
+      tone(t + 0.15, { f0: 62, f1: 24, dur: 6, gain: 0.6, attack: 0.3 });
+      tone(t + 0.2, { type: 'triangle', f0: 170, f1: 55, dur: 3.5, gain: 0.3, attack: 0.3 });
+    },
+    asi: function (t) { // 超知能:濁りのない、冷たい和音
+      [293.66, 440, 587.33, 880, 1174.66].forEach(function (f, i) { tone(t + i * 0.02, { f0: f, dur: 3.2, gain: 0.1, attack: 0.9 }); });
+      tone(t + 0.4, { f0: 2349.32, dur: 2.6, gain: 0.04, attack: 1.0 });
+    },
+    policy: function (t) { // 布告:拍子木を一つ、太鼓、琴
+      noise(t, { type: 'highpass', f0: 2200, dur: 0.02, gain: 0.5 }); tone(t, { f0: 1500, f1: 1150, dur: 0.045, gain: 0.36 });
+      taiko(t + 0.16, 0.4); pluck(t + 0.32, N.D4, 0.24); pluck(t + 0.42, N.A4, 0.24); pluck(t + 0.52, N.D5, 0.24);
+    }
   };
 
   function play(name, opts) {

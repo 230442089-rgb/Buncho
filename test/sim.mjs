@@ -1,5 +1,7 @@
 // ヘッドレスの通しプレイ。簡単なボットに最後まで遊ばせて、例外・不整合・詰みがないかと、展開の速さを確かめる。
 //   node test/sim.mjs [難易度=normal] [試行回数=3] [最大ターン=400] [-v]
+// 環境変数: ASI=1 超知能まで研究する / NUKE=1 核兵器を研究して作り、撃つ / MAXATK=n 1ターンの攻撃回数を絞る(ゆっくり遊ぶ人の再現)
+//           POL=none 施策を布告しない / POL=all 見守り網まで全部布告する / DUMP_DIR=… 途中のセーブを書き出す
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 const require = createRequire(import.meta.url);
@@ -13,6 +15,8 @@ const VERBOSE = process.argv.includes('-v');
 const DIFF = args[0] || 'normal';
 const RUNS = +(args[1] || 3);
 const MAXT = +(args[2] || 400);
+const WANT_ASI = process.env.ASI === '1', WANT_NUKE = process.env.NUKE === '1';
+const MAXATK = +(process.env.MAXATK || 999), POL = process.env.POL || 'default';
 
 function assertState(tag) {
   const S = E.S;
@@ -27,12 +31,19 @@ function assertState(tag) {
       if (S.regions[u.loc].o !== 'player') throw new Error(`${tag}: ${u.name} が敵地 ${u.loc} にいる`);
     } else if (u.loc !== null) throw new Error(`${tag}: ${u.name} はプール部隊なのに位置がある`);
     if (!(u.hp > 0 && u.hp <= 100)) throw new Error(`${tag}: ${u.name} の兵力が不正 ${u.hp}`);
+    const st = E.ustat(u);
+    for (const k of ['atk', 'def', 'fuel', 'ammo', 'vuln']) if (!Number.isFinite(st[k]) || st[k] < 0) throw new Error(`${tag}: ${u.name} の ${k} が不正 ${st[k]}`);
   }
   for (const [id, r] of Object.entries(S.regions)) {
     if (!Number.isFinite(r.g) || r.g < 0) throw new Error(`${tag}: ${id} の守備兵が不正 ${r.g}`);
     if (r.o !== 'player' && !S.factions[r.o]) throw new Error(`${tag}: ${id} の持ち主が不正 ${r.o}`);
     if (r.o !== 'player' && !S.factions[r.o].alive) throw new Error(`${tag}: ${id} の持ち主 ${r.o} は滅亡済み`);
+    if (!(r.mood >= 0 && r.mood <= 100)) throw new Error(`${tag}: ${id} の民心が不正 ${r.mood}`);
+    if (!(r.ruin >= 0 && r.ruin <= 1)) throw new Error(`${tag}: ${id} の焦土が不正 ${r.ruin}`);
+    if (!(r.ctl >= 0 && r.ctl <= 100)) throw new Error(`${tag}: ${id} の統治度が不正 ${r.ctl}`);
   }
+  if (!(S.flags.nation >= 0 && S.flags.nation < D.NATION.length)) throw new Error(`${tag}: 国号が不正 ${S.flags.nation}`);
+  if (S.flags.asi != null && S.threats.length) throw new Error(`${tag}: 超知能のあとに脅威が残っている`);
   if (!Number.isFinite(S.prestige)) throw new Error(`${tag}: 威信が不正`);
 }
 
@@ -60,6 +71,7 @@ function botTurn(log) {
   for (const fid of Object.keys(S.factions)) {
     const f = S.factions[fid];
     if (!f.alive || S.dipLeft <= 0 || !E.inContact(fid)) continue;
+    if (WANT_ASI && S.flags.asi == null && Object.keys(S.regions).filter(id => !E.isP(id)).length <= 4) break;
     const opts = E.diploOptions(fid);
     const sub = opts.find(o => o.key === 'submit');
     if (sub && sub.ok && sub.chance >= 45) { const r = E.diplo(fid, 'submit'); if (r.ok) log(`  降伏: ${E.fname(fid)} (${sub.chance}%)`); continue; }
@@ -68,12 +80,26 @@ function botTurn(log) {
     const pact = opts.find(o => o.key === 'pact');
     if (f.war && pact && pact.ok && pact.chance >= 50 && E.factionPower(fid) > E.playerPower() * 0.5) E.diplo(fid, 'pact');
   }
+  // ── 施策 ──
+  if (POL !== 'none') for (const p of E.policyOptions()) {
+    if (!p.ok) continue;
+    if (POL !== 'all' && (p.id === 'kanshi' || p.id === 'kyotsu')) continue;
+    if (S.res.gold < p.cost + 250) continue;
+    const r = E.enact(p.id);
+    if (r.error) throw new Error('施策が拒否された: ' + r.error);
+    log(`  施策: ${p.name}`);
+  }
+  // ── 研究(鳥が自分では手を付けないもの) ──
+  for (const tid of E.manualAvail()) {
+    if ((tid === 'asi' && WANT_ASI) || (tid === 'nukeweapon' && WANT_NUKE)) for (const b of D.BIRDS) E.assign(b.id, tid);
+  }
   // ── 内政 ──
   const mine = E.playerRegions();
   const arsenals = mine.filter(id => S.regions[id].fac.arsenal || (S.regions[id].b && S.regions[id].b.k === 'arsenal')).length;
   const yards = mine.filter(id => S.regions[id].fac.shipyard || (S.regions[id].b && S.regions[id].b.k === 'shipyard')).length;
   const schools = mine.filter(id => S.regions[id].fac.school || (S.regions[id].b && S.regions[id].b.k === 'school')).length;
   let nArs = arsenals, nYard = yards, nSchool = schools;
+  let nDC = mine.filter(id => S.regions[id].fac.datacenter || (S.regions[id].b && S.regions[id].b.k === 'datacenter')).length;
   for (const id of mine) {
     const r = S.regions[id]; if (r.b) continue;
     const bo = Object.fromEntries(E.buildOptions(id).map(o => [o.key, o]));
@@ -86,12 +112,13 @@ function botTurn(log) {
     if (bo.arsenal && nArs < Math.max(1, Math.floor(mine.length / 6)) && D.REGIONS[id].koku >= 30) want.push('arsenal');
     if (bo.shipyard && nYard < 2 && D.REGIONS[id].koku >= 20) want.push('shipyard');
     if (bo.school && nSchool < Math.max(1, Math.floor(mine.length / 3)) && S.res.gold > 250) want.push('school');
+    if (bo.datacenter && nDC < (WANT_ASI ? 10 : 5) && S.res.gold > bo.datacenter.cost.gold + 600 && D.REGIONS[id].koku >= 40) want.unshift('datacenter');
     if (bo.market && D.REGIONS[id].koku >= 40 && S.res.gold > 200) want.push('market');
     if (bo.farm && D.REGIONS[id].koku >= 40 && S.res.gold > 200 && S.res.food < 2000) want.push('farm');
     for (const k of want) {
       if (bo[k] && bo[k].ok) {
         const res = E.build(id, k);
-        if (res.ok) { if (k === 'arsenal') nArs++; if (k === 'shipyard') nYard++; if (k === 'school') nSchool++; log(`  建設: ${E.rname(id)} ${D.FACILITIES[k].name}`); break; }
+        if (res.ok) { if (k === 'arsenal') nArs++; if (k === 'shipyard') nYard++; if (k === 'school') nSchool++; if (k === 'datacenter') nDC++; log(`  建設: ${E.rname(id)} ${D.FACILITIES[k].name}`); break; }
       }
     }
   }
@@ -113,7 +140,8 @@ function botTurn(log) {
   for (const id of mine) {
     const r = S.regions[id]; if (r.p) continue;
     const po = Object.fromEntries(E.produceOptions(id).map(o => [o.type, o]));
-    const order = ['modern', 'ktank', 'kair', 'bb', 'fgun'];
+    const order = ['birdmech', 'orbital', 'drone', 'modern', 'ktank', 'kair', 'bb', 'fgun'];
+    if (WANT_NUKE && !S.units.some(u => u.type === 'nuke') && !mine.some(x => S.regions[x].p && S.regions[x].p.type === 'nuke')) order.unshift('nuke');
     if (navalT < 4) order.unshift('ironclad');
     let done = false;
     for (const t of order) { if (po[t] && po[t].ok && S.res.gold > po[t].cost.gold + 150) { E.produce(id, t); log(`  編成: ${E.rname(id)} ${D.UNIT_TYPES[t].name}`); done = true; break; } }
@@ -132,15 +160,34 @@ function botTurn(log) {
     if (D.REGIONS[tid].map === 'w' && S.flags.unified == null && !D.REGIONS[tid].res.oil) pri *= 5; // 統一前は海外を後回し
     return { tid, pri };
   }).sort((a, b) => a.pri - b.pri);
+  // 核:持っていれば、いちばん手ごわい相手に撃つ(動作確認のため。おすすめ編成には入らない)
+  if (WANT_NUKE) {
+    const nk = S.units.find(u => u.type === 'nuke' && !u.acted);
+    const hard = [...list].reverse().find(x => !E.isP(x.tid) && S.factions[E.owner(x.tid)].pact <= 0);
+    if (nk && hard) {
+      const sg = E.suggestAttack(hard.tid, 0);
+      const res = E.attack(hard.tid, [nk.id, ...sg.ids.filter(id => id !== nk.id)]);
+      if (res.error) { const r2 = E.attack(hard.tid, [nk.id]); if (r2.error) throw new Error('核攻撃が拒否された: ' + r2.error); }
+      if (S.units.some(u => u.id === nk.id)) throw new Error('撃った核ミサイルが残っている');
+      log(`  核攻撃: ${E.rname(hard.tid)} 焦土${S.regions[hard.tid].ruin}`);
+      assertState('nuke');
+    }
+  }
+  let atkN = 0;
+  const left = Object.keys(S.regions).filter(id => !E.isP(id)).length;
+  const hold = WANT_ASI && S.flags.asi == null && left <= 4;   // 超知能を待つあいだ、最後の数地域は残す
   for (const { tid } of list) {
+    if (atkN >= MAXATK || hold) break;
     if (E.isP(tid)) continue;
     if (S.factions[E.owner(tid)].pact > 0) continue;
     const plan = planAttack(tid, 0.9);
     if (!plan) continue;
+    if (plan.ids.some(id => E.unitById(id).type === 'nuke')) throw new Error('おすすめ編成に核が入っている');
     // 燃料は少し残す
     if (S.res.fuel - plan.pr.fuel < 0 || S.res.ammo - plan.pr.ammo < 0) continue;
     const res = E.attack(tid, plan.ids);
     if (res.error) throw new Error('攻撃が拒否された: ' + res.error);
+    atkN++;
     log(`  攻撃: ${E.rname(tid)} ${res.win ? '勝' : '敗'} P${res.P}/E${res.E} 燃${res.fuel} 弾${res.ammo}`);
     assertState('attack');
   }
@@ -175,7 +222,11 @@ function run(seed) {
     assertState('bot');
     const rep = E.endTurn();
     assertState('endTurn');
-    if (VERBOSE) for (const e of rep.events) if (['event', 'bad', 'warn', 'tech', 'news', 'good'].includes(e.k)) console.log('   · ' + e.t);
+    if (VERBOSE) for (const e of rep.events) if (['event', 'bad', 'warn', 'tech', 'news', 'good', 'asi'].includes(e.k)) console.log('   · ' + e.t);
+    for (const e of rep.events) if (e.k === 'tech' && ['electronics', 'modern', 'computer', 'llm', 'agi', 'fusion', 'birdmech', 'asi', 'nukeweapon'].includes(e.tech)) marks['t_' + e.tech] = E.S.turn;
+    const ns = E.nationStage();
+    if (marks['n' + ns] == null) marks['n' + ns] = E.S.turn;
+    for (const id of E.playerRegions()) { const v = E.voice(id); if (!v || !v.t) throw new Error('民の声が出ない: ' + id); }
     // セーブとロードの往復で状態が変わらないこと
     if (process.env.DUMP_DIR && [8, 20, 34, 50].includes(E.S.turn)) fs.writeFileSync(`${process.env.DUMP_DIR}/save-t${E.S.turn}.json`, E.serialize());
     if (E.S.turn % 25 === 0) { const j = E.serialize(); E.load(j); if (E.serialize() !== j) throw new Error('セーブの往復で状態が変わった'); }
@@ -193,7 +244,8 @@ function run(seed) {
   }
   const R = E.S, sm = E.summary();
   return { seed, over: R.over, turn: R.turn, jp: sm.jp, w: sm.w, marks, stats: R.stats, res: R.res, units: R.units.length,
-    jsdf: R.units.filter(u => D.UNIT_TYPES[u.type].jsdf).map(u => `${D.UNIT_TYPES[u.type].short}${u.hp}`).join(' '), curve, techs: Object.keys(R.techs).length, prestige: R.prestige };
+    jsdf: R.units.filter(u => D.UNIT_TYPES[u.type].jsdf).map(u => `${D.UNIT_TYPES[u.type].short}${u.hp}`).join(' '), curve, techs: Object.keys(R.techs).length, prestige: R.prestige,
+    nation: E.nation().name, mood: Math.round(E.moodAvg()), pol: Object.keys(R.pol).length, rp: Math.round(D.BIRDS.reduce((a, b) => a + E.birdRp(b.id), 0)) };
 }
 
 let failed = 0;
@@ -202,6 +254,7 @@ for (let i = 0; i < RUNS; i++) {
     const r = run(1000 + i * 7919);
     console.log(`\n[${DIFF} seed ${r.seed}] ${r.over ? (r.over.win ? '勝利' : '敗北') : '未決着'} T${r.turn}(${1560 + Math.floor(r.turn / 4)}年) 日本${r.jp}/45 世界${r.w}/54 技術${r.techs} 部隊${r.units} 威信${r.prestige}`);
     console.log('  節目:', JSON.stringify(r.marks));
+    console.log(`  国号: ${r.nation} 民心${r.mood} 施策${r.pol} 研究力${r.rp}`);
     console.log('  戦績:', JSON.stringify(r.stats));
     console.log('  残存自衛隊:', r.jsdf);
     console.log('  推移:', r.curve.join(' | '));

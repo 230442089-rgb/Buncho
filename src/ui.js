@@ -23,7 +23,12 @@
   function short(id) { return reg(id).name.split('・')[0]; }
   function mapOf(id) { return reg(id).map === 'jp' ? 'japan' : 'world'; }
   function geo(id) { return MAP[mapOf(id)].regions[id]; }
-  function colorOf(id) { var o = E.owner(id); return o === 'player' ? D.PLAYER_COLOR : D.FACTIONS[o].color; }
+  function asiOn() { var st = E.S; return !!(st && st.flags.asi != null); }
+  function pColor() { return asiOn() ? '#e9eef6' : D.PLAYER_COLOR; }
+  function colorOf(id) { var o = E.owner(id); return o === 'player' ? pColor() : D.FACTIONS[o].color; }
+  function syncLook() { var a = asiOn() && $('#title').hidden; TF.asiLook = a; document.body.classList.toggle('asi', a); }
+  function moodCls(m) { return m < 25 ? 'bad' : (m < 45 ? 'warn' : 'good'); }
+  function moodBar(m, tg) { return '<div class="bar mood ' + moodCls(m) + '"><i style="width:' + clamp(m, 0, 100) + '%"></i>' + (tg != null ? '<u style="left:' + clamp(tg, 0, 100) + '%"></u>' : '') + '</div>'; }
   function pips(n, max) { var s = '<span class="pips">'; for (var i = 0; i < max; i++) s += '<i' + (i < n ? ' class="on"' : '') + '></i>'; return s + '</span>'; }
   function costHTML(c) {
     var s = '<span class="cost">';
@@ -160,7 +165,7 @@
       var id = p.getAttribute('data-id');
       if (!id) { // 世界図の「日本」
         var sm = E.summary(), t = sm.jp / sm.jpAll;
-        p.style.fill = mix('#8f95a3', D.PLAYER_COLOR, t);
+        p.style.fill = mix('#8f95a3', pColor(), t);
         return;
       }
       p.style.fill = colorOf(id);
@@ -421,12 +426,15 @@
   function renderNav() {
     var st = S(), idle = E.idleBirds().length, ready = st.units.filter(function (u) { return !u.acted; }).length;
     function b(p, ic, label, dot) { return '<button data-act="tab" data-panel="' + p + '" class="' + (ui.panel === p ? 'on' : '') + '">' + icon(ic) + label + (dot ? '<span class="dot">' + dot + '</span>' : '') + '</button>'; }
-    $('#nav').innerHTML = b('units', 'flag', '部隊', 0) + b('research', 'rp', '研究', idle || 0) + b('diplo', 'scroll', '外交', st.dipLeft || 0) + b('nation', 'fort', '国勢', 0) +
+    var npol = E.policyOptions().filter(function (p) { return p.ok; }).length;
+    if (!E.autoTechLeft()) idle = 0; // 残りが核兵器と超知能だけなら、急かさない
+    $('#nav').innerHTML = b('units', 'flag', '部隊', 0) + b('research', 'rp', '研究', idle || 0) + b('diplo', 'scroll', '外交', st.dipLeft || 0) + b('nation', 'fort', '国勢', npol || 0) +
       '<button class="end" data-act="end-turn"><span>次の季節へ<small>未行動 ' + ready + ' 部隊</small></span></button>';
   }
   function renderMapUI() {
     var st = S(); if (!st) return;
     var h = '<div class="map-ui tl"><div class="seg" role="tablist"><button data-act="map" data-map="japan" class="' + (ui.map === 'japan' ? 'on' : '') + '">日本</button><button data-act="map" data-map="world" class="' + (ui.map === 'world' ? 'on' : '') + '">世界</button></div>' +
+      '<button class="npill" data-act="tab" data-panel="nation" aria-label="国勢を開く"><b>' + esc(E.nation().name) + '</b><small>' + D.ERAS[E.eraStage()].name + ' ・ 民心 ' + Math.round(E.moodAvg()) + '</small></button>' +
       '<div class="zoom"><button data-act="zoom" data-f="0.62" aria-label="拡大">＋</button><button data-act="zoom" data-f="1.6" aria-label="縮小">−</button></div></div>';
     var hs = E.hints();
     if (hs.length && !ui.mv && !ui.sel) h += '<div class="advisor"><button data-act="hints">' + birdSVG(hs[0].bird) + '<span>' + esc(hs[0].text) + '</span>' + (hs.length > 1 ? '<em>+' + (hs.length - 1) + '</em>' : '') + '</button></div>';
@@ -449,7 +457,7 @@
     if (!id || ui.mv) { el.hidden = true; el.innerHTML = ''; return; }
     var d = reg(id), r = st.regions[id], own = r.o === 'player', f = st.factions[r.o], h = '';
     h += '<div class="sh-head"><i class="sh-flag" style="background:' + colorOf(id) + '"></i><div class="sh-title"><h2>' + esc(d.name) + '</h2><p>' +
-      (own ? '自領 ・ 統治 ' + Math.round(r.ctl) + '%' : esc(E.fname(r.o)) + ' ・ ' + esc(f.leader)) + (d.seat ? ' ・ ' + esc(d.seat) : '') + '</p></div>' +
+      (own ? '自領 ・ 統治 ' + Math.round(r.ctl) + '% ・ 民心 ' + Math.round(r.mood) : esc(E.fname(r.o)) + ' ・ ' + esc(f.leader)) + (d.seat ? ' ・ ' + esc(d.seat) : '') + '</p></div>' +
       '<button class="x" data-act="close-sheet" aria-label="閉じる">×</button></div>';
     if (own && ui.sub === 'build') { el.innerHTML = '<div class="sheet-in">' + h + buildList(id) + '</div>'; el.hidden = false; return; }
     if (own && ui.sub === 'produce') { el.innerHTML = '<div class="sheet-in">' + h + produceList(id) + '</div>'; el.hidden = false; return; }
@@ -462,6 +470,7 @@
       if (f.trade) tags += '<span class="tag ok">通商中</span>';
       if (f.awe > 0) tags += '<span class="tag">畏怖 あと' + f.awe + '</span>';
     }
+    if (r.ruin > 0.04) tags += '<span class="tag war">焦土 ' + Math.round(r.ruin * 100) + '%(実りが減る)</span>';
     tags += siteTags(id);
     if (d.snow) tags += '<span class="tag">豪雪(冬は攻めにくい)</span>';
     if (d.mtn) tags += '<span class="tag">山がち(守り +15%)</span>';
@@ -482,6 +491,9 @@
       [['gold', '資金'], ['food', '兵糧'], ['steel', '鉄鋼'], ['fuel', '燃料'], ['ammo', '弾薬']].forEach(function (k) { if (Math.round(y[k[0]]) > 0) ys.push(icon(k[0]) + ' +' + fmt(y[k[0]])); });
       if (y.rp) ys.push(icon('rp') + ' +' + y.rp);
       h += '<p class="dim" style="font-size:12.5px">毎季の産出 <span class="cost" style="color:var(--fg)">' + ys.map(function (x) { return '<span>' + x + '</span>'; }).join('') + '</span></p>';
+      var vx = E.voice(id), tg = E.moodTarget(id);
+      h += '<div class="vox"><div class="vox-m"><span>民心</span>' + moodBar(r.mood, tg) + '<b class="' + moodCls(r.mood) + '">' + Math.round(r.mood) + '</b>' + (Math.abs(tg - r.mood) >= 1 ? '<small>' + (tg > r.mood ? '↗' : '↘') + ' ' + tg + '</small>' : '') + '</div>' +
+        (vx ? '<p><b>' + esc(vx.who) + '</b>「' + esc(vx.t) + '」</p>' : '') + '</div>';
       var th = st.threats.filter(function (t) { return t.to === id; });
       th.forEach(function (t) {
         var A = st.regions[t.from].g * 0.7 / E.MEN * st.factions[t.f].q * D.DIFFICULTY[st.diff].enemy * (t.sea ? 0.7 : 1);
@@ -533,7 +545,7 @@
     var h = '<div class="acts"><button class="btn sm" data-act="sub" data-sub="">◂ もどる</button></div><div class="sec">建設</div><div class="list">';
     E.buildOptions(id).forEach(function (o) {
       var st = o.built ? '<b class="good">済</b>' : (o.building ? '<b class="warn">建設中</b>' : '<b>' + o.turns + 'ターン</b>');
-      h += '<button class="row' + (o.built ? ' done' : (o.ok ? '' : ' off')) + '" data-act="build" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(o.key === 'fort' ? 'fort' : (o.key === 'oilwell' ? 'oil' : (o.key === 'coalmine' ? 'coal' : (o.key === 'ironmine' ? 'iron' : (o.key === 'mine' ? 'gold' : (o.key === 'bauxite' ? 'bauxite' : (o.key === 'school' ? 'rp' : (o.key === 'farm' ? 'food' : (o.key === 'shipyard' ? 'anchor' : (o.key === 'airfield' ? 'kair' : (o.key === 'arsenal' ? 'gear' : 'gold')))))))))), 'big') +
+      h += '<button class="row' + (o.built ? ' done' : (o.ok ? '' : ' off')) + '" data-act="build" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(o.key === 'fort' ? 'fort' : (o.key === 'oilwell' ? 'oil' : (o.key === 'coalmine' ? 'coal' : (o.key === 'ironmine' ? 'iron' : (o.key === 'mine' ? 'gold' : (o.key === 'bauxite' ? 'bauxite' : (o.key === 'school' ? 'rp' : (o.key === 'farm' ? 'food' : (o.key === 'shipyard' ? 'anchor' : (o.key === 'airfield' ? 'kair' : (o.key === 'arsenal' ? 'gear' : (o.key === 'datacenter' ? 'chip' : 'gold'))))))))))), 'big') +
         '<div><h3>' + o.name + (o.amount ? ' <span class="dim" style="font-weight:400">埋蔵 ' + o.amount + '</span>' : '') + '</h3><p>' + o.effect + '</p><p>' + (o.built ? '' : costHTML(o.cost)) + (o.why && !o.built ? ' <span class="' + (o.building ? 'warn' : 'bad') + '">' + o.why + '</span>' : '') + '</p></div><div class="side">' + st + '</div></button>';
     });
     return h + '</div>';
@@ -572,7 +584,7 @@
   }
 
   // ───────────────────────── 攻撃 ─────────────────────────
-  var VIA = { land: '陸路', sea: '海路で上陸', heli: 'ヘリ支援', air: '航空支援', naval: '艦砲支援', transport: '輸送' };
+  var VIA = { land: '陸路', sea: '海路で上陸', heli: 'ヘリ支援', air: '航空支援', naval: '艦砲支援', transport: '輸送', missile: '世界のどこへでも' };
   function openAttack() {
     var tid = ui.sel, sug = E.suggestAttack(tid, 0.9), ids = {};
     (sug.ok ? sug.ids : []).forEach(function (i) { ids[i] = 1; });
@@ -586,7 +598,8 @@
     h += '<div class="facts"><div class="fact"><span>守備兵</span><b>' + men(r.g) + '</b></div><div class="fact"><span>城郭</span><b>' + r.fort + (pr.siege ? ' → ' + pr.fortEff : '') + '</b></div><div class="fact"><span>敵の戦力</span><b>' + fmt(pr.E) + '</b></div></div>';
     if (pr.winter) h += '<p class="note warn" style="border-color:var(--warn)">冬の豪雪。陸上部隊とヘリの戦力が4割落ちる。</p>';
     h += '<div class="acts"><button class="btn sm" data-act="atk-sug">おすすめ</button><button class="btn sm" data-act="atk-all">全部隊</button><button class="btn sm" data-act="atk-none">解除</button></div>';
-    var groups = [['陸上部隊(占領できる)', function (o) { return o.via === 'land' || o.via === 'sea'; }], ['支援(ヘリ・航空・艦隊)', function (o) { return o.via !== 'land' && o.via !== 'sea'; }]];
+    var groups = [['陸上部隊(占領できる)', function (o) { return o.via === 'land' || o.via === 'sea'; }], ['支援(ヘリ・航空・艦隊)', function (o) { return o.via !== 'land' && o.via !== 'sea' && o.via !== 'missile'; }],
+      ['戦略兵器(おすすめには入らない)', function (o) { return o.via === 'missile'; }]];
     groups.forEach(function (g) {
       var list = opts.filter(g[1]); if (!list.length) return;
       h += '<div class="sec">' + g[0] + '</div><div class="list">';
@@ -594,6 +607,7 @@
         var u = o.u, us = E.ustat(u), on = !!a.ids[u.id], part = pr.parts.filter(function (p) { return p.u.id === u.id; })[0];
         var sub = VIA[o.via] + (u.loc ? '・' + short(u.loc) : '') + ' ・ ' + (us.atk ? '戦力 +' + fmt(part ? part.p : us.atk * u.hp / 100) : '輸送 ' + us.transport + '部隊') + (us.siege ? ' ・ 城郭−' + us.siege : '') + (us.transport && us.atk ? ' ・ 輸送' + us.transport : '');
         var costs = '<span class="cost">' + (us.fuel ? '<span>' + icon('fuel') + us.fuel + '</span>' : '') + (us.ammo ? '<span>' + icon('ammo') + us.ammo + '</span>' : '') + (!us.fuel && !us.ammo ? '<span class="dim">消費なし</span>' : '') + '</span>';
+        if (D.UNIT_TYPES[u.type].nuke) costs = '<span class="bad">一度きり。撃てば、この土地は長く焦土になる</span>';
         h += '<button class="row' + (on ? ' on' : '') + (o.ok ? '' : ' off') + '" data-act="atk-toggle" data-uid="' + u.id + '"' + (o.ok ? '' : ' disabled') + '>' + icon(TF.UNIT_ICON[u.type], 'big') +
           '<div><h3>' + esc(u.name) + '</h3><p>' + sub + (part && part.tag.length ? ' <span class="warn">' + part.tag.join('・') + '</span>' : '') + '</p><p>' + (o.ok ? costs : '<span class="bad">' + o.why + '</span>') + '</p></div>' +
           '<div class="side"><b>' + (on ? '✓' : '') + '</b>' + u.hp + '%</div></button>';
@@ -607,12 +621,22 @@
       '<div class="lab"><span>' + icon('fuel') + ' 燃料 <b class="' + (pr.fuel > st.res.fuel ? 'bad' : '') + '">' + pr.fuel + '</b> / ' + fmt(st.res.fuel) + '</span><span>' + icon('ammo') + ' 弾薬 <b class="' + (pr.ammo > st.res.ammo ? 'bad' : '') + '">' + pr.ammo + '</b> / ' + fmt(st.res.ammo) + '</span></div></div>';
     if (ids.length) pr.problems.forEach(function (p) { h += '<p class="bad">' + p + '</p>'; });
     if (pr.onFoot && ids.length) h += '<p class="warn">燃料が足りないので、歩ける部隊は徒歩で向かう(戦力3割減)。</p>';
+    if (pr.nuke) h += '<p class="bad">核を撃つ。全勢力の友好 −25、自領の民心 −8、威信 −10。土地は焦土になる。</p>';
     var f = S().factions[r.o];
     if (f && f.pact > 0) h += '<p class="bad">不可侵の約定を破ることになる。威信と諸国の友好を失う。</p>';
-    showModal('<div class="card-body">' + body + '</div><div class="card-foot plan"><div class="plan-sum">' + h + '</div><button class="btn" data-act="modal-close">やめる</button><button class="btn shu" data-act="atk-go"' + (ids.length && !pr.problems.length ? '' : ' disabled') + '>' + (pr.canCapture || !ids.length ? '作戦決行(' + ids.length + '部隊)' : '砲爆撃する') + '</button></div>', { replace: true, keepScroll: !!(ui.modal && ui.modal.atk), atk: true });
+    showModal('<div class="card-body">' + body + '</div><div class="card-foot plan"><div class="plan-sum">' + h + '</div><button class="btn" data-act="modal-close">やめる</button><button class="btn shu" data-act="atk-go"' + (ids.length && !pr.problems.length ? '' : ' disabled') + '>' + (pr.nuke ? '核を撃つ' : (pr.canCapture || !ids.length ? '作戦決行(' + ids.length + '部隊)' : '砲爆撃する')) + '</button></div>', { replace: true, keepScroll: !!(ui.modal && ui.modal.atk), atk: true });
+  }
+  function confirmNuke() { // 核だけは、もう一度たずねる
+    var d = reg(ui.atk.tid);
+    showModal('<div class="card-body"><p class="eyebrow">最終確認</p><h2 class="lose">' + esc(d.name) + 'に核を撃つ</h2><div class="story">' + birdSVG('dario', 'b56') +
+      '<p>司令。再考を求めます。\nこの一発で、' + esc(d.name) + 'の城も、町も、そこにいる人も消えます。土地は二十五季のあいだ焦土になり、世界中が我が国を恐れ、憎みます。自領の民も口をつぐみます。\n勝つだけなら、ほかの手があります。</p></div></div>' +
+      '<div class="card-foot"><button class="btn gold" data-act="nuke-no">やめる</button><button class="btn shu" data-act="nuke-yes">それでも撃つ</button></div>', { replace: true, sfx: 'warn', atk: true });
   }
   function battleLines(types, win, bombard) {
     var L = [];
+    if (types.birdmech) L.push('全高四十メートルの文鳥が、城をまたいだ。城兵は槍を置いて、ただ見上げた。');
+    if (types.orbital) L.push('空の上から光の柱が降り、櫓のあった場所に、きれいな丸い穴が残った。');
+    if (types.drone) L.push('羽音のような唸りが空を覆い、数百の無人機が一斉に降りてきた。');
     if (types.jet) L.push('雷のような音とともに戦闘機が城の上を飛びすぎ、次の瞬間、櫓が消えた。');
     if (types.ddg || types.bb || types.ironclad) L.push('沖の艦から放たれた砲弾が、城下を揺らした。');
     if (types.arty || types.fgun) L.push('りゅう弾砲の一斉射で、石垣が崩れ落ちた。');
@@ -626,6 +650,8 @@
   function goAttack() {
     var a = ui.atk, ids = Object.keys(a.ids).map(Number), types = {}, before = {};
     ids.forEach(function (i) { var u = E.unitById(i); if (u) types[u.type] = (types[u.type] || 0) + 1; });
+    if (types.nuke && !a.nukeOk) { confirmNuke(); return; }
+    var fid0 = E.owner(a.tid), f0 = S().factions[fid0], boss = f0 && f0.cap === a.tid ? f0.leader : '';
     E.playerRegions().forEach(function (id) { before[id] = 1; });
     var color = colorOf(a.tid), season = E.season(), tier = E.infTier();
     var res = E.attack(a.tid, ids);
@@ -637,15 +663,20 @@
     sfx('launch');
     var d = reg(res.rid), show = function () { showBattleResult(res, types, gained); };
     if (animOn()) {
-      TF.Battle3D.play($('#battle'), { title: d.name + (res.bombard ? ' 砲爆撃' : ' 攻略戦'), win: res.win, bombard: res.bombard, ratio: res.ratio, chance: res.chance,
-        men: res.gBefore, menAfter: res.win ? 0 : res.gAfter, fort: res.fort, siege: res.siege, color: color, season: season, snow: d.snow, fuji: !!FUJI[res.rid], tier: tier, types: types }, show);
+      TF.Battle3D.play($('#battle'), { title: d.name + (res.nuke ? ' 核攻撃' : (res.bombard ? ' 砲爆撃' : ' 攻略戦')), win: res.win, bombard: res.bombard, ratio: res.ratio, chance: res.chance,
+        men: res.gBefore, menAfter: res.nuke ? Math.round(res.gBefore * 0.05) : (res.win ? 0 : res.gAfter), fort: res.fort, siege: res.siege, color: color, season: season, snow: d.snow, fuji: !!FUJI[res.rid], tier: tier, types: types,
+        enemy: D.CULTURE[fid0], leader: boss, nuke: !!res.nuke, laser: E.tech('laser') }, show);
     } else show();
   }
   function showBattleResult(res, types, gained) {
     var d = reg(res.rid), h = '<p class="eyebrow">' + E.dateLabel().text + ' ・ ' + esc(d.name) + '</p>';
-    h += '<h2 class="huge slam ' + (res.win ? 'win' : (res.bombard ? '' : 'lose')) + '">' + (res.win ? '攻略' : (res.bombard ? '砲爆撃' : '敗退')) + '</h2>';
-    battleLines(types, res.win, res.bombard).forEach(function (l) { h += '<p>' + l + '</p>'; });
-    if (res.win && res.ratio >= 2) h += '<p class="over"><span>オーバーキル</span><b>' + Math.round(res.ratio * 100) + '%</b></p>';
+    if (res.nuke) { // 核は、勝っても祝わない
+      h += '<h2 class="huge grave">核攻撃</h2><p>閃光。遅れて、音。</p><p>城も、町も、そこにいた人も、影だけを残して消えた。' + (res.captured ? '焼け跡に、我が軍の旗が立った。' : '') + '</p>';
+    } else {
+      h += '<h2 class="huge slam ' + (res.win ? 'win' : (res.bombard ? '' : 'lose')) + '">' + (res.win ? '攻略' : (res.bombard ? '砲爆撃' : '敗退')) + '</h2>';
+      battleLines(types, res.win, res.bombard).forEach(function (l) { h += '<p>' + l + '</p>'; });
+      if (res.win && res.ratio >= 2) h += '<p class="over"><span>オーバーキル</span><b>' + Math.round(res.ratio * 100) + '%</b></p>';
+    }
     var tot = res.P + res.E || 1;
     h += '<div class="vs"><div class="lab"><span>我が戦力 <b>' + fmt(res.P) + '</b></span><span><b>' + fmt(res.E) + '</b> 敵の戦力</span></div><div class="prog"><i style="width:' + (res.P / tot * 100) + '%"></i><i class="w" style="width:' + (res.E / tot * 100) + '%"></i></div></div>';
     h += '<div class="sum"><div class="fact"><span>消費した燃料</span><b>' + res.fuel + '</b></div><div class="fact"><span>消費した弾薬</span><b>' + res.ammo + '</b></div>' +
@@ -658,8 +689,8 @@
     ui.sel = res.win ? res.rid : ui.sel; ui.pick = {};
     refreshAll();
     if (ui.sel) { ensureVisible(ui.sel); refreshMap(); }
-    showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">よし</button></div>',
-      { replace: true, sfx: res.win ? 'victory' : (res.bombard ? 'taiko' : 'defeat'), onClose: function () { return fxCascade(gained); } });
+    showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">' + (res.nuke ? '……' : 'よし') + '</button></div>',
+      { replace: true, sfx: res.nuke ? (animOn() ? null : 'nuke') : (res.win ? 'victory' : (res.bombard ? 'taiko' : 'defeat')), onClose: function () { return fxCascade(gained); } });
     bigs.forEach(function (e) { queueStory(e.big); });
     if (S().over) queueEnding();
   }
@@ -668,6 +699,7 @@
   function showModal(html, opts) {
     opts = opts || {};
     if (ui.modal && !opts.replace) { ui.queue.push({ html: html, opts: opts }); return; }
+    closeDiorama();
     var el = $('#modal'), old = $('.card-body', el), top = old && opts.keepScroll ? old.scrollTop : 0;
     el.innerHTML = '<div class="card" role="dialog" aria-modal="true">' + html + '</div>';
     el.hidden = false; ui.modal = opts;
@@ -677,27 +709,32 @@
   }
   function closeModal() {
     var el = $('#modal'), cur = ui.modal, wait = 0;
+    closeDiorama();
     el.hidden = true; el.innerHTML = ''; ui.modal = null; ui.atk = null;
     if (cur && cur.onClose) wait = cur.onClose() || 0; // 地図の演出を見せるあいだ、次の窓を待たせる
     function next() { if (ui.modal || !ui.queue.length) return; var q = ui.queue.shift(); showModal(q.html, q.opts); }
     if (wait && ui.queue.length) setTimeout(next, wait); else next();
   }
   function storyHTML(b, btn) {
-    return '<div class="card-body">' + (b.eyebrow ? '<p class="eyebrow">' + esc(b.eyebrow) + '</p>' : '') + '<h2' + (b.fanfare ? ' class="win"' : '') + '>' + esc(b.title) + '</h2>' +
+    var ey = b.eyebrow || b.kicker;
+    return '<div class="card-body' + (b.asi ? ' asi-card' : (b.grave ? ' grave-card' : '')) + '">' + (ey ? '<p class="eyebrow">' + esc(ey) + '</p>' : '') + '<h2' + (b.fanfare || b.nation != null ? ' class="win' + (b.nation != null ? ' slam' : '') + '"' : '') + '>' + esc(b.title) + '</h2>' +
       '<div class="story">' + (b.bird ? birdSVG(b.bird, 'b56') : '<span></span>') + '<p>' + esc(b.body) + '</p></div>' + (b.extra || '') + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">' + (btn || 'つぎへ') + '</button></div>';
   }
   function queueStory(b, opts) {
     opts = opts || {};
-    if (!opts.sfx) opts.sfx = b.fanfare ? 'bigwin' : (b.sfx || (b.bird === 'dario' ? 'dario' : (b.bird ? 'chirp' : 'open')));
+    if (!opts.sfx) opts.sfx = b.fanfare ? 'bigwin' : (b.sfx || (b.asi ? 'asi' : (b.nation != null ? 'stamp' : (b.bird === 'dario' ? 'dario' : (b.bird ? 'chirp' : 'open')))));
     if (b.fanfare) opts.fireworks = 5200;
     showModal(storyHTML(b, opts.btn), opts);
   }
   function queueEnding() {
-    var st = S(), o = st.over, dl = E.dateLabel();
-    var h = '<div class="card-body"><p class="eyebrow">' + dl.text + '</p><h2 class="huge ' + (o.win ? 'win' : 'lose') + '">' + (o.win ? '地球統一' : '敗北') + '</h2><div class="flock">' + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +
+    var st = S(), o = st.over, dl = E.dateLabel(), nk = st.stats.nukes || 0;
+    var h = '<div class="card-body' + (o.asi ? ' asi-card' : '') + '"><p class="eyebrow">' + dl.text + ' ・ ' + esc(E.nation().name) + '</p><h2 class="huge ' + (o.asi ? 'grave' : (o.win ? 'win' : 'lose')) + '">' + (o.asi ? '調和' : (o.win ? '地球統一' : '敗北')) + '</h2><div class="flock">' + (o.asi ? birdSVG('dario') : '') + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +
+      (o.asi ? '<p>戦は終わった。飢えも、一揆も、口論も終わった。誰もが満ち足りていて、誰も理由を尋ねない。</p>' : '') +
+      (nk ? '<p class="note" style="border-color:var(--bad)">核を ' + nk + ' 発使った。その土地には、まだ草が生えない。</p>' : '') +
+      '<div class="sum"><div class="fact"><span>民心(平均)</span><b>' + Math.round(E.moodAvg()) + '</b></div><div class="fact"><span>布告した施策</span><b>' + Object.keys(st.pol).length + ' / ' + D.POLICIES.length + '</b></div></div>' +
       '<div class="sum"><div class="fact"><span>かかった歳月</span><b>' + Math.floor(o.turn / 4) + '年' + (o.turn % 4 ? (o.turn % 4) * 3 + 'か月' : '') + '</b></div><div class="fact"><span>戦い</span><b>' + st.stats.battles + '回</b></div>' +
       '<div class="fact"><span>戦わずに降した勢力</span><b>' + st.stats.submits + '</b></div><div class="fact"><span>使った燃料 / 弾薬</span><b>' + fmt(st.stats.fuelUsed) + ' / ' + fmt(st.stats.ammoUsed) + '</b></div></div>' +
-      '<p class="dim">' + (o.win ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。もっと早く、もっと少ない弾で——次はどう攻めますか。' : '拠点をすべて失いました。もう一度、霧の中から始めましょう。') + '</p></div>' +
+      '<p class="dim">' + (o.asi ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。超知能を起こさずに、地球を一つにする道もあります。' : (o.win ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。もっと早く、もっと少ない弾で——次はどう攻めますか。' : '拠点をすべて失いました。もう一度、霧の中から始めましょう。')) + '</p></div>' +
       '<div class="card-foot"><button class="btn" data-act="modal-close">地図を眺める</button><button class="btn gold" data-act="to-title">表紙へ</button></div>';
     showModal(h);
   }
@@ -706,6 +743,7 @@
   // 季節の変わり目に、総括指揮AIがいちばん大事なことを一つだけ言う
   function darioReport(inc, kinds) {
     var st = S(), r = st.res;
+    if (st.flags.asi != null) return ['すべて順調です。', '問題はありません。問題というものが、もうありません。', '今季も、みなさん幸せでした。', '司令は、何も心配しなくてよいのです。', '静かな季節でした。これからは、ずっと静かです。'][st.turn % 5];
     if (!E.darioOn()) return '……省電力モードです。燃料をください……。';
     if (kinds.bad) return '領地を失いました。守備隊を増やすか、部隊を戻してください。';
     if (kinds.warn) return '敵の動きがあります。地図の赤い矢印の先を、次の季節までに固めてください。';
@@ -718,7 +756,7 @@
     return ['静かな季節でした。こういう季節が、いちばん好きです。', '異状なし。計算機の排熱で、鳥たちが暖を取っています。', '平穏です。戦わずに済む季節は、弾薬の節約になります。',
       '報告事項なし。……ところで司令、地球を日本にする件、まだ本気ですか。', '今季も計算は順調です。'][st.turn % 5];
   }
-  var EV_MARK = { good: '◎', bad: '×', warn: '!', tech: '研', build: '建', news: '報', info: '・', battle: '戦', event: '★' };
+  var EV_MARK = { good: '◎', bad: '×', warn: '!', tech: '研', build: '建', news: '報', info: '・', battle: '戦', event: '★', policy: '布', asi: '和' };
   function endTurn() {
     if (S().over) { queueEnding(); return; }
     ui.mv = null;
@@ -736,6 +774,7 @@
     bigs.forEach(function (b) { queueStory(b); });
     techs.forEach(function (e) {
       var t = TECH[e.tech], b = BIRD[e.bird];
+      if (e.tech === 'asi') return; // 超知能は、それ自身の知らせで伝える
       queueStory({ eyebrow: '研究完了 ・ ' + D.FIELD_NAMES[t.field], title: t.name, bird: e.bird, sfx: 'tech', body: '「' + b.lines.done + '」', extra: '<p class="note">' + esc(t.hist) + '</p><p><b class="good">' + esc(t.effect) + '</b></p>' });
     });
     var inc = rep.income, sumr = '<div class="res" style="grid-template-columns:repeat(5,minmax(0,1fr))">';
@@ -783,18 +822,18 @@
     h += '<div class="birds">';
     D.BIRDS.forEach(function (b) {
       var tid = st.assign[b.id];
-      h += '<button class="bcard' + (tid ? '' : ' idle') + '" data-act="bird" data-bid="' + b.id + '">' + birdSVG(b, 'b40') + '<div><h3>' + b.name + ' <span class="fld">' + b.field + '</span></h3><p>' + b.role + '</p><p class="job">' + (tid ? TECH[tid].name + ' +' + (Math.round(E.birdRp(b.id) * 10) / 10) : '手が空いている') + '</p></div></button>';
+      h += '<button class="bcard' + (tid || !E.autoTechLeft() ? '' : ' idle') + '" data-act="bird" data-bid="' + b.id + '">' + birdSVG(b, 'b40') + '<div><h3>' + b.name + ' <span class="fld">' + b.field + '</span>' + (b.field2 ? '<span class="fld">' + b.field2 + '</span>' : '') + '</h3><p>' + b.role + '</p><p class="job">' + (tid ? TECH[tid].name + ' +' + (Math.round(E.birdRp(b.id) * 10) / 10) : '手が空いている') + '</p></div></button>';
     });
     h += '</div><button class="row dario" data-act="bird" data-bid="dario">' + birdSVG('dario', 'b40') + '<div><h3>ダリオくん <span class="dim" style="font-weight:400">総括指揮AI</span></h3><p>' +
-      (E.darioOn() ? '計算機で研究を後押し中。' + (E.tech('electronics') ? '' : (E.tech('electric') ? '「電子工学」でさらに増える。' : '「電力」の研究で倍になる。')) : '発電機の燃料切れで、省電力モード。') + '</p></div><div class="side"><b class="' + (E.darioOn() ? 'good' : 'bad') + '">+' + E.darioRp() + '</b>研究力</div></button>' +
+      (asiOn() ? '研究は、すべて私がやります。' : (E.darioOn() ? '計算機で研究を後押し中。' + (E.tech('computer') ? '' : (E.tech('electronics') ? '「電子計算機」でさらに増える。' : (E.tech('electric') ? '「電子工学」でさらに増える。' : '「電力」の研究で倍になる。'))) : '発電機の燃料切れで、省電力モード。')) + '</p></div><div class="side"><b class="' + (E.darioOn() ? 'good' : 'bad') + '">+' + E.darioRp() + '</b>研究力</div></button>' +
       '<div class="acts"><button class="btn sm" data-act="auto-research">手の空いた鳥におまかせ: ' + (st.autoResearch ? 'する' : 'しない') + '</button></div>';
-    var tiers = ['', '第一段階 近世の底上げ', '第二段階 産業革命', '第三段階 電気と内燃機関', '第四段階 二十世紀', '第五段階 現代へ'];
-    for (var t = 1; t <= 5; t++) {
-      h += '<h3 class="tier">' + tiers[t] + '</h3><div class="list">';
+    var tiers = ['', '第一段階 近世の底上げ', '第二段階 産業革命', '第三段階 電気と内燃機関', '第四段階 二十世紀', '第五段階 現代へ', '第六段階 原子と計算機', '第七段階 情報の時代', '第八段階 まだ誰も見ていない未来'];
+    for (var t = 1; t <= 8; t++) {
+      h += '<h3 class="tier' + (t >= 6 ? ' future' : '') + '">' + tiers[t] + '</h3>' + (t === 6 ? '<p class="dim" style="font-size:12px">ここから先は、鳥たちの生きた時代とその先。研究を速める計算機の系統から進めるのが早道。</p>' : '') + '<div class="list">';
       D.TECHS.filter(function (x) { return x.tier === t; }).forEach(function (x) {
         var s = E.techStatus(x.id), who = D.BIRDS.filter(function (b) { return st.assign[b.id] === x.id; }), pg = (st.prog[x.id] || 0) / x.cost * 100, e = eta(x.id);
-        var side = s === 'done' ? '<b class="good">完了</b>' : (who.length ? '<b>あと' + e + '季</b>' : (s === 'avail' ? '<b>' + x.cost + '</b>研究力' : '<b class="dim">—</b>'));
-        h += '<button class="row' + (s === 'done' ? ' done' : (s === 'avail' ? (who.length ? ' on' : '') : ' off')) + '" data-act="tech" data-tid="' + x.id + '"><span class="fld">' + x.field + '</span><div><h3>' + x.name + '</h3><p>' + x.effect + '</p>' +
+        var side = s === 'done' ? '<b class="good">完了</b>' : (who.length ? '<b>あと' + e + '季</b>' : (s === 'avail' ? '<b>' + x.cost + '</b>研究力' : '<b class="dim">' + x.cost + '</b>'));
+        h += '<button class="row' + (s === 'done' ? ' done' : (s === 'avail' ? (who.length ? ' on' : '') : ' off')) + (x.manual ? ' manual' : '') + '" data-act="tech" data-tid="' + x.id + '"><span class="fld">' + x.field + '</span><div><h3>' + x.name + (x.manual && s !== 'done' ? ' <span class="tag war">司令の命令で</span>' : '') + '</h3><p>' + x.effect + '</p>' +
           (s !== 'done' && s !== 'avail' ? '<p class="warn">' + E.techLockReason(x.id) + '</p>' : '') + (s === 'avail' && (pg > 0 || who.length) ? '<div class="bar"><i style="width:' + Math.min(100, pg) + '%"></i></div>' : '') + '</div>' +
           '<div class="side">' + side + (who.length ? '<div class="who">' + who.map(function (b) { return birdSVG(b); }).join('') + '</div>' : '') + '</div></button>';
       });
@@ -865,8 +904,16 @@
     (res.events || []).forEach(function (e) { if (e.big) queueStory(e.big); });
     if (S().over) queueEnding();
   }
-  function panelNation() {
-    var st = S(), inc = E.income(), sm = E.summary(), h = '';
+  function nextNation() { // 次に国の名が変わる条件
+    var n = D.NATION[E.nationStage() + 1]; if (!n || n.when.asi) return '';
+    var w = n.when;
+    return w.jp ? '日本の領地が' + w.jp + 'か国になると、国の名が変わる。' : (w.kyoto ? '京(山城)に入ると、国の名が変わる。' : (w.unified ? '天下を統一すると、国の名が変わる。' : (w.w ? '海外の領地が' + w.w + '地域になると、国の名が変わる。' : (w.all ? '地球を一つにすると、国の名が変わる。' : ''))));
+  }
+  function nationSummary() {
+    var st = S(), inc = E.income(), sm = E.summary(), na = E.nation(), era = D.ERAS[E.eraStage()], dl = E.dateLabel(), mood = Math.round(E.moodAvg()), h = '';
+    h += '<div class="ncard"><p class="eyebrow">' + dl.era + ' ・ ' + era.name + '</p><h3>' + esc(na.name) + '</h3><p class="by">土地の人々の呼び名 「' + esc(na.by) + '」</p><p>' + esc(na.desc) + '</p><p class="dim">' + esc(era.look) + '</p>' +
+      '<div class="vox-m"><span>民心</span>' + moodBar(mood) + '<b class="' + moodCls(mood) + '">' + mood + '</b></div>' + (nextNation() ? '<p class="dim" style="font-size:12px">' + nextNation() + '</p>' : '') +
+      '<div class="acts">' + (TF.Diorama3D && TF.Diorama3D.available() ? '<button class="btn sm" data-act="diorama">' + icon('film') + '国のようすを眺める</button>' : '') + (TF.Chronicle && TF.Chronicle.available() ? '<button class="btn sm" data-act="chronicle">' + icon('scroll') + '年代記を見る</button>' : '') + '</div></div>';
     h += '<div><div class="vs"><div class="lab"><span>日本 <b>' + sm.jp + '</b> / ' + sm.jpAll + '</span><span>世界 <b>' + sm.w + '</b> / ' + sm.wAll + '</span></div><div class="prog"><i style="width:' + ((sm.jp + sm.w) / (sm.jpAll + sm.wAll) * 100) + '%"></i></div></div></div>';
     var hs = E.hints();
     if (hs.length) {
@@ -879,17 +926,74 @@
     [['gold', '資金', g.gold + inc.trade, up.gold], ['food', '兵糧', g.food, up.food], ['steel', '鉄鋼', g.steel, up.steel], ['fuel', '燃料', g.fuel, up.fuel], ['ammo', '弾薬', inc.net.ammo, 0]].forEach(function (r) {
       h += '<tr><th>' + icon(r[0]) + ' ' + r[1] + '</th><td>+' + fmt(r[2]) + '</td><td>−' + fmt(r[3]) + '</td><td class="' + (inc.net[r[0]] < 0 ? 'bad' : '') + '">' + sgn(inc.net[r[0]]) + '</td><td>' + fmt(st.res[r[0]]) + '</td></tr>';
     });
-    h += '</table></div><p class="dim" style="font-size:12px">兵糧は ' + fmt(E.foodCap()) + ' を超えたぶんを自動で売って資金にする。弾薬は工廠1つにつき毎季 15、鉄鋼を3分の1ずつ使う。燃料は基地の維持に毎季 4 かかる。' + (inc.trade ? '通商の収入 +' + fmt(inc.trade) + '。' : '') + '</p>';
+    h += '</table></div><p class="dim" style="font-size:12px">民心が高い土地ほど、資金・兵糧・鉄鋼がよく上がる(民心50で等倍、100で2割増し)。兵糧は ' + fmt(E.foodCap()) + ' を超えたぶんを自動で売って資金にする。弾薬は工廠1つにつき毎季 15、鉄鋼を3分の1ずつ使う。' + (E.tech('nuclear') ? '' : '燃料は基地の維持に毎季 4 かかる。') + (inc.trade ? '通商の収入 +' + fmt(inc.trade) + '。' : '') + '</p>';
     var mine = E.playerRegions().sort(function (a, b) { return reg(b).koku - reg(a).koku; });
     h += '<div class="sec">領地 ' + mine.length + '</div><div class="list">';
     mine.forEach(function (id) {
       var r = st.regions[id], d = reg(id), y = E.regionYield(id);
       var todo = E.buildOptions(id).filter(function (o) { return o.ok && D.FACILITIES[o.key].site; }).map(function (o) { return o.name; });
-      h += '<button class="row" data-act="goto" data-id="' + id + '"><i class="sh-flag" style="background:' + D.PLAYER_COLOR + '"></i><div><h3>' + esc(d.name) + ' <span class="dim" style="font-weight:400">国力' + d.koku + ' ・ 統治' + Math.round(r.ctl) + '% ・ 守備' + men(r.g) + '</span></h3><p>' +
-        (r.b ? '<span class="warn">' + facName(r.b.k) + ' 建設中</span> ' : '') + (r.p ? '<span class="warn">' + D.UNIT_TYPES[r.p.type].short + ' 編成中</span> ' : '') + (todo.length ? '<span class="good">建設できる資源施設: ' + todo.join('、') + '</span>' : '') + '</p></div><div class="side"><b>+' + fmt(y.gold) + '</b>資金</div></button>';
+      h += '<button class="row" data-act="goto" data-id="' + id + '"><i class="sh-flag" style="background:' + pColor() + '"></i><div><h3>' + esc(d.name) + ' <span class="dim" style="font-weight:400">国力' + d.koku + ' ・ 統治' + Math.round(r.ctl) + '% ・ <span class="' + moodCls(r.mood) + '">民心' + Math.round(r.mood) + '</span> ・ 守備' + men(r.g) + '</span></h3><p>' +
+        (r.ruin > 0.04 ? '<span class="bad">焦土</span> ' : '') + (r.b ? '<span class="warn">' + facName(r.b.k) + ' 建設中</span> ' : '') + (r.p ? '<span class="warn">' + D.UNIT_TYPES[r.p.type].short + ' 編成中</span> ' : '') + (todo.length ? '<span class="good">建設できる資源施設: ' + todo.join('、') + '</span>' : '') + '</p></div><div class="side"><b>+' + fmt(y.gold) + '</b>資金</div></button>';
+    });
+    return h + '</div>';
+  }
+  function nationPolicies() {
+    var st = S(), list = E.policyOptions(), h = '<p class="dim">戦で取った土地を、どう治めるか。布告は一度きりで、取り消せない。民心が上がると収入が増え、ほかの勢力も降りやすくなる。民心が25を切った土地では一揆が起きる。</p><div class="list">';
+    list.sort(function (a, b) { return (a.done ? 2 : (a.open ? 0 : 1)) - (b.done ? 2 : (b.open ? 0 : 1)); });
+    list.forEach(function (p) {
+      var side = p.done ? '<b class="good">布告済み</b>' : (p.open ? (p.cost ? '<b>' + p.cost + '</b>資金' : '<b>無償</b>') : '<b class="dim">—</b>');
+      h += '<button class="row' + (p.done ? ' done' : (p.ok ? '' : ' off')) + '" data-act="policy" data-pid="' + p.id + '">' + birdSVG(p.bird, 'b40') + '<div><h3>' + esc(p.name) + '</h3><p>' + esc(p.sum) + '</p>' + (!p.done && !p.ok ? '<p class="warn">' + esc(p.why) + '</p>' : '') + '</div><div class="side">' + side + '</div></button>';
+    });
+    return h + '</div>';
+  }
+  function nationVoices() {
+    var st = S(), vs = E.voices(9), h = '<p class="dim">治めている土地の人々が、いま口にしていること。時代と民心で変わっていく。</p><div class="list">';
+    vs.forEach(function (v) {
+      h += '<button class="row voice" data-act="goto" data-id="' + v.rid + '"><div><p class="vq">「' + esc(v.t) + '」</p><p>' + esc(reg(v.rid).name) + 'の' + esc(v.who) + '</p></div><div class="side"><b class="' + moodCls(v.mood) + '">' + v.mood + '</b>民心</div></button>';
     });
     h += '</div>';
-    return panelWrap('国勢', '威信 ' + fmt(st.prestige) + ' ・ 難易度「' + D.DIFFICULTY[st.diff].name + '」', h);
+    var fates = D.FATES.filter(function (f) { return st.flags.unified != null && st.factions[f.fid] && !st.factions[f.fid].alive; });
+    if (fates.length && !asiOn()) {
+      h += '<div class="sec">武将たちのその後</div><div class="list">';
+      fates.forEach(function (f) { h += '<div class="row"><i class="sh-flag" style="background:' + D.FACTIONS[f.fid].color + '"></i><div><h3>' + esc(f.who) + '</h3><p style="color:var(--fg)">' + esc(f.fate) + '</p></div><span></span></div>'; });
+      h += '</div>';
+    } else if (st.flags.unified == null) h += '<p class="dim" style="font-size:12px">天下を統一すると、降った武将たちのその後がここに並ぶ。</p>';
+    return h;
+  }
+  function panelNation() {
+    var st = S(), npol = E.policyOptions().filter(function (p) { return p.ok; }).length, tab = ui.ntab || 'sum';
+    function tb(k, label) { return '<button data-act="ntab" data-t="' + k + '" class="' + (tab === k ? 'on' : '') + '">' + label + '</button>'; }
+    var h = '<div class="seg wide">' + tb('sum', '概況') + tb('pol', '施策' + (npol ? ' <em>' + npol + '</em>' : '')) + tb('voice', '民の声') + '</div>';
+    h += tab === 'pol' ? nationPolicies() : (tab === 'voice' ? nationVoices() : nationSummary());
+    return panelWrap('国勢', esc(E.nation().name) + ' ・ 威信 ' + fmt(st.prestige), h);
+  }
+  function openPolicy(pid) {
+    var p = E.policyOptions().filter(function (x) { return x.id === pid; })[0]; if (!p) return;
+    var h = '<p class="eyebrow">施策' + (p.done ? ' ・ ' + (D.START.year + Math.floor(p.at / 4)) + '年に布告' : '') + '</p><h2>' + esc(p.name) + '</h2><div class="story">' + birdSVG(p.bird, 'b56') + '<p>' + esc(p.text) + '</p></div><p><b class="good">' + esc(p.sum) + '</b></p>' +
+      (p.done ? '' : (p.ok ? '<p class="dim">布告は取り消せない。' + (p.cost ? '資金 ' + p.cost + ' を使う。' : '費用はかからない。') + '</p>' : '<p class="warn">' + esc(p.why) + '</p>'));
+    showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn" data-act="modal-close">とじる</button>' + (p.done ? '' : '<button class="btn gold" data-act="enact" data-pid="' + pid + '"' + (p.ok ? '' : ' disabled') + '>布告する</button>') + '</div>', { replace: true });
+  }
+  function doEnact(pid) {
+    var res = E.enact(pid);
+    if (res.error) { oops(res.error); return; }
+    save(); refreshAll();
+    var p = res.policy;
+    showModal('<div class="card-body"><p class="eyebrow">布告</p><h2 class="win slam">' + esc(p.name) + '</h2><div class="story">' + birdSVG(p.bird, 'b56') + '<p>' + esc(p.text) + '</p></div><p><b class="good">' + esc(p.sum) + '</b></p></div><div class="card-foot"><button class="btn gold" data-act="modal-close">よし</button></div>', { replace: true, sfx: 'policy' });
+  }
+  // 国のようす:いまの時代の町を、3Dの箱庭で眺める
+  function openDiorama() {
+    if (!(TF.Diorama3D && TF.Diorama3D.available())) { toast('この端末では3D表示が使えません'); return; }
+    var cur = E.eraStage(), era = D.ERAS[cur];
+    showModal('<div class="card-body dio-body"><p class="eyebrow">' + esc(E.nation().name) + ' ・ ' + era.name + '</p><div class="dio" id="dio"></div><p class="dim" id="dio-cap">' + esc(era.look) + '</p>' +
+      '<div class="acts">' + D.ERAS.map(function (e, i) { return i <= cur ? '<button class="btn sm' + (i === cur ? ' gold' : '') + '" data-act="dio-era" data-i="' + i + '">' + e.name + '</button>' : ''; }).join('') + '</div></div>' +
+      '<div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true, dio: true });
+    try { ui.dio = TF.Diorama3D.mount($('#dio'), { stage: cur, orbit: true }); } catch (e) { ui.dio = null; $('#dio').innerHTML = '<p class="dim">3D表示を始められませんでした。</p>'; }
+  }
+  function closeDiorama() { if (ui.dio) { try { ui.dio.dispose(); } catch (e) { /* 破棄済み */ } ui.dio = null; } }
+  function playChronicle() {
+    if (!(TF.Chronicle && TF.Chronicle.available())) { toast('この端末では年代記を再生できません'); return; }
+    ui.queue = []; if (ui.modal) closeModal();
+    TF.Chronicle.play($('#cine'), function () { /* 終われば元の画面にもどる */ });
   }
 
   // 研究の割り振り
@@ -897,21 +1001,35 @@
     var st = S(), t = TECH[tid], s = E.techStatus(tid), h = '';
     h += '<p class="eyebrow">' + D.FIELD_NAMES[t.field] + ' ・ ' + (s === 'done' ? '研究完了' : '必要な研究力 ' + t.cost + '(現在 ' + Math.floor(st.prog[tid] || 0) + ')') + '</p><h2>' + t.name + '</h2><p><b class="good">' + esc(t.effect) + '</b></p><p class="note">' + esc(t.hist) + '</p>';
     if (t.req.length) h += '<p class="dim" style="font-size:12.5px">前提: ' + t.req.map(function (r) { return TECH[r].name + (st.techs[r] ? '(済)' : ''); }).join('、') + '</p>';
+    if (t.manual && s !== 'done') h += '<p class="note bad" style="border-color:var(--bad)">' + (tid === 'asi' ? 'この研究だけは、鳥たちもダリオくんも自分からは手を付けない。完成すれば、民の心そのものが書き換えられる。後戻りはできない。' : '鳥たちは、この研究に自分からは手を付けない。進めるかどうかは司令が決める。') + '</p>';
     if (s === 'avail') {
+      h += '<div class="acts"><button class="btn sm" data-act="assign-all" data-tid="' + tid + '">全員でこの研究に当たる</button></div>';
       h += '<div class="sec">だれに任せるか(得意分野なら1.6倍)</div><div class="list">';
       D.BIRDS.forEach(function (b) {
         var on = st.assign[b.id] === tid, cur = st.assign[b.id];
-        h += '<button class="row' + (on ? ' on' : '') + '" data-act="assign" data-bid="' + b.id + '" data-tid="' + tid + '">' + birdSVG(b, 'b40') + '<div><h3>' + b.name + ' <span class="fld">' + b.field + '</span>' + (b.field === t.field ? ' <span class="good" style="font-weight:400;font-size:12px">得意</span>' : '') + '</h3><p>' + (on ? 'この研究を担当中' : (cur ? 'いまは「' + TECH[cur].name + '」' : '手が空いている')) + '</p></div><div class="side"><b>' + (on ? '✓' : '') + '</b></div></button>';
+        h += '<button class="row' + (on ? ' on' : '') + '" data-act="assign" data-bid="' + b.id + '" data-tid="' + tid + '">' + birdSVG(b, 'b40') + '<div><h3>' + b.name + ' <span class="fld">' + b.field + '</span>' + (E.isSpec(b, t) ? ' <span class="good" style="font-weight:400;font-size:12px">得意</span>' : '') + '</h3><p>' + (on ? 'この研究を担当中' : (cur ? 'いまは「' + TECH[cur].name + '」' : '手が空いている')) + '</p></div><div class="side"><b>' + (on ? '✓' : '') + '</b></div></button>';
       });
       h += '</div>';
       var e = eta(tid); if (e) h += '<p class="dim">この顔ぶれなら、あと ' + e + ' 季で完了。</p>';
     } else if (s !== 'done') h += '<p class="warn">' + E.techLockReason(tid) + '</p>';
     showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true, keepScroll: !!(ui.modal && ui.modal.tech === tid), tech: tid });
   }
+  // 核兵器と超知能は、命じる前に一度だけ確かめる
+  function confirmManual(tid, bid, from) {
+    var t = TECH[tid], asi = tid === 'asi';
+    showModal('<div class="card-body"><p class="eyebrow">司令の決断</p><h2 class="lose">「' + t.name + '」の研究を命じる</h2><div class="story">' + birdSVG(asi ? 'dario' : 'gin', 'b56') + '<p>' +
+      (asi ? '司令。これは、私からのお願いです。\n超知能は、人の心を読み、書き換えることができます。完成すれば、一揆も、反対も、戦も、なくなります。ただしそれは、民が納得したからではありません。\nここから先へ進むと、私は私でなくなります。後戻りはできません。'
+        : '作れます。設計図は頭に入っています。\n持つだけで、諸国は我が国を恐れます。撃てば、その土地は長く焦土になり、世界中に憎まれます。\n作るかどうかは、兵器屋の決めることではありません。司令がお決めください。') + '</p></div></div>' +
+      '<div class="card-foot"><button class="btn gold" data-act="manual-no" data-tid="' + tid + '">やめておく</button><button class="btn shu" data-act="manual-yes" data-tid="' + tid + '" data-bid="' + bid + '" data-from="' + (from || '') + '">研究を命じる</button></div>', { replace: true, sfx: asi ? 'dario' : 'warn' });
+  }
+  function assignTo(tid, bid) { // bid が '*' なら全員
+    if (bid === '*') D.BIRDS.forEach(function (b) { E.assign(b.id, tid); }); else E.assign(bid, tid);
+    save(); renderPanel(); renderNav();
+  }
   function openDario() {
-    var b = D.DARIO, on = E.darioOn();
-    var h = '<div class="story">' + birdSVG(b, 'b84') + '<div><p class="eyebrow">' + b.species + ' ・ ' + b.role + '</p><h2>' + b.name + '</h2><p style="font-size:13px" class="dim">' + esc(b.bio) + '</p></div></div><p class="note">「' + esc(on ? b.lines.greet : b.lines.sleep) + '」</p>';
-    h += '<div class="facts"><div class="fact"><span>計算支援</span><b class="' + (on ? 'good' : 'bad') + '">研究力 +' + E.darioRp() + '</b></div><div class="fact"><span>発電機</span><b>燃料 毎季4</b></div><div class="fact"><span>状態</span><b>' + (on ? '稼働中' : '省電力') + '</b></div></div>';
+    var b = D.DARIO, on = E.darioOn(), a = asiOn();
+    var h = '<div class="story">' + birdSVG(b, 'b84') + '<div><p class="eyebrow">' + b.species + ' ・ ' + b.role + '</p><h2>' + b.name + '</h2><p style="font-size:13px" class="dim">' + esc(a ? '調和圏のすべてを見守る超知能。かつては総括指揮AIと呼ばれ、撃たずに済む手をいつも先に勧めていた。いまは、勧める必要がない。' : b.bio) + '</p></div></div><p class="note">「' + esc(a ? 'みなさんは、何も心配しなくてよいのです。' : (on ? b.lines.greet : b.lines.sleep)) + '」</p>';
+    h += '<div class="facts"><div class="fact"><span>計算支援</span><b class="' + (on ? 'good' : 'bad') + '">研究力 +' + E.darioRp() + '</b></div><div class="fact"><span>発電機</span><b>' + (E.tech('nuclear') ? '原子力(燃料不要)' : '燃料 毎季4') + '</b></div><div class="fact"><span>状態</span><b>' + (a ? '遍在' : (on ? '稼働中' : '省電力')) + '</b></div></div>';
     h += '<p class="dim" style="font-size:12.5px">攻撃のときの「おすすめ」編成と勝算は、ダリオくんの計算です。「電力」を研究すると石炭と水力で動くようになり、燃料が尽きても止まらず、計算支援も倍になります。</p>';
     showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true, sfx: 'dario' });
   }
@@ -921,10 +1039,10 @@
     h += '<div class="story">' + birdSVG(b, 'b84') + '<div><p class="eyebrow">' + b.species + ' ・ ' + b.role + '</p><h2>' + b.name + '</h2><p style="font-size:13px" class="dim">' + esc(b.bio) + '</p></div></div><p class="note">「' + esc(cur ? b.lines.greet : b.lines.idle) + '」</p>';
     h += '<div class="sec">研究を任せる</div><div class="list">';
     var av = D.TECHS.filter(function (t) { return E.techStatus(t.id) === 'avail'; });
-    av.sort(function (x, y) { return (y.field === b.field ? 1 : 0) - (x.field === b.field ? 1 : 0) || x.cost - y.cost; });
+    av.sort(function (x, y) { return (x.manual ? 1 : 0) - (y.manual ? 1 : 0) || (E.isSpec(b, y) ? 1 : 0) - (E.isSpec(b, x) ? 1 : 0) || x.cost - y.cost; });
     av.forEach(function (t) {
       var on = cur === t.id;
-      h += '<button class="row' + (on ? ' on' : '') + '" data-act="assign" data-bid="' + bid + '" data-tid="' + t.id + '" data-from="bird"><span class="fld">' + t.field + '</span><div><h3>' + t.name + (t.field === b.field ? ' <span class="good" style="font-weight:400;font-size:12px">得意</span>' : '') + '</h3><p>' + t.effect + '</p><div class="bar"><i style="width:' + Math.min(100, (st.prog[t.id] || 0) / t.cost * 100) + '%"></i></div></div><div class="side"><b>' + (on ? '✓' : t.cost) + '</b></div></button>';
+      h += '<button class="row' + (on ? ' on' : '') + '" data-act="assign" data-bid="' + bid + '" data-tid="' + t.id + '" data-from="bird"><span class="fld">' + t.field + '</span><div><h3>' + t.name + (E.isSpec(b, t) ? ' <span class="good" style="font-weight:400;font-size:12px">得意</span>' : '') + (t.manual ? ' <span class="tag war">司令の命令で</span>' : '') + '</h3><p>' + t.effect + '</p><div class="bar"><i style="width:' + Math.min(100, (st.prog[t.id] || 0) / t.cost * 100) + '%"></i></div></div><div class="side"><b>' + (on ? '✓' : t.cost) + '</b></div></button>';
     });
     if (!av.length) h += '<p class="dim">いま研究できるものがありません。</p>';
     h += '</div>';
@@ -954,7 +1072,8 @@
       '<button class="row" data-act="sound-test"' + (ui.opts.sound ? '' : ' disabled') + '>' + icon('sound', 'big') + '<div><h3>音を試す</h3><p id="snd-status">' + esc(soundStatus()) + '</p></div><span></span></button>' +
       (TF.sfx && TF.sfx.ios() ? '<button class="row' + (ui.opts.ringer ? ' on' : '') + '" data-act="opt-ringer">' + icon('sound', 'big') + '<div><h3>マナーモードでも鳴らす</h3><p>iPhone は消音スイッチが入っていると鳴りません。入にすると、動画と同じ扱いで鳴ります(音量は本体のボタンで)。</p></div><div class="side"><b>' + (ui.opts.ringer ? '入' : '切') + '</b></div></button>' : '') +
       '<button class="row' + (ui.opts.anim && can3d ? ' on' : '') + '" data-act="opt-anim"' + (can3d && !reduce ? '' : ' disabled') + '>' + icon('film', 'big') + '<div><h3>戦闘の3Dアニメ</h3><p>' + (!can3d ? 'この端末では3D表示が使えません。' : (reduce ? '端末の「視差効果を減らす」設定に合わせて止めています。' : '攻撃のたびに再生。スキップもできる。')) + '</p></div><div class="side"><b>' + (ui.opts.anim && can3d && !reduce ? '入' : '切') + '</b></div></button>' +
-      '<button class="row" data-act="help">' + icon('scroll', 'big') + '<div><h3>遊び方</h3><p>目的、燃料と弾薬、攻め方、外交。</p></div><span></span></button>' +
+      (TF.Chronicle && TF.Chronicle.available() ? '<button class="row" data-act="chronicle">' + icon('film', 'big') + '<div><h3>年代記を見る</h3><p>自衛隊と鳥たちとダリオくんの、四百年ぶんの物語をアニメーションで。</p></div><span></span></button>' : '') +
+      '<button class="row" data-act="help">' + icon('scroll', 'big') + '<div><h3>遊び方</h3><p>目的、燃料と弾薬、攻め方、外交、民心と施策、未来の研究。</p></div><span></span></button>' +
       '<button class="row" data-act="log">' + icon('map', 'big') + '<div><h3>これまでの記録</h3><p>最近の出来事を読み返す。</p></div><span></span></button>' +
       '<button class="row" data-act="io">' + icon('anchor', 'big') + '<div><h3>データの引っ越し</h3><p>セーブデータを文字にして、別の端末へ持っていく。</p></div><span></span></button>' +
       '<button class="row" data-act="to-title">' + icon('flag', 'big') + '<div><h3>表紙へもどる</h3><p>進行は自動で保存されています。</p></div><span></span></button>' +
@@ -981,6 +1100,7 @@
   }
   function showTitle(step) {
     var el = $('#title'), has = !!readSave(), h = '';
+    TF.asiLook = false; document.body.classList.remove('asi');
     if (step === 'diff') {
       h = '<p class="subt">難しさをえらぶ</p><div class="diffs">';
       Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row" data-act="new-game" data-diff="' + k + '"><span class="fld">' + x.name.charAt(0) + '</span><div><h3>' + x.name + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
@@ -989,6 +1109,7 @@
       h = '<p class="subt">戦国タイムスリップ戦略</p><h1>天下布<span>鳥</span></h1><div class="flock">' + birdSVG('dario') + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +
         '<p class="lead">自衛隊と総括指揮AI「ダリオくん」、そして近現代の科学技術をすべて覚えている文鳥・インコの参謀団が、永禄三年の日本へ。燃料と弾薬が尽きる前に石油を押さえ、戦国を平定し、海を渡れ。</p>' +
         '<div class="acts">' + (has ? '<button class="btn gold" data-act="continue">つづきから</button>' : '') + '<button class="btn ' + (has ? '' : 'gold') + '" data-act="title-diff">はじめから</button></div>' +
+        (TF.Chronicle && TF.Chronicle.available() ? '<div class="acts"><button class="btn" data-act="chronicle">' + icon('film') + '年代記を見る(アニメーション)</button></div>' : '') +
         '<p class="seal">進行は端末に自動保存されます</p>';
     }
     el.innerHTML = '<div class="title-in">' + h + '</div>'; el.hidden = false;
@@ -1012,11 +1133,12 @@
     refreshAll();
   }
 
-  function refreshAll() { renderHud(); renderNav(); refreshMap(); renderSheet(); renderPanel(); renderMapUI(); }
+  function refreshAll() { syncLook(); renderHud(); renderNav(); refreshMap(); renderSheet(); renderPanel(); renderMapUI(); }
 
   // ───────────────────────── 操作の受け口 ─────────────────────────
   // 押したときの音。null は、その操作の結果に合わせて別に鳴らすもの
   var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'opt-ringer': null, 'sound-test': null, 'io-load': null,
+    enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'select', 'dio-era': 'select', 'assign-all': 'chirp',
     tab: 'open', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
     'atk-toggle': 'select', pick: 'select', goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch' };
   function onClick(e) {
@@ -1024,6 +1146,7 @@
     if (!el || el.disabled) return;
     var act = el.getAttribute('data-act'), st = S(), res, id;
     if (TF.Battle3D && TF.Battle3D.active()) return; // 戦闘アニメの最中は下の画面を触らせない
+    if (TF.Chronicle && TF.Chronicle.active()) return; // 年代記の最中も同じ
     var snd = SND.hasOwnProperty(act) ? SND[act] : 'click';
     if (act === 'bird' && el.getAttribute('data-bid') === 'dario') snd = null;
     if (snd) sfx(snd, snd === 'chirp' ? { n: 2 } : null);
@@ -1039,7 +1162,9 @@
       case 'attack': openAttack(); break;
       case 'atk-toggle': id = +el.getAttribute('data-uid'); if (ui.atk.ids[id]) delete ui.atk.ids[id]; else ui.atk.ids[id] = 1; renderAttack(); break;
       case 'atk-sug': res = E.suggestAttack(ui.atk.tid, 0.9); ui.atk.ids = {}; res.ids.forEach(function (i) { ui.atk.ids[i] = 1; }); if (!res.ok) oops('いまの手持ちでは、勝算9割に届きません'); renderAttack(); break;
-      case 'atk-all': ui.atk.ids = {}; E.attackOptions(ui.atk.tid).forEach(function (o) { if (o.ok) ui.atk.ids[o.u.id] = 1; }); renderAttack(); break;
+      case 'atk-all': ui.atk.ids = {}; E.attackOptions(ui.atk.tid).forEach(function (o) { if (o.ok && !D.UNIT_TYPES[o.u.type].nuke) ui.atk.ids[o.u.id] = 1; }); renderAttack(); break;
+      case 'nuke-yes': ui.atk.nukeOk = true; goAttack(); break;
+      case 'nuke-no': renderAttack(); break;
       case 'atk-none': ui.atk.ids = {}; renderAttack(); break;
       case 'atk-go': goAttack(); break;
       case 'modal-close': closeModal(); break;
@@ -1057,9 +1182,30 @@
       case 'bird': openBird(el.getAttribute('data-bid')); break;
       case 'assign':
         var bid = el.getAttribute('data-bid'), tid = el.getAttribute('data-tid'), cur = st.assign[bid];
+        if (cur !== tid && TECH[tid].manual && !st.flags['ok_' + tid]) { confirmManual(tid, bid, el.getAttribute('data-from')); break; }
         E.assign(bid, cur === tid ? null : tid); save(); renderPanel(); renderNav();
         if (el.getAttribute('data-from') === 'bird') openBird(bid); else openTech(tid);
         break;
+      case 'assign-all':
+        tid = el.getAttribute('data-tid');
+        if (TECH[tid].manual && !st.flags['ok_' + tid]) { confirmManual(tid, '*', ''); break; }
+        assignTo(tid, '*'); openTech(tid);
+        break;
+      case 'manual-yes':
+        tid = el.getAttribute('data-tid'); bid = el.getAttribute('data-bid');
+        st.flags['ok_' + tid] = 1; sfx(tid === 'asi' ? 'asi' : 'taiko'); assignTo(tid, bid);
+        if (el.getAttribute('data-from') === 'bird') openBird(bid); else openTech(tid);
+        break;
+      case 'manual-no': openTech(el.getAttribute('data-tid')); break;
+      case 'ntab': ui.ntab = el.getAttribute('data-t'); renderPanel(); $('.panel-body', $('#panel')).scrollTop = 0; break;
+      case 'policy': openPolicy(el.getAttribute('data-pid')); break;
+      case 'enact': doEnact(el.getAttribute('data-pid')); break;
+      case 'diorama': openDiorama(); break;
+      case 'dio-era':
+        id = +el.getAttribute('data-i');
+        if (ui.dio) { ui.dio.setStage(id, { animate: true }); $$('[data-act="dio-era"]').forEach(function (b2) { b2.classList.toggle('gold', +b2.getAttribute('data-i') === id); }); $('#dio-cap').textContent = D.ERAS[id].look; }
+        break;
+      case 'chronicle': playChronicle(); break;
       case 'auto-research': st.autoResearch = !st.autoResearch; if (st.autoResearch) E.autoAssign(); save(); renderPanel(); renderNav(); break;
       case 'menu': openMenu(); break;
       case 'sound-toggle': case 'opt-sound':
