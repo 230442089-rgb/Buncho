@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0e1626">
+<!-- ARTIFACT-HEAD:BEGIN -->
+<title>天下布鳥</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Yuji+Syuku&display=swap">
+<!-- ARTIFACT-HEAD:END -->
+<style>:root{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<!-- ARTIFACT-BODY:BEGIN -->
+<div id="app">
+  <header class="hud" id="hud"></header>
+  <main id="stage">
+    <svg id="map" role="application" aria-label="地図。ドラッグで移動、ピンチやホイールで拡大縮小、地域をタップで選択"></svg>
+    <div id="mapui"></div>
+    <section class="sheet" id="sheet" hidden></section>
+    <section class="panel" id="panel" hidden></section>
+  </main>
+  <nav class="nav" id="nav"></nav>
+</div>
+<div class="modal" id="modal" hidden></div>
+<div class="title" id="title" hidden></div>
+<script src="src/mapdata.js"></script>
+<script src="src/data.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/birds.js"></script>
+<script src="src/ui.js"></script>
+<!-- ARTIFACT-BODY:END -->
+</body>
+</html>
