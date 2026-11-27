@@ -804,8 +804,8 @@
     st.units.forEach(function (u) { var k = u.loc || '_pool'; (by[k] = by[k] || []).push(u); });
     h += '<p class="dim">陸上部隊とヘリは、いる地域の隣を攻められる。艦隊と航空隊はどこからでも出撃する。行動は1季に1回。</p>';
     if (by._pool) {
-      h += '<div class="sec">艦隊・航空隊</div><div class="list">';
-      by._pool.forEach(function (u) { var T = D.UNIT_TYPES[u.type]; h += unitRow(u, { side: u.acted ? '行動済み' : (T.cls === 'air' ? '飛行場から' + T.range + 'km' : (T.transport ? '輸送' + T.transport : '')) }); });
+      h += '<div class="sec">艦隊・航空隊' + (by._pool.some(function (u) { return D.UNIT_TYPES[u.type].cls === 'missile'; }) ? '・戦略兵器' : '') + '</div><div class="list">';
+      by._pool.forEach(function (u) { var T = D.UNIT_TYPES[u.type]; h += unitRow(u, { side: u.acted ? '行動済み' : (T.cls === 'missile' ? 'どこへでも' : (T.cls === 'air' ? (E.tech('rocket') ? 'どこへでも' : '飛行場から' + T.range + 'km') : (T.transport ? '輸送' + T.transport : ''))) }); });
       h += '</div>';
     }
     Object.keys(by).filter(function (k) { return k !== '_pool'; }).sort(function (a, b) { return by[b].length - by[a].length; }).forEach(function (rid) {
