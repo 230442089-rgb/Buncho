@@ -185,6 +185,76 @@ section('超知能', () => {
   ok(S.chron.filter(e => e.k === 'asi').length > 5 && S.chron.length <= 400, '年表に調和の広がりが残る(' + S.chron.length + '件)');
 });
 
+section('学問所の格上げ・建設の短縮・急がせる', () => {
+  E.newGame({ seed: 11 });
+  const S = E.S; S.res.gold = 9000; S.res.steel = 900;
+  const opt = k => E.buildOptions('izu').find(o => o.key === k);
+  ok(S.regions.izu.fac.school === 1 && E.regionYield('izu').rp === 3, '始まりは学問所(研究力 +3)');
+  ok(opt('school').upgrade && !opt('school').ok && /蒸気機関/.test(opt('school').why), '蒸気機関の前は格上げできない');
+  S.techs.steam = true;
+  ok(opt('school').ok && /高等学校/.test(opt('school').name) && opt('school').cost.gold === 200, '蒸気機関で高等学校へ: ' + opt('school').name);
+  ok(E.build('izu', 'school').ok && S.regions.izu.b.t === 2, '格上げは2季');
+  ok(E.rushCost('izu') > 0, '急がせる費用が出る');
+  const g0 = S.res.gold, rc = E.rushCost('izu'), rr = E.rush('izu');
+  ok(rr.ok && S.res.gold === g0 - rc && S.regions.izu.b.t === 1 && E.rushCost('izu') == null, '急がせると次の季節に仕上がる');
+  const rep = E.endTurn();
+  ok(S.regions.izu.fac.school === 2 && E.regionYield('izu').rp === 6 && rep.events.some(e => /高等学校が完成/.test(e.t)), '高等学校が完成して研究力 +6');
+  ok(E.facLabel('izu', 'school') === '高等学校', '呼び名が変わる');
+  S.techs.electric = true; S.techs.electronics = true;
+  E.build('izu', 'school'); E.rush('izu'); E.endTurn(); E.build('izu', 'school'); E.rush('izu'); E.endTurn();
+  ok(S.regions.izu.fac.school === 4 && E.regionYield('izu').rp === 16 && opt('school').built, '大学、研究所まで上がり、そこで打ち止め');
+  ok(E.buildTurns('arsenal') === 3, '工廠は3季');
+  S.techs.rail = true; ok(E.buildTurns('arsenal') === 2 && E.buildTurns('farm') === 1, '鉄道で1季早く(最短1季)');
+  S.techs.engine = true; ok(E.buildTurns('arsenal') === 1 && opt('arsenal').turns === 1, '内燃機関でさらに1季');
+  S.techs.agi = false; S.techs.machine = false; ok(E.prodTurns('ktank') === 3, '国産戦車は3季'); S.techs.machine = true; ok(E.prodTurns('ktank') === 2, '精密工作機械で編成が1季早く');
+  const j = E.serialize(); E.load(j); ok(E.serialize() === j, 'セーブの往復で変わらない');
+});
+
+section('おまかせ(方針)', () => {
+  E.newGame({ seed: 12 });
+  const S = E.S;
+  ok(S.auto.build === 'off' && !S.auto.move, '始まりは手動');
+  ['sagami', 'suruga', 'kai', 'musashi', 'echigo', 'kozuke', 'shinano'].forEach(id => { S.regions[id].o = 'player'; S.regions[id].ctl = 80; });
+  S.res.gold = 3000; S.res.steel = 500; S.techs.distill = true; S.techs.survey = true;
+  ok(E.autoBuild().n === 0, '手動のままなら何も建てない');
+  E.setAuto({ build: 'scarce' });
+  const b = E.autoBuild();
+  ok(b.n >= 3 && b.list.some(x => x.key === 'oilwell'), '足りない資源を優先:油井を含めて建設を割り振る(' + b.list.map(x => x.name).join('、') + ')');
+  ok(S.res.gold >= E.autoReserve(), '予備の資金は残す: ' + S.res.gold);
+  ok(!b.list.some(x => x.key === 'fort' || x.key === 'airfield'), '城と飛行場は勝手に建てない');
+  E.newGame({ seed: 12 }); const S2 = E.S;
+  ['sagami', 'suruga', 'kai', 'musashi', 'kozuke'].forEach(id => { S2.regions[id].o = 'player'; S2.regions[id].ctl = 80; });
+  S2.res.gold = 3000; E.setAuto({ build: 'study' });
+  const b2 = E.autoBuild();
+  ok(b2.list.filter(x => x.key === 'school').length >= 3, '学問を優先:学問所から建てる(' + b2.list.map(x => x.name).join('、') + ')');
+  E.newGame({ seed: 12 }); const S3 = E.S;
+  ['sagami', 'suruga', 'kai', 'musashi', 'kozuke'].forEach(id => { S3.regions[id].o = 'player'; S3.regions[id].ctl = 80; });
+  S3.res.gold = 3000; E.setAuto({ build: 'res', res: 'food' });
+  ok(E.autoBuild().list.filter(x => x.key === 'farm').length >= 3, '兵糧を優先:農地改良から建てる');
+  // 前線へ寄せる
+  E.newGame({ seed: 13 }); const S4 = E.S;
+  ['sagami', 'musashi', 'kozuke'].forEach(id => { S4.regions[id].o = 'player'; });
+  const dist = E.frontDist(), back = Object.keys(dist).find(id => dist[id] > 0);
+  ok(dist.izu != null, '前線までの距離が出る: ' + JSON.stringify(dist));
+  if (back) {
+    const u = S4.units.find(x => x.type === 'inf'); u.loc = back; E.setAuto({ move: true });
+    const before = dist[u.loc]; const rep = E.endTurn();
+    ok(E.frontDist()[u.loc] < before || rep.events.some(e => e.auto), '未行動の部隊が前線へ寄る');
+  }
+  // 守りの徴兵
+  E.newGame({ seed: 14 }); const S5 = E.S; S5.res.gold = 2000; S5.res.food = 2000;
+  S5.threats.push({ from: 'sagami', to: 'izu', f: D.REGIONS.sagami.fac, turn: S5.turn + 5, sea: false });
+  S5.units = S5.units.filter(u => u.loc !== 'izu'); S5.regions.izu.g = 500;
+  E.setAuto({ guard: true }); const g0 = S5.regions.izu.g;
+  ok(E.autoGuard() > 0 && S5.regions.izu.g > g0, '狙われた土地に守備兵を足す');
+  // 編成は核を作らない
+  E.newGame({ seed: 15 }); const S6 = E.S; for (const t of D.TECHS) if (t.id !== 'asi') S6.techs[t.id] = true;
+  S6.res.gold = 99999; S6.res.steel = 99999; S6.regions.izu.fac.arsenal = 1; E.setAuto({ make: true });
+  const made = E.autoMake();
+  ok(made.length >= 1 && !made.includes('nuke'), '編成をまかせても核は作らない: ' + made.join(','));
+  ok(E.setAuto({ build: 'bogus', res: 'x' }).build === 'off', '知らない方針は受け付けない');
+});
+
 section('民の声(全地域・全時代)', () => {
   E.newGame({ seed: 10 });
   const S = E.S;

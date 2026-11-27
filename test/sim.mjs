@@ -1,6 +1,7 @@
 // ヘッドレスの通しプレイ。簡単なボットに最後まで遊ばせて、例外・不整合・詰みがないかと、展開の速さを確かめる。
 //   node test/sim.mjs [難易度=normal] [試行回数=3] [最大ターン=400] [-v]
 // 環境変数: ASI=1 超知能まで研究する / NUKE=1 核兵器を研究して作り、撃つ / MAXATK=n 1ターンの攻撃回数を絞る(ゆっくり遊ぶ人の再現)
+//           AUTO=scarce|study|fuel|gold… 建設・徴兵・編成・移動をエンジンの「おまかせ」に任せる(ボットは外交と攻撃だけ)
 //           POL=none 施策を布告しない / POL=all 見守り網まで全部布告する / DUMP_DIR=… 途中のセーブを書き出す
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -16,7 +17,7 @@ const DIFF = args[0] || 'normal';
 const RUNS = +(args[1] || 3);
 const MAXT = +(args[2] || 400);
 const WANT_ASI = process.env.ASI === '1', WANT_NUKE = process.env.NUKE === '1';
-const MAXATK = +(process.env.MAXATK || 999), POL = process.env.POL || 'default';
+const MAXATK = +(process.env.MAXATK || 999), POL = process.env.POL || 'default', AUTO = process.env.AUTO || '';
 
 function assertState(tag) {
   const S = E.S;
@@ -95,12 +96,15 @@ function botTurn(log) {
   }
   // ── 内政 ──
   const mine = E.playerRegions();
+  if (AUTO) { // おまかせに任せる。ここでは方針を渡すだけ
+    E.setAuto(['scarce', 'study'].includes(AUTO) ? { build: AUTO, move: true, guard: true, make: true } : { build: 'res', res: AUTO, move: true, guard: true, make: true });
+  }
   const arsenals = mine.filter(id => S.regions[id].fac.arsenal || (S.regions[id].b && S.regions[id].b.k === 'arsenal')).length;
   const yards = mine.filter(id => S.regions[id].fac.shipyard || (S.regions[id].b && S.regions[id].b.k === 'shipyard')).length;
   const schools = mine.filter(id => S.regions[id].fac.school || (S.regions[id].b && S.regions[id].b.k === 'school')).length;
   let nArs = arsenals, nYard = yards, nSchool = schools;
   let nDC = mine.filter(id => S.regions[id].fac.datacenter || (S.regions[id].b && S.regions[id].b.k === 'datacenter')).length;
-  for (const id of mine) {
+  for (const id of AUTO ? [] : mine) {
     const r = S.regions[id]; if (r.b) continue;
     const bo = Object.fromEntries(E.buildOptions(id).map(o => [o.key, o]));
     const want = [];
@@ -111,7 +115,8 @@ function botTurn(log) {
     if (bo.bauxite) want.push('bauxite');
     if (bo.arsenal && nArs < Math.max(1, Math.floor(mine.length / 6)) && D.REGIONS[id].koku >= 30) want.push('arsenal');
     if (bo.shipyard && nYard < 2 && D.REGIONS[id].koku >= 20) want.push('shipyard');
-    if (bo.school && nSchool < Math.max(1, Math.floor(mine.length / 3)) && S.res.gold > 250) want.push('school');
+    if (bo.school && !bo.school.upgrade && nSchool < Math.max(1, Math.floor(mine.length / 3)) && S.res.gold > 250) want.push('school');
+    if (bo.school && bo.school.upgrade && S.res.gold > bo.school.cost.gold + 300) want.push('school');
     if (bo.datacenter && nDC < (WANT_ASI ? 10 : 5) && S.res.gold > bo.datacenter.cost.gold + 600 && D.REGIONS[id].koku >= 40) want.unshift('datacenter');
     if (bo.market && D.REGIONS[id].koku >= 40 && S.res.gold > 200) want.push('market');
     if (bo.farm && D.REGIONS[id].koku >= 40 && S.res.gold > 200 && S.res.food < 2000) want.push('farm');
@@ -123,21 +128,21 @@ function botTurn(log) {
     }
   }
   // 脅威への備え
-  for (const t of S.threats) {
+  for (const t of AUTO ? [] : S.threats) {
     const from = S.regions[t.from];
     const A = from.g * 0.7 / E.MEN * (S.factions[t.f].q) * D.DIFFICULTY[S.diff].enemy * 1.15;
     let guard = 0;
     while (E.defensePower(t.to) < A * 1.1 && guard++ < 30) { const r = E.recruit(t.to, 1000); if (!r.ok) break; }
   }
   // 国境の最低限の守り
-  for (const id of frontier()) {
+  for (const id of AUTO ? [] : frontier()) {
     const r = S.regions[id];
     if (r.g < 2000 && S.res.gold > 150) E.recruit(id, 1000);
   }
   // ── 編成 ──
   const groundN = S.units.filter(u => D.UNIT_TYPES[u.type].cls === 'ground').length;
   const navalT = S.units.filter(u => (D.UNIT_TYPES[u.type].transport || 0) > 0).length;
-  for (const id of mine) {
+  for (const id of AUTO ? [] : mine) {
     const r = S.regions[id]; if (r.p) continue;
     const po = Object.fromEntries(E.produceOptions(id).map(o => [o.type, o]));
     const order = ['birdmech', 'orbital', 'drone', 'modern', 'ktank', 'kair', 'bb', 'fgun'];
@@ -195,7 +200,7 @@ function botTurn(log) {
   const dist = distToFrontier();
   const hojoNear = E.owner('sagami') !== 'player';
   let homeGuard = false;
-  for (const u of S.units.slice()) {
+  for (const u of AUTO ? [] : S.units.slice()) {
     if (u.acted || u.loc === null) continue;
     if (hojoNear && u.loc === 'izu' && u.type === 'inf' && !homeGuard) { homeGuard = true; continue; }
     if (dist[u.loc] === 0) continue;
@@ -223,6 +228,7 @@ function run(seed) {
     const rep = E.endTurn();
     assertState('endTurn');
     if (VERBOSE) for (const e of rep.events) if (['event', 'bad', 'warn', 'tech', 'news', 'good', 'asi'].includes(e.k)) console.log('   · ' + e.t);
+    if (VERBOSE) for (const e of rep.events) if (e.k === 'auto') console.log('   ◇ ' + e.t);
     for (const e of rep.events) if (e.k === 'tech' && ['electronics', 'modern', 'computer', 'llm', 'agi', 'fusion', 'birdmech', 'asi', 'nukeweapon'].includes(e.tech)) marks['t_' + e.tech] = E.S.turn;
     const ns = E.nationStage();
     if (marks['n' + ns] == null) marks['n' + ns] = E.S.turn;
@@ -240,6 +246,8 @@ function run(seed) {
     if (!marks.alltech && D.TECHS.every(t => E.S.techs[t.id])) marks.alltech = E.S.turn;
     const owned = sm.jp + sm.w;
     if (owned === lastOwned) stall++; else { stall = 0; lastOwned = owned; }
+    if (process.env.DBG && E.S.turn === 40) { const S2 = E.S; const ars = E.playerRegions().filter(id => S2.regions[id].fac.arsenal); console.log('  auto', JSON.stringify(S2.auto), '金', S2.res.gold, 'reserve', E.autoReserve()); for (const id of ars.slice(0, 2)) console.log('  ', id, 'p=', JSON.stringify(S2.regions[id].p), E.produceOptions(id).map(o => o.type + ':' + (o.ok ? 'ok' : o.why) + ':' + o.cost.gold).join(' | ')); console.log('  autoMake →', JSON.stringify(E.autoMake())); }
+    if (process.env.DBG && E.S.turn % 10 === 0) { const S2 = E.S, inc = E.income(), mine2 = E.playerRegions(); const cnt = k => mine2.filter(id => S2.regions[id].fac[k]).length; console.log(`  T${S2.turn} 鋼${S2.res.steel}(${inc.net.steel}) 産出鋼${Math.round(inc.gross.steel)} 弾用${Math.round(inc.upkeep.steel)} 工廠${cnt('arsenal')} 鉄山${cnt('ironmine')} 学${cnt('school')} 計算${cnt('datacenter')} 編成中${mine2.filter(id => S2.regions[id].p).length} 建設中${mine2.filter(id => S2.regions[id].b).length} needs=${JSON.stringify(Object.fromEntries(Object.entries(E.autoNeeds()).map(([k, v]) => [k, +v.toFixed(1)])))}`); }
     if (E.S.turn % 10 === 0) curve.push(`T${E.S.turn}:領${owned} 燃${E.S.res.fuel} 弾${E.S.res.ammo} 金${E.S.res.gold} 隊${E.S.units.length}`);
   }
   const R = E.S, sm = E.summary();
