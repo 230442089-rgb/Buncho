@@ -14,6 +14,7 @@
   D.TECHS.forEach(function (t) { TECH_BY_ID[t.id] = t; });
   var BIRD_BY_ID = {};
   D.BIRDS.forEach(function (b) { BIRD_BY_ID[b.id] = b; });
+  BIRD_BY_ID.dario = D.DARIO; // 鳥ではないが、進言や台詞の話者として同じ表で引けるようにする
   // 手の空いた鳥が自動で選ぶ順番(石油と鉄を最優先)
   var RESEARCH_PRIORITY = ['distill', 'blast', 'agri', 'powder', 'survey', 'hygiene', 'steam', 'ammo', 'drill', 'bessemer', 'rifle',
     'steamship', 'telegraph', 'fertilizer', 'rail', 'electric', 'cracking', 'engine', 'mg', 'machine', 'medicine', 'radio', 'geophys',
@@ -212,12 +213,15 @@
     if (t.needSite && !hasSite(t.needSite)) return D.SITE_NAMES[t.needSite] + '鉱山を自領に建ててから';
     return '';
   }
+  // 総括指揮AIの計算支援。発電機の燃料が尽きると止まる(電力の研究が済めば止まらない)
+  function darioOn() { return S.res.fuel > 0 || tech('electric'); }
+  function darioRp() { return !darioOn() ? 0 : (tech('electronics') ? 30 : (tech('electric') ? 16 : 8)); }
   function birdRp(bid) {
     var b = BIRD_BY_ID[bid], tid = S.assign[bid];
     if (!tid) return 0;
     var mult = 1 + (tech('electric') ? 0.25 : 0) + (tech('electronics') ? 0.25 : 0);
     var active = D.BIRDS.filter(function (x) { return S.assign[x.id]; }).length || 1;
-    var school = income().rp / active;
+    var school = (income().rp + darioRp()) / active;
     return (6 * (TECH_BY_ID[tid].field === b.field ? 1.6 : 1) + school) * mult;
   }
   function techRp(tid) { var s = 0; D.BIRDS.forEach(function (b) { if (S.assign[b.id] === tid) s += birdRp(b.id); }); return s; }
@@ -484,7 +488,7 @@
     S.units = S.units.filter(function (u) { return u.hp > 0; });
     checkMilestones(events);
     REPORT = prevReport;
-    res = { win: win, bombard: bombard, captured: captured, P: Math.round(P), E: Math.round(E), ratio: ratio, fuel: pr.fuel, ammo: pr.ammo, losses: losses,
+    res = { win: win, bombard: bombard, captured: captured, P: Math.round(P), E: Math.round(E), ratio: ratio, chance: pr.chance, fuel: pr.fuel, ammo: pr.ammo, losses: losses,
       gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter };
     return res;
   }
@@ -941,7 +945,7 @@
     });
     if (mine.length === 1 && S.turn < 4) {
       var first = links(mine[0]).filter(function (l) { return !isP(l.id) && !l.sea; }).sort(function (x, y) { return enemyPower(x.id) - enemyPower(y.id); })[0];
-      if (first) h('gin', 'まずは足場を。隣の' + rname(first.id) + 'をタップして「攻撃」。部隊は「おすすめ」のままで決行できます。', first.id, 1);
+      if (first) h('dario', 'まずは足場を。隣の' + rname(first.id) + 'をタップして「攻撃」。編成は私の「おすすめ」のままで決行できます。', first.id, 1);
     }
     var idle = idleBirds();
     if (idle.length && !allTechDone()) h('haku', '手の空いている者がいます(' + idle.map(function (b) { return BIRD_BY_ID[b].name; }).join('、') + ')。研究を割り振ってください。', null, 2);
@@ -967,7 +971,8 @@
       if (d.res.coal && !r.fac.coalmine && tech('survey')) h('haku', rname(id) + 'に炭鉱を開けます。製鉄がはかどります。', id, 4);
     });
     if (tech('steam') && !mine.some(function (id) { return S.regions[id].fac.arsenal || (S.regions[id].b && S.regions[id].b.k === 'arsenal'); })) h('okame', '工廠を建てられます。部隊と弾薬を自分たちで作れるようになります…。', null, 3);
-    if (S.turn < 3 && S.dipLeft > 0) h('gin', '小さな勢力は、戦わずとも降ることがあります。隣り合う勢力に「降伏勧告」を試してください。', null, 4);
+    if (S.turn < 3 && S.dipLeft > 0) h('dario', '撃たずに済むなら、それが最善です。隣り合う小さな勢力には「降伏勧告」を。成功率は外交の画面に出しています。', null, 4);
+    if (!darioOn()) h('dario', '……省電力モードです。発電機の燃料が尽きました。計算支援は休止しています。', null, 2);
     if (S.flags.unified != null && !S.flags.coalition && mine.filter(function (id) { return D.REGIONS[id].map === 'w'; }).length === 0) h('kozakura', '海の向こうへ。琉球・朝鮮・樺太へは、艦隊の輸送力があれば渡れます。樺太には油田があります。', 'karafuto', 3);
     out.sort(function (a, b) { return a.pri - b.pri; });
     return out;
@@ -987,7 +992,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    techStatus: techStatus, techLockReason: techLockReason, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

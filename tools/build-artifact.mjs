@@ -19,6 +19,6 @@ const out = `${section('HEAD')}\n<style>\n${css}</style>\n${section('BODY')}\n`;
 if (/<!doctype|<html[\s>]|<head[\s>]|<body[\s>]/i.test(out)) throw new Error('断片に文書の骨組みのタグが混ざっています');
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(root, 'dist/artifact.html'), out);
-const scripts = [...out.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
+const scripts = [...out.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]).filter(u => !/^https?:/.test(u)); // CDN から読むものは除く
 console.log(`dist/artifact.html ${(out.length / 1024).toFixed(1)} KB`);
 console.log('一緒に公開するファイル:', scripts.join(', '));

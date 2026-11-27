@@ -242,7 +242,7 @@ button.row:not(:disabled):active { background: var(--panel-3); }
 .title h1 span { color: var(--shu); }
 .title .subt { font-size: 14px; letter-spacing: .3em; color: var(--gold); }
 .flock { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
-.flock .bird { width: 44px; height: 44px; }
+.flock .bird { width: 38px; height: 38px; }
 .title .lead { font-size: 13.5px; color: var(--fg-dim); line-height: 1.8; text-wrap: balance; }
 .title .acts { width: 100%; flex-direction: column; }
 .diffs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; width: 100%; }
@@ -263,3 +263,51 @@ textarea.io { width: 100%; min-height: 90px; background: var(--ink); color: var(
 @media (prefers-reduced-motion: reduce) {
   .rg, .rg.mv, .threat, .toast { animation: none; transition: none; }
 }
+
+/* ── 戦闘の3Dアニメ ── */
+.battle { position: fixed; inset: 0; z-index: 35; overflow: hidden; background: #cfe6f5; touch-action: none; user-select: none; -webkit-user-select: none; }
+.b-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.b-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.b-top { position: absolute; left: var(--gut-l); right: var(--gut-r); top: calc(env(safe-area-inset-top, 0px) + 10px); display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, .6), 0 0 10px rgba(0, 0, 0, .5); }
+.b-title { font-family: var(--f-display); font-size: 23px; letter-spacing: .06em; }
+.b-kills { font-size: 12px; text-align: right; white-space: nowrap; }
+.b-kills b { display: block; font-family: var(--f-num); font-size: 30px; font-weight: 700; line-height: 1; color: #ffe9a8; }
+.b-kills small { font-family: var(--f-num); font-size: 11.5px; }
+.b-dario { position: absolute; left: var(--gut-l); right: var(--gut-r); bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); max-width: 480px; display: flex; gap: 9px; align-items: center; background: rgba(14, 22, 38, .9); border: 1px solid var(--line); border-radius: 27px 12px 12px 27px; padding: 4px 13px 4px 4px; color: var(--fg); font-size: 13.5px; line-height: 1.4; }
+.b-dario .bird { width: 44px; height: 44px; }
+.b-dario p { min-width: 0; }
+.b-dario.in { animation: pop .22s ease-out; }
+.b-stamp { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; pointer-events: none; }
+.b-stamp b { font-family: var(--f-display); font-weight: 400; font-size: clamp(70px, 25vw, 150px); line-height: 1; letter-spacing: .1em; color: #fff; padding: 8px 20px 12px 30px; border: 6px solid #fff; border-radius: 14px; background: rgba(226, 73, 45, .93); transform: rotate(-7deg); box-shadow: 0 12px 44px rgba(0, 0, 0, .45); }
+.b-stamp small { font-family: var(--f-num); font-size: 19px; font-weight: 700; color: #fff; background: rgba(14, 22, 38, .88); padding: 3px 15px; border-radius: 20px; transform: rotate(-7deg); }
+.b-stamp small:empty { display: none; }
+.b-stamp.lose b { background: rgba(43, 56, 86, .94); }
+.b-stamp.plain b { background: rgba(156, 122, 28, .95); font-size: clamp(52px, 17vw, 110px); }
+.b-stamp.in b { animation: slam .34s cubic-bezier(.2, 1.5, .4, 1) both; }
+.b-stamp.in small { animation: slam .34s .14s cubic-bezier(.2, 1.5, .4, 1) both; }
+@keyframes slam { from { transform: rotate(-7deg) scale(3.4); opacity: 0; } to { transform: rotate(-7deg) scale(1); opacity: 1; } }
+@keyframes pop { from { transform: scale(.86); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.b-skip { position: absolute; right: var(--gut-r); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); padding: 9px 16px; border-radius: 20px; background: rgba(14, 22, 38, .8); border: 1px solid rgba(255, 255, 255, .4); color: #fff; font-size: 13px; font-weight: 700; }
+
+/* ── 手ごたえの演出 ── */
+.shake { animation: shake .34s; }
+@keyframes shake { 0%, 100% { transform: none; } 15% { transform: translate(-5px, 3px); } 30% { transform: translate(5px, -3px); } 45% { transform: translate(-4px, -2px); } 60% { transform: translate(3px, 2px); } 80% { transform: translate(-2px, 1px); } }
+.chip.pop b { animation: chip-pop .5s cubic-bezier(.2, 1.6, .4, 1); display: inline-block; transform-origin: left center; }
+.chip.pop.up { animation: chip-up .9s ease-out; }
+.chip.pop.down { animation: chip-down .9s ease-out; }
+@keyframes chip-up { 0%, 40% { border-color: var(--good); } 100% { border-color: transparent; } }
+@keyframes chip-down { 0%, 40% { border-color: var(--bad); } 100% { border-color: transparent; } }
+@keyframes chip-pop { 0% { transform: scale(1); } 30% { transform: scale(1.32); color: #fff3c4; } 100% { transform: scale(1); } }
+.fx-seal text { font-family: var(--f-display); }
+.card h2.slam { animation: title-slam .42s cubic-bezier(.2, 1.5, .4, 1) both; }
+@keyframes title-slam { from { transform: scale(2.8) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.over { display: flex; justify-content: center; align-items: baseline; gap: 10px; }
+.over span { font-size: 12px; letter-spacing: .2em; color: var(--shu); font-weight: 700; }
+.over b { font-family: var(--f-num); font-size: 30px; color: var(--shu); line-height: 1; }
+.fxcanvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 45; pointer-events: none; }
+.row.dario { border-color: var(--line); background: var(--panel); }
+.row.dario p { color: var(--fg); font-size: 12.5px; }
+.dsay { display: inline-flex; align-items: center; gap: 6px; }
+.dsay .bird { width: 22px; height: 22px; }
+.btn:not(:disabled):active, .row:not(:disabled):active, .nav button:active { transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { .shake, .chip.pop b, .card h2.slam, .b-stamp.in b, .b-stamp.in small, .b-dario.in { animation: none; } }

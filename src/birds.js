@@ -101,11 +101,26 @@
     return s;
   }
 
-  var DRAW = { buncho: buncho, budgie: budgie, cockatiel: cockatiel, lovebird: lovebird };
+  // 総括指揮AI:琥珀色の顔が映る端末と、その下の計算機ラック
+  function ai() {
+    var s = '';
+    s += '<rect x="19" y="72" width="62" height="40" rx="7" fill="#3b475c"/><rect x="26" y="80" width="48" height="5" rx="2.5" fill="#2a3446"/>';
+    s += '<circle cx="31" cy="92" r="2.4" fill="#6fe08a"/><circle cx="39" cy="92" r="2.4" fill="#ffb86b"/><circle cx="47" cy="92" r="2.4" fill="#6fe08a"/><rect x="56" y="89.5" width="16" height="5" rx="2.5" fill="#2a3446"/>';
+    s += '<rect x="43" y="64" width="14" height="10" fill="#8791a3"/>';
+    s += '<path d="M50 17V8" stroke="#8791a3" stroke-width="2.6" stroke-linecap="round"/><circle cx="50" cy="6.5" r="3.6" fill="#e2492d"/>';
+    s += '<rect x="15" y="15" width="70" height="52" rx="11" fill="#efe8da" stroke="#cbbfa8" stroke-width="1.5"/><rect x="22" y="22" width="56" height="38" rx="7" fill="#14213a"/>';
+    s += '<rect x="34.5" y="31" width="7.5" height="12" rx="3.75" fill="#ffb86b"/><rect x="58" y="31" width="7.5" height="12" rx="3.75" fill="#ffb86b"/>';
+    s += '<path d="M42.5 49.5q7.5 5.5 15 0" fill="none" stroke="#ffb86b" stroke-width="2.8" stroke-linecap="round"/>';
+    s += '<circle cx="30" cy="47.5" r="3" fill="#ff8f6b" opacity=".55"/><circle cx="70" cy="47.5" r="3" fill="#ff8f6b" opacity=".55"/>';
+    s += '<path d="M27 27.5h13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".2"/>';
+    return s;
+  }
 
-  // 鳥の肖像。bird は DATA.BIRDS の要素か id。
+  var DRAW = { buncho: buncho, budgie: budgie, cockatiel: cockatiel, lovebird: lovebird, ai: ai };
+
+  // 鳥(と総括指揮AI)の肖像。bird は DATA.BIRDS の要素か id。
   function birdSVG(bird, cls) {
-    if (typeof bird === 'string') bird = (TF.DATA.BIRDS.filter(function (b) { return b.id === bird; })[0]);
+    if (typeof bird === 'string') bird = bird === 'dario' ? TF.DATA.DARIO : (TF.DATA.BIRDS.filter(function (b) { return b.id === bird; })[0]);
     if (!bird) return '';
     var L = bird.look, id = 'bc-' + bird.id + '-' + (birdSVG.n = (birdSVG.n || 0) + 1);
     return '<svg class="bird ' + (cls || '') + '" viewBox="0 0 100 100" role="img" aria-label="' + bird.name + '(' + bird.species + ')">' +
@@ -144,6 +159,10 @@
     flag: 'M5 3h1.700v18H5zM7.500 4h11l-2.700 4 2.700 4h-11z',
     map: 'M3 5.500l5.500-2 7 2 5.500-2V18.500l-5.500 2-7-2-5.500 2zM9 5.300v11.900l6 1.700V7z',
     gear: 'M10.300 2.500h3.400l.5 2.500 1.500.6 2.100-1.400 2.400 2.400-1.400 2.100.6 1.500 2.500.5v3.400l-2.500.5-.6 1.500 1.400 2.100-2.400 2.400-2.100-1.400-1.500.6-.5 2.500h-3.400l-.5-2.500-1.500-.6-2.100 1.400-2.400-2.400 1.400-2.100-.6-1.500-2.500-.5v-3.400l2.500-.5.6-1.500L3.800 6.600l2.400-2.400 2.100 1.400 1.500-.6zM12 8.500a3.500 3.500 0 1 0 0 7 3.500 3.500 0 0 0 0-7z',
+    sound: 'M4 9.500h3.500L12.500 5v14l-5-4.500H4zM15 8.800c1.500 1.600 1.500 4.800 0 6.400l-1-1c.9-1.100.9-3.300 0-4.400zM17.500 6.300c2.900 3 2.900 8.400 0 11.400l-1-1c2.300-2.500 2.300-6.900 0-9.400z',
+    mute: 'M4 9.500h3.500L12.500 5v14l-5-4.500H4zM14.600 9.300l1.100-1.100 2 2 2-2 1.100 1.100-2 2 2 2-1.100 1.100-2-2-2 2-1.100-1.100 2-2z',
+    film: 'M3 5h18v14H3zM5 7v2h2V7zM5 11v2h2v-2zM5 15v2h2v-2zM17 7v2h2V7zM17 11v2h2v-2zM17 15v2h2v-2zM10 9v6l5-3z',
+    chip: 'M9 2h1.500v3h3V2H15v3h1.500A2.500 2.500 0 0 1 19 7.500V9h3v1.500h-3v3h3V15h-3v1.500a2.500 2.500 0 0 1-2.500 2.500H15v3h-1.500v-3h-3v3H9v-3H7.500A2.500 2.500 0 0 1 5 16.500V15H2v-1.500h3v-3H2V9h3V7.500A2.500 2.500 0 0 1 7.500 5H9zM9 9v6h6V9z',
     anchor: 'M12 2.500a2.500 2.500 0 0 1 .9 4.800v1.700h3V10.700h-3v7.500c2.200-.4 3.900-2 4.400-4.200l-1.600.3 2.500-3.300L20.500 15l-1.500-.5c-.8 3.500-3.600 6-7 6s-6.200-2.500-7-6L3.500 15l2.300-4 2.500 3.300-1.600-.3c.5 2.200 2.200 3.800 4.400 4.200v-7.500h-3V9h3V7.300a2.500 2.500 0 0 1 .9-4.800z'
   };
   function icon(name, cls) {
