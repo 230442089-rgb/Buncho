@@ -165,9 +165,9 @@
   var SKY = [['#7db3e0', '#dcebf2', '#b7c7ae'], ['#6daee2', '#e4eef2', '#bcc9a8'], ['#93a7b5', '#ebe0c8', '#b5a98e'], ['#27295a', '#d07a5c', '#3b2b45'], ['#4c9be4', '#d6eaf8', '#a7c0cc'],
     ['#3a8ee8', '#cfe7fb', '#9db9cf'], ['#1a2552', '#7a5f94', '#1a2036'], ['#080f2a', '#1c3a5e', '#070c1a'], ['#f6f8fb', '#eaf0f6', '#e2e8ef']];
   var LIT = [ // 空の光, 地の照り返し, 強さ, 日の色, 日の強さ, 夜らしさ, 霧の始まり, 霧の終わり(カメラ距離の倍数)
-    [0xdfeeff, 0x6f7550, 0.95, 0xfff1d0, 0.80, 0.00, 1.0, 3.2], [0xdfeeff, 0x6f7550, 0.95, 0xfff1d0, 0.80, 0.00, 1.0, 3.2], [0xe9e2d0, 0x6f6a50, 0.90, 0xffe2b0, 0.72, 0.10, 0.9, 2.8],
-    [0x9a8fd0, 0x3a3050, 0.62, 0xff9c6a, 0.60, 0.85, 0.9, 3.0], [0xe6f2ff, 0x7a8060, 1.00, 0xffffff, 0.85, 0.00, 1.0, 3.4], [0xe6f2ff, 0x7a8060, 1.02, 0xffffff, 0.88, 0.00, 1.0, 3.4],
-    [0x7f8fd0, 0x2a2c48, 0.60, 0xc7a8ff, 0.40, 0.60, 0.9, 3.0], [0x5f7ac0, 0x1c2238, 0.52, 0x8fb0ff, 0.34, 0.92, 0.9, 3.0], [0xffffff, 0xf0f4f8, 1.32, 0xffffff, 0.20, 0.00, 0.55, 1.9]];
+    [0xdfeeff, 0x6f7550, 0.78, 0xfff1d0, 0.62, 0.00, 1.0, 3.2], [0xdfeeff, 0x6f7550, 0.78, 0xfff1d0, 0.62, 0.00, 1.0, 3.2], [0xe9e2d0, 0x6f6a50, 0.74, 0xffe2b0, 0.58, 0.10, 0.9, 2.8],
+    [0x9a8fd0, 0x3a3050, 0.56, 0xff9c6a, 0.52, 0.85, 0.9, 3.0], [0xe6f2ff, 0x7a8060, 0.80, 0xffffff, 0.64, 0.00, 1.0, 3.4], [0xe6f2ff, 0x7a8060, 0.82, 0xffffff, 0.66, 0.00, 1.0, 3.4],
+    [0x7f8fd0, 0x2a2c48, 0.54, 0xc7a8ff, 0.36, 0.60, 0.9, 3.0], [0x5f7ac0, 0x1c2238, 0.48, 0x8fb0ff, 0.30, 0.92, 0.9, 3.0], [0xffffff, 0xf0f4f8, 1.10, 0xffffff, 0.16, 0.00, 0.55, 1.9]];
   var VIEWS = { all: [0, 2.5, 0, 0, 0], hq: [3.4, 1.7, 23.8, 8.5, 21], castle: [-23.5, 7.5, -23.5, 13, 20], town: [3, 3.5, -5, 17, 26], works: [21, 3, -24, 14, 24], pad: [21.5, 4, 20, 12, 22], rail: [-3.5, 1.5, 4.5, 12, 24], furnace: [-14, 2.5, -8, 11, 24] };
 
   function riverZ(x) { return 10 + 1.8 * Math.sin(x * 0.11 + 0.6); }
@@ -209,7 +209,7 @@
     var coverMat = keep(new T.MeshLambertMaterial({ color: 0xe9edf1, transparent: true, opacity: 0 })), cover = new T.Mesh(keep(new T.BoxGeometry(66, 0.03, 66)), coverMat);
     cover.position.y = 0.065; cover.visible = false; scene.add(cover);
     var view = { x: 0, y: 2.5, z: 0, rad: 33, el: 0.52 }, viewTo = { x: 0, y: 2.5, z: 0, rad: 0, el: 0 };
-    function defRad() { return M.w / Math.max(1, M.h) < 0.8 ? 29 : 33; }
+    function defRad() { return M.w / Math.max(1, M.h) < 0.8 ? 25 : 33; }
 
     // ── 定義:生えてくるかたまり、灯り、煙 ──
     var defs = [], LT = [], EM = [], GEO = {};
@@ -803,7 +803,7 @@
     }
     function resize() {
       var w = host.clientWidth, hh = host.clientHeight; M.w = w; M.h = hh; if (w < 2 || hh < 2) return;
-      var port = w / hh < 0.8; cam.fov = port ? 46 : 36; cam.aspect = w / hh; cam.updateProjectionMatrix(); M.el = (port ? 38 : 30) * PI / 180;
+      var port = w / hh < 0.8; cam.fov = port ? 46 : 36; cam.aspect = w / hh; cam.updateProjectionMatrix(); M.el = (port ? 40 : 30) * PI / 180;
       renderer.setPixelRatio(Math.min(root.devicePixelRatio || 1, 2)); renderer.setSize(w, hh, false); M.dirty = true;
       if (!viewTo.rad) view.rad = defRad(); if (!viewTo.el) view.el = M.el;
     }
