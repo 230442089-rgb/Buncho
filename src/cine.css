@@ -1,0 +1,165 @@
+/* 天下布鳥 — 年代記アニメ(.cine)と、町の箱庭(.diorama)。色と書体は style.css の変数を使う。 */
+
+/* ── 町の箱庭を入れる枠 ── */
+/* 中身(空の二枚と canvas)は diorama3d.js が自分で敷く。枠は大きさを決めるだけでよい。 */
+.diorama { position: relative; overflow: hidden; background: #cfe6f5; }
+.diorama canvas { display: block; }
+
+/* ── 年代記:全画面の重ね ── */
+/* 題字画面(z 40)からも開くので、その上、効果の canvas(45)とお知らせ(50)の下に置く */
+.cine { position: fixed; inset: 0; z-index: 44; overflow: hidden; background: var(--ink, #0e1626); color: var(--fg, #f1eadb); font-family: var(--f-body, sans-serif); font-size: 14px; line-height: 1.55;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cine p, .cine h2, .cine h3 { margin: 0; }
+
+/* 画:箱庭、戦闘、霧や暗転 */
+.cine-vis { position: absolute; inset: 0; z-index: 0; }
+.cine-dio { position: absolute; inset: 0; background: var(--ink, #0e1626); } /* 画面いっぱいに敷いて、町の位置は chronicle.js が上や右へ寄せる */
+.cine .battle { position: absolute; inset: 0; z-index: 2; }
+.cine .battle .b-skip, .cine .battle .b-dario, .cine .battle .b-top, .cine .battle .b-stamp { display: none !important; }
+.cine-still { position: absolute; inset: 0; z-index: 3; opacity: 0; transition: opacity 1.5s ease; pointer-events: none; overflow: hidden; }
+.cine-still.on { opacity: 1; }
+.cine-still.fog { background: linear-gradient(#9faab4 0%, #dde3e7 46%, #aeb8c0 100%); }
+.cine-still.fog::before, .cine-still.fog::after { content: ""; position: absolute; left: -40%; right: -40%; height: 46%; border-radius: 50%; filter: blur(34px); background: rgba(255, 255, 255, .7); animation: cine-fog 16s ease-in-out infinite alternate; }
+.cine-still.fog::before { top: 8%; }
+.cine-still.fog::after { top: 44%; background: rgba(238, 242, 245, .75); animation-duration: 21s; animation-direction: alternate-reverse; }
+.cine-still.dark { background: radial-gradient(120% 80% at 50% 38%, #141d30 0%, #070b14 76%); }
+.cine-flock { display: none; }
+@keyframes cine-fog { from { transform: translateX(-9%); } to { transform: translateX(9%); } }
+
+/* 文字の下に敷く陰。明るい3Dの上でも読めるようにする */
+.cine-scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 66%; z-index: 4; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(14, 22, 38, 0) 0%, rgba(14, 22, 38, .5) 22%, rgba(14, 22, 38, .95) 43%, #0e1626 51%); }
+.cine.clip .cine-scrim { height: 56%; background: linear-gradient(to bottom, rgba(14, 22, 38, 0) 0%, rgba(14, 22, 38, .5) 30%, rgba(14, 22, 38, .92) 62%, #0e1626 92%); }
+.cine-veil { position: absolute; inset: 0; z-index: 3; background: #05080f; opacity: 0; pointer-events: none; } /* 絵の上、文字の下 */
+.cine-veil.top { z-index: 9; } /* おしまいの暗転だけは、文字ごと隠す */
+
+/* 上の帯:章の進み具合、章の名、スキップ */
+.cine-head { position: absolute; z-index: 6; left: var(--gut-l, 16px); right: var(--gut-r, 16px); top: calc(env(safe-area-inset-top, 0px) + 10px);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; pointer-events: none; }
+.cine-prog { grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
+.cine-prog i { height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .3); overflow: hidden; box-shadow: 0 0 0 1px rgba(6, 10, 20, .25); }
+.cine-prog i b { display: block; height: 100%; width: 0; background: var(--gold, #d9b24c); transition: width .4s ease; }
+.cine-chap { font-family: var(--f-display, serif); font-size: 17px; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .75), 0 0 10px rgba(0, 0, 0, .65), 0 0 2px rgba(0, 0, 0, .9); }
+.cine-chap b { color: var(--gold, #d9b24c); font-weight: 400; margin-right: .55em; }
+.cine-skip { pointer-events: auto; min-height: 36px; padding: 7px 15px; border-radius: 20px; background: rgba(14, 22, 38, .8); border: 1px solid rgba(255, 255, 255, .4); color: #fff; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.cine-skip:active { transform: scale(.96); }
+.cine.pale .cine-chap { color: #1c2434; text-shadow: 0 0 6px rgba(255, 255, 255, .9), 0 0 2px #fff; }
+.cine.pale .cine-chap b { color: #7d6114; }
+.cine.pale .cine-prog i { background: rgba(28, 36, 52, .28); }
+
+/* 章の扉 */
+.cine-title { position: absolute; inset: 0; z-index: 7; display: grid; place-content: center; justify-items: center; gap: 10px; text-align: center; pointer-events: none;
+  padding: 0 var(--gut-r, 16px) 6vh var(--gut-l, 16px); background: radial-gradient(95% 62% at 50% 46%, rgba(8, 12, 22, .82) 0%, rgba(8, 12, 22, .5) 62%, rgba(8, 12, 22, .2) 100%); }
+.cine-title b { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--gold, #d9b24c); color: var(--gold, #d9b24c); font-family: var(--f-display, serif); font-weight: 400; font-size: 22px; line-height: 1; animation: cine-in .5s ease both; }
+.cine-title h2 { font-family: var(--f-display, serif); font-weight: 400; font-size: clamp(46px, 15vw, 104px); line-height: 1.15; letter-spacing: .14em; margin-right: -.14em; color: #fff; text-shadow: 0 4px 30px rgba(0, 0, 0, .7); animation: cine-title .7s cubic-bezier(.2, .9, .3, 1) both; }
+.cine-title p { font-size: 13px; letter-spacing: .12em; color: var(--fg-dim, #a8b3c9); animation: cine-in .6s .25s ease both; }
+.cine-title.last h2 { color: #dfe7f2; letter-spacing: .3em; margin-right: -.3em; }
+@keyframes cine-title { from { opacity: 0; transform: scale(1.12); letter-spacing: .3em; } to { opacity: 1; transform: none; } }
+@keyframes cine-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* 下の段:札と語り */
+.cine-ui { position: absolute; z-index: 5; left: var(--gut-l, 16px); right: var(--gut-r, 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); max-width: 520px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 9px; pointer-events: none; }
+.cine-ui.center { top: 0; justify-content: center; }
+.cine-cards { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.cn { background: rgba(24, 36, 60, .95); border: 1px solid var(--line, #34476d); border-radius: 12px; padding: 9px 12px; box-shadow: 0 8px 26px rgba(0, 0, 0, .42); min-width: 0;
+  animation: cine-in .45s ease both; animation-delay: calc(var(--i, 0) * .22s); }
+.cn-eye { font-size: 10.5px; letter-spacing: .16em; color: var(--gold, #d9b24c); }
+.cn-voice .cn-who { display: flex; align-items: baseline; gap: 8px; line-height: 1.3; }
+.cn-voice .cn-who b { font-size: 12px; color: var(--gold, #d9b24c); }
+.cn-voice .cn-who small { font-size: 11px; color: var(--fg-faint, #76829c); }
+.cn-voice .cn-q { font-size: 13.5px; line-height: 1.62; margin-left: -.45em; }
+.cn-say { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 9px; align-items: center; border-radius: 26px 12px 12px 26px; padding: 5px 13px 5px 5px; }
+.cn-say .bird { width: 40px; height: 40px; }
+.cn-say b { display: block; font-size: 11px; color: var(--gold, #d9b24c); letter-spacing: .06em; line-height: 1.3; }
+.cn-say p { font-size: 13.5px; line-height: 1.55; }
+.cn-say.asi { background: rgba(232, 238, 246, .96); border-color: #fff; color: #1a2233; }
+.cn-say.asi b { color: #5b6a80; }
+.cn-nation .cn-names { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-family: var(--f-display, serif); line-height: 1.3; margin-top: 1px; }
+.cn-nation .cn-names s { font-size: 14px; color: var(--fg-faint, #76829c); text-decoration-thickness: 1px; }
+.cn-nation .cn-names i { font-style: normal; font-size: 12px; color: var(--fg-faint, #76829c); }
+.cn-nation .cn-names b { font-weight: 400; font-size: 27px; letter-spacing: .06em; color: var(--gold, #d9b24c); }
+.cn-nation .cn-by { font-size: 11.5px; color: var(--fg-dim, #a8b3c9); }
+.cn-nation .cn-by span { color: var(--fg, #f1eadb); }
+.cn-nation .cn-desc { font-size: 13px; line-height: 1.68; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line, #34476d); }
+.cn-nation.short { padding: 7px 12px; }
+.cn-nation.short .cn-eye { display: none; }
+.cn-nation.short .cn-names b { font-size: 21px; }
+.cn-policy { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; }
+.cn-policy .bird { width: 40px; height: 40px; }
+.cn-policy h3 { font-family: var(--f-display, serif); font-weight: 400; font-size: 19px; letter-spacing: .05em; line-height: 1.3; }
+.cn-policy h3 + p { font-size: 13px; line-height: 1.65; margin-top: 2px; }
+.cn-policy.short { padding: 7px 12px 7px 8px; align-items: center; }
+.cn-policy.short .cn-eye { display: none; }
+.cn-policy.short .bird { width: 32px; height: 32px; }
+.cn-policy.short h3 { font-size: 16px; }
+.cn-policy.short h3 + p { font-size: 12.5px; line-height: 1.5; margin-top: 0; }
+.cn-fates { display: grid; gap: 5px; }
+.cn-fate { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); gap: 9px; align-items: baseline; padding-top: 5px; border-top: 1px solid rgba(52, 71, 109, .7); }
+.cn-fate b { font-family: var(--f-display, serif); font-weight: 400; font-size: 15px; white-space: nowrap; }
+.cn-fate p { font-size: 12.5px; line-height: 1.55; color: var(--fg, #f1eadb); }
+.cn-tag { align-self: flex-start; display: inline-flex; align-items: baseline; gap: 9px; padding: 2px 14px 3px; border-radius: 20px; background: rgba(226, 73, 45, .94); color: #fff; box-shadow: 0 4px 16px rgba(0, 0, 0, .4); animation: cine-in .35s ease both; }
+.cn-tag span { font-size: 11.5px; letter-spacing: .08em; }
+.cn-tag b { font-family: var(--f-display, serif); font-weight: 400; font-size: 17px; letter-spacing: .06em; }
+.cn-label { font-size: 11.5px; letter-spacing: .1em; color: var(--fg-dim, #a8b3c9); border-left: 2px solid var(--gold-deep, #9c7a1c); padding-left: 9px; animation: cine-in .45s ease both; }
+.cn-big { font-family: var(--f-display, serif); font-size: clamp(30px, 9.4vw, 60px); line-height: 1.5; letter-spacing: .14em; text-align: center; color: #eef2f7; animation: cine-in 1.6s ease both; text-wrap: balance; }
+
+.cine-text { display: flex; gap: 11px; align-items: center; min-height: 82px; font-size: 15.5px; line-height: 1.8; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 0 12px rgba(6, 10, 20, .95); }
+.cine-text > p, .cine-text > div { min-width: 0; animation: cine-in .5s ease both; }
+.cine-text.empty { min-height: 0; }
+.cine-text.say { align-items: center; min-height: 0; background: rgba(14, 22, 38, .93); border: 1px solid var(--line, #34476d); border-radius: 34px 14px 14px 34px; padding: 6px 15px 7px 6px; text-shadow: none; font-size: 15px; line-height: 1.65; }
+.cine-text.say .bird { width: 56px; height: 56px; flex: none; animation: cine-in .4s ease both; }
+.ct-name { display: block; font-size: 11.5px; font-weight: 700; color: var(--gold, #d9b24c); letter-spacing: .08em; line-height: 1.35; }
+.cine-hint { align-self: flex-end; font-size: 11px; line-height: 1; color: rgba(255, 255, 255, .6); letter-spacing: .08em; animation: cine-blink 1.6s ease-in-out infinite; }
+.cine-ui.center .cine-hint { display: none; }
+@keyframes cine-blink { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+/* 動かさない語り(3Dなし、または「視差効果を減らす」):空の色と鳥たちの肖像だけを敷く */
+.cine.static .cine-dio { display: none; }
+.cine.static .cine-still { transition: none; }
+.cine.static .cine-flock { position: absolute; left: var(--gut-l, 16px); right: var(--gut-r, 16px); top: 19%; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.cine.static .cine-flock .bird { width: 52px; height: 52px; box-shadow: 0 4px 16px rgba(0, 0, 0, .3); }
+.cine.static .cine-still.dark .cine-flock { opacity: .12; }
+.cine.static.pale .cine-flock { filter: grayscale(1); opacity: .55; }
+
+/* 横長の画面:語りを左下に寄せ、箱庭を右へ広げる */
+@media (min-aspect-ratio: 11/10) {
+  .cine-scrim, .cine.clip .cine-scrim { top: 0; height: auto; background: linear-gradient(to right, rgba(14, 22, 38, .95) 0%, rgba(14, 22, 38, .84) 24%, rgba(14, 22, 38, 0) 54%), linear-gradient(to top, rgba(14, 22, 38, .5) 0%, rgba(14, 22, 38, 0) 30%); }
+  .cine-ui { left: max(28px, var(--gut-l, 16px)); right: auto; width: min(480px, 42vw); margin: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
+  .cine-ui.center { left: 0; right: 0; width: auto; max-width: none; padding: 0 28px; }
+  .cine-head { left: max(28px, var(--gut-l, 16px)); right: max(28px, var(--gut-r, 16px)); top: calc(env(safe-area-inset-top, 0px) + 16px); }
+  .cine.static .cine-flock { left: 46%; top: 30%; right: 6%; }
+  .cine-chap { text-align: right; } /* 左は札の段になるので、章の名はスキップの隣へ */
+}
+/* 横にした電話:札を詰めて、上の帯まで届かないようにする */
+@media (min-aspect-ratio: 11/10) and (max-height: 480px) {
+  .cine-ui { bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); gap: 6px; width: min(440px, 47vw); }
+  .cine-cards { gap: 5px; }
+  .cn { padding: 5px 10px; }
+  .cn-voice .cn-q, .cn-say p, .cn-fate p, .cn-policy h3 + p, .cn-nation .cn-desc { font-size: 12px; line-height: 1.45; }
+  .cn-policy.short .bird { width: 26px; height: 26px; }
+  .cn-policy.short h3 { font-size: 14.5px; }
+  .cn-nation .cn-names b { font-size: 21px; }
+  .cn-nation .cn-desc { margin-top: 4px; padding-top: 4px; }
+  .cn-fates { gap: 3px; }
+  .cn-fate { padding-top: 3px; }
+  .cine-text { min-height: 0; font-size: 14px; line-height: 1.55; }
+  .cine-text.say { padding: 4px 13px 4px 4px; }
+  .cine-text.say .bird { width: 42px; height: 42px; }
+  .cine-hint { display: none; }
+  .cine-title h2 { font-size: clamp(40px, 16vh, 80px); }
+}
+/* 背の低い画面:札を詰める */
+@media (max-height: 640px) {
+  .cn { padding: 7px 10px; }
+  .cn-voice .cn-q, .cn-say p { font-size: 12.5px; line-height: 1.5; }
+  .cn-nation .cn-desc, .cn-policy h3 + p { font-size: 12.5px; line-height: 1.55; }
+  .cn-nation .cn-names b { font-size: 23px; }
+  .cine-text { font-size: 14.5px; line-height: 1.65; min-height: 62px; }
+  .cine-ui { gap: 7px; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cn, .cn-tag, .cn-label, .cn-big, .cine-text > p, .cine-text > div, .cine-text.say .bird, .cine-title b, .cine-title h2, .cine-title p, .cine-hint, .cine-still.fog::before, .cine-still.fog::after { animation: none; }
+  .cine-still, .cine-prog i b { transition: none; }
+}

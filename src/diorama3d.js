@@ -1,7 +1,9 @@
 /* 天下布鳥 — 町の箱庭(three.js r128)。研究が進むごとに、同じ町が時代を重ねていく。
  *   var h = TF.Diorama3D.mount(host, { stage: 0..8, orbit: true, angle: 0.5, focus: 'all' });
  *   h.setStage(n, { animate: true })  新しいものが 1.2 秒ほどで地面から生えてくる
- *   h.focus('hq' | 'castle' | 'town' | 'works' | 'pad' | 'rail' | 'all')  寄りの画
+ *   h.focus('hq' | 'castle' | 'town' | 'furnace' | 'rail' | 'works' | 'pad' | 'all', { angle, animate })  寄りの画
+ *   h.shift(x, y)  町を画面の右・上へ寄せる(割合) / h.setOrbit(bool) / h.pause() / h.resume()
+ *   h.onLaunch = fn  ロケットが上がるときに呼ばれる(音を付けたいとき) / TF.Diorama3D.sky(n)  その時代の空の CSS
  *   h.stage / h.resize() / h.dispose() / h._advance(sec) / h._info()
  * 描画器(WebGL の文脈)はこのモジュールで一つだけ作って使い回す。あとから mount した箱庭が前面になり、
  * dispose すると一つ前の箱庭に画面を返す。host が画面から外されたら自分で片づける。 */
@@ -144,7 +146,8 @@
   // ダリオくん:計算機ラックの上の、クリーム色の端末。前は +z
   function darioGeo() {
     return merge([gb(1.9, 1.5, 1.4, 0, 0, 0x3b475c), bx(1.5, 0.14, 0.05, 0, 1.22, 0.71, 0x2a3446), bx(0.5, 0.14, 0.05, 0.5, 0.84, 0.71, 0x2a3446), gb(0.5, 0.3, 0.5, 0, 0, 0x8791a3, 1.5),
-      gb(2.5, 1.9, 1.7, 0, 0, 0xefe8da, 1.8), bx(2.56, 1.96, 0.16, 0, 2.75, 0.8, 0xcbbfa8), bx(2.0, 1.4, 0.06, 0, 2.75, 0.9, 0x14213a), cy(0.04, 0.04, 0.55, 5, 0, 3.97, 0, 0x8791a3)]);
+      gb(2.5, 1.9, 1.7, 0, 0, 0xefe8da, 1.8), bx(2.56, 1.96, 0.16, 0, 2.75, 0.8, 0xcbbfa8), bx(2.0, 1.4, 0.06, 0, 2.75, 0.9, 0x14213a), cy(0.04, 0.04, 0.55, 5, 0, 3.97, 0, 0x8791a3),
+      bx(1.5, 0.08, 0.05, 0, 3.2, -0.86, 0xb9ad94), bx(1.5, 0.08, 0.05, 0, 2.95, -0.86, 0xb9ad94), bx(1.5, 0.08, 0.05, 0, 2.7, -0.86, 0xb9ad94), bx(0.6, 0.5, 0.3, 0, 2.2, -0.95, 0xcbbfa8), bx(1.5, 0.9, 0.05, 0, 0.8, -0.71, 0x2a3446)]);
   }
   function darioFace(asi) { // 口と頬とアンテナの玉。超知能のあとは琥珀色が抜けて、口が一本線になる
     var c = asi ? 0xeef4ff : 0xffb86b, a = [sp(0.16, 0, 4.32, 0, asi ? 0xeef4ff : 0xe2492d)];
@@ -161,14 +164,21 @@
     return merge(a);
   }
 
+  function haloGeo() { // 中心が明るく、縁で消える円盤(加算で重ねる)
+    var seg = 18, p = [], c = [], i, r1 = 0.4;
+    function v(a, r, k) { p.push(Math.cos(a) * r, Math.sin(a) * r, 0); c.push(k, k, k); }
+    for (i = 0; i < seg; i++) { var a0 = i / seg * TAU, a1 = (i + 1) / seg * TAU; v(0, 0, 1); v(a0, r1, 0.3); v(a1, r1, 0.3); v(a0, r1, 0.3); v(a0, 1, 0); v(a1, 1, 0); v(a0, r1, 0.3); v(a1, 1, 0); v(a1, r1, 0.3); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(p, 3)); g.setAttribute('color', new T.Float32BufferAttribute(c, 3)); return g;
+  }
+
   // ── 時代ごとの空と光 ──
   var SKY = [['#7db3e0', '#dcebf2', '#b7c7ae'], ['#6daee2', '#e4eef2', '#bcc9a8'], ['#93a7b5', '#ebe0c8', '#b5a98e'], ['#27295a', '#d07a5c', '#3b2b45'], ['#4c9be4', '#d6eaf8', '#a7c0cc'],
-    ['#3a8ee8', '#cfe7fb', '#9db9cf'], ['#1a2552', '#7a5f94', '#1a2036'], ['#080f2a', '#1c3a5e', '#070c1a'], ['#f6f8fb', '#eaf0f6', '#e2e8ef']];
+    ['#3a8ee8', '#cfe7fb', '#9db9cf'], ['#1a2552', '#7a5f94', '#1a2036'], ['#080f2a', '#1c3a5e', '#070c1a'], ['#eef2f7', '#e3e9f0', '#d3dbe5']];
   var LIT = [ // 空の光, 地の照り返し, 強さ, 日の色, 日の強さ, 夜らしさ, 霧の始まり, 霧の終わり(カメラ距離の倍数)
     [0xdfeeff, 0x6f7550, 0.78, 0xfff1d0, 0.62, 0.00, 1.0, 3.2], [0xdfeeff, 0x6f7550, 0.78, 0xfff1d0, 0.62, 0.00, 1.0, 3.2], [0xe9e2d0, 0x6f6a50, 0.74, 0xffe2b0, 0.58, 0.10, 0.9, 2.8],
     [0x9a8fd0, 0x3a3050, 0.56, 0xff9c6a, 0.52, 0.85, 0.9, 3.0], [0xe6f2ff, 0x7a8060, 0.80, 0xffffff, 0.64, 0.00, 1.0, 3.4], [0xe6f2ff, 0x7a8060, 0.82, 0xffffff, 0.66, 0.00, 1.0, 3.4],
-    [0x7f8fd0, 0x2a2c48, 0.54, 0xc7a8ff, 0.36, 0.60, 0.9, 3.0], [0x5f7ac0, 0x1c2238, 0.48, 0x8fb0ff, 0.30, 0.92, 0.9, 3.0], [0xffffff, 0xf0f4f8, 1.10, 0xffffff, 0.16, 0.00, 0.55, 1.9]];
-  var VIEWS = { all: [0, 2.5, 0, 0, 0], hq: [3.4, 1.7, 23.8, 8.5, 21], castle: [-23.5, 7.5, -23.5, 13, 20], town: [3, 3.5, -5, 17, 26], works: [21, 3, -24, 14, 24], pad: [21.5, 4, 20, 12, 22], rail: [-3.5, 1.5, 4.5, 12, 24], furnace: [-14, 2.5, -8, 11, 24] };
+    [0x7f8fd0, 0x2a2c48, 0.54, 0xc7a8ff, 0.36, 0.60, 0.9, 3.0], [0x5f7ac0, 0x1c2238, 0.48, 0x8fb0ff, 0.30, 0.92, 0.9, 3.0], [0xf4f8ff, 0xc3cedc, 0.80, 0xffffff, 0.46, 0.00, 0.8, 2.7]];
+  var VIEWS = { all: [0, 2.5, 0, 0, 0], hq: [3.8, 1.8, 24.0, 8.0, 20], castle: [-23.5, 7.5, -23.5, 13, 20], town: [3, 3.5, -5, 17, 26], works: [21, 3, -24, 14, 24], pad: [21.5, 4, 20, 12, 22], rail: [-3.5, 1.5, 4.5, 12, 24], furnace: [-14, 2.5, -8, 11, 24] };
 
   function riverZ(x) { return 10 + 1.8 * Math.sin(x * 0.11 + 0.6); }
   var BRX = 3, BRZ = riverZ(3); // 橋の位置
@@ -185,7 +195,7 @@
     } catch (e) { glOK = false; return null; }
 
     var R = rng(20261127), D = TF.DATA || {}, BIRDS = D.BIRDS || [];
-    var M = { host: host, t: 0, stage: -1, dead: false, manual: false, raf: 0, last: 0, w: 0, h: 0, phi: opts.angle == null ? 0.55 : opts.angle, orbit: opts.orbit !== false, form: 0, trash: [], night: 0, skyK: 1 };
+    var M = { host: host, t: 0, stage: -1, dead: false, manual: false, raf: 0, last: 0, w: 0, h: 0, phi: opts.angle == null ? 0.55 : opts.angle, orbit: opts.orbit !== false, form: 0, trash: [], night: 0, skyK: 1, shx: +opts.shiftX || 0, shy: +opts.shiftY || 0 };
     var reduced = false; try { reduced = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* 古い端末 */ }
     if (reduced) M.orbit = false;
     function keep(o) { M.trash.push(o); return o; }
@@ -197,19 +207,19 @@
     wrap.appendChild(skyA); wrap.appendChild(skyB);
     try { if (root.getComputedStyle(host).position === 'static') host.style.position = 'relative'; } catch (e) { /* そのまま */ }
     host.appendChild(wrap);
-    function grad(n) { var s = SKY[n]; return 'linear-gradient(' + s[0] + ' 0%,' + s[1] + ' 54%,' + s[2] + ' 100%)'; }
+    function grad(n) { return TF.Diorama3D.sky(n); }
 
     var scene = new T.Scene(), cam = new T.PerspectiveCamera(40, 1, 2, 900);
     var hemi = new T.HemisphereLight(0xffffff, 0x888888, 1), sun = new T.DirectionalLight(0xffffff, 0.8);
     sun.position.set(-14, 24, 12); scene.add(hemi); scene.add(sun);
     scene.fog = new T.Fog(0xffffff, 100, 400);
-    var litA = null, litB = null, m4 = new T.Matrix4(), v3 = new T.Vector3(), q4 = new T.Quaternion(), e3 = new T.Euler(), s3 = new T.Vector3(), c3 = new T.Color(), cA = new T.Color(), cB = new T.Color();
+    var litA = null, litB = null, m4 = new T.Matrix4(), v3 = new T.Vector3(), q4 = new T.Quaternion(), s3 = new T.Vector3(), c3 = new T.Color(), cA = new T.Color(), cB = new T.Color();
     var matWin = keep(new T.MeshBasicMaterial({ vertexColors: true })), DAYWIN = new T.Color(0xa9c6dc), NIGHTWIN = new T.Color(0xffd27a);
     var fogA = new T.Color(SKY[0][1]), paleA = 0, paleB = 0;
-    var coverMat = keep(new T.MeshLambertMaterial({ color: 0xe9edf1, transparent: true, opacity: 0 })), cover = new T.Mesh(keep(new T.BoxGeometry(66, 0.03, 66)), coverMat);
+    var coverMat = keep(new T.MeshLambertMaterial({ color: 0xd6dee8, transparent: true, opacity: 0 })), cover = new T.Mesh(keep(new T.BoxGeometry(66, 0.03, 66)), coverMat);
     cover.position.y = 0.065; cover.visible = false; scene.add(cover);
     var view = { x: 0, y: 2.5, z: 0, rad: 33, el: 0.52 }, viewTo = { x: 0, y: 2.5, z: 0, rad: 0, el: 0 };
-    function defRad() { return M.w / Math.max(1, M.h) < 0.8 ? 25 : 33; }
+    function defRad() { return M.w / Math.max(1, M.h) < 0.8 ? 25 : 36; }
 
     // ── 定義:生えてくるかたまり、灯り、煙 ──
     var defs = [], LT = [], EM = [], GEO = {};
@@ -250,7 +260,7 @@
     // 土台:台座、草地、川、土の道。これだけは最初からあって動かない
     chunk('base', 0, 8, 0, 0, function (o) {
       var a = o.lit, x;
-      a.push(bx(66, 2.6, 66, 0, -1.42, 0, 0x6b563f), bx(67.4, 0.6, 67.4, 0, -3.0, 0, 0x3a2f24), bx(66, 0.12, 66, 0, -0.06, 0, 0x8db562));
+      a.push(bx(66, 2.6, 66, 0, -1.42, 0, 0x6b563f), bx(67.4, 0.6, 67.4, 0, -3.0, 0, 0x3a2f24), bx(66, 0.12, 66, 0, -0.06, 0, 0x76995a));
       for (x = -33; x < 33; x += 2) {
         var z0 = riverZ(x), z1 = riverZ(x + 2), ang = -Math.atan2(z1 - z0, 2), len = Math.sqrt(4 + (z1 - z0) * (z1 - z0)) + 0.14;
         a.push(bx(len, 0.04, 5.0, x + 1, 0.02, (z0 + z1) / 2, 0xd8cfa4, [0, ang, 0]), bx(len, 0.12, 3.8, x + 1, 0.05, (z0 + z1) / 2, 0x5a9bd0, [0, ang, 0]));
@@ -261,7 +271,7 @@
 
     // 山と城
     chunk('hill', 0, 8, -23.5, -23.5, function (o) {
-      o.lit.push(cy(3.4, 8.2, 5.2, 10, 0, 2.6, 0, 0x7da556), cy(8.2, 9.2, 0.4, 10, 0, 0.2, 0, 0x86ad5c), sp(0.9, 4.6, 1.2, 4.4, 0x9a9d96, [1, 0.7, 1]), sp(0.7, -5.2, 1.0, 3.6, 0x9a9d96, [1, 0.7, 1]));
+      o.lit.push(cy(3.4, 8.2, 5.2, 10, 0, 2.6, 0, 0x6c9150), cy(8.2, 9.2, 0.4, 10, 0, 0.2, 0, 0x719656), sp(0.9, 4.6, 1.2, 4.4, 0x9a9d96, [1, 0.7, 1]), sp(0.7, -5.2, 1.0, 3.6, 0x9a9d96, [1, 0.7, 1]));
     });
     chunk('castle', 0, 8, -23.5, -23.5, function (o) {
       var y = 5.2, W = 0xf1ece0, Rf = 0x2e3440, a = o.lit;
@@ -298,14 +308,14 @@
       var a = o.lit, OL = 0x5d6d42;
       a.push(put(geo('tank', tankGeo), -4.4, 0, -5.4, 0.4, 0.82), put(geo('truck', truckGeo), 7.6, 0, -4.9, -0.3, 0.8));
       [[-5.9, 5.0], [-1.9, 5.7], [2.5, 5.5]].forEach(function (t) { a.push(py(2.5, 1.5, t[0], 0, t[1], OL, 1, 1.25), bx(0.6, 0.9, 0.06, t[0], 0.45, t[1] + 1.2, 0x2c331f)); });
-      a.push(bx(0.1, 4.2, 0.1, 5.5, 2.1, 4.8, 0xe9e9e4), bx(1.6, 1.05, 0.05, 6.35, 3.6, 4.8, 0xf7f5f0), cy(0.32, 0.32, 0.07, 14, 6.35, 3.6, 4.8, 0xe2492d, [PI / 2, 0, 0]));
+      a.push(bx(0.1, 4.2, 0.1, -7.6, 2.1, -6.6, 0xe9e9e4), bx(1.6, 1.05, 0.05, -6.75, 3.6, -6.6, 0xf7f5f0), cy(0.32, 0.32, 0.07, 14, -6.75, 3.6, -6.6, 0xe2492d, [PI / 2, 0, 0]));
       a.push(gb(0.8, 0.7, 0.8, 5.2, -6.6, 0x4d5b35), gb(0.8, 0.7, 0.8, 6.1, -6.9, 0x55673c), gb(0.7, 0.6, 0.7, 5.6, -6.7, 0x4d5b35, 0.7), cy(0.3, 0.3, 0.8, 8, -7.2, 0.4, -3.2, 0x8a2f25), cy(0.3, 0.3, 0.8, 8, -7.3, 0.4, -2.4, 0x3f4d2c));
     });
     chunk('hq', 0, 7, 0, 24, function (o) {
       var a = o.lit, CR = 0xe9e2cf;
       a.push(gb(3.4, 1.6, 4.2, -3.6, 0.1, CR), pr(3.9, 1.35, 4.7, -3.6, 1.6, 0.1, 0xd6cdb4), bx(0.06, 1.3, 2.4, -1.88, 0.65, 0.1, 0x3a3428), bx(0.06, 0.42, 0.9, -1.88, 1.28, 1.6, 0x2b3d61));
       a.push(cy(1.35, 1.35, 0.12, 14, 2.2, 0.95, -0.2, 0x9a7446), cy(0.2, 0.34, 0.9, 8, 2.2, 0.45, -0.2, 0x6b4a2c), bx(1.3, 0.03, 0.9, 2.1, 1.03, -0.2, 0x9fc4e8, [0, 0.3, 0]), bx(0.5, 0.03, 0.4, 2.7, 1.035, 0.2, 0xf7f5f0, [0, -0.4, 0]));
-      a.push(gb(1.2, 0.9, 0.8, 8.4, 1.9, 0xc9a93a), gb(1.26, 0.12, 0.86, 8.4, 1.9, 0x33363c, 0.9), bx(0.08, 0.08, 1.6, 7.9, 0.06, 1.0, 0x1c1d19, [0, 0.8, 0]));
+      a.push(gb(1.2, 0.9, 0.8, 8.9, -1.4, 0xc9a93a), gb(1.26, 0.12, 0.86, 8.9, -1.4, 0x33363c, 0.9), bx(0.08, 0.08, 1.9, 8.1, 0.06, -0.5, 0x1c1d19, [0, 0.9, 0]));
     });
 
     // 殖産:高炉、水車、まっすぐな田、坑口
@@ -484,15 +494,18 @@
         for (i = 0; i < 3; i++) a.push(bx(0.12, 1.6, 0.12, s * (2.2 + i * 3.1), 1.03, t * 11.3, 0xdfe6ee), bx(0.12, 1.6, 0.12, s * 11.3, 1.03, t * (2.2 + i * 3.1), 0xdfe6ee));
       }
     }, { slow: true, after: function (g) {
-      var m1 = keep(new T.MeshBasicMaterial({ color: 0x4f9fff, fog: false })), m2 = keep(new T.MeshBasicMaterial({ color: 0x3f8fff, transparent: true, opacity: 0.2, depthWrite: false, fog: false }));
+      var m1 = keep(new T.MeshBasicMaterial({ color: 0x2f8dff, fog: false })), m2 = keep(new T.MeshBasicMaterial({ color: 0x2f8dff, transparent: true, opacity: 0.22, depthWrite: false, fog: false }));
       M.orb = new T.Mesh(keep(new T.SphereGeometry(1.5, 16, 12)), m1); M.orb.position.set(0, 23, 0); g.add(M.orb);
       M.orbHalo = new T.Mesh(keep(new T.SphereGeometry(3.6, 16, 12)), m2); M.orbHalo.position.set(0, 23, 0); g.add(M.orbHalo);
     } });
     (function () { var s, t; for (s = -1; s <= 1; s += 2) for (t = -1; t <= 1; t += 2) { light(8, 8, HX + s * 8, 6.6, HZ + t * 8, 3.46, 0.12, 3.46, 0x9fd0ff); light(8, 8, HX + s * 10.3, 3.6, HZ + t * 4.0, 2.66, 0.1, 2.66, 0x9fd0ff); light(8, 8, HX + s * 4.0, 3.6, HZ + t * 10.3, 2.66, 0.1, 2.66, 0x9fd0ff); } })();
 
     // ダリオくんのラックの灯り(駐屯地。端末は -x を向いている)
-    var DX = 6.9, DZ = 24.3;
-    [[-0.55, 0x6fe08a, 0.9], [-0.3, 0xffb86b, 1.7], [-0.05, 0x6fe08a, 0.6]].forEach(function (l) { light(0, 7, DX - 0.72, 0.84, DZ + l[0], 0.08, 0.13, 0.13, l[1], null, [l[2], 0.6]); light(8, 8, DX - 0.72, 0.84, DZ + l[0], 0.08, 0.13, 0.13, 0xeef4ff); });
+    var DX = 6.8, DZ = 24.7, DR = -0.55, DS = 1.05;
+    [[-0.55, 0x6fe08a, 0.9], [-0.3, 0xffb86b, 1.7], [-0.05, 0x6fe08a, 0.6]].forEach(function (l) {
+      var x = DX + DS * (l[0] * Math.cos(DR) + 0.73 * Math.sin(DR)), z = DZ + DS * (-l[0] * Math.sin(DR) + 0.73 * Math.cos(DR));
+      light(0, 7, x, 0.84 * DS, z, 0.13, 0.13, 0.13, l[1], null, [l[2], 0.6]); light(8, 8, x, 0.84 * DS, z, 0.13, 0.13, 0.13, 0xeef4ff);
+    });
 
     // ── 線路 ──
     function makeLoop(cx, cz, rx, rz, n) {
@@ -561,8 +574,8 @@
     // ── 灯り ──
     var NH = 0; LT.forEach(function (l) { if (l.halo) l.hi = NH++; });
     var lightM = new T.InstancedMesh(keep(new T.BoxGeometry(1, 1, 1)), keep(new T.MeshBasicMaterial({ color: 0xffffff })), LT.length); lightM.frustumCulled = false; scene.add(lightM);
-    var haloMat = keep(new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, blending: T.AdditiveBlending, depthWrite: false }));
-    var haloM = new T.InstancedMesh(keep(new T.SphereGeometry(1, 10, 8)), haloMat, Math.max(1, NH)); haloM.frustumCulled = false; scene.add(haloM);
+    var haloMat = keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.6, blending: T.AdditiveBlending, depthWrite: false, fog: false }));
+    var haloM = new T.InstancedMesh(keep(haloGeo()), haloMat, Math.max(1, NH)); haloM.frustumCulled = false; scene.add(haloM);
     (function () { var i; m4.makeScale(0, 0, 0); c3.set(0); for (i = 0; i < LT.length; i++) { lightM.setMatrixAt(i, m4); lightM.setColorAt(i, c3); } for (i = 0; i < Math.max(1, NH); i++) { haloM.setMatrixAt(i, m4); haloM.setColorAt(i, c3); } })();
     function stepLights() {
       var i, l, on, nt = M.night, hk = clamp((nt - 0.3) / 0.4, 0, 1);
@@ -573,14 +586,14 @@
         on = !l.blink || ((M.t + l.ph) % l.blink[0]) < l.blink[0] * l.blink[1];
         c3.copy(l.cd).lerp(l.cn, nt); if (!on) c3.multiplyScalar(0.16);
         lightM.setColorAt(i, c3);
-        if (l.hi >= 0) { var r = l.halo * hk * (on ? 1 : 0.3); m4.makeScale(r, r, r); m4.setPosition(l.x, l.y, l.z); haloM.setMatrixAt(l.hi, m4); haloM.setColorAt(l.hi, c3); }
+        if (l.hi >= 0) { var r = l.halo * 1.7 * hk * (on ? 1 : 0.3); s3.set(r, r, r); v3.set(l.x, l.y, l.z); m4.compose(v3, cam.quaternion, s3); haloM.setMatrixAt(l.hi, m4); haloM.setColorAt(l.hi, c3); }
       }
       lightM.instanceMatrix.needsUpdate = true; lightM.instanceColor.needsUpdate = true; haloM.instanceMatrix.needsUpdate = true; haloM.instanceColor.needsUpdate = true;
     }
     function setLights(anim) {
       LT.forEach(function (l, i) {
         var want = M.stage >= l.a && M.stage <= l.b;
-        if (want && !l.vis && l.t0 == null) l.t0 = M.t + (anim ? 0.75 + R() * 0.5 : 0);
+        if (want && !l.vis && l.t0 == null) l.t0 = M.t + (anim ? (l.a === 8 ? 3.3 : 0.75) + R() * 0.5 : 0);
         else if (!want && (l.vis || l.t0 != null)) { l.vis = false; l.t0 = null; m4.makeScale(0, 0, 0); lightM.setMatrixAt(i, m4); if (l.hi >= 0) haloM.setMatrixAt(l.hi, m4); }
       });
     }
@@ -641,11 +654,11 @@
     // ── 鳥たちとダリオくん ──
     var TBX = 2.2, TBZ = 23.8, birds = BIRDS.map(function (b, i) {
       var m = new T.Mesh(keep(birdGeo(b)), MAT.vc); scene.add(m);
-      return { m: m, id: b.id, a0: i / BIRDS.length * TAU + 0.4, f: 0.55 + (i * 0.37 % 0.4), off: i * 0.61, lx: -3.0 + i * 2.0, lz: 20.6, scare: 0 };
+      return { m: m, id: b.id, a0: i / BIRDS.length * TAU + 0.4, f: 0.55 + (i * 0.37 % 0.4), off: i * 0.61, per: 7 + (i * 1.7 % 4), lx: -3.0 + i * 2.0, lz: 20.6, scare: 0 };
     });
     var dario = new T.Group(), darioFaceM = new T.Mesh(geo('dface', function () { return darioFace(false); }), MAT.glow), darioEyesM = new T.Mesh(geo('deyes', function () { return darioEyes(false); }), MAT.glow);
     dario.add(new T.Mesh(geo('dario', darioGeo), MAT.vc)); dario.add(darioFaceM); darioEyesM.position.set(0, 2.95, 0.94); dario.add(darioEyesM);
-    dario.position.set(DX, 0, DZ); dario.rotation.y = -PI / 2; dario.scale.set(1.05, 1.05, 1.05); scene.add(dario);
+    dario.position.set(DX, 0, DZ); dario.rotation.y = DR; dario.scale.set(DS, DS, DS); scene.add(dario);
     var asiFace = false;
     function setAsi(on) {
       if (on === asiFace) return; asiFace = on;
@@ -656,6 +669,7 @@
       for (i = 0; i < birds.length; i++) {
         b = birds[i]; an = b.a0 + 0.3 * Math.sin(M.t * 0.21 + i * 1.7) + M.t * 0.05;
         x = TBX + Math.cos(an) * 2.45; z = TBZ + Math.sin(an) * 2.3; face = Math.atan2(TBX - x, TBZ - z);
+        var lk = (M.t / b.per + b.off) % 1; face += PI * (smooth((lk - 0.58) / 0.05) - smooth((lk - 0.93) / 0.05)); // ときどき机に背を向けて、あたりを見回す
         p = (M.t * b.f + b.off) % 1; hop = p < 0.36 ? Math.sin(p / 0.36 * PI) * 0.36 : 0;
         if (b.scare > 0) { b.scare = Math.max(0, b.scare - dt); hop += Math.sin((1.2 - b.scare) / 1.2 * PI) * 1.5; face += (1.2 - b.scare) * 10; }
         y = hop * (1 - e); x += (b.lx - x) * e; z += (b.lz - z) * e; face = turn(face, Math.atan2(HX - b.lx, HZ - b.lz), e);
@@ -751,7 +765,7 @@
       });
       setLights(anim);
       DYN.concat([carD, carD2, droneD]).forEach(function (d) { var want = n >= d.a && n <= d.b; if (!anim) d.k = want ? 1 : 0; else if (want && d.k < 1) d.wait = 0.9; });
-      if (!anim) stepTrees(-1); else treesDirty = true;
+      if (!anim) { stepTrees(-1); SM.forEach(function (p, i) { if (p.life > 0) { p.life = 0; m4.makeScale(0, 0, 0); smokeM.setMatrixAt(i, m4); } }); smokeM.instanceMatrix.needsUpdate = true; } else treesDirty = true; // 一気に切り替えるときは、前の時代の煙を残さない
       litA = anim ? curLit() : LIT[n].slice(); litB = LIT[n]; M.skyK = anim ? 0 : 1; M.skyDur = n === 8 ? 3.2 : 1.4;
       if (anim) fogA.copy(scene.fog.color); else fogA.set(SKY[n][1]);
       paleA = anim ? (M.pale || 0) : (n === 8 ? 1 : 0); paleB = n === 8 ? 1 : 0;
@@ -770,7 +784,7 @@
       skyB.style.opacity = String(k);
       // 調和:地面を白く覆い、画面ごと色を抜く
       M.pale = pale; coverMat.opacity = pale; cover.visible = pale > 0.01;
-      if (stack[stack.length - 1] === M) renderer.domElement.style.filter = pale > 0.01 ? 'saturate(' + (1 - 0.7 * pale).toFixed(3) + ') brightness(' + (1 + 0.05 * pale).toFixed(3) + ')' : '';
+      if (stack[stack.length - 1] === M) renderer.domElement.style.filter = pale > 0.01 ? 'saturate(' + (1 - 0.6 * pale).toFixed(3) + ')' : '';
     }
 
     // ── 一こま進める ──
@@ -798,12 +812,13 @@
     function render() {
       var el = view.el, Rr = fitR(view.rad, el), ce = Math.cos(el);
       cam.position.set(view.x + Rr * ce * Math.sin(M.phi), view.y + Rr * Math.sin(el), view.z + Rr * ce * Math.cos(M.phi)); cam.lookAt(view.x, view.y, view.z);
-      scene.fog.near = Rr * M.fogN; scene.fog.far = Rr * M.fogF;
+      scene.fog.near = Rr * M.fogN + 20 * (1 - Math.min(1, Rr / 75)); scene.fog.far = Math.max(Rr, 75) * M.fogF;
       renderer.render(scene, cam);
     }
     function resize() {
       var w = host.clientWidth, hh = host.clientHeight; M.w = w; M.h = hh; if (w < 2 || hh < 2) return;
-      var port = w / hh < 0.8; cam.fov = port ? 46 : 36; cam.aspect = w / hh; cam.updateProjectionMatrix(); M.el = (port ? 40 : 30) * PI / 180;
+      var port = w / hh < 0.8; cam.fov = port ? 46 : 36; cam.aspect = w / hh; M.el = (port ? 40 : 30) * PI / 180;
+      if (M.shx || M.shy) cam.setViewOffset(w, hh, -M.shx * w, M.shy * hh, w, hh); else { cam.clearViewOffset(); cam.updateProjectionMatrix(); } // 画の中心をずらす(文字を重ねる側を空ける)
       renderer.setPixelRatio(Math.min(root.devicePixelRatio || 1, 2)); renderer.setSize(w, hh, false); M.dirty = true;
       if (!viewTo.rad) view.rad = defRad(); if (!viewTo.el) view.el = M.el;
     }
@@ -812,7 +827,7 @@
       M.raf = requestAnimationFrame(M.loop);
       if (!host.isConnected) { h.dispose(); return; }
       var dt = Math.min(0.05, Math.max(0, (now - M.last) / 1000)); M.last = now;
-      if (M.manual || document.hidden) return;
+      if (M.manual || M.paused || document.hidden) return;
       if (host.clientWidth !== M.w || host.clientHeight !== M.h) resize();
       if (M.w < 2 || M.h < 2) return;
       if (reduced) { if (M.dirty) { step(0.001); render(); M.dirty = false; } return; }
@@ -831,6 +846,9 @@
         M.dirty = true; return h;
       },
       setOrbit: function (on) { M.orbit = !!on && !reduced; return h; },
+      shift: function (x, y) { M.shx = +x || 0; M.shy = +y || 0; if (stack[stack.length - 1] === M) resize(); return h; }, // 町を画面の右(x>0)・上(y>0)へ寄せる。画面の幅・高さに対する割合
+      pause: function () { M.paused = true; return h; },
+      resume: function () { M.paused = false; M.last = performance.now(); return h; },
       resize: function () { if (!M.dead && stack[stack.length - 1] === M) resize(); return h; },
       dispose: function () {
         if (M.dead) return; M.dead = true;
@@ -856,5 +874,9 @@
     return h;
   }
 
-  TF.Diorama3D = { available: available, mount: mount, stages: 9, _count: function () { return stack.length; } };
+  TF.Diorama3D = {
+    available: available, mount: mount, stages: 9,
+    sky: function (n) { var k = SKY[Math.max(0, Math.min(8, n | 0))]; return 'linear-gradient(' + k[0] + ' 0%,' + k[1] + ' 54%,' + k[2] + ' 100%)'; }, // その時代の空(3Dが使えないときの背景にも使う)
+    _count: function () { return stack.length; }
+  };
 })(typeof window !== 'undefined' ? window : globalThis);
