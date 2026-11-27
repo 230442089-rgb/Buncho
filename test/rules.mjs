@@ -253,6 +253,13 @@ section('おまかせ(方針)', () => {
   const made = E.autoMake();
   ok(made.length >= 1 && !made.includes('nuke'), '編成をまかせても核は作らない: ' + made.join(','));
   ok(E.setAuto({ build: 'bogus', res: 'x' }).build === 'off', '知らない方針は受け付けない');
+  // 季節の報告に、まかせた分が一行で出る
+  E.newGame({ seed: 16 }); const S7 = E.S;
+  ['sagami', 'suruga', 'kai'].forEach(id => { S7.regions[id].o = 'player'; S7.regions[id].ctl = 80; });
+  S7.res.gold = 2000; E.setAuto({ build: 'scarce' });
+  const rep7 = E.endTurn(), line = rep7.events.find(e => e.k === 'auto');
+  ok(line && /おまかせ:建設/.test(line.t), '報告に出る: ' + (line && line.t));
+  const j7 = E.serialize(); E.load(j7); ok(E.serialize() === j7 && E.S.auto.build === 'scarce', '方針はセーブに残る');
 });
 
 section('民の声(全地域・全時代)', () => {

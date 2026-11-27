@@ -41,7 +41,9 @@
     if (enabled && bypass) mediaOn();
   }
   function flush() { // 止まっていたあいだに頼まれた音を、動き出したら鳴らす(古すぎるものは捨てる)
-    if (!ctx || ctx.state !== 'running' || !pending.length) return;
+    if (!ctx || ctx.state !== 'running') return;
+    musicSync();
+    if (!pending.length) return;
     var now = Date.now(), q = pending; pending = [];
     q.forEach(function (it) { if (now - it.at < 700) fire(it.name, it.opts); });
   }
@@ -310,6 +312,157 @@
     } catch (e) { return function () {}; }
   }
 
+  // ───────────────────────── BGM ─────────────────────────
+  // 時代ごとに一曲。音符の並びを文字で書いておき、少し先の分だけを時計に合わせて置いていく。
+  // 楽器は効果音の部品をそのまま使う(出口だけ、BGM 用の音量つまみに差し替える)。
+  var MVOL = 0.45, MU = { want: null, on: true, duck: 1, vol: 1, cur: null, timer: null, bus: null, busCtx: null };
+  var SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  function hz(n) { var m = /^([A-G])([#b]?)(\d)$/.exec(n); if (!m) throw new Error('音名が読めません: ' + n); return 440 * Math.pow(2, (SEMI[m[1]] + (m[2] === '#' ? 1 : (m[2] === 'b' ? -1 : 0)) + (+m[3] + 1) * 12 - 69) / 12); }
+  var INST = {
+    koto: function (t, f, d, g) { pluck(t, f, g); },
+    flute: function (t, f, d, g) { tone(t, { f0: f, dur: d * 1.1, gain: g, attack: 0.07 }); tone(t, { type: 'triangle', f0: f * 2, dur: d * 0.8, gain: g * 0.12, attack: 0.08 }); noise(t, { type: 'bandpass', f0: f * 2, q: 3, dur: Math.min(0.25, d), gain: g * 0.22, attack: 0.03 }); },
+    reed: function (t, f, d, g) { tone(t, { type: 'square', f0: f, dur: d * 1.05, gain: g * 0.5, attack: 0.03, lp: 1900 }); tone(t, { type: 'square', f0: f * 1.007, dur: d * 1.05, gain: g * 0.4, attack: 0.03, lp: 1900 }); },
+    ep: function (t, f, d, g) { tone(t, { f0: f, dur: d * 1.3 + 0.25, gain: g, attack: 0.005 }); tone(t, { f0: f * 4, dur: 0.12, gain: g * 0.16, attack: 0.003 }); tone(t, { type: 'triangle', f0: f * 2, dur: d + 0.1, gain: g * 0.2 }); },
+    sq: function (t, f, d, g) { tone(t, { type: 'square', f0: f, dur: Math.max(0.08, d * 0.9), gain: g * 0.45, attack: 0.004, lp: 3400 }); },
+    pad: function (t, f, d, g) { [1, 1.006, 0.994].forEach(function (k) { tone(t, { type: 'sawtooth', f0: f * k, dur: d * 1.25, gain: g * 0.3, attack: Math.min(0.6, d * 0.35), lp: 1150 }); }); },
+    sine: function (t, f, d, g) { tone(t, { f0: f, dur: d * 1.3, gain: g, attack: Math.min(1.2, d * 0.4) }); },
+    bass: function (t, f, d, g) { tone(t, { type: 'triangle', f0: f, dur: Math.max(0.14, d * 0.9), gain: g, attack: 0.005 }); tone(t, { type: 'triangle', f0: f * 2, dur: Math.max(0.1, d * 0.5), gain: g * 0.35, attack: 0.005 }); },
+    sbass: function (t, f, d, g) { tone(t, { type: 'sawtooth', f0: f, dur: Math.max(0.1, d * 0.8), gain: g * 0.8, attack: 0.004, lp: 750 }); tone(t, { type: 'triangle', f0: f * 2, dur: Math.max(0.08, d * 0.5), gain: g * 0.25, attack: 0.004 }); },
+    brass: function (t, f, d, g) { brass(t, f, Math.max(0.09, d * 0.85), g * 0.55); }
+  };
+  var DRUM = {
+    k: function (t, g) { tone(t, { f0: 130, f1: 45, dur: 0.16, gain: g, attack: 0.002 }); tone(t, { type: 'triangle', f0: 300, f1: 120, dur: 0.05, gain: g * 0.6, attack: 0.002 }); },
+    s: function (t, g) { noise(t, { type: 'bandpass', f0: 1800, q: 0.8, dur: 0.11, gain: g }); tone(t, { type: 'triangle', f0: 220, f1: 160, dur: 0.06, gain: g * 0.4 }); },
+    h: function (t, g) { noise(t, { type: 'highpass', f0: 6000, dur: 0.03, gain: g * 0.7 }); },
+    t: function (t, g) { taiko(t, g); },
+    r: function (t, g) { noise(t, { type: 'bandpass', f0: 2600, q: 4, dur: 0.02, gain: g }); tone(t, { f0: 1500, f1: 1100, dur: 0.04, gain: g * 0.6 }); }
+  };
+  function rp(str, n) { var o = []; for (var i = 0; i < n; i++) o.push(str); return o.join(' | '); }
+  function chordBar(pat, ch) { return pat.replace(/X/g, ch); } // 型の X を和音に置きかえる
+  var SONGS = {
+    // 戦国の世:琴と尺八、ときどき太鼓。陰旋法
+    era0: { name: '霧の裾野', bpm: 66, div: 2, bar: 8, tracks: [
+      { i: 'koto', g: 0.3, p: 'D4 . A4 . Bb4 A4 G4 . | A4 . . . D5 . . . | Bb4 A4 G4 . Eb4 . D4 . | G4 . A4 . . . - - | D5 . Bb4 . A4 G4 A4 . | Eb5 . D5 . Bb4 . A4 . | G4 A4 Bb4 A4 G4 Eb4 D4 . | D4 . . . - - - -' },
+      { i: 'koto', g: 0.2, p: 'D3 . . . A3 . . . | D3 . . . G3 . . . | Eb3 . . . D3 . . . | G3 . . . A3 . . .' },
+      { i: 'flute', g: 0.13, p: 'A4 . . . . . . . | - - - - D5 . . . | . . . . Bb4 . A4 . | . . . . - - - - | G4 . . . . . A4 . | . . . . . . - -' }],
+      drums: [{ d: 't', g: 0.2, p: 'x....... ........ ....x... x.......' }] },
+    // 殖産の世:陽旋法で明るく、祭囃子のように
+    era1: { name: '高炉と水車', bpm: 88, div: 2, bar: 8, tracks: [
+      { i: 'koto', g: 0.28, p: 'D4 E4 G4 . A4 . G4 E4 | D4 . E4 G4 A4 . . . | B4 A4 G4 . A4 B4 D5 . | B4 . A4 . G4 . . . | D5 . B4 A4 G4 . A4 B4 | A4 . G4 E4 D4 . . . | E4 G4 A4 . B4 A4 G4 E4 | D4 . . . D4 . - -' },
+      { i: 'koto', g: 0.2, p: 'D3 . A3 . D3 . A3 . | D3 . A3 . D3 . A3 . | G3 . D3 . G3 . D3 . | A3 . E3 . A3 . E3 . | D3 . A3 . D3 . A3 . | G3 . D3 . G3 . D3 . | A3 . E3 . A3 . E3 . | D3 . A3 . D3 . - .' },
+      { i: 'flute', g: 0.12, p: '- - - - - - - - | A5 . . . . . G5 . | - - - - - - - - | D5 . . . E5 . . . | - - - - - - - - | B5 . A5 . G5 . . . | - - - - - - - - | A5 . . . . . - -' }],
+      drums: [{ d: 't', g: 0.2, p: 'x..x..x. x.x..x..' }, { d: 'r', g: 0.1, p: '..x...x. ..x...x.' }] },
+    // 蒸気の世:文明開化の行進曲
+    era2: { name: '汽笛一声', bpm: 108, div: 2, bar: 8, tracks: [
+      { i: 'brass', g: 0.26, p: 'F4 . F4 A4 C5 . C5 . | D5 . C5 A4 F4 . . . | G4 . G4 Bb4 D5 . C5 Bb4 | A4 . G4 . C5 . . . | C5 . C5 D5 E5 . F5 . | D5 . Bb4 . G4 . . . | A4 Bb4 C5 . E4 . G4 . | F4 . . . F4 . - -' },
+      { i: 'bass', g: 0.3, p: 'F2 . C3 . F2 . C3 . | F2 . C3 . F2 . C3 . | Bb2 . F3 . Bb2 . F3 . | C3 . G3 . C3 . G3 . | F2 . C3 . A2 . C3 . | Bb2 . F3 . Bb2 . F3 . | C3 . G3 . C3 . E3 . | F2 . C3 . F2 . - .' },
+      { i: 'reed', g: 0.1, p: [rp(chordBar('- . X . - . X .', 'A3+C4+F4'), 2), chordBar('- . X . - . X .', 'Bb3+D4+F4'), chordBar('- . X . - . X .', 'G3+C4+E4'), chordBar('- . X . - . X .', 'A3+C4+F4'), chordBar('- . X . - . X .', 'Bb3+D4+F4'), chordBar('- . X . - . X .', 'G3+C4+E4'), chordBar('- . X . - . - .', 'A3+C4+F4')].join(' | ') }],
+      drums: [{ d: 'k', g: 0.3, p: 'x...x...' }, { d: 's', g: 0.15, p: '..x...xx' }] },
+    // 電気の世:街灯とワルツ
+    era3: { name: '街灯のワルツ', bpm: 138, div: 2, bar: 6, tracks: [
+      { i: 'reed', g: 0.24, p: 'D5 . . . Bb4 . | A4 . G4 . . . | Bb4 . . . D5 . | C5 . . . . . | Eb5 . . . D5 . | C5 . Bb4 . A4 . | G4 . A4 . F#4 . | G4 . . . . .' },
+      { i: 'bass', g: 0.3, p: 'G2 . . . . . | G2 . . . . . | Bb2 . . . . . | F2 . . . . . | C3 . . . . . | D3 . . . . . | D3 . . . . . | G2 . . . . .' },
+      { i: 'ep', g: 0.12, p: [rp(chordBar('- . X . X .', 'Bb3+D4'), 2), chordBar('- . X . X .', 'D4+F4'), chordBar('- . X . X .', 'A3+C4'), chordBar('- . X . X .', 'Eb4+G4'), rp(chordBar('- . X . X .', 'C4+F#4'), 2), chordBar('- . X . X .', 'Bb3+D4')].join(' | ') }],
+      drums: [{ d: 'k', g: 0.22, p: 'x.....' }, { d: 'h', g: 0.1, p: '..x.x.' }] },
+    // 機械の世:スウィング
+    era4: { name: '銀翼スウィング', bpm: 132, div: 2, bar: 8, swing: 0.22, tracks: [
+      { i: 'brass', g: 0.24, p: 'C5 . E5 . G5 . E5 . | A5 . G5 . E5 . - . | F5 . A5 . G5 . E5 . | D5 . . . - . G4 . | C5 . E5 . G5 . A5 . | G5 . E5 . C5 . - . | D5 . F5 . E5 . D5 . | C5 . . . - . - .' },
+      { i: 'bass', g: 0.3, p: 'C3 . E3 . G3 . A3 . | A2 . C3 . E3 . G3 . | F2 . A2 . C3 . D3 . | G2 . B2 . D3 . F3 . | C3 . E3 . G3 . A3 . | A2 . C3 . E3 . G3 . | D3 . F3 . G2 . B2 . | C3 . G2 . C3 . - .' },
+      { i: 'reed', g: 0.09, p: [chordBar('- . X . - . X .', 'E4+G4+C5'), chordBar('- . X . - . X .', 'E4+G4+A4'), chordBar('- . X . - . X .', 'F4+A4+C5'), chordBar('- . X . - . X .', 'F4+G4+B4'), chordBar('- . X . - . X .', 'E4+G4+C5'), chordBar('- . X . - . X .', 'E4+G4+A4'), '- . F4+A4+C5 . - . F4+G4+B4 .', chordBar('- . X . - . - .', 'E4+G4+C5')].join(' | ') }],
+      drums: [{ d: 'k', g: 0.24, p: 'x...x...' }, { d: 's', g: 0.12, p: '..x...x.' }, { d: 'h', g: 0.09, p: 'x.xxx.xx' }] },
+    // 現代:夜の高速道路
+    era5: { name: '首都高、午前二時', bpm: 100, div: 4, bar: 16, tracks: [
+      { i: 'ep', g: 0.17, p: '- . . . A4 . . . C5 . . . E5 . . . | D5 . . . B4 . . . G4 . . . . . . . | - . . . F4 . . . A4 . . . C5 . . . | B4 . . . G4 . . . E4 . . . . . . . | - . . . A4 . . . C5 . . . E5 . G5 . | E5 . . . D5 . . . B4 . . . . . . . | C5 . . . A4 . . . F4 . . . A4 . . . | G4 . . . . . . . - . . . . . . .' },
+      { i: 'ep', g: 0.11, p: ['A3+C4+E4', 'G3+B3+D4', 'F3+A3+C4', 'E3+G3+B3'].map(function (c) { return chordBar('X . . . . . X . . . X . . . . .', c); }).join(' | ') },
+      { i: 'sbass', g: 0.26, p: 'F2 . . . . . F2 . . . F3 . . . F2 . | E2 . . . . . E2 . . . E3 . . . E2 . | D2 . . . . . D2 . . . D3 . . . D2 . | C2 . . . . . C2 . . . C3 . . . G2 .' }],
+      drums: [{ d: 'k', g: 0.26, p: 'x.........x.....' }, { d: 's', g: 0.14, p: '....x.......x...' }, { d: 'h', g: 0.07, p: 'x.x.x.x.x.x.x.x.' }] },
+    // 情報の世:8ビットの計算機
+    era6: { name: '計算機の館', bpm: 132, div: 4, bar: 16, tracks: [
+      { i: 'sq', g: 0.16, p: 'E5 . . . . . D5 . C5 . . . A4 . . . | C5 . . . . . A4 . F4 . . . . . . . | E5 . . . G5 . . . E5 . . . C5 . . . | D5 . . . . . . . B4 . . . G4 . . . | A5 . . . . . G5 . E5 . . . C5 . . . | F5 . . . E5 . . . C5 . . . A4 . . . | G5 . . . E5 . . . C5 . . . E5 . . . | D5 . . . . . . . - . . . . . . .' },
+      { i: 'sq', g: 0.08, p: 'A3 . C4 . E4 . A4 . E4 . C4 . A3 . C4 . | F3 . A3 . C4 . F4 . C4 . A3 . F3 . A3 . | C4 . E4 . G4 . C5 . G4 . E4 . C4 . E4 . | G3 . B3 . D4 . G4 . D4 . B3 . G3 . B3 .' },
+      { i: 'bass', g: 0.26, p: 'A2 . . . A2 . . . A2 . . . A2 . E2 . | F2 . . . F2 . . . F2 . . . F2 . C3 . | C3 . . . C3 . . . C3 . . . C3 . G2 . | G2 . . . G2 . . . G2 . . . G2 . B2 .' }],
+      drums: [{ d: 'k', g: 0.24, p: 'x...x...x...x...' }, { d: 's', g: 0.12, p: '....x.......x...' }, { d: 'h', g: 0.06, p: '..x...x...x...x.' }] },
+    // 人工知能の世:静かな電子音
+    era7: { name: '窓口の小さな端末', bpm: 84, div: 4, bar: 16, tracks: [
+      { i: 'sine', g: 0.13, p: 'A4 . . . . . . . F#4 . . . . . . . | E4 . . . . . . . . . . . A4 . . . | B4 . . . . . . . F#4 . . . . . . . | G4 . . . . . . . . . . . - . . . | D5 . . . . . . . A4 . . . . . . . | C#5 . . . . . . . . . . . E4 . . . | F#4 . . . . . . . D4 . . . . . . . | D4 . . . . . . . . . . . - . . .' },
+      { i: 'pad', g: 0.11, p: ['D3+A3+F#4', 'C#3+A3+E4', 'B2+F#3+D4', 'G2+D3+B3'].map(function (c) { return c + ' . . . . . . . . . . . . . . .'; }).join(' | ') },
+      { i: 'ep', g: 0.08, p: 'F#5 . . A5 . . D6 . . A5 . . F#5 . E5 . | E5 . . A5 . . C#6 . . A5 . . E5 . C#5 . | D5 . . F#5 . . B5 . . F#5 . . D5 . C#5 . | B4 . . D5 . . G5 . . D5 . . B4 . A4 .' },
+      { i: 'bass', g: 0.22, p: 'D3 . . . . . . . . . . . . . . . | C#3 . . . . . . . . . . . . . . . | B2 . . . . . . . . . . . . . . . | G2 . . . . . . . . . . . . . . .' }],
+      drums: [{ d: 'k', g: 0.18, p: 'x.........x.....' }, { d: 'r', g: 0.05, p: '....x.......x.x.' }] },
+    // 調和:何も起こらない和音
+    era8: { name: '調和', bpm: 60, div: 1, bar: 8, tracks: [
+      { i: 'sine', g: 0.1, p: 'D3+A3+D4+F#4+A4 . . . . . . .' },
+      { i: 'sine', g: 0.05, p: 'A5 . . . A5 . . .' },
+      { i: 'sine', g: 0.03, p: '- . D6 . - . D6 .' }], drums: [] }
+  };
+  function compile(song) { // 文字の並びを、刻みごとの音にしておく
+    if (song._c) return song._c;
+    var cs = { sp: 60 / song.bpm / song.div, swing: song.swing || 0, bar: song.bar, tracks: [], drums: [] };
+    song.tracks.forEach(function (tr) {
+      var tok = tr.p.split(/\s+/).filter(function (x) { return x && x !== '|'; }), steps = [];
+      if (tok.length % song.bar) throw new Error('小節の長さが合いません(' + tok.length + ' / ' + song.bar + '): ' + tr.p.slice(0, 40));
+      tok.forEach(function (x, i) {
+        if (x === '-' || x === '.') { steps.push(null); return; }
+        var len = 1; while (i + len < tok.length && tok[i + len] === '.') len++;
+        steps.push({ f: x.split('+').map(hz), len: len });
+      });
+      cs.tracks.push({ fn: INST[tr.i], g: tr.g, steps: steps });
+    });
+    (song.drums || []).forEach(function (dr) {
+      var ch = dr.p.replace(/\s+/g, '').split('');
+      if (ch.length % song.bar) throw new Error('太鼓の小節の長さが合いません: ' + dr.p);
+      cs.drums.push({ fn: DRUM[dr.d], g: dr.g, steps: ch.map(function (c) { return c === 'x' ? 1 : 0; }) });
+    });
+    return (song._c = cs);
+  }
+  function schedStep(cs, n, t, out) { // n 番目の刻みを、時刻 t に置く
+    var saved = master, i, j; master = out;
+    try {
+      for (i = 0; i < cs.tracks.length; i++) { var tr = cs.tracks[i], st = tr.steps[n % tr.steps.length]; if (st) for (j = 0; j < st.f.length; j++) tr.fn(t, st.f[j], st.len * cs.sp, tr.g); }
+      for (i = 0; i < cs.drums.length; i++) { var dr = cs.drums[i]; if (dr.steps[n % dr.steps.length]) dr.fn(t, dr.g); }
+    } finally { master = saved; }
+  }
+  function musicBus() {
+    if (!MU.bus || MU.busCtx !== ctx) { MU.bus = ctx.createGain(); MU.bus.gain.value = MU.on ? MVOL * MU.vol * MU.duck : 0; MU.bus.connect(master); MU.busCtx = ctx; }
+    return MU.bus;
+  }
+  function musicTick() {
+    var c = MU.cur; if (!c || !ctx || ctx.state !== 'running' || (root.document && document.hidden)) return;
+    var now = ctx.currentTime;
+    if (c.next < now - 0.2) c.next = now + 0.05; // 止まっていたあとは、たまった分をまとめて鳴らさない
+    while (c.next < now + 0.35) { try { schedStep(c.cs, c.n, c.next + (c.n % 2 ? c.cs.swing * c.cs.sp : 0), c.gain); } catch (e) { lastErr = 'bgm: ' + e; } c.n++; c.next += c.cs.sp; }
+  }
+  function musicSync() { // 鳴らしたい曲と、いま鳴っている曲を合わせる。曲が変わるときは、前の曲を絞りながら入れ替える
+    if (!ctx || ctx.state !== 'running') return;
+    var want = MU.on && enabled && SONGS[MU.want] ? MU.want : null, now = ctx.currentTime;
+    if ((MU.cur ? MU.cur.name : null) === want) return;
+    if (MU.cur) { var old = MU.cur; MU.cur = null; try { old.gain.gain.cancelScheduledValues(now); old.gain.gain.setTargetAtTime(0, now, 0.3); } catch (e) { /* そのまま */ } setTimeout(function () { try { old.gain.disconnect(); } catch (e) { /* 済み */ } }, 2500); }
+    if (want) {
+      var g = ctx.createGain(), cs;
+      try { cs = compile(SONGS[want]); } catch (e) { lastErr = 'bgm: ' + e; return; }
+      g.gain.setValueAtTime(0.0001, now); g.gain.linearRampToValueAtTime(1, now + 1.0); g.connect(musicBus());
+      MU.cur = { name: want, cs: cs, gain: g, n: 0, next: now + 0.15 };
+    }
+    if (MU.cur && !MU.timer) MU.timer = setInterval(musicTick, 90);
+    if (!MU.cur && MU.timer) { clearInterval(MU.timer); MU.timer = null; }
+  }
+  // 検査用:曲を画面外で数秒ぶん合成して、波形の大きさを返す
+  function renderSong(name, sec, hp) {
+    var OC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
+    if (!OC) return Promise.reject(new Error('OfflineAudioContext がありません'));
+    var rate = 44100, oc = new OC(1, Math.ceil(rate * sec), rate), saved = [ctx, master, noiseBuf], g = build(oc), err = null, notes = 0;
+    if (hp) { var f1 = oc.createBiquadFilter(), f2 = oc.createBiquadFilter(); f1.type = f2.type = 'highpass'; f1.frequency.value = f2.frequency.value = hp; g.out.disconnect(); g.out.connect(f1); f1.connect(f2); f2.connect(oc.destination); }
+    ctx = oc; master = g.master; noiseBuf = g.noise; master.gain.value = VOL;
+    try { var cs = compile(SONGS[name]), bus = oc.createGain(); bus.gain.value = MVOL; bus.connect(master); for (var n = 0, t = 0.05; t < sec - 0.4; n++, t += cs.sp) { schedStep(cs, n, t + (n % 2 ? cs.swing * cs.sp : 0), bus); notes++; } } catch (e) { err = e; }
+    ctx = saved[0]; master = saved[1]; noiseBuf = saved[2];
+    if (err) return Promise.reject(err);
+    return oc.startRendering().then(function (buf) {
+      var d = buf.getChannelData(0), peak = 0, sum = 0, a;
+      for (var i = 0; i < d.length; i++) { a = Math.abs(d[i]); if (a > peak) peak = a; sum += d[i] * d[i]; }
+      return { peak: peak, rms: Math.sqrt(sum / d.length), steps: notes };
+    });
+  }
+
   // 検査用:音を画面外で合成して、ちゃんと波形が出ているかを数値で返す
   function render(name, opts, sec, hp) { // hp を指定すると、その周波数より下を切って測る(スマホのスピーカーを想定)
     var OC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
@@ -333,7 +486,15 @@
       enabled = !!on;
       if (master && ctx) master.gain.setTargetAtTime(enabled ? VOL : 0, ctx.currentTime, 0.03);
       if (!enabled) { pending = []; mediaOff(); }
+      musicSync();
     },
+    // BGM。name は 'era0'〜'era8'(null で止める)。まだ音を出せない状態なら、出せるようになったときに始まる
+    music: function (name) { MU.want = name || null; if (ensure()) musicSync(); },
+    setMusic: function (on, vol) { MU.on = !!on; if (vol != null) MU.vol = vol; if (ctx) { musicBus().gain.setTargetAtTime(MU.on ? MVOL * MU.vol * MU.duck : 0, ctx.currentTime, 0.1); musicSync(); } },
+    duck: function (k) { MU.duck = k; if (ctx && MU.bus) MU.bus.gain.setTargetAtTime(MU.on ? MVOL * MU.vol * k : 0, ctx.currentTime, 0.25); }, // 戦闘のあいだは小さく
+    songs: function () { return Object.keys(SONGS).map(function (k) { return { id: k, name: SONGS[k].name }; }); },
+    musicState: function () { return { want: MU.want, playing: MU.cur ? MU.cur.name : null, on: MU.on, duck: MU.duck }; },
+    _renderSong: renderSong,
     isEnabled: function () { return enabled; },
     setBypass: function (on) { bypass = !!on; if (!bypass) mediaOff(); },
     supported: function () { return !!AC; },

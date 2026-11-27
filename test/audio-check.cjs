@@ -24,7 +24,22 @@ const path = require('path');
     if (problem) bad++;
     console.log(r.name.padEnd(9), r.err ? '' : r.peak.toFixed(2).padStart(5) + '    ' + r.small.toFixed(2).padStart(5), problem ? '  ← ' + problem : '');
   }
-  console.log(bad ? `\n${bad} 個の音に問題があります` : `\n${rows.length} 個の音すべてが、全帯域でもスマホ想定でも十分な大きさで出ています`);
+  // BGM:各曲を12秒ぶん合成して、鳴っていること・大きすぎないことを確かめる
+  const songs = await p.evaluate(async () => {
+    const out = [];
+    for (const s of TF.sfx.songs()) {
+      try { const full = await TF.sfx._renderSong(s.id, 12), small = await TF.sfx._renderSong(s.id, 12, 350); out.push({ id: s.id, name: s.name, peak: full.peak, rms: full.rms, small: small.peak, steps: full.steps }); }
+      catch (e) { out.push({ id: s.id, name: s.name, err: String(e) }); }
+    }
+    return out;
+  });
+  console.log('\nBGM      最大   平均   スマホ想定');
+  for (const r of songs) {
+    const problem = r.err ? '例外: ' + r.err : (r.peak < 0.05 ? '小さすぎる' : (r.small < 0.03 ? 'スマホでは聞こえにくい' : (r.peak > 0.7 ? '効果音より大きい' : '')));
+    if (problem) bad++;
+    console.log(r.id.padEnd(6), r.err ? '' : r.peak.toFixed(2).padStart(6) + ' ' + r.rms.toFixed(3).padStart(6) + ' ' + r.small.toFixed(2).padStart(6), ' ' + r.name, problem ? '  ← ' + problem : '');
+  }
+  console.log(bad ? `\n${bad} 個の音に問題があります` : `\n効果音 ${rows.length} 個と BGM ${songs.length} 曲すべてが、全帯域でもスマホ想定でも十分な大きさで出ています`);
   await b.close();
   process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });
