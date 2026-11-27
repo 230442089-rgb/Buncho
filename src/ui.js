@@ -984,7 +984,7 @@
   function openDiorama() {
     if (!(TF.Diorama3D && TF.Diorama3D.available())) { toast('この端末では3D表示が使えません'); return; }
     var cur = E.eraStage(), era = D.ERAS[cur];
-    showModal('<div class="card-body dio-body"><p class="eyebrow">' + esc(E.nation().name) + ' ・ ' + era.name + '</p><div class="dio" id="dio"></div><p class="dim" id="dio-cap">' + esc(era.look) + '</p>' +
+    showModal('<div class="card-body dio-body"><p class="eyebrow">' + esc(E.nation().name) + ' ・ <span id="dio-era">' + era.name + '</span></p><div class="dio" id="dio"></div><p class="dim" id="dio-cap">' + esc(era.look) + '</p>' +
       '<div class="acts">' + D.ERAS.map(function (e, i) { return i <= cur ? '<button class="btn sm' + (i === cur ? ' gold' : '') + '" data-act="dio-era" data-i="' + i + '">' + e.name + '</button>' : ''; }).join('') + '</div></div>' +
       '<div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true, dio: true });
     try { ui.dio = TF.Diorama3D.mount($('#dio'), { stage: cur, orbit: true }); } catch (e) { ui.dio = null; $('#dio').innerHTML = '<p class="dim">3D表示を始められませんでした。</p>'; }
@@ -1203,7 +1203,7 @@
       case 'diorama': openDiorama(); break;
       case 'dio-era':
         id = +el.getAttribute('data-i');
-        if (ui.dio) { ui.dio.setStage(id, { animate: true }); $$('[data-act="dio-era"]').forEach(function (b2) { b2.classList.toggle('gold', +b2.getAttribute('data-i') === id); }); $('#dio-cap').textContent = D.ERAS[id].look; }
+        if (ui.dio) { ui.dio.setStage(id, { animate: true }); $$('[data-act="dio-era"]').forEach(function (b2) { b2.classList.toggle('gold', +b2.getAttribute('data-i') === id); }); $('#dio-cap').textContent = D.ERAS[id].look; $('#dio-era').textContent = D.ERAS[id].name; }
         break;
       case 'chronicle': playChronicle(); break;
       case 'auto-research': st.autoResearch = !st.autoResearch; if (st.autoResearch) E.autoAssign(); save(); renderPanel(); renderNav(); break;
