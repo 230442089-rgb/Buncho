@@ -500,7 +500,8 @@
       h += '<p class="dim" style="font-size:12.5px">毎季の産出 <span class="cost" style="color:var(--fg)">' + ys.map(function (x) { return '<span>' + x + '</span>'; }).join('') + '</span></p>';
       var vx = E.voice(id), tg = E.moodTarget(id);
       h += '<div class="vox"><div class="vox-m"><span>民心</span>' + moodBar(r.mood, tg) + '<b class="' + moodCls(r.mood) + '">' + Math.round(r.mood) + '</b>' + (Math.abs(tg - r.mood) >= 1 ? '<small>' + (tg > r.mood ? '↗' : '↘') + ' ' + tg + '</small>' : '') + '</div>' +
-        (vx ? '<p><b>' + esc(vx.who) + '</b>「' + esc(vx.t) + '」</p>' : '') + '</div>';
+        (vx ? '<p><b>' + esc(vx.who) + '</b>「' + esc(vx.t) + '」</p>' : '') +
+        '<p class="pop">人口 ' + popText(r.pop) + ' ・ 死亡率 ' + E.vitals(id).d.toFixed(0) + '‰ ・ 出生率 ' + E.vitals(id).b.toFixed(0) + '‰<small>(千人あたり・年)</small></p></div>';
       var th = st.threats.filter(function (t) { return t.to === id; });
       th.forEach(function (t) {
         var A = st.regions[t.from].g * 0.7 / E.MEN * st.factions[t.f].q * D.DIFFICULTY[st.diff].enemy * (t.sea ? 0.7 : 1);
@@ -745,7 +746,8 @@
       '<div class="sum"><div class="fact"><span>かかった歳月</span><b>' + Math.floor(o.turn / 4) + '年' + (o.turn % 4 ? (o.turn % 4) * 3 + 'か月' : '') + '</b></div><div class="fact"><span>戦い</span><b>' + st.stats.battles + '回</b></div>' +
       '<div class="fact"><span>戦わずに降した勢力</span><b>' + st.stats.submits + '</b></div><div class="fact"><span>使った燃料 / 弾薬</span><b>' + fmt(st.stats.fuelUsed) + ' / ' + fmt(st.stats.ammoUsed) + '</b></div></div>' +
       '<p class="dim">' + (o.asi ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。超知能を起こさずに、地球を一つにする道もあります。' : (o.win ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。もっと早く、もっと少ない弾で——次はどう攻めますか。' : '拠点をすべて失いました。もう一度、霧の中から始めましょう。')) + '</p></div>' +
-      '<div class="card-foot"><button class="btn" data-act="modal-close">地図を眺める</button><button class="btn gold" data-act="to-title">表紙へ</button></div>';
+      '<div class="card-foot">' + (o.win && st.flags.cont == null ? '<button class="btn gold" data-act="keep-going">このまま治めつづける</button>' : '<button class="btn gold" data-act="modal-close">地図へもどる</button>') + '<button class="btn" data-act="to-title">表紙へ</button></div>' +
+      (o.win && st.flags.cont == null ? '<p class="dim" style="font-size:12px;text-align:center;padding:0 12px 12px">治めつづけると、統一のあとも季節を進められる。研究、施策、建設、人口や暮らしの移り変わりは、そのまま続く。</p>' : '');
     showModal(h);
   }
 
@@ -768,9 +770,9 @@
   }
   var EV_MARK = { good: '◎', bad: '×', warn: '!', tech: '研', build: '建', news: '報', info: '・', battle: '戦', event: '★', policy: '布', asi: '和', auto: '任' };
   function endTurn() {
-    if (S().over) { queueEnding(); return; }
+    if (S().over && !S().flags.cont) { queueEnding(); return; }
     ui.mv = null;
-    var before = E.dateLabel().text, rep = E.endTurn();
+    var before = E.dateLabel().text, wasOver = !!S().over, rep = E.endTurn();
     save(); sfx('turn');
     var list = '', bigs = [], techs = [], kinds = {};
     rep.events.forEach(function (e) {
@@ -793,7 +795,7 @@
     var word = '<div class="row dario">' + birdSVG('dario', 'b40') + '<div><p>' + esc(darioReport(inc, kinds)) + '</p></div><span></span></div>';
     showModal('<div class="card-body"><p class="eyebrow">' + before + ' の出来事</p><h2>' + E.dateLabel().text + '</h2>' + sumr + word + (list ? '<div>' + list + '</div>' : '') + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">つぎへ</button></div>',
       { sfx: kinds.bad ? 'defeat' : (kinds.warn ? 'warn' : null) });
-    if (S().over) queueEnding();
+    if (S().over && (!wasOver || bigs.some(function (b) { return b.asi; }))) queueEnding();   // 決着の季節と、統一のあとで超知能を起こした季節にだけ
   }
 
   // ───────────────────────── パネル ─────────────────────────
@@ -919,12 +921,32 @@
     var w = n.when;
     return w.jp ? '日本の領地が' + w.jp + 'か国になると、国の名が変わる。' : (w.kyoto ? '京(山城)に入ると、国の名が変わる。' : (w.unified ? '天下を統一すると、国の名が変わる。' : (w.w ? '海外の領地が' + w.w + '地域になると、国の名が変わる。' : (w.all ? '地球を一つにすると、国の名が変わる。' : ''))));
   }
+  function popText(v) { return v >= 10000 ? (v / 10000).toFixed(v >= 100000 ? 0 : 1) + '<small>億人</small>' : (v >= 100 ? fmt(v) : (Math.round(v * 10) / 10)) + '<small>万人</small>'; }
+  function censusHTML() { // 人口・経済力・死亡率など。矢印は一年前との比べ
+    var st = S(), cs = E.census(), H = st.hist, pv = H.length ? H[H.length - 1] : null, h = '';
+    function ar(now, was, goodUp) { if (was == null || Math.abs(now - was) < Math.abs(was) * 0.004 + 0.05) return ''; var up = now > was; return ' <i class="' + (up === goodUp ? 'good' : 'bad') + '">' + (up ? '▲' : '▼') + '</i>'; }
+    function f(label, val, sub) { return '<div class="fact"><span>' + label + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; }
+    var inf = Math.round(cs.infant);
+    h += '<div class="sec">国のすがた(治めている土地)</div><div class="facts census">' +
+      f('人口', popText(cs.pop) + ar(cs.pop, pv && pv.pop, true), '世界の ' + (cs.share * 100 < 10 ? (cs.share * 100).toFixed(1) : Math.round(cs.share * 100)) + '%') +
+      f('経済力', compact(cs.eco) + ar(cs.eco, pv && pv.eco, true), '一人あたり ' + (cs.per >= 10 ? Math.round(cs.per) : cs.per.toFixed(1))) +
+      f('死亡率', cs.death.toFixed(1) + '<small>‰</small>' + ar(cs.death, pv && pv.death, false), '千人あたり・年') +
+      f('平均寿命', Math.round(cs.life) + '<small>歳</small>' + ar(cs.life, pv && pv.life, true), '出生率 ' + cs.birth.toFixed(0) + '‰') +
+      f('乳児の死亡', inf >= 100 ? Math.round(1000 / inf) + '<small>人に1人</small>' : '千人に ' + inf + '<small>人</small>', '一歳になる前に') +
+      f(asiOn() ? '幸福と答えた者' : '読み書き', asiOn() ? '100.0<small>%</small>' : Math.round(cs.lit) + '<small>%</small>', asiOn() ? '無回答 0' : 'できる者の割合') + '</div>';
+    if (H.length >= 3) { // 人口の歩み
+      var W = 300, HH = 36, mx = Math.max.apply(null, H.map(function (x) { return x.pop; }).concat([cs.pop])), pts = H.map(function (x, i) { return (i / (H.length - 1) * W).toFixed(1) + ',' + (HH - 3 - x.pop / mx * (HH - 6)).toFixed(1); }).join(' ');
+      h += '<div class="spark"><svg viewBox="0 0 ' + W + ' ' + HH + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts + '"/></svg><p class="dim">人口の歩み ' + (D.START.year + Math.floor(H[0].t / 4)) + '年 ' + popText(H[0].pop) + ' → ' + (D.START.year + Math.floor(H[H.length - 1].t / 4)) + '年 ' + popText(H[H.length - 1].pop) + '</p></div>';
+    }
+    return h;
+  }
   function nationSummary() {
     var st = S(), inc = E.income(), sm = E.summary(), na = E.nation(), era = D.ERAS[E.eraStage()], dl = E.dateLabel(), mood = Math.round(E.moodAvg()), h = '';
     h += '<div class="ncard"><p class="eyebrow">' + dl.era + ' ・ ' + era.name + '</p><h3>' + esc(na.name) + '</h3><p class="by">土地の人々の呼び名 「' + esc(na.by) + '」</p><p>' + esc(na.desc) + '</p><p class="dim">' + esc(era.look) + '</p>' +
       '<div class="vox-m"><span>民心</span>' + moodBar(mood) + '<b class="' + moodCls(mood) + '">' + mood + '</b></div>' + (nextNation() ? '<p class="dim" style="font-size:12px">' + nextNation() + '</p>' : '') +
       '<div class="acts">' + (TF.Diorama3D && TF.Diorama3D.available() ? '<button class="btn sm" data-act="diorama">' + icon('film') + '国のようすを眺める</button>' : '') + (TF.Chronicle && TF.Chronicle.available() ? '<button class="btn sm" data-act="chronicle">' + icon('scroll') + '年代記を見る</button>' : '') + '</div></div>';
     h += '<div><div class="vs"><div class="lab"><span>日本 <b>' + sm.jp + '</b> / ' + sm.jpAll + '</span><span>世界 <b>' + sm.w + '</b> / ' + sm.wAll + '</span></div><div class="prog"><i style="width:' + ((sm.jp + sm.w) / (sm.jpAll + sm.wAll) * 100) + '%"></i></div></div></div>';
+    h += censusHTML();
     var hs = E.hints();
     if (hs.length) {
       h += '<div class="sec">参謀団の進言</div><div class="list">';
@@ -1193,6 +1215,7 @@
   // 押したときの音。null は、その操作の結果に合わせて別に鳴らすもの
   var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'opt-ringer': null, 'sound-test': null, 'io-load': null,
     rush: null, 'auto-build': 'select', 'auto-res': 'select', 'auto-toggle': null, 'auto-now': null, 'opt-bgm': null,
+    'keep-going': null,
     enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'select', 'dio-era': 'select', 'assign-all': 'chirp',
     tab: 'open', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
     'atk-toggle': 'select', pick: 'select', goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch' };
@@ -1212,6 +1235,7 @@
       case 'move-start': startMove(); break;
       case 'move-cancel': ui.mv = null; refreshAll(); break;
       case 'build': res = E.build(ui.sel, el.getAttribute('data-key')); if (res.error) oops(res.error); else { sfx('build'); toast(E.facLabel(ui.sel, el.getAttribute('data-key'), true) + 'の工事を始めた'); save(); ui.sub = null; refreshAll(); } break;
+      case 'keep-going': res = E.keepGoing(); if (res.error) oops(res.error); else { save(); ui.queue = []; closeModal(); sfx('policy'); toast('統一のあとも、季節を進められます'); refreshAll(); } break;
       case 'rush': res = E.rush(ui.sel); if (res.error) oops(res.error); else { sfx('build'); toast('急がせた(資金 −' + res.cost + ')。次の季節に仕上がる'); save(); refreshAll(); } break;
       case 'auto-build': E.setAuto({ build: el.getAttribute('data-v') }); autoNow(); break;
       case 'auto-res': E.setAuto({ build: 'res', res: el.getAttribute('data-v') }); autoNow(); break;

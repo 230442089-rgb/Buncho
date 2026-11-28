@@ -65,13 +65,13 @@
       res: { gold: st.gold, food: Math.round(st.food * diff.stock), steel: st.steel, fuel: Math.round(st.fuel * diff.stock), ammo: Math.round(st.ammo * diff.stock) },
       prestige: st.prestige, regions: {}, factions: {}, units: [], nextUid: 1,
       techs: {}, prog: {}, assign: {}, autoResearch: true,
-      threats: [], dipLeft: 2, log: [], flags: { nation: 0 }, seenHints: {}, pol: {}, chron: [], auto: { build: 'off', res: 'fuel', move: false, guard: false, make: false },
+      threats: [], dipLeft: 2, log: [], flags: { nation: 0 }, seenHints: {}, pol: {}, chron: [], hist: [], auto: { build: 'off', res: 'fuel', move: false, guard: false, make: false },
       stats: { battles: 0, wins: 0, losses: 0, submits: 0, fuelUsed: 0, ammoUsed: 0, conquered: 0, nukes: 0, revolts: 0 },
       over: null
     };
     Object.keys(D.REGIONS).forEach(function (id) {
       var d = D.REGIONS[id], g = d.fac === 'player' ? 0 : r100(d.troops * diff.enemy);
-      S.regions[id] = { o: d.fac, g: g, gmax: g, fort: d.fort, ctl: 100, fac: {}, b: null, p: null, mood: d.fac === 'player' ? 45 : 50, ruin: 0 };
+      S.regions[id] = { o: d.fac, g: g, gmax: g, fort: d.fort, ctl: 100, fac: {}, b: null, p: null, mood: d.fac === 'player' ? 45 : 50, ruin: 0, pop: popInit(id) };
     });
     Object.keys(D.FACTIONS).forEach(function (id) {
       var f = D.FACTIONS[id];
@@ -113,7 +113,8 @@
     if (!S.auto) S.auto = { build: 'off', res: 'fuel', move: false, guard: false, make: false };
     if (!S.chron) S.chron = [{ turn: S.turn, k: 'start', t: '(これより前の歩みは、記録に残っていない)' }];
     S.stats.nukes = S.stats.nukes || 0; S.stats.revolts = S.stats.revolts || 0;
-    Object.keys(S.regions).forEach(function (id) { var r = S.regions[id]; if (r.mood == null) r.mood = 50; if (r.ruin == null) r.ruin = 0; });
+    Object.keys(S.regions).forEach(function (id) { var r = S.regions[id]; if (r.mood == null) r.mood = 50; if (r.ruin == null) r.ruin = 0; if (r.pop == null) r.pop = popInit(id); });
+    if (!S.hist) S.hist = [];
     if (S.flags.nation == null) S.flags.nation = nationCalc();
     return S;
   }
@@ -554,6 +555,7 @@
   function nukeStrike(tid, gBefore, events) {
     var r = S.regions[tid], first = !S.stats.nukes;
     r.g = Math.min(r.g, r100(gBefore * 0.05)); r.fort = 0; r.ruin = 1; r.fac = {}; r.b = null; r.p = null;
+    r.pop = Math.round(r.pop * 0.3 * 10) / 10;   // 町ごと消える
     r.gmax = r100(r.gmax * 0.3);
     S.stats.nukes = (S.stats.nukes || 0) + 1;
     S.prestige = Math.max(0, S.prestige - 10);
@@ -959,7 +961,7 @@
   }
 
   function endTurn() {
-    if (S.over) return { events: [] };
+    if (S.over && !(S.over.win && S.flags.cont)) return { events: [] };   // 勝ったあとは「治めつづける」を選べば進められる
     REPORT = [];
     autoRun();   // 方針があれば、先に割り振りを済ませる
     var inc = income(), n = inc.net;
@@ -1032,6 +1034,15 @@
     aiDeclare();
     planThreats();
     if (S.flags.asi != null) asiSpread();
+    Object.keys(S.regions).forEach(function (id) { // 人は生まれ、死ぬ
+      var r0 = S.regions[id], v = vitals(id);
+      r0.pop = Math.max(0.1, Math.round(r0.pop * (1 + (v.b - v.d) / 4000) * 1000) / 1000);
+    });
+    if (S.turn % 4 === 0) { // 春に、国のすがたを書き留める
+      var cs = census();
+      S.hist.push({ t: S.turn, pop: Math.round(cs.pop), eco: Math.round(cs.eco), death: Math.round(cs.death * 10) / 10, life: Math.round(cs.life * 10) / 10, n: playerRegions().length });
+      if (S.hist.length > 240) S.hist.splice(0, S.hist.length - 240);
+    }
     Object.keys(S.regions).forEach(function (id) {
       var r = S.regions[id]; if (r.o === 'player') return;
       if (r.ruin > 0) r.ruin = Math.max(0, Math.round((r.ruin - 0.04) * 100) / 100);
@@ -1054,6 +1065,37 @@
     checkMilestones([]);
     var out = REPORT; REPORT = null;
     return { events: out, income: n };
+  }
+
+  // ───────────────────────── 国のすがた(人口・経済力・死亡率) ─────────────────────────
+  var POP_K = { jp: 0.65, w: 6.9 };   // 国力1あたりの人口(万人)。1560年の日本 約1200万、世界 約5億に合わせてある
+  function popInit(rid) { var d = D.REGIONS[rid]; return Math.round(d.koku * POP_K[d.map] * 10) / 10; }
+  // その土地の出生率と死亡率(千人あたり・年)。衛生と医学で死ぬ者が減り、豊かになると生まれる子も減る
+  function vitals(rid) {
+    var r = S.regions[rid], b = 40, d = 37;
+    if (r.o === 'player') {
+      if (S.flags.asi != null) return { b: 9, d: 5 + (r.ruin || 0) * 10 };   // 調和:どちらも「最適」に保たれる
+      d -= (tech('agri') ? 2 : 0) + (tech('hygiene') ? 6 : 0) + (tech('fertilizer') ? 3 : 0) + (tech('medicine') ? 8 : 0) + (tech('electric') ? 2 : 0) + (tech('electronics') ? 3 : 0) + (tech('deeplearn') ? 2 : 0) + (tech('llm') ? 1 : 0);
+      d -= (polHas('shuto') ? 4 : 0) + (polHas('nengu') ? 1 : 0);
+      d += (50 - r.mood) * 0.06;                                                        // 荒れた土地では人が死ぬ
+      if (r.how === 'force' && r.since != null && S.turn - r.since < 4) d += 6;         // 戦のあと
+      b -= (tech('electric') ? 4 : 0) + (tech('electronics') ? 8 : 0) + (tech('computer') ? 5 : 0) + (tech('llm') ? 3 : 0) + (polHas('gakusei') ? 4 : 0);
+    }
+    d += (r.ruin || 0) * 45;
+    return { b: Math.max(8, b), d: clamp(d, 5, 95) };
+  }
+  function census() { // 自領の集計
+    var ids = playerRegions(), pop = 0, ds = 0, bs = 0, eco = 0, world = 0, lv = 0;
+    ids.forEach(function (id) {
+      var r = S.regions[id], v = vitals(id), y = regionYield(id);
+      pop += r.pop; ds += v.d * r.pop; bs += v.b * r.pop; lv += r.fac.school || 0;
+      eco += (y.gold + y.food * 0.5 + y.steel * 2.5 + y.fuel * 5 + y.ammo * 2) * 4;
+    });
+    Object.keys(S.regions).forEach(function (id) { world += S.regions[id].pop; });
+    var death = pop ? ds / pop : 0, birth = pop ? bs / pop : 0, asi = S.flags.asi != null;
+    var lit = asi ? 100 : clamp(10 + (polHas('gakusei') ? 30 : 0) + (tech('telegraph') ? 5 : 0) + (tech('electric') ? 8 : 0) + (tech('electronics') ? 12 : 0) + (tech('network') ? 10 : 0) + Math.min(24, ids.length ? lv / ids.length * 12 : 0), 5, 99);
+    return { pop: pop, world: world, share: world ? pop / world : 0, death: death, birth: birth, grow: birth - death,
+      life: 28 + 60 * Math.pow(clamp(1 - (death - 6) / 31, 0, 1), 1.6), infant: clamp((death - 4.5) * 8, 2, 320), lit: lit, eco: eco, per: pop ? eco / pop : 0 };
   }
 
   // ───────────────────────── 民心・施策・国号 ─────────────────────────
@@ -1195,6 +1237,7 @@
   // ───────────────────────── 超知能 ─────────────────────────
   function startAsi() {
     S.flags.asi = S.turn; mark('asi', '超知能が目を覚ます。一揆の報せが止み、陳情が止む。');
+    if (S.over && S.over.win) S.over.asi = true;   // 統一のあとで起こした場合も、結末は「調和」になる
     playerRegions().forEach(function (id) { var r = S.regions[id]; r.mood = 100; r.ctl = 100; });
     S.threats = [];
     Object.keys(S.factions).forEach(function (k) { var f = S.factions[k]; if (f.alive) { f.war = false; f.pact = 0; } });
@@ -1261,7 +1304,7 @@
   }
   function autoBuild() {
     var out = { n: 0, gold: 0, list: [] };
-    if (!S.auto || S.auto.build === 'off' || S.over) return out;
+    if (!S.auto || S.auto.build === 'off' || (S.over && !S.flags.cont)) return out;
     // 編成もまかせているときは、手もとの資金の半分ほどを部隊のために残す
     var free = Math.max(0, S.res.gold - autoReserve()), keep = autoReserve() + (S.auto.make ? free * 0.45 : 0);
     for (var guard = 0; guard < 120; guard++) {
@@ -1316,7 +1359,7 @@
     return list;
   }
   function autoRun() { // 季節の変わり目に一度
-    var A = S.auto; if (!A || S.over) return;
+    var A = S.auto; if (!A || (S.over && !S.flags.cont)) return;
     var men = A.guard ? autoGuard() : 0, b = autoBuild(), made = A.make ? autoMake() : [], moved = A.move ? autoMove() : 0, parts = [];
     if (b.n) { var cnt = {}; b.list.forEach(function (x) { var nm = x.name.split(' → ').pop(); cnt[nm] = (cnt[nm] || 0) + 1; }); parts.push('建設 ' + Object.keys(cnt).map(function (k) { return k + (cnt[k] > 1 ? '×' + cnt[k] : ''); }).join('、')); }
     if (men) parts.push('徴兵 +' + (men / 1000) + '千');
@@ -1324,6 +1367,8 @@
     if (moved) parts.push('前線へ ' + moved + '部隊');
     if (parts.length) ev('auto', 'おまかせ:' + parts.join(' / ') + '。', { auto: true });
   }
+  // 地球を統一したあとも、治めつづける
+  function keepGoing() { if (!S.over || !S.over.win) return { error: 'まだ決着がついていません' }; S.flags.cont = S.turn; mark('event', '統一のあとも、国の営みは続く。'); return { ok: true }; }
   function setAuto(o) { // 方針を変える。知らないキーは捨てる
     var A = S.auto;
     if (o.build != null && ['off', 'scarce', 'res', 'study'].indexOf(o.build) >= 0) A.build = o.build;
@@ -1422,6 +1467,7 @@
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,
     inContact: inContact, isJp: isJp, playerPower: playerPower, factionPower: factionPower,
     endTurn: endTurn, hints: hints, summary: summary, fname: fname, rname: rname, lockedOverseas: lockedOverseas, MEN: MEN,
+    census: census, vitals: vitals, popInit: popInit, keepGoing: keepGoing,
     buildTurns: buildTurns, schoolName: schoolName, facLabel: facLabel, rushCost: rushCost, rush: rush,
     setAuto: setAuto, autoBuild: autoBuild, autoMove: autoMove, autoGuard: autoGuard, autoMake: autoMake, autoNeeds: autoNeeds, autoReserve: autoReserve, frontDist: frontDist,
     isSpec: isSpec, researchMult: researchMult, autoTechLeft: autoTechLeft, manualAvail: manualAvail, allTechDone: allTechDone, prodTurns: prodTurns,

@@ -262,6 +262,40 @@ section('おまかせ(方針)', () => {
   const j7 = E.serialize(); E.load(j7); ok(E.serialize() === j7 && E.S.auto.build === 'scarce', '方針はセーブに残る');
 });
 
+section('国のすがたと、統一のあと', () => {
+  E.newGame({ seed: 21 });
+  const S = E.S; let c = E.census();
+  ok(c.world > 45000 && c.world < 58000, '1560年の世界人口は約5億: ' + Math.round(c.world) + '万');
+  for (const id of Object.keys(S.regions)) if (D.REGIONS[id].map === 'jp') S.regions[id].o = 'player';
+  c = E.census();
+  ok(c.pop > 1100 && c.pop < 1350 && c.death > 34 && c.life < 32 && c.infant > 200, '戦国の日本: 人口' + Math.round(c.pop) + '万 死亡率' + c.death.toFixed(1) + ' 寿命' + c.life.toFixed(0));
+  const d0 = c.death; S.techs.hygiene = true; S.pol.shuto = 0;
+  ok(E.census().death < d0 - 8 && E.census().life > c.life + 8, '公衆衛生と種痘で死亡率が下がり、寿命が延びる');
+  const p0 = E.census().pop; for (let i = 0; i < 8; i++) E.endTurn();
+  ok(E.census().pop > p0 * 1.02 && S.hist.length === 2, '人口が増え、春ごとに記録が残る: ' + JSON.stringify(S.hist[1]));
+  const pk = S.regions.kai.pop; S.flags.unified = 0; S.units.push({ id: S.nextUid++, type: 'nuke', name: '核', hp: 100, loc: null, acted: false });
+  S.regions.kai.o = D.REGIONS.kai.fac; S.factions[D.REGIONS.kai.fac].alive = true; E.attack('kai', [S.units[S.units.length - 1].id]);
+  ok(S.regions.kai.pop < pk * 0.35, '核を撃たれた土地は人口が激減する');
+  // 統一のあと
+  E.newGame({ seed: 22 }); const S2 = E.S;
+  for (const id of Object.keys(S2.regions)) S2.regions[id].o = 'player';
+  for (const f of Object.values(S2.factions)) f.alive = false;
+  E.endTurn();
+  ok(S2.over && S2.over.win, '地球統一で決着');
+  const t0 = S2.turn; ok(E.endTurn().events.length === 0 && S2.turn === t0, 'そのままでは季節は進まない');
+  ok(E.keepGoing().ok && S2.flags.cont != null, '治めつづけるを選べる');
+  const rep = E.endTurn();
+  ok(S2.turn === t0 + 1 && Array.isArray(rep.events), '統一のあとも季節が進む');
+  for (const t of D.TECHS) if (t.id !== 'asi') S2.techs[t.id] = true;
+  for (const b of D.BIRDS) E.assign(b.id, 'asi'); S2.prog.asi = 99999;
+  const rep2 = E.endTurn();
+  ok(S2.flags.asi != null && S2.over.asi === true && rep2.events.some(e => e.big && e.big.asi), '統一のあとで超知能を起こすと、結末が調和に変わる');
+  for (let i = 0; i < 12; i++) E.endTurn();
+  ok(S2.turn === t0 + 14 && E.census().death <= 5.5, 'その先も季節は進む(死亡率 ' + E.census().death.toFixed(1) + ')');
+  const j = E.serialize(); E.load(j); ok(E.serialize() === j, 'セーブの往復で変わらない');
+  E.newGame({ seed: 23 }); ok(E.keepGoing().error, '決着の前には選べない');
+});
+
 section('民の声(全地域・全時代)', () => {
   E.newGame({ seed: 10 });
   const S = E.S;
