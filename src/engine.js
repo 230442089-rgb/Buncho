@@ -671,10 +671,11 @@
       ev('battle', rname(tid) + 'を砲爆撃した。', { rid: tid });
     }
     S.units = S.units.filter(function (u) { return u.hp > 0; });
+    var follow = captured && S.auto && S.auto.follow ? followTo(tid) : null;   // 全軍で進む
     checkMilestones(events);
     REPORT = prevReport;
     res = { win: win, bombard: bombard, captured: captured, P: Math.round(P), E: Math.round(E), ratio: ratio, chance: pr.chance, fuel: pr.fuel, ammo: pr.ammo, losses: losses,
-      gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter, nuke: pr.nuke };
+      gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter, nuke: pr.nuke, follow: follow };
     return res;
   }
   // 核を撃った土地と、世界の受け止め
@@ -742,6 +743,23 @@
       else { u.acted = true; u.from = from; u.mf = t.per ? t.per[u.id] || 0 : 0; }
     });
     return { ok: true, fuel: t.fuel, back: !!t.back };
+  }
+  // 全軍で進む(方針で入れたときだけ):攻め落とした土地へ、一手で届く部隊をすべて寄せる。
+  // 戦わなかった部隊は行動を残したまま進む(その先の敵を、同じ季節に攻められる)。先に移動していた部隊は、行き先がここへ変わる。
+  // 攻撃に出た部隊は動けない。狙われている土地を守っている部隊は残す。燃料は移動のぶんだけ使い、予備は割らない(割るなら、燃料のいらない部隊だけ)。
+  function followTo(rid) {
+    var out = { n: 0, fuel: 0, from: [], stay: 0, guard: 0, dry: 0 }, aimed = {}, keep = autoKeep().fuel;
+    S.threats.forEach(function (t) { aimed[t.to] = 1; });
+    S.units.slice().forEach(function (u) {
+      if (u.loc === null || u.loc === rid || !movable(u)) return;
+      var here = u.loc, fresh = !u.acted, t = moveTargets([u.id])[rid];
+      if (!t) return;                                                        // 一手では届かない
+      if (aimed[here]) { out.stay++; out.guard++; return; }
+      if (!t.ok || (t.fuel > 2 && S.res.fuel - t.fuel < keep) || !move([u.id], rid).ok) { out.stay++; out.dry++; return; }   // 歩兵のように、ほとんど燃料を使わない部隊は、予備が薄くても進む
+      if (fresh) { u.acted = false; delete u.from; delete u.mf; }           // ここが、新しい出発地になる
+      out.n++; out.fuel += t.fuel; if (out.from.indexOf(here) < 0) out.from.push(here);
+    });
+    return out;
   }
   // 移動の取り消し:季節の初めにいた場所へ戻す
   function undoMove(ids) {
@@ -1653,7 +1671,7 @@
         if ((pl.pr.fuel > 0 && S.res.fuel - pl.pr.fuel < keep.fuel) || (pl.pr.ammo > 0 && S.res.ammo - pl.pr.ammo < keep.ammo)) { pl = autoPlan(ts[i].id, aimed, true); if (!pl) continue; }
         var res = attack(ts[i].id, pl.ids);
         if (res.error) continue;
-        out.push({ rid: ts[i].id, win: res.win, chance: pl.pr.chance, fuel: res.fuel, ammo: res.ammo, n: pl.ids.length, events: res.events });
+        out.push({ rid: ts[i].id, win: res.win, chance: pl.pr.chance, fuel: res.fuel, ammo: res.ammo, n: pl.ids.length, events: res.events, follow: res.follow });
         done = true;
       }
       if (!done) break;
@@ -1664,7 +1682,7 @@
     var A = S.auto; if (!A || (S.over && !S.flags.cont)) return;
     var men = A.guard ? autoGuard() : 0, b = autoBuild(), made = A.make ? autoMake() : [], atk = autoAttack(), moved = A.move || autoAtkOn() ? autoMove() : 0, parts = [];
     atk.forEach(function (x) { // 攻撃の結果は、一つずつ知らせる。その戦で起きたこと(本拠の陥落、節目の札)も、季節の知らせに並べる
-      ev('battle', 'おまかせ:' + rname(x.rid) + (x.win ? 'を攻略した' : 'の攻略に失敗した') + '(勝算 ' + Math.round(x.chance * 100) + '%、' + x.n + '部隊、燃料 −' + x.fuel + '、弾薬 −' + x.ammo + ')。', { rid: x.rid, auto: true, won: !!x.win });
+      ev('battle', 'おまかせ:' + rname(x.rid) + (x.win ? 'を攻略した' : 'の攻略に失敗した') + '(勝算 ' + Math.round(x.chance * 100) + '%、' + x.n + '部隊、燃料 −' + x.fuel + '、弾薬 −' + x.ammo + ')。' + (x.follow && x.follow.n ? '全軍 ' + x.follow.n + ' 部隊が続いた' + (x.follow.fuel > 0 ? '(燃料 −' + x.follow.fuel + ')' : '') + '。' : ''), { rid: x.rid, auto: true, won: !!x.win });
       if (REPORT) x.events.forEach(function (e) { REPORT.push(e); });
     });
     if (b.n) { var cnt = {}; b.list.forEach(function (x) { var nm = x.name.split(' → ').pop(); cnt[nm] = (cnt[nm] || 0) + 1; }); parts.push('建設 ' + Object.keys(cnt).map(function (k) { return k + (cnt[k] > 1 ? '×' + cnt[k] : ''); }).join('、')); }
@@ -1679,7 +1697,7 @@
     var A = S.auto;
     if (o.build != null && ['off', 'scarce', 'res', 'study'].indexOf(o.build) >= 0) A.build = o.build;
     if (o.res != null && ['gold', 'food', 'steel', 'fuel', 'ammo'].indexOf(o.res) >= 0) A.res = o.res;
-    ['move', 'guard', 'make'].forEach(function (k) { if (o[k] != null) A[k] = !!o[k]; });
+    ['move', 'guard', 'make', 'follow'].forEach(function (k) { if (o[k] != null) A[k] = !!o[k]; });   // follow: 全軍で進む
     if (o.attack != null && ['off', 'war', 'all'].indexOf(o.attack) >= 0) A.attack = o.attack;   // 攻撃:まかせない / 交戦中の相手だけ / 不可侵・通商の相手以外すべて
     return A;
   }
@@ -1778,7 +1796,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    threatOn: threatOn, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, followTo: followTo, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

@@ -464,6 +464,50 @@ section('おまかせの攻撃(勝算九割で仕掛ける)', () => {
   ok(dist0 > 0 && closer > 0 && r.events.some(e => /前線へ \d+部隊/.test(e.t)), '伊豆の部隊が、狙いの手前へ動きだす(' + closer + ' 部隊)');
 });
 
+section('全軍で進む(攻め落とした土地へ、部隊が続く)', () => {
+  const fresh = (seed, on) => {
+    E.newGame({ seed }); const S = E.S;
+    for (const f of Object.values(S.factions)) { f.war = false; f.pact = 0; f.trade = false; }
+    for (const id of ['suruga', 'mikawa']) { S.regions[id].g = 300; S.regions[id].gmax = 300; S.regions[id].fort = 0; }
+    S.res.fuel = 3000; S.res.ammo = 3000;
+    if (on) E.setAuto({ follow: true });
+    return S;
+  };
+  const land = S => S.units.filter(u => u.loc !== null), inf = S => S.units.find(u => u.type === 'inf');
+  // 切ってあれば、これまでどおり:攻めた部隊だけが入る
+  let S = fresh(31, false), a = inf(S), res = E.attack('suruga', [a.id]);
+  ok(res.win && res.follow == null && land(S).filter(u => u.loc === 'suruga').length === 1, '切ってあれば、攻めた部隊だけが駿河に入る');
+  // 入れると、伊豆の部隊がすべて続く。戦わなかった部隊は、行動を残したまま
+  S = fresh(31, true); a = inf(S);
+  const n0 = land(S).length, f0 = S.res.fuel;
+  res = E.attack('suruga', [a.id]);
+  const there = land(S).filter(u => u.loc === 'suruga'), followers = there.filter(u => u.id !== a.id);
+  ok(res.win && res.follow && res.follow.n === n0 - 1 && there.length === n0 && res.follow.from.join() === 'izu', '入れると、伊豆の全部隊が駿河へ続く(' + (res.follow && res.follow.n) + ' 部隊)');
+  ok(a.acted && followers.every(u => !u.acted && u.from == null && u.mf == null), '攻めた部隊は行動済み。続いた部隊は、行動を残している');
+  ok(res.follow.fuel > 0 && S.res.fuel === f0 - res.fuel - res.follow.fuel, '燃料は、戦いのぶんと移動のぶんだけ減る(移動 −' + res.follow.fuel + ')');
+  const b = followers.find(u => u.type === 'inf'), r2 = E.attack('mikawa', [b.id]);
+  ok(r2.win && r2.follow && land(S).every(u => u.loc === 'mikawa' || u.id === a.id), '続いた部隊で、その先の三河を同じ季節に攻められる。残りも続く(先に攻めた部隊は駿河に残る)');
+  ok(a.loc === 'suruga' && a.acted && !E.movable(a), '攻撃に出た部隊は、その季節はもう動かない');
+  // 攻撃に出た部隊・狙われた土地の部隊・先に移動した部隊
+  S = fresh(32, true); a = inf(S);
+  const others = land(S).filter(u => u.id !== a.id), x = others[0], y = others[1];
+  x.acted = true;                                    // 別の戦に出たことにする
+  S.regions.sagami.o = 'player'; S.regions.sagami.g = 9000; E.move([y.id], 'sagami');   // 先に相模へ移動した部隊
+  res = E.attack('suruga', [a.id]);
+  ok(x.loc === 'izu' && x.acted, '別の戦に出た部隊は、伊豆に残る');
+  ok(y.loc === 'suruga' && y.acted && y.from === 'izu', '先に移動していた部隊は、行き先が駿河に変わる(移動済みのまま)');
+  S = fresh(33, true); a = inf(S);
+  S.factions.hojo.war = true; S.threats = [{ from: 'sagami', to: 'izu', f: 'hojo', turn: S.turn + 1, sea: false }];
+  res = E.attack('suruga', [a.id]);
+  ok(res.follow.n === 0 && res.follow.stay > 0 && res.follow.guard === res.follow.stay && res.follow.dry === 0 && land(S).filter(u => u.loc === 'izu').length === land(S).length - 1, '狙われている伊豆を守る部隊は、残る');
+  // 燃料の予備を割るなら、ほとんど燃料を使わない部隊だけが進む
+  S = fresh(34, true); a = inf(S); S.res.fuel = 120;
+  res = E.attack('suruga', [a.id]);
+  const went = land(S).filter(u => u.loc === 'suruga' && u.id !== a.id), stayed = land(S).filter(u => u.loc === 'izu');
+  ok(went.length > 0 && went.every(u => u.type === 'inf') && stayed.some(u => u.type === 'tank') && S.res.fuel >= 100 && res.follow.dry === stayed.length && res.follow.guard === 0, '燃料が乏しいと、歩兵だけが続き、戦車は残る(残り ' + S.res.fuel + ')');
+  ok(E.setAuto({ follow: false }).follow === false, '切れる');
+});
+
 section('燃料と弾薬が尽きたときの助言', () => {
   E.newGame({ seed: 16 });
   const S = E.S, has = re => E.hints().some(h => re.test(h.text));

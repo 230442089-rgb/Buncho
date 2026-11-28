@@ -2,6 +2,7 @@
 //   node test/sim.mjs [難易度=normal] [試行回数=3] [最大ターン=400] [-v]
 // 環境変数: ASI=1 超知能まで研究する / NUKE=1 核兵器を研究して作り、撃つ / MAXATK=n 1ターンの攻撃回数を絞る(ゆっくり遊ぶ人の再現)
 //           AUTO=scarce|study|fuel|gold… 建設・徴兵・編成・移動をエンジンの「おまかせ」に任せる(ボットは外交と攻撃だけ)
+//           FOLLOW=1 「全軍で進む」を入れる(攻め落とした土地へ、動ける部隊がすべて続く)
 //           ATK=auto|war 攻撃もおまかせに任せる(勝算九割で仕掛ける。war は交戦中の相手だけ)。AUTO と合わせると、ボットは外交と研究だけ
 //           POL=none 施策を布告しない / POL=all 見守り網まで全部布告する / DUMP_DIR=… 途中のセーブを書き出す
 import { createRequire } from 'node:module';
@@ -183,6 +184,7 @@ function botTurn(log) {
   let atkN = 0;
   const left = Object.keys(S.regions).filter(id => !E.isP(id)).length;
   const hold = WANT_ASI && S.flags.asi == null && left <= 4;   // 超知能を待つあいだ、最後の数地域は残す
+  if (process.env.FOLLOW) E.setAuto({ follow: true });   // 全軍で進む
   if (ATK) E.setAuto({ attack: ATK === 'war' ? 'war' : 'all' });   // 攻撃をまかせる:ここでは攻めない(季節の変わり目に、おまかせが仕掛ける)
   for (const { tid } of list) {
     if (atkN >= MAXATK || hold || ATK) break;

@@ -786,7 +786,9 @@
     var h = '<p class="eyebrow">' + esc(E.fname(r.o)) + ' ・ ' + (pr.canCapture || !ids.length ? '攻略作戦' : '砲爆撃') + '</p><h2>' + esc(d.name) + '</h2>';
     h += '<div class="facts"><div class="fact"><span>守備兵</span><b>' + men(r.g) + '</b></div><div class="fact"><span>城郭</span><b>' + r.fort + (pr.siege ? ' → ' + pr.fortEff : '') + '</b></div><div class="fact"><span>敵の戦力</span><b>' + fmt(pr.E) + '</b></div></div>';
     if (pr.winter) h += '<p class="note warn" style="border-color:var(--warn)">冬の豪雪。陸上部隊とヘリの戦力が4割落ちる。</p>';
-    h += '<div class="acts"><button class="btn sm" data-act="atk-sug">おすすめ</button><button class="btn sm" data-act="atk-all">全部隊</button><button class="btn sm" data-act="atk-none">解除</button></div>';
+    h += '<div class="acts"><button class="btn sm" data-act="atk-sug">おすすめ</button><button class="btn sm" data-act="atk-all">全部隊</button><button class="btn sm" data-act="atk-none">解除</button>' +
+      '<button class="btn sm follow' + (st.auto.follow ? ' gold' : '') + '" data-act="atk-follow">' + icon('flag') + '落としたら全軍で進む:<b>' + (st.auto.follow ? '入' : '切') + '</b></button></div>';
+    if (st.auto.follow) h += '<p class="dim" style="font-size:12.5px;margin:6px 0 0">攻め落としたら、一手で届く部隊がすべてこの土地へ続く。戦わなかった部隊は、まだ動ける。元の土地に残るのは守備兵だけ。</p>';
     var groups = [['陸上部隊(占領できる)', function (o) { return o.via === 'land' || o.via === 'sea'; }], ['支援(ヘリ・航空・艦隊)', function (o) { return o.via !== 'land' && o.via !== 'sea' && o.via !== 'missile'; }],
       ['戦略兵器(おすすめには入らない)', function (o) { return o.via === 'missile'; }]];
     groups.forEach(function (g) {
@@ -874,13 +876,19 @@
         : '<div class="fact"><span>敵の守備兵</span><b>' + men(res.gBefore) + ' → ' + men(res.gAfter) + '</b></div>') + '</div>';
     var ls = res.losses.filter(function (l) { return l.dh > 0; });
     if (ls.length) { h += '<div class="sec">損耗</div><div class="tags">'; ls.forEach(function (l) { h += '<span class="tag' + (l.dead ? ' war' : '') + '">' + esc(l.name) + ' −' + l.dh + '%' + (l.dead ? ' 壊滅' : '') + '</span>'; }); h += '</div>'; }
-    var bigs = [];
+    var bigs = [], fw = res.follow;
+    if (fw && (fw.n || fw.stay)) h += '<div class="ev k-good follow"><span class="k">→</span><span>全軍で進む:' + (fw.n ? '<b>' + fw.n + ' 部隊</b>が' + esc(d.name) + 'へ続いた' + (fw.fuel > 0 ? '(燃料 −' + fw.fuel + ')' : '') + '。戦わなかった部隊は、この季節のうちにまだ動ける。' : '') +
+      (fw.guard ? '狙われている土地の ' + fw.guard + ' 部隊は、守りに残した。' : '') + (fw.dry ? '燃料の予備を割るので、' + fw.dry + ' 部隊は残した。' : '') + '</span></div>';
     res.events.forEach(function (e) { if (e.big) bigs.push(e); else h += '<div class="ev k-' + e.k + '"><span class="k">' + (e.k === 'good' ? '◎' : (e.k === 'bad' ? '×' : '・')) + '</span><span>' + esc(e.t) + '</span></div>'; });
     ui.sel = res.win ? res.rid : ui.sel; ui.pick = {};
     refreshAll();
     if (ui.sel) { ensureVisible(ui.sel); refreshMap(); }
     showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">' + (res.nuke ? '……' : 'よし') + '</button></div>',
-      { replace: true, sfx: res.nuke ? (animOn() ? null : 'nuke') : (res.win ? 'victory' : (res.bombard ? 'taiko' : 'defeat')), onClose: function () { return fxCascade(gained); } });
+      { replace: true, sfx: res.nuke ? (animOn() ? null : 'nuke') : (res.win ? 'victory' : (res.bombard ? 'taiko' : 'defeat')), onClose: function () {
+        var wait = fxCascade(gained);
+        if (fw && fw.n) setTimeout(function () { sfx('move'); fw.from.forEach(function (f) { fxMove(f, res.rid); }); }, wait ? 420 : 0);   // 判子のあとに、続く部隊の矢印
+        return wait;
+      } });
     bigs.forEach(function (e) { queueStory(e.big, e.cine ? { cine: e.cine } : null); });
     if (S().over) queueEnding();
   }
@@ -1215,10 +1223,11 @@
       h += '<p class="dim" style="font-size:12.5px;padding-left:4px">' + (fc ? 'いまの狙い:<button class="tag nb" data-act="goto" data-id="' + fc + '"><i style="background-color:' + colorOf(fc) + '"></i>' + esc(reg(fc).name) + '</button> ' + esc(E.fname(E.owner(fc))) + '。' +
         (sg.ok ? '次の季節の変わり目に仕掛ける(勝算 ' + ch + '%)。' : 'いま届く部隊では勝算 ' + ch + '%。九割になるまで、部隊を手前へ集める。') : 'いまは、勝てそうな相手がいない。研究と編成が進むのを待つ。') + '</p>';
     }
-    [['move', 'flag', '部隊を前線へ進める', '未行動の部隊が、季節の終わりに前線へ一歩ずつ寄る。狙われた土地を守っている部隊は動かない。'],
+    [['follow', 'flag', '全軍で進む', '攻め落とした土地へ、一手で届く部隊をすべて進める。戦わなかった部隊は行動を残したまま進むので、その先を同じ季節に攻められる。元の土地に残るのは守備兵だけ。狙われた土地の部隊と、燃料の予備を割る部隊は残す。', '進む', '残る'],
+      ['move', 'flag', '部隊を前線へ進める', '未行動の部隊が、季節の終わりに前線へ一歩ずつ寄る。狙われた土地を守っている部隊は動かない。'],
       ['guard', 'fort', '守りの徴兵', '狙われた土地と前線に、守備兵を足す。'],
       ['make', 'ashi', '部隊の編成', '工廠・造船所・飛行場で、作れる中でいちばん新しい部隊を作りつづける。核は作らない。']].forEach(function (m) {
-      h += '<button class="row' + (A[m[0]] ? ' on' : '') + '" data-act="auto-toggle" data-k="' + m[0] + '">' + icon(m[1], 'big') + '<div><h3>' + m[2] + '</h3><p>' + m[3] + '</p></div><div class="side"><b>' + (A[m[0]] ? 'まかせる' : '自分で') + '</b></div></button>';
+      h += '<button class="row' + (A[m[0]] ? ' on' : '') + '" data-act="auto-toggle" data-k="' + m[0] + '">' + icon(m[1], 'big') + '<div><h3>' + m[2] + '</h3><p>' + m[3] + '</p></div><div class="side"><b>' + (A[m[0]] ? m[4] || 'まかせる' : m[5] || '自分で') + '</b></div></button>';
     });
     return h + '</div><p class="dim" style="font-size:12px">研究の割り振りは「研究」の画面の「手の空いた鳥におまかせ」で。外交は、いつも司令が決めます。攻撃をまかせても、手で出した攻撃はそのまま通り、核と、不可侵・通商の相手への攻撃は司令だけが決められます。</p>';
   }
@@ -1423,7 +1432,7 @@
     'dio-land': 'select',
     enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'tab', 'dio-era': 'select', 'assign-all': 'chirp',
     tab: 'tab', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
-    'atk-toggle': null, pick: null, goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch',
+    'atk-toggle': null, 'atk-follow': null, pick: null, goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch',
     'close-sheet': 'close', 'panel-close': 'close', 'move-cancel': 'close', sub: 'tab', dtab: 'tab', 'move-start': 'select', 'move-undo': null };
   function onClick(e) {
     var el = e.target.closest('[data-act]');
@@ -1470,6 +1479,7 @@
       case 'atk-toggle': id = +el.getAttribute('data-uid'); if (ui.atk.ids[id]) delete ui.atk.ids[id]; else ui.atk.ids[id] = 1;
         sfx('pick', ui.atk.ids[id] ? { n: Object.keys(ui.atk.ids).length } : { off: true }); renderAttack(); break;   // 出撃を足すたびに、音が一段上がる
       case 'atk-sug': res = E.suggestAttack(ui.atk.tid, 0.9); ui.atk.ids = {}; res.ids.forEach(function (i) { ui.atk.ids[i] = 1; }); if (!res.ok) oops('いまの手持ちでは、勝算9割に届きません'); renderAttack(); break;
+      case 'atk-follow': E.setAuto({ follow: !st.auto.follow }); sfx(st.auto.follow ? 'select' : 'click'); save(); renderAttack(); break;
       case 'atk-all': ui.atk.ids = {}; E.attackOptions(ui.atk.tid).forEach(function (o) { if (o.ok && !D.UNIT_TYPES[o.u.type].nuke) ui.atk.ids[o.u.id] = 1; }); renderAttack(); break;
       case 'nuke-yes': ui.atk.nukeOk = true; goAttack(); break;
       case 'nuke-no': renderAttack(); break;
