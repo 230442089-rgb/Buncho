@@ -1149,6 +1149,7 @@
       h += '<tr><th>' + icon(r[0]) + ' ' + r[1] + '</th><td>+' + fmt(r[2]) + '</td><td>−' + fmt(r[3]) + '</td><td class="' + (inc.net[r[0]] < 0 ? 'bad' : '') + '">' + sgn(inc.net[r[0]]) + '</td><td>' + fmt(st.res[r[0]]) + '</td></tr>';
     });
     h += '</table></div><p class="dim" style="font-size:12px">民心が高い土地ほど、資金・兵糧・鉄鋼がよく上がる(民心50で等倍、100で2割増し)。兵糧は ' + fmt(E.foodCap()) + ' を超えたぶんを自動で売って資金にする。弾薬は工廠1つにつき毎季 15、鉄鋼を3分の1ずつ使う。' + (E.tech('nuclear') ? '' : '燃料は基地の維持に毎季 4 かかる。') + (inc.trade ? '通商の収入 +' + fmt(inc.trade) + '。' : '') + '</p>';
+    if (inc.ammoCap > inc.net.ammo + 0.5) h += '<p class="note bad" style="border-color:var(--bad)">鉄鋼が足りず、弾薬を作りきれていない(毎季 ' + Math.round(inc.ammoCap) + ' 作れるところ、' + inc.net.ammo + ')。鉄山を開くか、「高炉製鉄」の研究を。</p>';
     var mine = E.playerRegions().sort(function (a, b) { return reg(b).koku - reg(a).koku; });
     h += '<div class="sec">領地 ' + mine.length + '</div><div class="list">';
     mine.forEach(function (id) {

@@ -396,6 +396,21 @@ section('難易度「修羅」', () => {
   ok(!gn.planned && gn.held, '実戦:同じ守りでも、一国ずつでは攻めてこない');
 });
 
+section('燃料と弾薬が尽きたときの助言', () => {
+  E.newGame({ seed: 16 });
+  const S = E.S, has = re => E.hints().some(h => re.test(h.text));
+  ok(!has(/作りきれていません/) && !has(/立て直せます/), 'はじめは出ない');
+  S.techs.steam = true; S.techs.ammo = true; S.regions.izu.fac.arsenal = 1;
+  ok(E.income().net.ammo === 15 && !has(/作りきれていません/), '鉄鋼があれば、工廠は毎季 15 の弾薬を作る');
+  S.res.steel = 0;
+  const inc = E.income();
+  ok(inc.net.ammo < inc.ammoCap && has(/鉄鋼が足りず、弾薬を作りきれていません/), '鉄鋼が尽きると作りきれず、参謀がそう言う(' + inc.net.ammo + ' / ' + inc.ammoCap + ')');
+  S.res.fuel = 0; S.res.ammo = 0;
+  ok(has(/立て直せます。現地歩兵団/), '燃料も弾薬も尽きたら、立て直し方を言う');
+  const ashi = E.produceOptions('izu').find(o => o.type === 'ashi');
+  ok(ashi && ashi.ok && !ashi.cost.steel && E.produce('izu', 'ashi').ok, '現地歩兵団は、燃料も弾薬も鉄鋼も無しで編成できる');
+});
+
 section('建設は、統治と研究が進むと同時に進められる', () => {
   E.newGame({ seed: 14 });
   let S = E.S;

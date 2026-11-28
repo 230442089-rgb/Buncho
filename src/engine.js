@@ -1664,6 +1664,10 @@
     }
     if (S.res.fuel < 150 && inc.net.fuel <= 0) h('sakura', '燃料が残りわずかです。戦車と艦は温存して、普通科と現地の兵で戦いましょう。', null, 2);
     if (S.res.ammo < 150 && inc.net.ammo <= 0) h('gin', '弾薬が乏しい。「無煙火薬」の研究と工廠の建設を。それまでは降伏勧告と現地歩兵団で。', null, 2);
+    // 工廠はあるのに、鉄鋼が足りなくて弾薬を作りきれていない(気づきにくいので、はっきり言う)
+    if (inc.ammoCap > inc.net.ammo + 0.5) h('haku', '鉄鋼が足りず、弾薬を作りきれていません(毎季 ' + Math.round(inc.ammoCap) + ' 作れるところ、' + inc.net.ammo + ')。弾薬1つに鉄鋼が3分の1要ります。鉄山を開くか、「高炉製鉄」の研究を。', null, 2);
+    // 燃料も弾薬も尽きたときの、立て直し方
+    if (S.res.fuel < 40 && S.res.ammo < 40) h('dario', '燃料も弾薬も、ほぼ尽きました。立て直せます。現地歩兵団(資金と兵糧だけで編成でき、燃料も弾薬も使いません)と降伏勧告で領地を広げ、そのあいだに「石油蒸留」と油井、「無煙火薬」と工廠を。研究は止まりません。', null, 1);
     if (S.res.food < 120 && inc.net.food < 0) h('cinnamon', '兵糧が足りません。石高の多い国を取るか、農地改良を。', null, 2);
     mine.forEach(function (id) {
       var r = S.regions[id], d = D.REGIONS[id];
