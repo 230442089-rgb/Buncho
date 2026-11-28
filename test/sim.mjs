@@ -99,13 +99,13 @@ function botTurn(log) {
   if (AUTO) { // おまかせに任せる。ここでは方針を渡すだけ
     E.setAuto(['scarce', 'study'].includes(AUTO) ? { build: AUTO, move: true, guard: true, make: true } : { build: 'res', res: AUTO, move: true, guard: true, make: true });
   }
-  const arsenals = mine.filter(id => S.regions[id].fac.arsenal || (S.regions[id].b && S.regions[id].b.k === 'arsenal')).length;
-  const yards = mine.filter(id => S.regions[id].fac.shipyard || (S.regions[id].b && S.regions[id].b.k === 'shipyard')).length;
-  const schools = mine.filter(id => S.regions[id].fac.school || (S.regions[id].b && S.regions[id].b.k === 'school')).length;
+  const arsenals = mine.filter(id => S.regions[id].fac.arsenal || S.regions[id].bq.some(w => w.k === 'arsenal')).length;
+  const yards = mine.filter(id => S.regions[id].fac.shipyard || S.regions[id].bq.some(w => w.k === 'shipyard')).length;
+  const schools = mine.filter(id => S.regions[id].fac.school || S.regions[id].bq.some(w => w.k === 'school')).length;
   let nArs = arsenals, nYard = yards, nSchool = schools;
-  let nDC = mine.filter(id => S.regions[id].fac.datacenter || (S.regions[id].b && S.regions[id].b.k === 'datacenter')).length;
+  let nDC = mine.filter(id => S.regions[id].fac.datacenter || S.regions[id].bq.some(w => w.k === 'datacenter')).length;
   for (const id of AUTO ? [] : mine) {
-    const r = S.regions[id]; if (r.b) continue;
+    const r = S.regions[id]; if (r.bq.length >= E.buildSlots(id)) continue;   // 工事の枠が空いていれば、一季に一つずつ足していく
     const bo = Object.fromEntries(E.buildOptions(id).map(o => [o.key, o]));
     const want = [], nb = Object.fromEntries(Object.entries(bo).filter(([, o]) => !o.upgrade)); // nb: 新設できるもの
     if (nb.oilwell) want.push('oilwell');
@@ -248,7 +248,7 @@ function run(seed) {
     const owned = sm.jp + sm.w;
     if (owned === lastOwned) stall++; else { stall = 0; lastOwned = owned; }
     if (process.env.DBG && E.S.turn === 40) { const S2 = E.S; const ars = E.playerRegions().filter(id => S2.regions[id].fac.arsenal); console.log('  auto', JSON.stringify(S2.auto), '金', S2.res.gold, 'reserve', E.autoReserve()); for (const id of ars.slice(0, 2)) console.log('  ', id, 'p=', JSON.stringify(S2.regions[id].p), E.produceOptions(id).map(o => o.type + ':' + (o.ok ? 'ok' : o.why) + ':' + o.cost.gold).join(' | ')); console.log('  autoMake →', JSON.stringify(E.autoMake())); }
-    if (process.env.DBG && E.S.turn % 10 === 0) { const S2 = E.S, inc = E.income(), mine2 = E.playerRegions(); const cnt = k => mine2.filter(id => S2.regions[id].fac[k]).length; console.log(`  T${S2.turn} 鋼${S2.res.steel}(${inc.net.steel}) 産出鋼${Math.round(inc.gross.steel)} 弾用${Math.round(inc.upkeep.steel)} 工廠${cnt('arsenal')} 鉄山${cnt('ironmine')} 学${cnt('school')} 計算${cnt('datacenter')} 編成中${mine2.filter(id => S2.regions[id].p).length} 建設中${mine2.filter(id => S2.regions[id].b).length} needs=${JSON.stringify(Object.fromEntries(Object.entries(E.autoNeeds()).map(([k, v]) => [k, +v.toFixed(1)])))}`); }
+    if (process.env.DBG && E.S.turn % 10 === 0) { const S2 = E.S, inc = E.income(), mine2 = E.playerRegions(); const cnt = k => mine2.filter(id => S2.regions[id].fac[k]).length; console.log(`  T${S2.turn} 鋼${S2.res.steel}(${inc.net.steel}) 産出鋼${Math.round(inc.gross.steel)} 弾用${Math.round(inc.upkeep.steel)} 工廠${cnt('arsenal')} 鉄山${cnt('ironmine')} 学${cnt('school')} 計算${cnt('datacenter')} 編成中${mine2.filter(id => S2.regions[id].p).length} 建設中${mine2.filter(id => S2.regions[id].bq.length).length} needs=${JSON.stringify(Object.fromEntries(Object.entries(E.autoNeeds()).map(([k, v]) => [k, +v.toFixed(1)])))}`); }
     if (E.S.turn % 10 === 0) curve.push(`T${E.S.turn}:領${owned} 燃${E.S.res.fuel} 弾${E.S.res.ammo} 金${E.S.res.gold} 隊${E.S.units.length}`);
   }
   const R = E.S, sm = E.summary();

@@ -588,3 +588,10 @@ body.asi .fac.has .med { filter: saturate(.2) brightness(1.08); }
 .fac:not(:disabled):active .med { transform: scale(.9); }
 @media (min-width: 900px) { @keyframes sheet-in { from { transform: translateX(22px); opacity: .5; } to { transform: none; opacity: 1; } } }
 @media (prefers-reduced-motion: reduce) { .row.pop, .rg.sel.pop, .sheet:not([hidden]), .movebar { animation: none; } }
+
+/* ── 同時に進められる工事の数 ── */
+.slots { display: grid; grid-template-columns: auto auto auto; justify-content: start; align-items: center; column-gap: 9px; row-gap: 3px; padding: 7px 10px 8px; border-radius: 9px; background: var(--g-well); border: 1px solid var(--edge); box-shadow: inset 0 1px 4px rgba(0, 0, 0, .7), 0 1px 0 var(--hi-2); }
+.slots > span { font-size: 11.5px; color: var(--fg-dim); letter-spacing: .04em; }
+.slots b { font-family: var(--f-num); font-size: 14px; }
+.slots small { grid-column: 1 / -1; font-size: 10.5px; color: var(--fg-faint); line-height: 1.35; }
+.slots .pips i { width: 12px; height: 12px; border-radius: 3px; }

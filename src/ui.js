@@ -363,7 +363,7 @@
         s += '<g class="ubadge" transform="translate(0 -21)"' + (ready ? '' : ' opacity=".6"') + '><rect x="-16" y="-8" width="32" height="16" rx="5" style="fill:url(#g-badge) #e2492d"/><path transform="translate(-13 -6.500) scale(.54)" d="' + TF.iconPath(TF.UNIT_ICON[top.type]) + '"/><text x="7" y="4">' + us.length + '</text></g>';
       }
       if (threatened[id]) s += '<g class="alert" transform="translate(19 -8)"><circle r="7.500"/><text y="4">!</text></g>';
-      if (own && (r.b || r.p)) s += '<g class="bld" transform="translate(-19 -8)"><circle r="4"/></g>';
+      if (own && (r.bq.length || r.p)) s += '<g class="bld" transform="translate(-19 -8)"><circle r="4"/></g>';
       marks.push('<g class="mk" data-area="' + gr.area + '" data-rid="' + id + '" data-x="' + gr.c[0] + '" data-y="' + gr.c[1] + '">' + s + '</g>');
     });
     $('#marks').innerHTML = strips.join('') + marks.join('');
@@ -591,7 +591,7 @@
       h += '<button class="fac ' + (lv ? 'has' : 'none') + (o.building ? ' wip' : '') + (o.ok ? ' can' : '') + '" data-act="sub" data-sub="build" data-key="' + k + '" aria-label="' + esc(name) + '(' + (lv ? (mx > 1 ? lv + '/' + mx + '段' : '稼働中') : 'まだ無い') + ')">' +
         '<i class="med"' + (lv ? ' style="background-color:' + FAC_COLOR[k] + '"' : '') + '>' + icon(FAC_ICON[k]) + '</i>' + p + '</span>' +
         (o.ok && lv ? '<em class="up">▲</em>' : (o.locked ? '<em class="lk">' + icon('lock') + '</em>' : '')) +
-        '<b>' + esc(name) + '</b>' + (o.building ? '<small>工事中・あと' + r.b.t + '季</small>' : '') + '</button>';
+        '<b>' + esc(name) + '</b>' + (o.building ? '<small>工事中・あと' + o.left + '季</small>' : '') + '</button>';
     });
     return h;
   }
@@ -657,8 +657,12 @@
         h += '<p class="note bad" style="border-color:var(--bad)">' + esc(E.fname(t.f)) + 'が' + esc(reg(t.from).name) + 'から攻めてくる(戦力 約' + fmt(A) + ')。' + (ton.joint ? '' : '守りの戦力がこれを上回れば退けられる。') + '</p>';
       });
       if (ton.joint) h += '<p class="note bad" style="border-color:var(--bad)"><b>敵は力を合わせて攻めてくる。合わせた戦力は 約' + fmt(ton.power) + '。</b>守りの戦力(いま ' + fmt(E.defensePower(id)) + ')がこれを上回れば退けられる。</p>';
-      h += '<div class="sec">施設<span class="hint">札を押すと、建設と格上げへ</span></div><div class="facs">' + facTiles(id) + '</div>';
-      if (r.b) { var rc = E.rushCost(id); h += '<p class="note">' + E.facLabel(id, r.b.k, true) + 'を建設中(あと' + r.b.t + '季)' + (rc != null ? ' <button class="btn sm" data-act="rush"' + (rc <= st.res.gold ? '' : ' disabled') + '>急がせる ' + costHTML({ gold: rc }) + '</button>' : '') + '</p>'; }
+      var slots = E.buildSlots(id);
+      h += '<div class="sec">施設<span class="hint">工事 ' + r.bq.length + ' / ' + slots + ' ・ 札を押すと建設へ</span></div><div class="facs">' + facTiles(id) + '</div>';
+      r.bq.forEach(function (w) {
+        var rc = E.rushCost(id, w.k);
+        h += '<p class="note">' + E.facLabel(id, w.k, true) + 'を建設中(あと' + w.t + '季)' + (rc != null ? ' <button class="btn sm" data-act="rush" data-key="' + w.k + '"' + (rc <= st.res.gold ? '' : ' disabled') + '>急がせる ' + costHTML({ gold: rc }) + '</button>' : '') + '</p>';
+      });
       if (r.p) h += '<p class="note">' + esc(D.UNIT_TYPES[r.p.type].name) + 'を編成中(あと' + r.p.t + 'ターン)</p>';
       var cst = E.garrisonCost(1000), room = E.garrisonCap(id) - r.g;
       h += '<div class="acts"><button class="btn" data-act="sub" data-sub="build">' + icon('fort') + '建設</button><button class="btn" data-act="sub" data-sub="produce">' + icon('ashi') + '編成</button>' +
@@ -709,7 +713,9 @@
   var AUTO_NAME = { off: '手で指示する', scarce: '足りない資源を優先', res: '特定の資源を優先', study: '学問を優先' }, RES_NAME = { gold: '資金', food: '兵糧', steel: '鉄鋼', fuel: '燃料', ammo: '弾薬' };
   function autoLabel() { var A = S().auto; return A.build === 'res' ? RES_NAME[A.res] + 'を優先' : AUTO_NAME[A.build]; }
   function buildList(id) {
-    var h = '<div class="acts"><button class="btn sm" data-act="sub" data-sub="">◂ もどる</button></div>' + (S().auto.build !== 'off' ? '<p class="note">内政はおまかせ中(' + autoLabel() + ')。ここで出した指示も、そのまま通る。</p>' : '') + '<div class="sec">建設</div><div class="list">';
+    var h = '<div class="acts"><button class="btn sm" data-act="sub" data-sub="">◂ もどる</button></div>' + (S().auto.build !== 'off' ? '<p class="note">内政はおまかせ中(' + autoLabel() + ')。ここで出した指示も、そのまま通る。</p>' : '') +
+      '<div class="slots"><span>同時に進められる工事</span>' + pips(S().regions[id].bq.length, E.buildSlots(id)) + '<b>' + S().regions[id].bq.length + ' / ' + E.buildSlots(id) + '</b><small>' + esc(E.buildSlotsWhy(id)) + '</small></div>' +
+      '<div class="sec">建設</div><div class="list">';
     E.buildOptions(id).forEach(function (o) {
       var st = o.built ? '<b class="good">済</b>' : (o.building ? '<b class="warn">建設中</b>' : '<b>' + o.turns + '季</b>');
       h += '<button class="row' + (o.built ? ' done' : (o.ok ? '' : ' off')) + (ui.hl === o.key ? ' hl' : '') + '" data-act="build" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(FAC_ICON[o.key], 'big') +
@@ -1149,7 +1155,7 @@
       var r = st.regions[id], d = reg(id), y = E.regionYield(id);
       var todo = E.buildOptions(id).filter(function (o) { return o.ok && D.FACILITIES[o.key].site; }).map(function (o) { return o.name; });
       h += '<button class="row" data-act="goto" data-id="' + id + '"><i class="sh-flag" style="background-color:' + pColor() + '"></i><div><h3>' + esc(d.name) + ' <span class="dim" style="font-weight:400">国力' + d.koku + ' ・ 統治' + Math.round(r.ctl) + '% ・ <span class="' + moodCls(r.mood) + '">民心' + Math.round(r.mood) + '</span> ・ 守備' + men(r.g) + '</span></h3><p>' +
-        (r.ruin > 0.04 ? '<span class="bad">焦土</span> ' : '') + (r.b ? '<span class="warn">' + E.facLabel(id, r.b.k, true) + ' 建設中</span> ' : '') + (r.p ? '<span class="warn">' + D.UNIT_TYPES[r.p.type].short + ' 編成中</span> ' : '') + (todo.length ? '<span class="good">建設できる資源施設: ' + todo.join('、') + '</span>' : '') + '</p></div><div class="side"><b>+' + fmt(y.gold) + '</b>資金</div></button>';
+        (r.ruin > 0.04 ? '<span class="bad">焦土</span> ' : '') + (r.bq.length ? '<span class="warn">' + E.facLabel(id, r.bq[0].k, true) + (r.bq.length > 1 ? ' ほか' + (r.bq.length - 1) + '件' : '') + ' 建設中</span> ' : '') + (r.p ? '<span class="warn">' + D.UNIT_TYPES[r.p.type].short + ' 編成中</span> ' : '') + (todo.length ? '<span class="good">建設できる資源施設: ' + todo.join('、') + '</span>' : '') + '</p></div><div class="side"><b>+' + fmt(y.gold) + '</b>資金</div></button>';
     });
     return h + '</div>';
   }
@@ -1428,9 +1434,15 @@
       case 'move-start': startMove(); break;
       case 'move-undo': undoMoves(); break;
       case 'move-cancel': ui.mv = null; refreshAll(); break;
-      case 'build': res = E.build(ui.sel, el.getAttribute('data-key')); if (res.error) oops(res.error); else { sfx('build'); toast(E.facLabel(ui.sel, el.getAttribute('data-key'), true) + 'の工事を始めた'); save(); ui.sub = null; refreshAll(); } break;
+      case 'build': res = E.build(ui.sel, el.getAttribute('data-key')); if (res.error) oops(res.error); else {
+          sfx('build'); toast(E.facLabel(ui.sel, el.getAttribute('data-key'), true) + 'の工事を始めた'); save();
+          var rq = st.regions[ui.sel], more = rq.bq.length < E.buildSlots(ui.sel), sc0 = $('#sheet .sheet-in'), y0 = sc0 ? sc0.scrollTop : 0;
+          if (!more) ui.sub = null;
+          ui.hl = null; refreshAll();
+          if (more) { sc0 = $('#sheet .sheet-in'); if (sc0) sc0.scrollTop = y0; }
+        } break;
       case 'keep-going': res = E.keepGoing(); if (res.error) oops(res.error); else { save(); ui.queue = []; closeModal(); sfx('policy'); toast('統一のあとも、季節を進められます'); refreshAll(); } break;
-      case 'rush': res = E.rush(ui.sel); if (res.error) oops(res.error); else { sfx('build'); toast('急がせた(資金 −' + res.cost + ')。次の季節に仕上がる'); save(); refreshAll(); } break;
+      case 'rush': res = E.rush(ui.sel, el.getAttribute('data-key') || undefined); if (res.error) oops(res.error); else { sfx('build'); toast('急がせた(資金 −' + res.cost + ')。次の季節に仕上がる'); save(); refreshAll(); } break;
       case 'auto-build': E.setAuto({ build: el.getAttribute('data-v') }); autoNow(); break;
       case 'auto-res': E.setAuto({ build: 'res', res: el.getAttribute('data-v') }); autoNow(); break;
       case 'auto-toggle': id = el.getAttribute('data-k'); res = {}; res[id] = !st.auto[id]; E.setAuto(res); sfx(st.auto[id] ? 'dario' : 'click'); save(); refreshAll(); break;

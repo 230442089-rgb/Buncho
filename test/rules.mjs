@@ -193,10 +193,10 @@ section('学問所の格上げ・建設の短縮・急がせる', () => {
   ok(opt('school').upgrade && !opt('school').ok && /蒸気機関/.test(opt('school').why), '蒸気機関の前は格上げできない');
   S.techs.steam = true;
   ok(opt('school').ok && /高等学校/.test(opt('school').name) && opt('school').cost.gold === 200, '蒸気機関で高等学校へ: ' + opt('school').name);
-  ok(E.build('izu', 'school').ok && S.regions.izu.b.t === 2, '格上げは2季');
+  ok(E.build('izu', 'school').ok && S.regions.izu.bq[0].t === 2, '格上げは2季');
   ok(E.rushCost('izu') > 0, '急がせる費用が出る');
   const g0 = S.res.gold, rc = E.rushCost('izu'), rr = E.rush('izu');
-  ok(rr.ok && S.res.gold === g0 - rc && S.regions.izu.b.t === 1 && E.rushCost('izu') == null, '急がせると次の季節に仕上がる');
+  ok(rr.ok && S.res.gold === g0 - rc && S.regions.izu.bq[0].t === 1 && E.rushCost('izu') == null, '急がせると次の季節に仕上がる');
   const rep = E.endTurn();
   ok(S.regions.izu.fac.school === 2 && E.regionYield('izu').rp === 6 && rep.events.some(e => /高等学校が完成/.test(e.t)), '高等学校が完成して研究力 +6');
   ok(E.facLabel('izu', 'school') === '高等学校', '呼び名が変わる');
@@ -300,7 +300,7 @@ section('施設の段と、それを解く研究', () => {
   E.newGame({ seed: 31 });
   const S = E.S; S.res.gold = 99999; S.res.steel = 99999;
   const opt = k => E.buildOptions('izu').find(o => o.key === k);
-  const finish = k => { ok(E.build('izu', k).ok, k + ' を建てられる'); S.regions.izu.b.t = 1; E.endTurn(); };
+  const finish = k => { ok(E.build('izu', k).ok, k + ' を建てられる'); S.regions.izu.bq.forEach(w => { w.t = 1; }); E.endTurn(); };
   const food0 = E.regionYield('izu').food;
   finish('farm');
   ok(S.regions.izu.fac.farm === 1 && Math.abs(E.regionYield('izu').food / food0 - 1.5) < 0.12, '農地改良で兵糧が約1.5倍');
@@ -325,9 +325,9 @@ section('施設の段と、それを解く研究', () => {
   ok(S.regions.izu.fac.arsenal === 3 && E.prodTurns('ktank', 'izu') === Math.max(1, t2 - 1), '流れ作業の工廠では編成が1季早い');
   // 油井と鉱山(資源のある土地)
   S.regions.echigo.o = 'player'; S.techs.distill = true;
-  ok(E.build('echigo', 'oilwell').ok, '越後に油井'); S.regions.echigo.b.t = 1; E.endTurn();
+  ok(E.build('echigo', 'oilwell').ok, '越後に油井'); S.regions.echigo.bq[0].t = 1; E.endTurn();
   const f1 = E.regionYield('echigo').fuel; S.techs.drill = true;
-  ok(E.build('echigo', 'oilwell').ok, '機械掘りへ格上げ'); S.regions.echigo.b.t = 1; E.endTurn();
+  ok(E.build('echigo', 'oilwell').ok, '機械掘りへ格上げ'); S.regions.echigo.bq[0].t = 1; E.endTurn();
   ok(S.regions.echigo.fac.oilwell === 2 && E.regionYield('echigo').fuel > f1 * 1.35, '油田の格上げで燃料が増える(' + f1 + ' → ' + E.regionYield('echigo').fuel + '、段 ' + S.regions.echigo.fac.oilwell + '、持ち主 ' + S.regions.echigo.o + ')');
   ok(E.lvText('farm', 2) === '兵糧 ×1.9' && E.facMax('school') === 4 && E.facMax('fort') === 1, '段の説明');
   const j = E.serialize(); E.load(j); ok(E.serialize() === j, 'セーブの往復で変わらない');
@@ -394,6 +394,44 @@ section('難易度「修羅」', () => {
   ok(gh.planned && gh.planned.n >= 2 && gh.planned.on.joint && gh.planned.on.power > gh.planned.dp, '修羅:隣り合う敵がそろって予告を出し、合わせた戦力が守りを上回る(' + JSON.stringify(gh.planned) + ')');
   ok(gh.planned && !gh.held && /と/.test(gh.text || ''), '修羅:合わせた力で奪われる(' + gh.text + ')');
   ok(!gn.planned && gn.held, '実戦:同じ守りでも、一国ずつでは攻めてこない');
+});
+
+section('建設は、統治と研究が進むと同時に進められる', () => {
+  E.newGame({ seed: 14 });
+  let S = E.S;
+  S.res.gold = 5000; S.res.steel = 2000;
+  S.regions.sagami.o = 'player'; S.regions.sagami.ctl = 35; S.regions.sagami.g = 9000; S.regions.sagami.fort = 2;
+  for (const f of Object.values(S.factions)) { f.war = false; f.pact = 9; }
+  ok(E.buildSlots('izu') === 2 && E.buildSlots('sagami') === 1, 'はじめは、統治の行き届いた本拠が二つ、取ったばかりの土地は一つ');
+  ok(/統治80%で \+1/.test(E.buildSlotsWhy('sagami')) && /統治 \+1/.test(E.buildSlotsWhy('izu')) && /「鉄道」で \+1/.test(E.buildSlotsWhy('izu')), '内訳が言葉で出る(' + E.buildSlotsWhy('sagami') + ')');
+  ok(E.build('sagami', 'farm').ok && E.build('sagami', 'market').error === '別の建設が進行中', '統治の浅い土地では、工事は一つずつ');
+  S.regions.sagami.ctl = 80;
+  ok(E.buildSlots('sagami') === 2 && E.build('sagami', 'market').ok && S.regions.sagami.bq.length === 2, '統治が 80% に届くと、二つ同時に進められる');
+  ok(/同時に進められる工事は 2 つまで/.test(E.build('sagami', 'school').error || ''), '枠がいっぱいなら断る(' + E.build('sagami', 'school').error + ')');
+  S.techs.rail = true; ok(E.buildSlots('sagami') === 3, '「鉄道」で三つ');
+  S.techs.electric = true; ok(E.buildSlots('sagami') === 4 && E.buildSlots('izu') === 4, '「電力」で四つ');
+  ok(E.build('sagami', 'school').ok && E.build('sagami', 'fort').ok && S.regions.sagami.bq.length === 4 && /4 つまで/.test(E.build('sagami', 'airfield').error || ''), '四つまで並べられ、五つめは断る');
+  ok(/建設中/.test((E.buildOptions('sagami').find(o => o.key === 'farm') || {}).why || ''), '同じ施設を二重には建てられない');
+  // 急がせるのは、工事ごと
+  const fortW = S.regions.sagami.bq.find(w => w.k === 'fort'), schW = S.regions.sagami.bq.find(w => w.k === 'school');
+  fortW.t = 3; schW.t = 3;
+  const c = E.rushCost('sagami', 'fort'), g0 = S.res.gold, rr = E.rush('sagami', 'fort');
+  ok(c > 0 && rr.ok && rr.key === 'fort' && S.res.gold === g0 - c && fortW.t === 1 && schW.t === 3, '城だけを急がせる。学問所の工事はそのまま');
+  ok(E.rushCost('sagami', 'fort') == null && E.rushCost('sagami', 'school') > 0, '急がせた工事は、もう急がせられない');
+  // 一季でまとめて進む
+  const fort0 = S.regions.sagami.fort, r = E.endTurn(), done = r.events.filter(e => /相模.*完成した/.test(e.t)).length;
+  ok(S.regions.sagami.fac.farm === 1 && S.regions.sagami.fac.market === 1 && S.regions.sagami.fort === fort0 + 1 && done === 3, '農地・楽市・城が同じ季節に仕上がる(完成の知らせ ' + done + ' 件)');
+  ok(S.regions.sagami.bq.length === 1 && S.regions.sagami.bq[0].k === 'school' && S.regions.sagami.bq[0].t === 2, '残りの工事は一季ぶん進む');
+  // 一揆は、すべての工事を遅らせる。土地を失えば、工事は消える
+  E.build('sagami', 'airfield'); const ts = S.regions.sagami.bq.map(w => w.t);
+  S.regions.sagami.mood = 0; let rev = false;
+  for (let i = 0; i < 60 && !rev; i++) { const before = S.stats.revolts; S.regions.sagami.mood = 0; S.regions.sagami.bq.forEach((w, k) => { w.t = ts[k] + 5; }); E.endTurn(); rev = S.stats.revolts > before; if (rev) ok(S.regions.sagami.bq.every((w, k) => w.t === ts[k] + 5), '一揆が起きると、どの工事も一季遅れる'); }
+  ok(rev, '(一揆が起きた)');
+  // 工事が一つずつだったころのセーブも読める
+  const old = JSON.parse(E.serialize());
+  for (const id of Object.keys(old.regions)) { const q = old.regions[id].bq; old.regions[id].b = q.length ? q[0] : null; delete old.regions[id].bq; }
+  E.load(JSON.stringify(old)); S = E.S;
+  ok(Array.isArray(S.regions.izu.bq) && S.regions.izu.b === undefined && S.regions.sagami.bq.length === 1, '古いセーブの工事は、そのまま引き継がれる');
 });
 
 section('移動は、季節のあいだなら変えられる', () => {
