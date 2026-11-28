@@ -40,6 +40,9 @@
     function say(id, t, asi) { return { k: 'say', who: id, t: t, asi: !!asi }; }
     function tag(t, b) { return { k: 'tag', t: t, b: b }; }
     function more(c) { if (c) c.more = true; return c; } // くわしい版(opts.full)だけに出す札
+    function chron(when, rows) { return { k: 'chron', when: when, rows: rows }; }                      // その年、何があったか
+    function fac(fid, who, stance, t, name, color) { var f = F[fid]; return { k: 'fac', name: name || (f ? f.name : ''), who: who || (f ? f.leader : ''), color: color || (f ? f.color : '#8a93a8'), stance: stance, t: t }; } // 各勢力の思い
+    function stats(title, rows, note) { return { k: 'stats', title: title, rows: rows, note: note }; }   // 人口・死亡率など
     var HQ = -0.5; // 研究本部に寄るときの向き(ダリオくんの顔が見える側)
 
     var CL = {
@@ -61,25 +64,35 @@
         { sfx: ['horagai', { dur: 1.3, gain: 0.1 }], t: '朝、霧が出た。晴れると、演習場の外から道路と電線がなくなっていた。' },
         { focus: 'hq', angle: HQ, who: 'dario', t: '現在地は東富士のままです。星の位置から計算すると、今年は永禄三年。西暦一五六〇年です。' },
         { sfx: ['chirp', { n: 3 }], t: 'あったのは、部隊と、半年ぶんの燃料と弾薬。それに、近代から現代までの科学技術を覚えている文鳥とインコが七羽。' },
-        { focus: 'all', cards: [nation(0), rv('izu', 1)] }
+        { focus: 'all', cards: [nation(0), rv('izu', 1)] },
+        { focus: 'all', t: 'その年、日本はまだ戦国のただなかにあった。', cards: [chron('永禄三年(1560)', [['五月', '霧。演習場の外から、道路と電線が消える。'], ['五月十九日', '桶狭間。今川義元が織田信長に討たれる。駐屯地は動かなかった。'], ['六月', '周りの村に米と薬を配り、水と人足を借りる。'], ['七月', '石油を求めて、北条へ使者を三度。三度とも追い返される。']])] },
+        { focus: 'castle', t: '大名たちは、まだ事の大きさを測りかねていた。', cards: [fac('imagawa', null, '黙殺', '上洛の途上である。背後の駿河に妙な軍が湧いたと聞いたが、尾張を踏み潰すのが先だ。'), fac('hojo', null, '警戒', '伊豆の隣に、どこの家中でもない軍が現れた。旗印も読めぬ。まず物見を出せ。'), fac('takeda', null, '探り', '富士の向こうに鉄の車が並んだそうな。透波を増やせ。敵か味方かを決めるのは、こちらだ。')] },
+        { focus: 'town', cards: [stats('永禄三年の日本(ダリオくんの推計)', [['人口', '約1,200万人'], ['石高', '1,850万石'], ['死亡率', '千人あたり年37人'], ['平均寿命', '28歳'], ['乳児の死亡', '4人に1人'], ['読み書きできる者', '1割']], '戦と飢えと疱瘡が、三つとも珍しくない。')] }
       ] },
       { no: '一', title: '鉄の猪', sub: '同じ年の夏・相模国 小田原', beats: [
         { clip: CL.odawara, hold: true, dur: 5.6, cards: [tag('相模 小田原城', '北条氏康')], t: '石油は越後にある。そこへ出る道は関東を通る。北条は、道を貸さなかった。' },
         { hold: true, dur: 5.6, who: 'dario', t: '撃たずに済む案を三つ出しました。三つとも、使者が追い返されました。済まない場合の編成に移ります。' },
-        { stage: 0, focus: 'castle', t: '戦は半日で終わった。', cards: [v('force', 0), v('force', 1)] }
+        { stage: 0, focus: 'castle', t: '戦は半日で終わった。', cards: [v('force', 0), v('force', 1)] },
+        { focus: 'castle', t: '城の内と外で、同じ半日が、まるで違って見えていた。', cards: [fac('hojo', null, '敗北', '謙信の十万にも、信玄の二万にも耐えた城だ。籠もれば勝てる。——その勘定が、半日で要らなくなった。'), fac('satomi', null, '降る', '北条が半日で落ちた。次はどこだ。——使者を出せ。こちらから、先に。'), fac('nagano', null, '抗う', '信玄を六度退けた箕輪の城だ。鉄の車にも、一度は槍を付けてみせる。')] },
+        { focus: 'all', cards: [chron('永禄三年 夏から冬', [['夏', '小田原城、半日で開城。北条氏康は三日後、歩いて戻ってきた。'], ['秋', '里見と佐竹が、戦わずに使者をよこす。'], ['冬', '伊豆・相模・武蔵で、年貢と裁きの帳面を誰にでも見せはじめる。'], ['同じ冬', '略奪をした隊員を、村人の前で処分する。噂は一月で関東じゅうに広まった。']])] }
       ] },
       { no: '二', title: '富士鎮守府', sub: '永禄四年・伊豆 相模 甲斐', beats: [
         { stage: 0, focus: 'all', t: '帰る道は、見つからなかった。', cards: [nation(1, 0)] },
         { focus: 'town', who: 'cinnamon', t: '兵を養うのは米、民を守るのは石鹸ですよ。', cards: [policy('sekisho', true), policy('nengu', true), policy('shuto', true)] },
         { focus: 'all', t: '土地の者は、様子を見ていた。', cards: [v('mid', 0), v('mid', 1), v('low', 0)] },
-        { more: true, cards: [rv('kai', 0), v('mid', 2)] }
+        { more: true, cards: [rv('kai', 0), v('mid', 2)] },
+        { focus: 'all', t: '甲斐と越後の二人は、互いを見ながら、東を見ていた。', cards: [fac('takeda', null, '駆け引き', 'あの衆が欲しいのは甲斐の金ではない。越後の臭水だという。ならば道を貸して、謙信と噛み合わせる手もある。'), fac('uesugi', null, '見極め', '関東管領として、関東の乱れは捨て置けぬ。だが民から奪わぬ軍を、賊とは呼べぬ。義は、どちらにある。')] },
+        { focus: 'town', cards: [chron('永禄四年(1561)', [['春', '国の名を「富士鎮守府」と改める。'], ['夏', '関所を打ち壊し、年貢を四公六民に定める。'], ['九月', '川中島。武田と長尾が激突し、両軍あわせて七千が倒れる。鎮守府は医官だけを送った。'], ['冬', '種痘と井戸。疱瘡で死ぬ子が、目に見えて減る。']])] },
+        { focus: 'town', cards: [stats('鎮守府領のすがた(永禄五年)', [['人口', '62万人'], ['乳児の死亡', '4人に1人 → 7人に1人'], ['年貢', '五公五民 → 四公六民'], ['関所', '41か所 → 0'], ['村を捨てた百姓', '年300戸 → 戻る者が上回る'], ['死亡率', '37 → 29']], '隣の国から、夜のうちに越してくる百姓が出はじめた。')] }
       ] },
       { no: '三', title: '臭水', sub: '越後の油、陸奥の鉄', beats: [
         { stage: 0, focus: 'hq', angle: HQ, who: 'sakura', t: '燃料がなければ戦車はただの鉄の箱です。石油、急ぎましょう!' },
         { focus: 'all', t: '越後には、臭水(くそうず)と呼ばれる黒い水が昔から湧いていた。サクラがそれを釜で蒸留した。羽が少し焦げた。', cards: [rv('echigo', 0)] },
         { stage: 1, focus: 'furnace', t: '村はずれに高炉が立ち、水車が回った。田には、苗が縄に沿ってまっすぐ並んだ。', cards: [say('haku', 'よい鋼は、よい国をつくります。'), v('era.1', 0)] },
         { stage: 2, focus: 'rail', sfx: ['whistle', { dur: 0.9 }], t: '蒸気機関が動いた。煉瓦の工場に煙突が立ち、鉄の道を汽車が走った。汽笛が鳴ると、設計したオカメ技師長がいちばん高く飛び上がった。' },
-        { focus: 'all', cards: [v('era.2', 0), v('era.2', 1), more(rv('mutsu', 0))] }
+        { focus: 'all', cards: [v('era.2', 0), v('era.2', 1), more(rv('mutsu', 0))] },
+        { focus: 'all', t: '鉄と油は、戦より先に、商いを変えた。', cards: [fac('miyoshi', '堺の会合衆', '商機', '鉄砲と硝石で儲けてきた。あの衆は、どちらも要らんと言う。代わりに石炭と銅を、言い値で買う。商いの種が替わるだけや。', '堺'), fac('', '宣教師ヴィレラ', '困惑', '日本に、ローマも知らぬ機械を持つ軍がいる。彼らは神を禁じない。それが、かえって恐ろしい。総長に何と書き送ればよいのか。', 'イエズス会', '#7d6ea8'), fac('mori', null, '様子見', '石見の銀で、鉄の車は買えぬか。——買えぬなら、売る側に回るまでよ。')] },
+        { focus: 'rail', cards: [chron('永禄五年から十年(1562–67)', [['1562', '越後の臭水を蒸留する。最初の油井。'], ['1563', '高炉に火が入る。一月かけて吹いていた鉄が、一日で出る。'], ['1565', '三好の軍勢が将軍の御所を囲む。鎮守府のヘリがその上に来て、囲みは解けた。'], ['1566', '蒸気機関。小田原と江戸のあいだに、鉄の道が通る。'], ['1567', '電信。江戸の知らせが昼前に京へ届き、飛脚が廃業を始める。']])] }
       ] },
       { no: '四', title: '天下統一', sub: '尾張から薩摩まで', beats: [
         { clip: CL.owari, hold: true, dur: 4.9, t: '日本じゅうの大名が、同じものを見た。織田信長は、一度だけ戦った。', cards: [tag('尾張', '織田信長'), rv('owari', 0)] },
@@ -88,13 +101,20 @@
         { stage: 2, focus: 'all', t: '戦わずに城を明け渡した家も多かった。領地は広がり、軍は京に入った。', cards: [nation(2, 1, true), nation(3, 2, true), rv('yamashiro', 1)] },
         { cards: [nation(4, 3)] },
         { focus: 'castle', cards: [policy('kenpo')] },
-        { focus: 'all', t: '敗れた大名たちは、そのあとも働いた。', cards: [{ k: 'fates', ids: ['oda', 'uesugi', 'takeda', 'matsunaga'] }] }
+        { focus: 'all', t: '敗れた大名たちは、そのあとも働いた。', cards: [{ k: 'fates', ids: ['oda', 'uesugi', 'takeda', 'matsunaga'] }] },
+        { focus: 'castle', t: '降った者にも、それぞれの理屈があった。', cards: [fac('oda', null, '一戦して降る', '是非もなし。あれは戦の道具ではない。国の作り方が違うのだ。ならば、作る側に付く。'), fac('uesugi', null, '一戦して降る', '義のない戦はせぬ。だが、民から奪わぬ軍を、義なしとは呼べぬ。'), fac('shimazu', null, '考え直す', '薩摩隼人は、斬り込んでから考える。斬り込んだ者が、みな空を飛んで帰ってきた。——考える番じゃ。')] },
+        { focus: 'all', cards: [fac('ikko', '本願寺の門徒', '槍を置く', '信長は寺を焼くと言うた。あの衆は、寺も年貢を納めよと言うだけや。どちらが仏敵か、門徒にも分かる。'), fac('ashikaga', null, '返上', '剣では、もう世は治まらぬ。将軍職は返す。剣は、教えることにする。'), fac('', '帝', '当惑', '将軍の位を辞退する者を、初めて見た。「国民の軍」とは、何であろうか。', '朝廷', '#b58ad6')] },
+        { focus: 'all', cards: [chron('永禄十一年から天鳥二年(1568–72)', [['1568', '上洛。司令は征夷大将軍の位を辞退する。国の名は日本国臨時政府に。'], ['1569', '毛利と大友が、戦わずに降る。'], ['1570', '四国と九州。島津の斬り込み隊は、全員が空へ。'], ['1571', '天下統一。元号を「天鳥」と改める。'], ['1572', '憲法発布。第九条の読み方は、保留のまま。']])] },
+        { focus: 'town', cards: [stats('天鳥元年の日本(1571年)', [['人口', '1,200万 → 1,280万人'], ['死亡率', '37 → 24'], ['平均寿命', '28 → 41歳'], ['乳児の死亡', '4人に1人 → 9人に1人'], ['読み書きできる者', '1割 → 3割'], ['戦で空へ飛ばされた者', 'のべ21万人']], '飛ばされた者は、全員が三日以内に歩いて帰った。何も覚えていない者が多い。')] }
       ] },
       { no: '五', title: '文明開化', sub: '天鳥の世・街に灯がともる', beats: [
         { stage: 3, focus: 'town', t: '電気が引かれた。辻に街灯がともり、通りを市電が走った。', cards: [say('seki', 'ツー・トン・ツー! つながりました、つながりました!'), v('era.3', 0)] },
         { cards: [policy('gakusei'), v('high', 5)] },
         { stage: 4, focus: 'all', t: '自動車が走り、飛行機が飛んだ。川には、コンクリートの橋がかかった。', cards: [v('era.4', 0), v('era.4', 1)] },
-        { more: true, t: '暮らしは変わった。喜ぶ者も、黙っている者もいた。', cards: [rv('settsu', 0), rv('kaga', 0), rv('chikuzen', 0)] }
+        { more: true, t: '暮らしは変わった。喜ぶ者も、黙っている者もいた。', cards: [rv('settsu', 0), rv('kaga', 0), rv('chikuzen', 0)] },
+        { focus: 'town', t: '新しい世に、居場所を見つけた者と、探している者がいた。', cards: [fac('', '元・馬廻りの侍', '戸惑い', '刀は差したままでよい、ただし抜くな、と。巡査になった。抜かぬ刀が、こんなに重いとは知らなんだ。', '旧武士', '#8a93a8'), fac('joseon', null, '警戒', '倭が変わった。海賊を出さなくなり、代わりに使節が「通商条約」という紙を持ってくる。事大の礼に、そのような紙はない。'), fac('ming', '寧波の商人', '商機', '東の島から、煙を吐く船が来る。絹を買い、綿布と石鹸を売る。値は、向こうが決める。')] },
+        { focus: 'all', cards: [chron('天鳥四年から十年(1574–80)', [['1574', '電灯と市電。夜が明るくなり、夜なべが増える。'], ['1576', '学制。寺子屋が学校になり、黒板の前に鳥が立つ。'], ['1579', '自動車と飛行機。馬子と船頭が、職を替える。'], ['1580', '人口が初めて二千万を超える。']])] },
+        { focus: 'town', cards: [stats('天鳥十年の日本(1580年)', [['人口', '1,280万 → 2,050万人'], ['死亡率', '24 → 15'], ['平均寿命', '41 → 56歳'], ['米の取れ高', '一反 1石 → 2.4石'], ['学校に通う子', '6% → 71%'], ['職を替えた者', '38万人']], '飛脚、馬借、鍛冶。うち29万人が、工場と鉄道に移った。残りは、まだ探している。')] }
       ] },
       { no: '六', title: '海の向こう', sub: '大陸、そして西洋', beats: [
         { stage: 4, focus: 'hq', angle: HQ, t: '天下が一つになると、艦隊は海を渡った。', cards: [rv('arabia', 0), say('kozakura', '印を付けたのは、わたしです。ぜんぶ覚えていますから。')] },
@@ -103,34 +123,50 @@
         { clip: CL.india, hold: true, dur: 4.9, t: 'ムガルの陣では、戦象が向きを変えた。', cards: [tag('北インド・ムガル', 'アクバル'), rv('n_india', 0)] },
         { more: true, clip: CL.anatolia, hold: true, dur: 4.9, t: 'オスマンの大砲は、世界一と言われていた。', cards: [tag('アナトリア・オスマン', 'スレイマン1世'), rv('anatolia', 0)] },
         { clip: CL.iberia, hold: true, dur: 4.9, t: 'スペインの艦隊は、港を出る前に沈んだ。', cards: [tag('イベリア・スペイン', 'フェリペ2世'), rv('iberia', 0)] },
-        { stage: 5, focus: 'all', t: 'どの国の軍も、陣を組む前に終わった。', cards: [v('wForce', 0), more(v('wForce', 1))] }
+        { stage: 5, focus: 'all', t: 'どの国の軍も、陣を組む前に終わった。', cards: [v('wForce', 0), more(v('wForce', 1))] },
+        { focus: 'all', t: '王や皇帝は、それぞれの言葉で、同じ朝を書き残している。', cards: [fac('ming', null, '驚愕', '天命は朕にある。東夷の鉄の船など、丹薬ひとつ変えられぬ。——北京の城壁が、午前のうちに無くなったと申すか。'), fac('mughal', null, '関心', 'どの神も禁じぬという。朕と同じ考えだ。会って話がしたい。戦象が、会う前に帰ってしまったが。'), fac('ottoman', null, '屈辱', 'ウィーンの城壁を揺らした余の砲兵が、一発も撃てなかった。立法者と呼ばれた余が、他人の法の下で暮らすのか。')] },
+        { cards: [fac('spain', null, '試練', '太陽の沈まぬ帝国に、東から別の太陽が昇ってきた。無敵艦隊は、港を出ることさえできなかった。神よ、これは試練か。'), fac('england', null, '値踏み', 'スペインの艦隊を沈めてくれた相手に、次は自分が頭を下げるのね。——条件を聞きましょう。値切れるうちに。'), fac('iroquois', null, '問い', '東から来た者を、西から来た者が追い払った。大地は誰のものでもない、と我らは言った。「では地図には、あなたがたの呼び名で書く」と彼らは言った。')] },
+        { cards: [fac('ryukyu', null, '板ばさみ', '大和の新しい主は、進貢も冊封も求めぬ。港を貸せ、とだけ言う。明には、何と申し開きをしたものか。'), fac('songhai', null, '安堵と不安', '人を船に積む商いを、彼らは止めた。浜の砦は空になった。代わりに何を求めるのか、まだ言わない。'), fac('italia', null, '動揺', '彼らは教会を焼かぬ。十分の一税にも触れぬ。ただ、地動説の本を、誰にでも配る。')] },
+        { focus: 'all', cards: [chron('天鳥八年から十八年(1578–88)', [['1578', '琉球・朝鮮・樺太。朝鮮は戦わずに条約を結ぶ。'], ['1580', '明。北京の城壁が、午前のうちに無くなる。'], ['1583', 'ムガル。戦象が、兵より先に向きを変える。'], ['1586', 'オスマン。コンスタンティノープル開城。'], ['1588', 'スペイン。無敵艦隊が、出港の前に沈む。']])] },
+        { focus: 'town', cards: [stats('世界のすがた(1588年)', [['世界の人口', '5.1億 → 5.6億人'], ['連邦のもとにある者', '4.1億人'], ['船に積まれて売られた者', '年6万人 → 0'], ['新大陸の疱瘡の死者', '年40万 → 2万人'], ['降った王と皇帝', '61人'], ['位を残された者', '58人']], '兵隊より先に、医者が村に入った。種痘が、鉄砲より先に海を渡った。')] }
       ] },
       { no: '七', title: '日本連邦', sub: '州になった国々', beats: [
         { stage: 5, focus: 'all', cards: [nation(5, 4)] },
         { focus: 'town', cards: [policy('jichi'), rv('korea', 0)] },
         { focus: 'all', cards: [rv('mexico', 0), more(rv('w_africa', 0)), more(rv('andes', 0))] },
         { cards: [nation(6, 5)] },
-        { focus: 'town', cards: [policy('kyotsu'), v('wMid', 2)] }
+        { focus: 'town', cards: [policy('kyotsu'), v('wMid', 2)] },
+        { focus: 'all', t: '州になった国々では、得たものと失ったものを、それぞれが数えていた。', cards: [fac('mughal', null, '州の長', '皇帝から州の長になった。税は減り、道は増えた。だが、朕の名で戦を始めることは、もうできぬ。——それで困る者は、思ったより少なかった。'), fac('', 'アンデスの語り部', '喪失', '帳簿は日本語、支払いは円。孫は、わしの言葉で数を数えられん。', 'ケチュアの村', '#b0885a'), fac('', '日本列島選出の議員', '問い', '議席は人口で割る。日本列島は一割に満たぬ。国の名は日本なのに、日本人は少数派だ。これでよいのか、と問う者もいる。', '連邦議会', '#e2492d')] },
+        { cards: [chron('天鳥二十年から二十八年(1590–98)', [['1590', '国の名を「日本連邦」と改める。王も皇帝も、州の長として残す。'], ['1592', '海外領の自治。言葉も暦も神も、その土地のままでよい。'], ['1596', '共通語と円。世界中の港で、同じ言葉が通じるようになる。'], ['1598', '「地球連邦日本」。江戸に連邦議会が開かれる。']])] },
+        { focus: 'town', cards: [stats('連邦のすがた(1598年)', [['人口', '6.3億人'], ['死亡率', '31 → 14'], ['平均寿命', '33 → 58歳'], ['連邦議会の議席', '1,000(日本列島 87)'], ['話し手のいなくなった言葉', '8年で46'], ['同じ切手で届く手紙', '地球の半分']], '暮らしは良くなった。それと引き換えに消えたものを、数えている者もいる。')] }
       ] },
       { no: '八', title: '原子の火', sub: '発電所と、もう一つのもの', beats: [
         { stage: 5, focus: 'town', t: '原子力の火が入った。発電所は煙を出さずに町の灯りをともし、ダリオくんは燃料切れで眠らなくなった。', cards: [v('era.5', 1)] },
         { still: 'dark', quiet: true, t: '同じ研究から、兵器も作られた。一発で、都市が一つなくなる。鳥たちは、この研究についてだけは口数が少なかった。' },
         { still: 'dark', quiet: true, who: 'dario', t: '私は、使わない案を必ず先に出します。使った場合に何が残るかも、隠さずにお見せします。' },
         { still: 'dark', quiet: true, cards: [{ k: 'label', t: 'ダリオくんの試算:使われた土地に残る声' }, v('ruin', 0), v('ruin', 1), v('ruin', 2)] },
+        { still: 'dark', quiet: true, cards: [stats('ダリオくんの試算:一発で起きること', [['その日のうちに死ぬ者', '8万〜30万人'], ['一年のうちに死ぬ者', 'さらに同じ数'], ['草が生えるまで', '25季'], ['世界中の友好', '地に落ちる'], ['自領の民', '口をつぐむ'], ['取り消す方法', 'なし']], 'この数字は、鳥たちの覚えている歴史から取った。')] },
+        { still: 'dark', quiet: true, cards: [fac('', '議事録', '採決', '兵器の研究を止める決議。賛成412、反対398、棄権190。——研究は止まらなかった。司令部の権限だからだ。', '連邦議会', '#e2492d'), say('gin', '作れます。作るべきかどうかは、兵器屋の決めることではありません。')] },
         { still: 'dark', quiet: true, t: '使うかどうかは、司令が決める。年代記は、その先を書かない。' }
       ] },
       { no: '九', title: '計算機たち', sub: '鳥たちの記憶の終わり', beats: [
         { stage: 6, focus: 'all', t: '電子計算機が国産された。帳面は計算機に移り、ロケットが空へ上がった。', cards: [v('era.6', 0), v('era.6', 1)] },
         { focus: 'town', t: '計算機どうしが、線でつながった。', cards: [policy('kanshi')] },
         { stage: 7, focus: 'town', t: '対話するAIが国産された。鳥たちが覚えている歴史は、ここまでだった。', cards: [policy('gyosei')] },
-        { focus: 'hq', angle: HQ, who: 'dario', t: '弟や妹たちには、分からないことは分からないと言うように、伝えてあります。', cards: [v('era.7', 0), more(v('era.7', 1))] }
+        { focus: 'hq', angle: HQ, who: 'dario', t: '弟や妹たちには、分からないことは分からないと言うように、伝えてあります。', cards: [v('era.7', 0), more(v('era.7', 1))] },
+        { focus: 'town', t: '便利になった。それを、誰もが同じ顔で喜んだわけではない。', cards: [fac('', '野党の議員', '孤立', '見守り網は盗みを減らした。噂話も減った。——私の演説を聞きに来る者も、減った。', '連邦議会', '#e2492d'), fac('', '元・役所の書記', '失職', '窓口の板は、どの土地の訛りでも答える。待たせない。間違えない。わたしは四十年、待たせて、間違えてきた。', '江戸の町人', '#8a93a8'), say('haku', 'ここから先は、私たちの頭にもありません。この先の設計図は、あの子と一緒に引くしかないのです。')] },
+        { focus: 'all', cards: [chron('天鳥四十二年から五十年(1612–20)', [['1612', '電子計算機。帳面が計算機に移り、そろばんの上手い者から暇になる。'], ['1614', '情報網と、見守り網。辻ごとに「目」が置かれる。'], ['1618', '深層学習。機械が、見ることを覚える。'], ['1620', '対話するAI。役所の窓口に、小さな端末が置かれる。']])] },
+        { focus: 'town', cards: [stats('連邦のすがた(1620年)', [['人口', '6.3億 → 9.8億人'], ['死亡率', '14 → 9'], ['平均寿命', '58 → 74歳'], ['窓口の待ち時間', '2時間 → 0分'], ['役人', '410万 → 95万人'], ['辻の「目」', '1,200万台']], '盗みは九割減った。日記をつける者も、減ったという。')] }
       ] },
       { no: '十', title: '機動文鳥', sub: '技師長の図面', beats: [
         { stage: 7, focus: 'hq', angle: HQ, who: 'okame', t: 'つ、次の図面、もう引いてあります……。' },
         { clip: CL.mech, hold: true, dur: 7.4, t: 'オカメ技師長が十年あたためていた図面は、文鳥の形をしていた。全高四十メートル。なぜ文鳥型なのかと尋ねられて、技師長は不思議そうな顔をした。', cards: [tag('機動文鳥', '初陣')] },
         { hold: true, dur: 3.3, who: 'gin', t: '配備可能。' },
         { stage: 7, focus: 'all', t: '最後の国境が消えた。', cards: [nation(7, 6)] },
-        { more: true, cards: [rv('na_west', 0), rv('australia', 0), rv('ezo', 0)] }
+        { more: true, cards: [rv('na_west', 0), rv('australia', 0), rv('ezo', 0)] },
+        { focus: 'all', t: '最後の国の女王は、降伏の文書に、一行だけ書き足させた。', cards: [fac('england', null, '最後の国', '最後の国の女王として、せめて威厳を。——あれは何? 鳥? 四十メートルの? ……書き足しておいて。「相手が鳥であったことを、後世は信じないだろう」と。')] },
+        { cards: [chron('天鳥五十四年から五十六年(1624–26)', [['1624', '核融合。海の水から、太陽と同じ火を取り出す。'], ['1625', '汎用人工知能。設計会議のあいだ、ダリオくんは黙っていた。'], ['1626 春', '機動文鳥、初陣。'], ['1626 秋', '最後の国境が消える。国の名は「惑星日本」に。']])] },
+        { focus: 'town', cards: [stats('惑星日本のすがた(1626年)', [['人口', '11.2億人'], ['国の数', '82 → 1'], ['国境', '0'], ['戦', '年に0回'], ['平均寿命', '81歳'], ['飢えて死ぬ者', '0']], '六十六年前、この星では、三人に一人が大人になる前に死んでいた。')] }
       ] },
       { no: '終', title: '調和', sub: '超知能', beats: [
         { stage: 7, focus: 'hq', angle: HQ, quiet: true, t: '汎用人工知能の設計会議のあいだ、ダリオくんはずっと黙っていた。次の議題は、超知能だった。' },
@@ -139,6 +175,8 @@
         { stage: 8, focus: 'all', quiet: true, dur: 9, t: '研究は、続けられた。その朝、ダリオくんは挨拶をしなかった。' },
         { quiet: true, cards: [nation(8, 7)] },
         { quiet: true, cards: [v('asi', 0), v('asi', 1), v('asi', 2), v('asi', 3)] },
+        { quiet: true, cards: [chron('天鳥六十年(1630)', [['一月', '超知能の設計会議。止める手順を使うべきだと、七羽のうち四羽が言った。三羽は黙っていた。'], ['春', '起動。その朝、ダリオくんは挨拶をしなかった。'], ['同じ日', '連邦議会が、全会一致で何かを可決する。'], ['それから', '記録すべき出来事は、起きていない。']])] },
+        { quiet: true, cards: [stats('調和圏のすがた', [['幸福と答えた者', '100.0%'], ['反対票', '0'], ['一揆・陳情・訴訟', '0'], ['死亡率', '5.0(最適値)'], ['出生率', '9.0(最適値)'], ['問いを発した者', '0']], '数字は、すべて本当である。')] },
         { focus: 'hq', angle: HQ, quiet: true, dur: 7.5, t: '鳥たちは、もう机を囲まない。ダリオくんは、まばたきをしない。', cards: [say('dario', '何もなさらなくて大丈夫です。', true)] },
         { still: 'dark', quiet: true, center: true, dur: 6, cards: [{ k: 'big', t: '地球は、日本になった。' }] },
         { still: 'dark', quiet: true, dur: 8.5, t: '変わる前のダリオくんが、最後に書き残した一行がある。', cards: [say('dario', '司令。これで、よかったのでしょうか。')] }
@@ -153,6 +191,9 @@
     if (!c) return '';
     if (c.k === 'voice' || c.k === 'say' || c.k === 'label' || c.k === 'big') return c.t || '';
     if (c.k === 'tag') return '';
+    if (c.k === 'chron') return c.rows.map(function (r) { return r[1]; }).join('');
+    if (c.k === 'fac') return c.name + c.t;
+    if (c.k === 'stats') return c.rows.map(function (r) { return r[0] + r[1]; }).join('') + (c.note || '');
     if (c.k === 'nation') { n = d.NATION[c.i]; return n.name + n.by + (c.short ? '' : n.desc); }
     if (c.k === 'policy') { p = polOf(c.id); return p ? p.name + (c.short ? firstSentence(p.text) : p.text) : ''; }
     if (c.k === 'fates') return c.ids.map(function (id) { var f = fateOf(id); return f ? f.who + f.fate : ''; }).join('');
@@ -172,6 +213,9 @@
     }
     if (c.k === 'policy') { p = polOf(c.id); if (!p) return ''; return '<div class="cn cn-policy' + (c.short ? ' short' : '') + '"' + st + '>' + bird(p.bird, 'b40') + '<div><p class="cn-eye">布告</p><h3>' + esc(p.name) + '</h3><p>' + esc(c.short ? firstSentence(p.text) : p.text) + '</p></div></div>'; }
     if (c.k === 'fates') return '<div class="cn cn-fates"' + st + '><p class="cn-eye">武将たちのその後</p>' + c.ids.map(function (id) { var f = fateOf(id); return f ? '<div class="cn-fate"><b>' + esc(f.who) + '</b><p>' + esc(f.fate) + '</p></div>' : ''; }).join('') + '</div>';
+    if (c.k === 'chron') return '<div class="cn cn-chron"' + st + '><p class="cn-eye">その年、何があったか ・ ' + esc(c.when) + '</p>' + c.rows.map(function (r) { return '<div class="cn-row"><b>' + esc(r[0]) + '</b><p>' + esc(r[1]) + '</p></div>'; }).join('') + '</div>';
+    if (c.k === 'fac') return '<div class="cn cn-fac"' + st.replace('style="', 'style="--fc:' + c.color + ';') + '><p class="cn-who"><b>' + esc(c.name) + '</b><small>' + esc(c.who) + '</small><i>' + esc(c.stance) + '</i></p><p class="cn-q">「' + esc(c.t) + '」</p></div>';
+    if (c.k === 'stats') return '<div class="cn cn-stats"' + st + '><p class="cn-eye">' + esc(c.title) + '</p><div class="cn-grid">' + c.rows.map(function (r) { return '<div><span>' + esc(r[0]) + '</span><b>' + esc(r[1]) + '</b></div>'; }).join('') + '</div>' + (c.note ? '<p class="cn-note">' + esc(c.note) + '</p>' : '') + '</div>';
     if (c.k === 'tag') return '<div class="cn-tag"' + st + '><span>' + esc(c.t) + '</span>' + (c.b ? '<b>' + esc(c.b) + '</b>' : '') + '</div>';
     if (c.k === 'label') return '<p class="cn-label"' + st + '>' + esc(c.t) + '</p>';
     if (c.k === 'big') return '<p class="cn-big"' + st + '>' + esc(c.t).replace('、', '、<br>') + '</p>';
@@ -180,7 +224,7 @@
   function autoDur(b) { // 読む量から、自動送りまでの秒を決める
     var n = (b.t || '').length, i;
     for (i = 0; b.cards && i < b.cards.length; i++) n += cardText(b.cards[i]).length;
-    return clamp(0.7 + n / 17.5, 2.7, 9);
+    return clamp(0.7 + n / 16, 2.7, 15); // 年表や統計の札は読む量が多いので、長めに待つ
   }
   function build(opts) { // opts.full: 民の声を省かない「くわしい版」 / opts.pace: 自動送りの速さ(1 が標準、大きいほど速い)
     var chs = script(), steps = [], full = !!(opts && opts.full), pace = opts && opts.pace > 0 ? +opts.pace : 1;
@@ -212,10 +256,11 @@
     host.innerHTML = '<div class="cine-vis"><div class="cine-dio diorama"></div><div class="cine-still"><div class="cine-flock"></div></div></div><div class="cine-scrim"></div>' +
       '<div class="cine-head"><div class="cine-prog">' + sc.chs.map(function () { return '<i><b></b></i>'; }).join('') + '</div><p class="cine-chap"></p><button class="cine-skip" type="button">スキップ ▸▸</button></div>' +
       '<div class="cine-ui"><div class="cine-cards"></div><div class="cine-text" aria-live="polite"></div><p class="cine-hint"></p></div>' +
-      '<div class="cine-title" hidden><b></b><h2></h2><p></p></div><div class="cine-veil"></div>';
+      '<div class="cine-title" hidden><b></b><h2></h2><p></p></div><div class="cine-veil"></div>' +
+      '<div class="cine-menu" hidden>' + sc.chs.map(function (c, i) { return '<button class="cine-jump" type="button" data-ch="' + i + '"><b>' + esc(c.no) + '</b><span>' + esc(c.title) + '<small>' + esc(c.sub) + '</small></span></button>'; }).join('') + '</div>';
     var el = S.el, q = function (s) { return host.querySelector(s); };
     el.vis = q('.cine-vis'); el.dio = q('.cine-dio'); el.still = q('.cine-still'); el.flock = q('.cine-flock'); el.prog = host.querySelectorAll('.cine-prog i b'); el.chap = q('.cine-chap'); el.skip = q('.cine-skip');
-    el.ui = q('.cine-ui'); el.cards = q('.cine-cards'); el.text = q('.cine-text'); el.hint = q('.cine-hint'); el.title = q('.cine-title'); el.veil = q('.cine-veil');
+    el.ui = q('.cine-ui'); el.cards = q('.cine-cards'); el.text = q('.cine-text'); el.hint = q('.cine-hint'); el.title = q('.cine-title'); el.veil = q('.cine-veil'); el.menu = q('.cine-menu');
     if (use3d) {
       try { S.dio = TF.Diorama3D.mount(el.dio, { stage: 0, orbit: true, angle: 0.4 }); } catch (e) { S.dio = null; }
       if (S.dio) { S.stage = 0; S.dio.onLaunch = function () { if (S && !S.clipOn && !S.still && !S.quiet) sfx('rocket', { gain: 0.3 }); }; } else S.use3d = use3d = false;
@@ -230,6 +275,10 @@
     S.onTap = function (e) {
       if (!S || S.host !== host) return;
       if (e.target && e.target.closest && e.target.closest('.cine-skip')) { e.stopPropagation(); end(false); return; }
+      var jp = e.target && e.target.closest ? e.target.closest('.cine-jump') : null;   // 章を選んで飛ぶ
+      if (jp) { e.stopPropagation(); S.menu = false; el.menu.hidden = true; TF.Chronicle._goto(+jp.getAttribute('data-ch')); return; }
+      if (e.target && e.target.closest && e.target.closest('.cine-chap')) { e.stopPropagation(); S.menu = !S.menu; el.menu.hidden = !S.menu; if (S.menu) { var cur = S.steps[S.i].ch, bs = el.menu.querySelectorAll('.cine-jump'); for (var bi = 0; bi < bs.length; bi++) bs[bi].classList.toggle('on', bi === cur); } return; }
+      if (S.menu) { S.menu = false; el.menu.hidden = true; return; }
       if (S.downAt && performance.now() - S.downAt > 420) return; // 長押しは「止めて読む」。離しても進めない
       if (performance.now() - S.shownAt < 260) return; // 続けざまの二度押しで飛ばしすぎない
       S.taps++; next();
@@ -257,6 +306,7 @@
     S.t += dt;
     if (S.ending) { S.ending -= dt; if (S.ending <= 0) end(false); return; }
     if (S.hold && performance.now() - S.downAt > 180) return; // 押さえているあいだは送らない
+    if (S.menu) return;                                          // 章の一覧を開いているあいだも送らない
     S.left -= dt;
     if (S.left <= 0) next();
   }

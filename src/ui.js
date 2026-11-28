@@ -746,8 +746,10 @@
       '<div class="sum"><div class="fact"><span>かかった歳月</span><b>' + Math.floor(o.turn / 4) + '年' + (o.turn % 4 ? (o.turn % 4) * 3 + 'か月' : '') + '</b></div><div class="fact"><span>戦い</span><b>' + st.stats.battles + '回</b></div>' +
       '<div class="fact"><span>戦わずに降した勢力</span><b>' + st.stats.submits + '</b></div><div class="fact"><span>使った燃料 / 弾薬</span><b>' + fmt(st.stats.fuelUsed) + ' / ' + fmt(st.stats.ammoUsed) + '</b></div></div>' +
       '<p class="dim">' + (o.asi ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。超知能を起こさずに、地球を一つにする道もあります。' : (o.win ? '難易度「' + D.DIFFICULTY[st.diff].name + '」。もっと早く、もっと少ない弾で——次はどう攻めますか。' : '拠点をすべて失いました。もう一度、霧の中から始めましょう。')) + '</p></div>' +
-      '<div class="card-foot">' + (o.win && st.flags.cont == null ? '<button class="btn gold" data-act="keep-going">このまま治めつづける</button>' : '<button class="btn gold" data-act="modal-close">地図へもどる</button>') + '<button class="btn" data-act="to-title">表紙へ</button></div>' +
-      (o.win && st.flags.cont == null ? '<p class="dim" style="font-size:12px;text-align:center;padding:0 12px 12px">治めつづけると、統一のあとも季節を進められる。研究、施策、建設、人口や暮らしの移り変わりは、そのまま続く。</p>' : '');
+      (o.win && st.flags.cont == null
+        ? '<div class="card-foot"><button class="btn gold" data-act="keep-going">このまま治めつづける</button><button class="btn" data-act="modal-close">地図を眺める</button></div>' +
+          '<p class="dim" style="font-size:12px;text-align:center;padding:0 12px 4px">治めつづけると、統一のあとも季節を進められる。研究、施策、建設、人口や暮らしの移り変わりは、そのまま続く。</p><div class="acts" style="justify-content:center;padding-bottom:12px"><button class="btn sm" data-act="to-title">表紙へ</button></div>'
+        : '<div class="card-foot"><button class="btn gold" data-act="modal-close">地図へもどる</button><button class="btn" data-act="to-title">表紙へ</button></div>');
     showModal(h);
   }
 

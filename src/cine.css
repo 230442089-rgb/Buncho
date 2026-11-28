@@ -163,3 +163,27 @@
   .cn, .cn-tag, .cn-label, .cn-big, .cine-text > p, .cine-text > div, .cine-text.say .bird, .cine-title b, .cine-title h2, .cine-title p, .cine-hint, .cine-still.fog::before, .cine-still.fog::after { animation: none; }
   .cine-still, .cine-prog i b { transition: none; }
 }
+
+/* ───────── 年表・各勢力の思い・統計の札、章の一覧 ───────── */
+.cn-chron { display: grid; gap: 4px; }
+.cn-row { display: grid; grid-template-columns: 5.2em minmax(0, 1fr); gap: 9px; align-items: baseline; padding-top: 4px; border-top: 1px solid rgba(52, 71, 109, .7); }
+.cn-row b { font-family: var(--f-num, sans-serif); font-size: 11.5px; font-weight: 700; color: var(--gold, #d9b24c); white-space: nowrap; }
+.cn-row p { font-size: 12.5px; line-height: 1.55; }
+.cn-fac { border-left: 4px solid var(--fc, #8a93a8); padding-left: 10px; }
+.cn-fac .cn-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; line-height: 1.35; }
+.cn-fac .cn-who b { font-family: var(--f-display, serif); font-weight: 400; font-size: 15px; letter-spacing: .04em; }
+.cn-fac .cn-who small { font-size: 11px; color: var(--fg-dim, #a8b3c9); }
+.cn-fac .cn-who i { font-style: normal; margin-left: auto; font-size: 10.5px; letter-spacing: .08em; color: var(--gold, #d9b24c); border: 1px solid var(--gold-deep, #9c7a1c); border-radius: 10px; padding: 0 7px; white-space: nowrap; }
+.cn-fac .cn-q { font-size: 12.8px; line-height: 1.6; margin-top: 2px; margin-left: -.45em; }
+.cn-stats .cn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; margin-top: 4px; }
+.cn-stats .cn-grid div { border-top: 1px solid rgba(52, 71, 109, .7); padding-top: 3px; min-width: 0; }
+.cn-stats .cn-grid span { display: block; font-size: 10.5px; color: var(--fg-dim, #a8b3c9); }
+.cn-stats .cn-grid b { display: block; font-family: var(--f-num, sans-serif); font-size: 13.5px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.cn-stats .cn-note { font-size: 12px; line-height: 1.55; color: var(--fg-dim, #a8b3c9); margin-top: 6px; }
+.cine-chap { cursor: pointer; pointer-events: auto; }
+.cine-chap::after { content: ' ▾'; font-size: 11px; opacity: .75; }
+.cine-menu { position: absolute; z-index: 8; left: var(--gut-l, 16px); right: var(--gut-r, 16px); top: calc(env(safe-area-inset-top, 0px) + 54px); max-width: 420px; max-height: 72%; overflow-y: auto; background: rgba(14, 22, 38, .97); border: 1px solid var(--line, #34476d); border-radius: 12px; padding: 6px; display: grid; gap: 2px; box-shadow: 0 12px 40px rgba(0, 0, 0, .5); }
+.cine-jump { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 8px; align-items: baseline; text-align: left; padding: 8px 10px; border: 0; border-radius: 8px; background: none; color: var(--fg, #f1eadb); font: inherit; cursor: pointer; }
+.cine-jump.on { background: rgba(217, 178, 76, .16); }
+.cine-jump b { font-family: var(--f-display, serif); font-weight: 400; font-size: 16px; color: var(--gold, #d9b24c); }
+.cine-jump small { display: block; font-size: 11px; color: var(--fg-dim, #a8b3c9); }
