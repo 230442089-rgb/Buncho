@@ -396,6 +396,44 @@ section('難易度「修羅」', () => {
   ok(!gn.planned && gn.held, '実戦:同じ守りでも、一国ずつでは攻めてこない');
 });
 
+section('移動は、季節のあいだなら変えられる', () => {
+  E.newGame({ seed: 12 });
+  const S = E.S;
+  for (const id of ['sagami', 'suruga', 'kai']) { S.regions[id].o = 'player'; S.regions[id].g = 9000; }   // 武蔵は、まだ敵の土地(相模の隣)
+  for (const f of Object.values(S.factions)) { f.war = false; f.pact = 9; }
+  const g = S.units.filter(u => D.UNIT_TYPES[u.type].cls === 'ground'), a = g[0], b = g[1], c = g[2], ids = [a.id, b.id];
+  const f0 = S.res.fuel, t1 = E.moveTargets(ids);
+  ok(t1.sagami && t1.sagami.ok && !t1.izu && t1.sagami.fuel > 0, '動いていない部隊:いまいる伊豆は行き先に出ない');
+  const r1 = E.move(ids, 'sagami');
+  ok(r1.ok && a.loc === 'sagami' && a.acted && a.from === 'izu' && S.res.fuel === f0 - r1.fuel, '相模へ移動。季節の初めの場所(伊豆)を覚えている');
+  const ao = E.attackOptions('musashi').find(o => o.u.id === a.id);
+  ok(E.movable(a) && !!ao && !ao.ok, '移動した部隊は、まだ動かせるが、攻撃には出られない');
+  ok(/元の場所へ戻せば/.test((ao || {}).why || ''), '攻撃の一覧に、その理由が出る(' + ((ao || {}).why || '') + ')');
+  const t2 = E.moveTargets(ids);
+  ok(t2.izu && t2.izu.back && t2.izu.fuel === -r1.fuel && t2.suruga && !t2.sagami, '行き先を選びなおせる:伊豆(戻す。燃料が返る)・駿河。いまいる相模は出ない');
+  ok(t2.suruga.fuel === E.moveTargets([c.id]).suruga.fuel * 0 + (t1.suruga.fuel - r1.fuel), '行き先は伊豆から測り直す(差額だけを払う)');
+  const r2 = E.move(ids, 'suruga');
+  ok(r2.ok && a.loc === 'suruga' && a.from === 'izu' && S.res.fuel === f0 - t1.suruga.fuel, '駿河へ変更。払う燃料は、伊豆から駿河へのぶんだけ');
+  ok(Object.keys(E.moveTargets([a.id, c.id])).length === 0, '出発地の違う部隊は、いっしょには動かせない');
+  const r3 = E.move([a.id], 'izu');
+  ok(r3.ok && r3.back && a.loc === 'izu' && !a.acted && a.from == null && a.mf == null, '一つだけ伊豆へ戻す:動かなかったことになる');
+  ok(b.loc === 'suruga' && b.acted, 'もう一つは駿河に残る');
+  const u = E.undoMove([a.id, b.id, c.id]);
+  ok(u.ok && u.n === 1 && b.loc === 'izu' && !b.acted && S.res.fuel === f0, '移動の取り消し:残りも伊豆へ戻り、燃料は元どおり');
+  ok(E.undoMove([a.id]).error, '取り消す移動が無ければ、そう答える');
+  // 攻撃に出た部隊は動かせない
+  S.regions.musashi.o = 'player'; S.regions.musashi.g = 9000;
+  S.regions.kozuke.g = 100; S.regions.kozuke.fort = 0; S.factions[S.regions.kozuke.o].pact = 0;
+  E.move([a.id], 'sagami'); E.move([a.id], 'izu');
+  for (const x of g) { x.loc = 'musashi'; x.acted = false; delete x.from; delete x.mf; }
+  S.res.fuel = 9000; S.res.ammo = 9000;
+  const res = E.attack('kozuke', [a.id]);
+  ok(res.win && a.acted && a.from == null && !E.movable(a) && Object.keys(E.moveTargets([a.id])).length === 0, '攻撃に出た部隊は、その季節はもう動かせない');
+  // 季節が変わると、移動は確定する
+  E.move([b.id], 'sagami'); E.endTurn();
+  ok(b.loc === 'sagami' && !b.acted && b.from == null && b.mf == null && !E.moveTargets([b.id]).sagami, '季節が変わると確定し、そこが新しい出発地になる');
+});
+
 section('エクストリームハード', () => {
   const X = D.DIFFICULTY.extreme, keys = Object.keys(D.DIFFICULTY);
   ok(X && X.name === 'エクストリームハード' && keys.indexOf('extreme') === keys.indexOf('hell') + 1, '修羅の上にある');

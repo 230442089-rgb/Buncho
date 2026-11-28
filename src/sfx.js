@@ -4,7 +4,7 @@
   'use strict';
   var TF = root.TF = root.TF || {};
   var AC = root.AudioContext || root.webkitAudioContext;
-  var ctx = null, master = null, noiseBuf = null, enabled = true, VOL = 0.9;
+  var ctx = null, master = null, noiseBuf = null, revIn = null, enabled = true, VOL = 0.9;
   var pending = [], lastErr = '', played = 0;
   // iPhone はマナーモードだと Web Audio が鳴らない。音を「メディア」として扱わせると鳴る
   var IOS = /iP(hone|ad|od)/.test(root.navigator ? navigator.userAgent : '') || (root.navigator && navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -19,13 +19,20 @@
     pre.gain.value = 0.6; m.connect(pre); pre.connect(sh); sh.connect(c.destination);
     var len = Math.floor(c.sampleRate * 2), nb = c.createBuffer(1, len, c.sampleRate), d = nb.getChannelData(0);
     for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    return { master: m, noise: nb, out: sh };
+    // 残響:小さな板の間くらいの、短い部屋鳴り。操作音をやわらかく包む(どれだけ送るかは、音ごとに rev で決める)
+    var rin = null;
+    try {
+      var cv = c.createConvolver(), rout = c.createGain(), rl = Math.floor(c.sampleRate * 1.3), ir = c.createBuffer(1, rl, c.sampleRate), rd = ir.getChannelData(0), lpv = 0;
+      for (var r = 0; r < rl; r++) { var kk = r / rl; lpv += ((Math.random() * 2 - 1) * Math.pow(1 - kk, 2.6) - lpv) * (0.55 - 0.4 * kk); rd[r] = lpv; }   // 尾へ行くほど暗く、静かに
+      cv.buffer = ir; rin = c.createGain(); rin.connect(cv); cv.connect(rout); rout.gain.value = 0.9; rout.connect(m);
+    } catch (e) { rin = null; }
+    return { master: m, noise: nb, out: sh, rev: rin };
   }
   function ensure() {
     if (!AC) return null;
     if (!ctx) {
       try { ctx = new AC(); } catch (e) { lastErr = String(e); ctx = null; return null; }
-      var g = build(ctx); master = g.master; noiseBuf = g.noise; master.gain.value = enabled ? VOL : 0;
+      var g = build(ctx); master = g.master; noiseBuf = g.noise; revIn = g.rev; master.gain.value = enabled ? VOL : 0;
       try { ctx.onstatechange = flush; } catch (e) { /* 古い環境 */ }
     }
     return ctx;
@@ -96,6 +103,7 @@
     g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + a);
     g.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
   }
+  function wet(g, amount) { if (!amount || !revIn) return; var sg = ctx.createGain(); sg.gain.value = amount; g.connect(sg); sg.connect(revIn); }
   function tone(t, o) { // 単音。f0→f1 へ音程を動かせる
     var osc = ctx.createOscillator(), g = ctx.createGain(), a = o.attack || 0.004, node = osc;
     osc.type = o.type || 'sine';
@@ -103,7 +111,7 @@
     if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t + (o.glide || o.dur));
     env(g, t, a, o.gain || 0.2, o.dur);
     if (o.lp) { var f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; osc.connect(f); node = f; }
-    node.connect(g); g.connect(master);
+    node.connect(g); g.connect(master); wet(g, o.rev);
     osc.start(t); osc.stop(t + a + o.dur + 0.05);
   }
   function noise(t, o) { // ノイズをフィルタに通す。爆発・銃声・風切り音の素
@@ -113,7 +121,7 @@
     f.frequency.setValueAtTime(o.f0 || 1000, t);
     if (o.f1) f.frequency.exponentialRampToValueAtTime(o.f1, t + a + o.dur);
     env(g, t, a, o.gain || 0.3, o.dur);
-    src.connect(f); f.connect(g); g.connect(master);
+    src.connect(f); f.connect(g); g.connect(master); wet(g, o.rev);
     src.start(t, Math.random() * 1.5); src.stop(t + a + o.dur + 0.05);
   }
   function brass(t, f, dur, gain) { // 金管ふうの和音用
@@ -129,6 +137,18 @@
     tone(t, { type: 'triangle', f0: f, dur: 0.55, gain: gain, attack: 0.002 });
     tone(t, { type: 'sine', f0: f * 2, dur: 0.18, gain: gain * 0.4, attack: 0.002 });
     noise(t, { type: 'highpass', f0: 3000, dur: 0.015, gain: gain * 0.5 });
+  }
+  // 操作音の部品。音程はすべてニの陽音階(レ・ミ・ソ・ラ・シ)から取るので、続けて鳴っても濁らない
+  var YO = [587.33, 659.25, 783.99, 880, 987.77, 1174.66, 1318.51, 1567.98, 1760];
+  function koto(t, f, gain, rev) { // やわらかい撥弦:芯の音に、すぐ消える倍音を重ねる
+    tone(t, { type: 'triangle', f0: f, dur: 0.42, gain: gain, attack: 0.003, rev: rev });
+    tone(t, { f0: f * 2.01, dur: 0.14, gain: gain * 0.35, attack: 0.002, rev: rev });
+    tone(t, { f0: f * 3, dur: 0.06, gain: gain * 0.18, attack: 0.001 });
+    noise(t, { type: 'bandpass', f0: 2600, q: 1.5, dur: 0.012, gain: gain * 0.35 });
+  }
+  function tick(t, f, gain, rev) { // 木を軽く打つ
+    noise(t, { type: 'bandpass', f0: f, q: 4, dur: 0.018, gain: gain, rev: rev });
+    tone(t, { f0: f * 0.5, f1: f * 0.42, dur: 0.035, gain: gain * 0.6, attack: 0.001 });
   }
   // 太鼓。低い胴鳴りはスマホの小さなスピーカーでは出ないので、中域の打音を重ねる
   function taiko(t, gain) {
@@ -169,14 +189,29 @@
 
   // ── 効果音の一覧 ──
   var SOUNDS = {
-    click: function (t) { tone(t, { f0: 720, f1: 940, dur: 0.035, gain: 0.16 }); },
-    select: function (t) { tone(t, { type: 'triangle', f0: 520, f1: 800, dur: 0.07, gain: 0.26 }); },
-    open: function (t) { tone(t, { type: 'triangle', f0: 400, f1: 620, dur: 0.09, gain: 0.22 }); },
-    deny: function (t) { tone(t, { type: 'square', f0: 210, f1: 150, dur: 0.13, gain: 0.2, lp: 1200 }); },
-    build: function (t) { [0, 0.13, 0.26].forEach(function (d, i) { noise(t + d, { type: 'bandpass', f0: 1300 - i * 150, q: 5, dur: 0.035, gain: 0.8 }); tone(t + d, { type: 'triangle', f0: 320, f1: 210, dur: 0.05, gain: 0.3 }); }); },
-    recruit: function (t) { taiko(t, 0.4); taiko(t + 0.16, 0.3); },
-    coin: function (t) { tone(t, { f0: 1318, dur: 0.12, gain: 0.22 }); tone(t + 0.06, { f0: 1760, dur: 0.22, gain: 0.22 }); },
-    move: function (t) { noise(t, { type: 'bandpass', f0: 300, f1: 1400, q: 0.9, dur: 0.22, gain: 0.4, attack: 0.05 }); taiko(t + 0.04, 0.28); },
+    // ── 操作の音:小さく、丸く、短い余韻 ──
+    click: function (t) { tick(t, 1700, 0.34); },                                                    // 木の「コッ」
+    select: function (t) { koto(t, YO[0], 0.24, 0.3); },                                             // 地域を選ぶ:琴の一音
+    open: function (t) { koto(t, YO[0], 0.17, 0.2); koto(t + 0.07, YO[3], 0.2, 0.3); },              // 開く:五度上へ
+    close: function (t) { koto(t, YO[3], 0.15, 0.2); koto(t + 0.06, YO[0], 0.16, 0.25); },           // 閉じる:五度下へ
+    tab: function (t) { noise(t, { type: 'bandpass', f0: 1300, f1: 2800, q: 0.8, dur: 0.08, gain: 0.2, attack: 0.02 }); koto(t + 0.03, YO[2], 0.16, 0.25); },  // 紙をめくって、一音
+    pick: function (t, o) { // 部隊を選ぶ:選ぶたびに音階を一つ上る。外すときは低く短く
+      if (o.off) { tick(t, 950, 0.3); koto(t, YO[0] / 2, 0.14, 0.15); return; }
+      var i = Math.max(0, Math.min(YO.length - 1, (o.n || 1) - 1));
+      tick(t, 2100, 0.2); koto(t + 0.005, YO[i], 0.22, 0.3);
+    },
+    deny: function (t) { tone(t, { type: 'triangle', f0: 392, f1: 294, dur: 0.11, gain: 0.22, lp: 1500 }); tone(t + 0.09, { type: 'triangle', f0: 294, f1: 220, dur: 0.15, gain: 0.22, lp: 1300 }); },  // できない:低く下がる二音
+    build: function (t) { tick(t, 760, 0.6); tick(t + 0.13, 680, 0.55); tick(t + 0.26, 760, 0.5); koto(t + 0.4, YO[2], 0.2, 0.35); },      // 槌が三つ、棟上げの一音
+    recruit: function (t) { taiko(t, 0.36); taiko(t + 0.15, 0.28); koto(t + 0.3, YO[0], 0.16, 0.3); },
+    coin: function (t) { tone(t, { f0: 1318.5, dur: 0.12, gain: 0.2, rev: 0.3 }); tone(t + 0.06, { f0: 1760, dur: 0.24, gain: 0.2, rev: 0.35 }); },
+    move: function (t) { // 移動:風を切って、着いて、二音
+      noise(t, { type: 'bandpass', f0: 420, f1: 2300, q: 1, dur: 0.2, gain: 0.3, attack: 0.06 });
+      taiko(t + 0.13, 0.24); koto(t + 0.2, YO[0], 0.18, 0.3); koto(t + 0.28, YO[3], 0.2, 0.4);
+    },
+    undo: function (t) { // 移動を戻す:同じ二音を逆に
+      noise(t, { type: 'bandpass', f0: 2300, f1: 420, q: 1, dur: 0.18, gain: 0.26, attack: 0.03 });
+      koto(t + 0.1, YO[3], 0.18, 0.3); koto(t + 0.18, YO[0], 0.2, 0.4);
+    },
     chirp: function (t, o) { // ピヨピヨ
       var n = o.n || 2;
       for (var i = 0; i < n; i++) { var f = rnd(2500, 3300), tt = t + i * rnd(0.09, 0.13); tone(tt, { f0: f, f1: f * 1.55, dur: 0.05, gain: 0.26 }); tone(tt + 0.045, { f0: f * 1.5, f1: f * 1.05, dur: 0.05, gain: 0.19 }); }
@@ -190,6 +225,7 @@
     turn: function (t) { // 拍子木「チョン、チョン」
       [0, 0.17].forEach(function (d) { noise(t + d, { type: 'highpass', f0: 2200, dur: 0.02, gain: 0.5 }); tone(t + d, { f0: 1500, f1: 1150, dur: 0.045, gain: 0.36 }); });
       taiko(t + 0.34, 0.28);
+      tone(t + 0.34, { f0: 146.83, dur: 1.1, gain: 0.12, attack: 0.02, rev: 0.5 }); koto(t + 0.36, YO[0], 0.12, 0.45);   // 遠くで鳴る鐘のような余韻
     },
     launch: function (t) { taiko(t, 0.5); taiko(t + 0.14, 0.4); noise(t + 0.05, { type: 'bandpass', f0: 280, f1: 3200, q: 0.8, dur: 0.4, gain: 0.4, attack: 0.1 }); },
     taiko: function (t, o) { taiko(t, o.gain || 0.42); },
@@ -460,11 +496,11 @@
   function renderSong(name, sec, hp) {
     var OC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
     if (!OC) return Promise.reject(new Error('OfflineAudioContext がありません'));
-    var rate = 44100, oc = new OC(1, Math.ceil(rate * sec), rate), saved = [ctx, master, noiseBuf], g = build(oc), err = null, notes = 0;
+    var rate = 44100, oc = new OC(1, Math.ceil(rate * sec), rate), saved = [ctx, master, noiseBuf, revIn], g = build(oc), err = null, notes = 0;
     if (hp) { var f1 = oc.createBiquadFilter(), f2 = oc.createBiquadFilter(); f1.type = f2.type = 'highpass'; f1.frequency.value = f2.frequency.value = hp; g.out.disconnect(); g.out.connect(f1); f1.connect(f2); f2.connect(oc.destination); }
-    ctx = oc; master = g.master; noiseBuf = g.noise; master.gain.value = VOL;
+    ctx = oc; master = g.master; noiseBuf = g.noise; revIn = g.rev; master.gain.value = VOL;
     try { var cs = compile(SONGS[name]), bus = oc.createGain(); bus.gain.value = MVOL; bus.connect(master); for (var n = 0, t = 0.05; t < sec - 0.4; n++, t += cs.sp) { schedStep(cs, n, t + (n % 2 ? cs.swing * cs.sp : 0), bus); notes++; } } catch (e) { err = e; }
-    ctx = saved[0]; master = saved[1]; noiseBuf = saved[2];
+    ctx = saved[0]; master = saved[1]; noiseBuf = saved[2]; revIn = saved[3];
     if (err) return Promise.reject(err);
     return oc.startRendering().then(function (buf) {
       var d = buf.getChannelData(0), peak = 0, sum = 0, a;
@@ -477,11 +513,11 @@
   function render(name, opts, sec, hp) { // hp を指定すると、その周波数より下を切って測る(スマホのスピーカーを想定)
     var OC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
     if (!OC) return Promise.reject(new Error('OfflineAudioContext がありません'));
-    var rate = 44100, oc = new OC(1, Math.ceil(rate * (sec || 2)), rate), saved = [ctx, master, noiseBuf], g = build(oc), err = null;
+    var rate = 44100, oc = new OC(1, Math.ceil(rate * (sec || 2)), rate), saved = [ctx, master, noiseBuf, revIn], g = build(oc), err = null;
     if (hp) { var f1 = oc.createBiquadFilter(), f2 = oc.createBiquadFilter(); f1.type = f2.type = 'highpass'; f1.frequency.value = f2.frequency.value = hp; g.out.disconnect(); g.out.connect(f1); f1.connect(f2); f2.connect(oc.destination); }
-    ctx = oc; master = g.master; noiseBuf = g.noise; master.gain.value = VOL;
+    ctx = oc; master = g.master; noiseBuf = g.noise; revIn = g.rev; master.gain.value = VOL;
     try { SOUNDS[name](0.02, opts || {}); } catch (e) { err = e; }
-    ctx = saved[0]; master = saved[1]; noiseBuf = saved[2];
+    ctx = saved[0]; master = saved[1]; noiseBuf = saved[2]; revIn = saved[3];
     if (err) return Promise.reject(err);
     return oc.startRendering().then(function (buf) {
       var d = buf.getChannelData(0), peak = 0, sum = 0, a;

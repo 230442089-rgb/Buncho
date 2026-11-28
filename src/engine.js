@@ -420,7 +420,7 @@
       } else if (T.cls === 'missile') {
         o.via = 'missile';   // 世界のどこへでも届く
       }
-      if (u.acted) { o.ok = false; o.why = '行動済み'; }
+      if (u.acted) { o.ok = false; o.why = u.from != null ? '移動済み(元の場所へ戻せば出撃できる)' : '行動済み'; }
       else if (u.hp < 10) { o.ok = false; o.why = '損耗が激しい'; }
       out.push(o);
     });
@@ -693,11 +693,16 @@
   }
 
   // ───────────────────────── 移動 ─────────────────────────
+  // 移動は、その季節のあいだなら何度でも変えられる。季節の初めにいた場所(u.from)を覚えておき、行き先はそこから測り直す。
+  // 元の場所へ戻せば、動かなかったことになる(燃料が戻り、攻撃にも出られ、整備も受けられる)。攻撃に出た部隊は、もう動かせない。
+  function moveOrigin(u) { return u.from != null ? u.from : u.loc; }
+  function movable(u) { return !!u && u.loc !== null && (!u.acted || u.from != null); }
   function moveTargets(ids) {
     var us = ids.map(unitById).filter(Boolean);
     if (!us.length) return {};
-    var from = us[0].loc, out = {};
-    if (us.some(function (u) { return u.loc !== from || u.acted || u.loc === null; })) return {};
+    var here = us[0].loc, from = moveOrigin(us[0]), out = {}, paid = 0;
+    if (us.some(function (u) { return u.loc !== here || !movable(u) || moveOrigin(u) !== from; })) return {};
+    us.forEach(function (u) { paid += u.mf || 0; });   // いまの移動に払った燃料。行き先を変えれば、いったん戻ってくる
     var range = moveRange(), seaOk = hasTransportShip(), freeSea = freeTransportOnly() && hasSite('coal');
     var dist = {}; dist[from] = { hops: 0, sea: 0 };
     var q = [from];
@@ -712,12 +717,12 @@
       });
     }
     Object.keys(dist).forEach(function (id) {
-      if (id === from) return;
-      var dd = dist[id], fuel = 0;
-      us.forEach(function (u) { var st = ustat(u); fuel += (tech('rail') ? 0 : st.mv * dd.hops) + (dd.sea && !freeSea && !tech('fusion') ? 6 * dd.sea : 0); });
-      var foot = us.every(function (u) { return ustat(u).foot; });
-      var ok = fuel <= S.res.fuel || (foot && dd.sea === 0 && dd.hops === 1);
-      out[id] = { hops: dd.hops, sea: dd.sea, fuel: fuel <= S.res.fuel ? fuel : 0, ok: ok, why: ok ? '' : '燃料不足' };
+      if (id === here) return;
+      var dd = dist[id], fuel = 0, per = {};
+      us.forEach(function (u) { var st = ustat(u), f = (tech('rail') ? 0 : st.mv * dd.hops) + (dd.sea && !freeSea && !tech('fusion') ? 6 * dd.sea : 0); per[u.id] = f; fuel += f; });
+      var foot = us.every(function (u) { return ustat(u).foot; }), have = S.res.fuel + paid;
+      var ok = fuel <= have || (foot && dd.sea === 0 && dd.hops === 1), gross = fuel <= have ? fuel : 0;
+      out[id] = { hops: dd.hops, sea: dd.sea, fuel: gross - paid, ok: ok, why: ok ? '' : '燃料不足', back: id === from, per: gross ? per : null };
     });
     return out;
   }
@@ -726,8 +731,21 @@
     if (!t) return { error: 'そこへは移動できません' };
     if (!t.ok) return { error: t.why };
     S.res.fuel -= t.fuel; S.stats.fuelUsed += t.fuel;
-    ids.forEach(function (id) { var u = unitById(id); if (u) { u.loc = rid; u.acted = true; } });
-    return { ok: true, fuel: t.fuel };
+    ids.forEach(function (id) {
+      var u = unitById(id); if (!u) return;
+      var from = moveOrigin(u);
+      u.loc = rid;
+      if (rid === from) { u.acted = false; delete u.from; delete u.mf; }            // 元の場所に戻った:動かなかったことになる
+      else { u.acted = true; u.from = from; u.mf = t.per ? t.per[u.id] || 0 : 0; }
+    });
+    return { ok: true, fuel: t.fuel, back: !!t.back };
+  }
+  // 移動の取り消し:季節の初めにいた場所へ戻す
+  function undoMove(ids) {
+    var groups = {}, n = 0, fuel = 0;
+    ids.map(unitById).forEach(function (u) { if (u && u.acted && u.from != null) { var k = u.loc + '>' + u.from; (groups[k] = groups[k] || []).push(u.id); } });
+    Object.keys(groups).forEach(function (k) { var g = groups[k], r = move(g, unitById(g[0]).from); if (r.ok) { n += g.length; fuel += r.fuel; } });
+    return n ? { ok: true, n: n, fuel: fuel } : { error: '取り消せる移動がありません' };
   }
 
   // ───────────────────────── 内政 ─────────────────────────
@@ -1253,7 +1271,7 @@
       if (!factionRegions(fid).length) { f.alive = false; f.war = false; f.trade = false; }
     });
     // 5. 次の季節へ
-    S.units.forEach(function (u) { u.acted = false; });
+    S.units.forEach(function (u) { u.acted = false; delete u.from; delete u.mf; });
     S.dipLeft = dipMax();
     if (S.res.fuel === 0 && !S.flags.fuelOut && S.units.some(function (u) { return D.UNIT_TYPES[u.type].jsdf; })) { S.flags.fuelOut = true; ev('bad', '燃料が底をついた。戦車もヘリも艦も動けない。'); }
     if (S.res.fuel > 60) S.flags.fuelOut = false;
@@ -1665,7 +1683,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    threatOn: threatOn, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

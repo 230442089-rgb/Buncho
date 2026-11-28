@@ -99,6 +99,28 @@
       }, function () { g.remove(); });
     }, delay || 0);
   }
+  // 部隊の移動:出発地から行き先へ、金の矢が走る。着いた先の部隊の印がはずむ
+  function fxMove(from, to) {
+    var fx = $('#fx'); if (!fx || !S() || reduce) return;
+    var bd = $('#marks .mk[data-rid="' + to + '"] .ubadge');
+    if (bd) tween(320, function (k) { var s = 1 + 0.7 * Math.pow(1 - k, 2) * Math.cos(k * 5); bd.setAttribute('transform', 'translate(0 -21) scale(' + s.toFixed(3) + ')'); }, function () { bd.setAttribute('transform', 'translate(0 -21)'); });
+    if (mapOf(from) !== ui.map || mapOf(to) !== ui.map) return;
+    var a = geo(from).c, b = geo(to).c, dx = b[0] - a[0], dy = b[1] - a[1], len = Math.sqrt(dx * dx + dy * dy) || 1, mx = (a[0] + b[0]) / 2 - dy * 0.12, my = (a[1] + b[1]) / 2 + dx * 0.12 - len * 0.08;
+    var d = 'M' + a[0] + ' ' + a[1] + 'Q' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + b[0] + ' ' + b[1], u = ui.u;
+    var glow = svgEl('path', { d: d, fill: 'none', stroke: '#fff3c4', 'stroke-linecap': 'round', 'pointer-events': 'none', opacity: 0.35 });
+    var line = svgEl('path', { d: d, fill: 'none', stroke: '#f3cf6a', 'stroke-linecap': 'round', 'pointer-events': 'none' });
+    var head = svgEl('circle', { r: 1, fill: '#fffaf0', stroke: '#9c7a1c', 'pointer-events': 'none' });
+    fx.appendChild(glow); fx.appendChild(line); fx.appendChild(head);
+    var L = line.getTotalLength ? line.getTotalLength() : len;
+    [glow, line].forEach(function (p, i) { p.setAttribute('stroke-width', ((i ? 3 : 8) * u).toFixed(2)); p.setAttribute('stroke-dasharray', L.toFixed(1) + ' ' + L.toFixed(1)); });
+    head.setAttribute('stroke-width', (1.2 * u).toFixed(2));
+    tween(420, function (k) {
+      var e = 1 - Math.pow(1 - Math.min(1, k / 0.62), 3), fade = k > 0.62 ? 1 - (k - 0.62) / 0.38 : 1;   // 走って、消える
+      [glow, line].forEach(function (p, i) { p.setAttribute('stroke-dashoffset', (L * (1 - e)).toFixed(1)); p.setAttribute('opacity', ((i ? 1 : 0.35) * fade).toFixed(3)); });
+      var pt = line.getPointAtLength ? line.getPointAtLength(L * e) : { x: a[0] + dx * e, y: a[1] + dy * e };
+      head.setAttribute('cx', pt.x.toFixed(1)); head.setAttribute('cy', pt.y.toFixed(1)); head.setAttribute('r', ((4.5 + 2.5 * Math.sin(e * Math.PI)) * u).toFixed(2)); head.setAttribute('opacity', fade.toFixed(3));
+    }, function () { glow.remove(); line.remove(); head.remove(); });
+  }
   function fxCascade(ids, word) { // 続けざまに判子を押す。かかる時間(ms)を返す
     var n = 0; ids.forEach(function (id) { if (mapOf(id) === ui.map) fxConquer(id, n++ * 190, word); });
     return n ? 700 + n * 190 : 0;
@@ -292,7 +314,7 @@
       over.push('<path class="threat" d="M' + a[0] + ' ' + a[1] + 'L' + b[0] + ' ' + b[1] + '"/>');
     });
     // 選択中・移動先の枠
-    if (mvT) Object.keys(mvT).forEach(function (id) { if (mvT[id].ok && mapOf(id) === key) over.push('<path class="rg mv" fill="none" pointer-events="none" d="' + m.regions[id].d + '"/>'); });
+    if (mvT) Object.keys(mvT).forEach(function (id) { if (mvT[id].ok && mapOf(id) === key) over.push('<path class="rg mv' + (mvT[id].back ? ' back' : '') + '" fill="none" pointer-events="none" d="' + m.regions[id].d + '"/>'); });
     if (ui.sel && mapOf(ui.sel) === key) over.push('<path class="rg sel" fill="none" pointer-events="none" d="' + m.regions[ui.sel].d + '"/>');
     $('#over').innerHTML = over.join('');
     // 目印
@@ -481,6 +503,7 @@
     renderSheet();
     if (id) ensureVisible(id);
     refreshMap(); renderMapUI();
+    var sel = id && $('#over .rg.sel'); if (sel && !reduce) sel.classList.add('pop');
   }
   // 選んだ地域がシートの下や画面の外にあれば、見える位置まで地図をずらす
   function ensureVisible(id) {
@@ -541,7 +564,7 @@
       '<div class="zoom"><button data-act="zoom" data-f="0.62" aria-label="拡大">＋</button><button data-act="zoom" data-f="1.6" aria-label="縮小">−</button></div></div>';
     var hs = E.hints();
     if (hs.length && !ui.mv && !ui.sel) h += '<div class="advisor"><button data-act="hints">' + birdSVG(hs[0].bird) + '<span>' + esc(hs[0].text) + '</span>' + (hs.length > 1 ? '<em>+' + (hs.length - 1) + '</em>' : '') + '</button></div>';
-    if (ui.mv) h += '<div class="movebar">移動先の自領をタップ(' + ui.mv.ids.length + '部隊)<button data-act="move-cancel">やめる</button></div>';
+    if (ui.mv) h += '<div class="movebar"><span>' + (ui.mv.origin !== ui.mv.from ? '行き先を変える(' + ui.mv.ids.length + '部隊)・' + esc(short(ui.mv.origin)) + 'へ戻せば取り消し' : '移動先の自領をタップ(' + ui.mv.ids.length + '部隊)') + '</span><button data-act="move-cancel">やめる</button></div>';
     $('#mapui').innerHTML = h;
   }
 
@@ -644,8 +667,12 @@
       var us = E.unitsAt(id);
       if (us.length) {
         var np = us.filter(function (u) { return ui.pick[u.id]; }).length, movable = us.filter(function (u) { return !u.acted; }).length;
-        h += '<div class="sec">ここにいる部隊 ' + us.length + '(タップで選ぶ)</div><div class="acts"><button class="btn gold" data-act="move-start"' + (movable ? '' : ' disabled') + '>' + (np ? '選んだ ' + np + ' 部隊を移動' : (movable ? '動ける ' + movable + ' 部隊を移動' : '全部隊が行動済み')) + '</button></div><div class="list">';
-        us.forEach(function (u) { h += unitRow(u, { act: u.acted ? null : 'pick', on: !!ui.pick[u.id], tight: true }); });
+        var moved = us.filter(function (u) { return u.acted && u.from != null; }), pm = moved.filter(function (u) { return ui.pick[u.id]; }).length;
+        h += '<div class="sec">ここにいる部隊 ' + us.length + '(タップで選ぶ)</div><div class="acts"><button class="btn gold" data-act="move-start"' + (movable || moved.length ? '' : ' disabled') + '>' +
+          (np ? '選んだ ' + np + ' 部隊を移動' : (movable ? '動ける ' + movable + ' 部隊を移動' : (moved.length ? '移動してきた ' + moved.length + ' 部隊の行き先を変える' : '全部隊が行動済み'))) + '</button>' +
+          (moved.length ? '<button class="btn" data-act="move-undo">↩ 元の場所へ戻す(' + (pm || moved.length) + ')</button>' : '') + '</div>' +
+          (moved.length ? '<p class="dim" style="font-size:11.5px">移動は、季節が変わるまで何度でも変えられる。</p>' : '') + '<div class="list">';
+        us.forEach(function (u) { h += unitRow(u, { act: E.movable(u) ? 'pick' : null, on: !!ui.pick[u.id], tight: true }); });
         h += '</div>';
       }
       if (d.note) h += '<p class="note">' + esc(d.note) + '</p>';
@@ -674,9 +701,10 @@
     o = o || {};
     var st = E.ustat(u), T = D.UNIT_TYPES[u.type], tagn = o.act ? 'button' : 'div';
     var sub = '戦力 ' + fmt(st.atk * u.hp / 100) + (st.siege ? ' ・ 城郭−' + st.siege : '') + (st.fuel || st.ammo ? ' ・ 1戦ごと ' + (st.fuel ? '燃' + st.fuel + ' ' : '') + (st.ammo ? '弾' + st.ammo : '') : ' ・ 燃料も弾薬も不要');
-    return '<' + tagn + ' class="row' + (o.tight ? ' tight' : '') + (o.on ? ' on' : '') + (u.acted && !o.plain ? ' off' : '') + '"' + (o.act ? ' data-act="' + o.act + '" data-uid="' + u.id + '"' : '') + '>' + icon(TF.UNIT_ICON[u.type], 'big') +
+    var mvd = u.acted && u.from != null;   // この季節に移動した(まだ変えられる)
+    return '<' + tagn + ' class="row' + (o.tight ? ' tight' : '') + (o.on ? ' on' : '') + (mvd ? ' moved' : (u.acted && !o.plain ? ' off' : '')) + '"' + (o.act ? ' data-act="' + o.act + '" data-uid="' + u.id + '"' : '') + '>' + icon(TF.UNIT_ICON[u.type], 'big') +
       '<div><h3>' + esc(u.name) + (T.tiered ? ' <span class="dim" style="font-weight:400">' + st.name + '</span>' : '') + '</h3><p>' + sub + '</p>' + hpBar(u.hp) + '</div>' +
-      '<div class="side"><b>' + u.hp + '%</b>' + (o.side != null ? o.side : (u.acted ? '行動済み' : (o.on ? '選択中' : ''))) + '</div></' + tagn + '>';
+      '<div class="side"><b>' + u.hp + '%</b>' + (o.side != null ? o.side : (o.on ? '選択中' : (mvd ? '移動済み<small>' + esc(short(u.from)) + 'から・変更可</small>' : (u.acted ? '行動済み' : '')))) + '</div></' + tagn + '>';
   }
   var AUTO_NAME = { off: '手で指示する', scarce: '足りない資源を優先', res: '特定の資源を優先', study: '学問を優先' }, RES_NAME = { gold: '資金', food: '兵糧', steel: '鉄鋼', fuel: '燃料', ammo: '弾薬' };
   function autoLabel() { var A = S().auto; return A.build === 'res' ? RES_NAME[A.res] + 'を優先' : AUTO_NAME[A.build]; }
@@ -704,22 +732,38 @@
 
   // ───────────────────────── 移動 ─────────────────────────
   function startMove() {
-    var us = E.unitsAt(ui.sel).filter(function (u) { return !u.acted; }), picked = us.filter(function (u) { return ui.pick[u.id]; });
-    var ids = (picked.length ? picked : us).map(function (u) { return u.id; });
-    if (!ids.length) return;
+    var all = E.unitsAt(ui.sel).filter(E.movable), picked = all.filter(function (u) { return ui.pick[u.id]; }), fresh = all.filter(function (u) { return !u.acted; });
+    var pool = picked.length ? picked : (fresh.length ? fresh : all);
+    if (!pool.length) return;
+    // 一度に動かせるのは、出発地が同じ部隊だけ(動いていない部隊と、ほかから来た部隊は別々に)
+    var origin = E.moveOrigin(pool[0]), same = pool.filter(function (u) { return E.moveOrigin(u) === origin; });
+    if (same.length < pool.length) toast('出発地が同じ ' + same.length + ' 部隊を動かす。残りは、もう一度選ぶ');
+    var ids = same.map(function (u) { return u.id; });
     var t = E.moveTargets(ids);
     if (!Object.keys(t).length) { toast('移動できる自領がありません'); return; }
-    ui.mv = { ids: ids, from: ui.sel, targets: t };
+    ui.mv = { ids: ids, from: ui.sel, origin: origin, targets: t };
     renderSheet(); refreshMap(); renderMapUI();
   }
   function doMove(id) {
-    var res = E.move(ui.mv.ids, id);
-    if (res.error) { toast(res.error); return; }
-    sfx('move'); toast(reg(id).name + 'へ移動' + (res.fuel ? '(燃料 −' + res.fuel + ')' : ''));
+    var from = ui.mv.from, n = ui.mv.ids.length, res = E.move(ui.mv.ids, id);
+    if (res.error) { oops(res.error); return; }
+    var fu = res.fuel > 0 ? '(燃料 −' + res.fuel + ')' : (res.fuel < 0 ? '(燃料 +' + (-res.fuel) + ')' : '');
+    sfx(res.back ? 'undo' : 'move'); toast(res.back ? n + ' 部隊を' + reg(id).name + 'へ戻した' + fu : reg(id).name + 'へ移動' + fu);
     ui.mv = null; save(); ui.sel = id; ui.pick = {};
     if (mapOf(id) !== ui.map) focusRegion(id, { zoom: true });
     refreshAll();
     ensureVisible(id); refreshMap();
+    fxMove(from, id);
+  }
+  function undoMoves() { // ここへ移動してきた部隊を、季節の初めにいた場所へ戻す(選んでいれば、その部隊だけ)
+    var here = ui.sel, moved = E.unitsAt(here).filter(function (u) { return u.acted && u.from != null; }), picked = moved.filter(function (u) { return ui.pick[u.id]; });
+    var pool = picked.length ? picked : moved, dests = {};
+    pool.forEach(function (u) { dests[u.from] = 1; });
+    var res = E.undoMove(pool.map(function (u) { return u.id; }));
+    if (res.error) { oops(res.error); return; }
+    sfx('undo'); toast(res.n + ' 部隊を元の場所へ戻した' + (res.fuel < 0 ? '(燃料 +' + (-res.fuel) + ')' : ''));
+    save(); ui.pick = {}; refreshAll();
+    Object.keys(dests).forEach(function (to) { fxMove(here, to); });
   }
 
   // ───────────────────────── 攻撃 ─────────────────────────
@@ -954,7 +998,7 @@
   function panelUnits() {
     var st = S(), by = {}, h = '';
     st.units.forEach(function (u) { var k = u.loc || '_pool'; (by[k] = by[k] || []).push(u); });
-    h += '<p class="dim">陸上部隊とヘリは、いる地域の隣を攻められる。艦隊と航空隊はどこからでも出撃する。行動は1季に1回。</p>';
+    h += '<p class="dim">陸上部隊とヘリは、いる地域の隣を攻められる。艦隊と航空隊はどこからでも出撃する。行動は1季に1回。移動だけは、季節が変わるまで何度でも変えられる。</p>';
     if (by._pool) {
       h += '<div class="sec">艦隊・航空隊' + (by._pool.some(function (u) { return D.UNIT_TYPES[u.type].cls === 'missile'; }) ? '・戦略兵器' : '') + '</div><div class="list">';
       by._pool.forEach(function (u) { var T = D.UNIT_TYPES[u.type]; h += unitRow(u, { side: u.acted ? '行動済み' : (T.cls === 'missile' ? 'どこへでも' : (T.cls === 'air' ? (E.tech('rocket') ? 'どこへでも' : '飛行場から' + T.range + 'km') : (T.transport ? '輸送' + T.transport : ''))) }); });
@@ -1358,9 +1402,10 @@
     rush: null, 'auto-build': 'select', 'auto-res': 'select', 'auto-toggle': null, 'auto-now': null, 'opt-bgm': null,
     'keep-going': null,
     'dio-land': 'select',
-    enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'select', 'dio-era': 'select', 'assign-all': 'chirp',
-    tab: 'open', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
-    'atk-toggle': 'select', pick: 'select', goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch' };
+    enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'tab', 'dio-era': 'select', 'assign-all': 'chirp',
+    tab: 'tab', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
+    'atk-toggle': null, pick: null, goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch',
+    'close-sheet': 'close', 'panel-close': 'close', 'move-cancel': 'close', sub: 'tab', dtab: 'tab', 'move-start': 'select', 'move-undo': null };
   function onClick(e) {
     var el = e.target.closest('[data-act]');
     if (!el || el.disabled) return;
@@ -1373,8 +1418,15 @@
     switch (act) {
       case 'close-sheet': select(null); break;
       case 'sub': ui.sub = el.getAttribute('data-sub') || null; ui.hl = el.getAttribute('data-key') || null; renderSheet(); break;
-      case 'pick': id = +el.getAttribute('data-uid'); if (ui.pick[id]) delete ui.pick[id]; else ui.pick[id] = 1; renderSheet(); break;
+      case 'pick': // 選ぶたびに音が一つ上がる。選んだ行は、はずむ
+        id = +el.getAttribute('data-uid'); if (ui.pick[id]) delete ui.pick[id]; else ui.pick[id] = 1;
+        sfx('pick', ui.pick[id] ? { n: Object.keys(ui.pick).length } : { off: true });
+        var keep = $('#sheet .sheet-in'), top = keep ? keep.scrollTop : 0;
+        renderSheet(); keep = $('#sheet .sheet-in'); if (keep) keep.scrollTop = top;
+        var row = $('#sheet .row[data-uid="' + id + '"]'); if (row && !reduce) row.classList.add('pop');
+        break;
       case 'move-start': startMove(); break;
+      case 'move-undo': undoMoves(); break;
       case 'move-cancel': ui.mv = null; refreshAll(); break;
       case 'build': res = E.build(ui.sel, el.getAttribute('data-key')); if (res.error) oops(res.error); else { sfx('build'); toast(E.facLabel(ui.sel, el.getAttribute('data-key'), true) + 'の工事を始めた'); save(); ui.sub = null; refreshAll(); } break;
       case 'keep-going': res = E.keepGoing(); if (res.error) oops(res.error); else { save(); ui.queue = []; closeModal(); sfx('policy'); toast('統一のあとも、季節を進められます'); refreshAll(); } break;
@@ -1387,7 +1439,8 @@
       case 'produce': res = E.produce(ui.sel, el.getAttribute('data-type')); if (res.error) oops(res.error); else { sfx('recruit'); toast('編成を始めた'); save(); ui.sub = null; refreshAll(); } break;
       case 'recruit': res = E.recruit(ui.sel, +el.getAttribute('data-n')); if (res.error) oops(res.error); else { sfx('recruit'); save(); refreshAll(); } break;
       case 'attack': openAttack(); break;
-      case 'atk-toggle': id = +el.getAttribute('data-uid'); if (ui.atk.ids[id]) delete ui.atk.ids[id]; else ui.atk.ids[id] = 1; renderAttack(); break;
+      case 'atk-toggle': id = +el.getAttribute('data-uid'); if (ui.atk.ids[id]) delete ui.atk.ids[id]; else ui.atk.ids[id] = 1;
+        sfx('pick', ui.atk.ids[id] ? { n: Object.keys(ui.atk.ids).length } : { off: true }); renderAttack(); break;   // 出撃を足すたびに、音が一段上がる
       case 'atk-sug': res = E.suggestAttack(ui.atk.tid, 0.9); ui.atk.ids = {}; res.ids.forEach(function (i) { ui.atk.ids[i] = 1; }); if (!res.ok) oops('いまの手持ちでは、勝算9割に届きません'); renderAttack(); break;
       case 'atk-all': ui.atk.ids = {}; E.attackOptions(ui.atk.tid).forEach(function (o) { if (o.ok && !D.UNIT_TYPES[o.u.type].nuke) ui.atk.ids[o.u.id] = 1; }); renderAttack(); break;
       case 'nuke-yes': ui.atk.nukeOk = true; goAttack(); break;
