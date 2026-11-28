@@ -247,7 +247,7 @@
 
   function refreshMap() {
     var st = S(); if (!st) return;
-    var m = MAP[ui.map], key = ui.map, over = [], marks = [];
+    var m = MAP[ui.map], key = ui.map, over = [], marks = [], strips = [];
     var mvT = ui.mv ? ui.mv.targets : null;
     $$('#rgs .rg').forEach(function (p) {
       var id = p.getAttribute('data-id');
@@ -330,7 +330,8 @@
             gl += '<g transform="translate(' + ((col - (cnt - 1) / 2) * 12.600).toFixed(1) + ' ' + (gy + row * 16) + ')"><rect class="pl" x="-5.300" y="-5.300" width="10.600" height="10.600" rx="2.500" fill="' + FAC_COLOR[k] + '"/>' +
               '<path fill-rule="evenodd" transform="translate(-4.200 -4.200) scale(.35)" d="' + TF.iconPath(FAC_ICON[k]) + '"/>' + lvMeter(k, +r.fac[k] || 1, 6.500) + '</g>';
           });
-          s += '<g class="fdots">' + dots + '</g><g class="fglyphs">' + gl + '</g>';
+          // 名前や部隊の印より下に重ねる(隣の地域の印を隠さないように、先に描く)
+          strips.push('<g class="mk" data-area="' + gr.area + '" data-rid="' + id + '" data-x="' + gr.c[0] + '" data-y="' + gr.c[1] + '"><g class="fdots">' + dots + '</g><g class="fglyphs">' + gl + '</g></g>');
         }
       }
       var us = E.unitsAt(id);
@@ -343,7 +344,7 @@
       if (own && (r.b || r.p)) s += '<g class="bld" transform="translate(-19 -8)"><circle r="4"/></g>';
       marks.push('<g class="mk" data-area="' + gr.area + '" data-rid="' + id + '" data-x="' + gr.c[0] + '" data-y="' + gr.c[1] + '">' + s + '</g>');
     });
-    $('#marks').innerHTML = marks.join('');
+    $('#marks').innerHTML = strips.join('') + marks.join('');
     placeMarks();
     markVisibility();
   }
@@ -573,7 +574,10 @@
   }
   function showHl() { // 建設の一覧で、選んだ施設の行を見えるところへ
     var sc = $('#sheet .sheet-in'), row = $('#sheet .row.hl');
-    if (sc && row) sc.scrollTop = Math.max(0, row.offsetTop - sc.offsetTop - (sc.clientHeight - row.offsetHeight) / 2);
+    if (!sc || !row) return;
+    var top = row.offsetTop - sc.offsetTop, bottom = top + row.offsetHeight;
+    if (bottom > sc.scrollTop + sc.clientHeight - 8) sc.scrollTop = bottom - sc.clientHeight + 14; // 隠れているときだけ、見えるところまで送る
+    else if (top < sc.scrollTop) sc.scrollTop = Math.max(0, top - 14);
   }
   function renderSheet() {
     var el = $('#sheet'), id = ui.sel, st = S();
@@ -617,11 +621,12 @@
       var voxH = '<div class="vox"><div class="vox-m"><span>民心</span>' + moodBar(r.mood, tg) + '<b class="' + moodCls(r.mood) + '">' + Math.round(r.mood) + '</b>' + (Math.abs(tg - r.mood) >= 1 ? '<small>' + (tg > r.mood ? '↗' : '↘') + ' ' + tg + '</small>' : '') + '</div>' +
         (vx ? '<p><b>' + esc(vx.who) + '</b>「' + esc(vx.t) + '」</p>' : '') +
         '<p class="pop">人口 ' + popText(r.pop) + ' ・ 死亡率 ' + E.vitals(id).d.toFixed(0) + '‰ ・ 出生率 ' + E.vitals(id).b.toFixed(0) + '‰<small>(千人あたり・年)</small></p></div>';
-      var th = st.threats.filter(function (t) { return t.to === id; });
+      var th = st.threats.filter(function (t) { return t.to === id; }), ton = E.threatOn(id);
       th.forEach(function (t) {
         var A = st.regions[t.from].g * 0.7 / E.MEN * st.factions[t.f].q * D.DIFFICULTY[st.diff].enemy * (t.sea ? 0.7 : 1);
-        h += '<p class="note bad" style="border-color:var(--bad)">' + esc(E.fname(t.f)) + 'が' + esc(reg(t.from).name) + 'から攻めてくる(戦力 約' + fmt(A) + ')。守りの戦力がこれを上回れば退けられる。</p>';
+        h += '<p class="note bad" style="border-color:var(--bad)">' + esc(E.fname(t.f)) + 'が' + esc(reg(t.from).name) + 'から攻めてくる(戦力 約' + fmt(A) + ')。' + (ton.joint ? '' : '守りの戦力がこれを上回れば退けられる。') + '</p>';
       });
+      if (ton.joint) h += '<p class="note bad" style="border-color:var(--bad)"><b>敵は力を合わせて攻めてくる。合わせた戦力は 約' + fmt(ton.power) + '。</b>守りの戦力(いま ' + fmt(E.defensePower(id)) + ')がこれを上回れば退けられる。</p>';
       h += '<div class="sec">施設<span class="hint">札を押すと、建設と格上げへ</span></div><div class="facs">' + facTiles(id) + '</div>';
       if (r.b) { var rc = E.rushCost(id); h += '<p class="note">' + E.facLabel(id, r.b.k, true) + 'を建設中(あと' + r.b.t + '季)' + (rc != null ? ' <button class="btn sm" data-act="rush"' + (rc <= st.res.gold ? '' : ' disabled') + '>急がせる ' + costHTML({ gold: rc }) + '</button>' : '') + '</p>'; }
       if (r.p) h += '<p class="note">' + esc(D.UNIT_TYPES[r.p.type].name) + 'を編成中(あと' + r.p.t + 'ターン)</p>';
@@ -673,7 +678,7 @@
     E.buildOptions(id).forEach(function (o) {
       var st = o.built ? '<b class="good">済</b>' : (o.building ? '<b class="warn">建設中</b>' : '<b>' + o.turns + '季</b>');
       h += '<button class="row' + (o.built ? ' done' : (o.ok ? '' : ' off')) + (ui.hl === o.key ? ' hl' : '') + '" data-act="build" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(FAC_ICON[o.key], 'big') +
-        '<div><h3>' + o.name + (o.upgrade ? ' <span class="tag gold">格上げ</span>' : '') + (o.amount ? ' <span class="dim" style="font-weight:400">埋蔵 ' + o.amount + '</span>' : '') + '</h3><p>' + o.effect + '</p><p>' + (o.built ? '' : costHTML(o.cost)) + (o.why && !o.built ? ' <span class="' + (o.building ? 'warn' : 'bad') + '">' + o.why + '</span>' : '') + '</p></div><div class="side">' + st + (o.max > 1 ? pips(o.level, o.max) : '') + '</div></button>';
+        '<div><h3>' + o.name + (o.upgrade ? ' <span class="tag gold">格上げ</span>' : '') + (o.amount ? ' <span class="dim" style="font-weight:400;white-space:nowrap">埋蔵 ' + o.amount + '</span>' : '') + '</h3><p>' + o.effect + '</p><p>' + (o.built ? '' : costHTML(o.cost)) + (o.why && !o.built ? ' <span class="' + (o.building ? 'warn' : 'bad') + '">' + o.why + '</span>' : '') + '</p></div><div class="side">' + st + (o.max > 1 ? pips(o.level, o.max) : '') + '</div></button>';
     });
     return h + '</div>';
   }
@@ -1299,7 +1304,7 @@
     el.hidden = false; syncMusic();
     if (step === 'diff') {
       h = '<p class="subt">難しさをえらぶ</p><div class="diffs">';
-      Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row" data-act="new-game" data-diff="' + k + '"><span class="fld">' + x.name.charAt(0) + '</span><div><h3>' + x.name + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
+      Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row' + (k === 'hell' ? ' hell' : '') + '" data-act="new-game" data-diff="' + k + '"><span class="fld">' + x.name.charAt(0) + '</span><div><h3>' + x.name + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
       h += '</div>' + (has ? '<p class="seal warn">いまのセーブデータは上書きされます。</p>' : '') + '<div class="acts"><button class="btn" data-act="title-back">もどる</button></div>';
     } else {
       h = '<p class="subt">戦国タイムスリップ戦略</p><h1>天下布<span>鳥</span></h1><div class="flock">' + birdSVG('dario') + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +

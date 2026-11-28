@@ -457,6 +457,14 @@
       Object.keys(S.factions).forEach(function (fid) { S.factions[fid].pride = Math.max(10, S.factions[fid].pride - 5); });
       events.push(ev('event', '天下統一! 日本は一つになった。', { big: { title: '天下統一', body: '蝦夷から薩摩まで、すべての国が一つの旗の下に入った。元号は「天鳥」と改められた。鳥たちはすでに、世界地図を広げている。——次は、海の向こうだ。', bird: 'gin', fanfare: true } }));
     }
+    if (diff().siege && S.flags.siege == null && S.flags.unified == null && S.flags.asi == null && jp.filter(isP).length >= diff().siege) {
+      S.flags.siege = S.turn; mark('bad', '諸国の大名が、包囲網を結ぶ。不可侵の約束は反故になった。');
+      Object.keys(S.factions).forEach(function (fid) {
+        var f = S.factions[fid]; if (!f.alive || !isJp(fid)) return;
+        f.war = true; f.pact = 0; f.trade = false; f.awe = 0; f.att = Math.min(f.att, -20);
+      });
+      events.push(ev('event', '諸国の大名が「包囲網」を結んだ。', { big: { title: '包囲網', body: '京の将軍の御内書が、諸国へ飛んだ。「異形の軍を討て」。昨日まで槍を交えていた家々が、こぞって兵をこちらへ向ける。不可侵の約束は、すべて反故になった。\n隣り合う敵は、示し合わせて同じ土地へ攻めてくる。国境の守りを、一つずつ確かめてほしい。', bird: 'gin' } }));
+    }
     var wOwned = w.filter(isP).length;
     if (!S.flags.coalition && wOwned >= (diff().coal || 18)) {
       S.flags.coalition = S.turn; mark('bad', '残る世界の国々が、対日大同盟を結ぶ。');
@@ -919,32 +927,45 @@
     });
   }
 
-  function resolveThreat(t) {
-    var from = S.regions[t.from], to = S.regions[t.to], f = S.factions[t.f];
-    if (!f || !f.alive || !f.war || from.o !== t.f || to.o !== 'player') return;
-    var attackers = r100(from.g * 0.7); if (attackers <= 0) return;
-    var A = attackers / MEN * fq(t.f) * (t.sea ? 0.7 : 1) * (0.9 + rnd() * 0.2);
+  // 同じ土地へ向かう軍勢を裁く。ふつうは一手ずつ。修羅では、同じ季節に同じ土地へ向かう軍勢が力を合わせる
+  function resolveThreats(ts) {
+    var rid = ts[0].to, to = S.regions[rid];
+    ts = ts.filter(function (t) { var f = S.factions[t.f]; return f && f.alive && f.war && S.regions[t.from].o === t.f && r100(S.regions[t.from].g * 0.7) > 0; });
+    if (to.o !== 'player' || !ts.length) return;
+    var A = 0, names = [];
+    ts.forEach(function (t) { t.men = r100(S.regions[t.from].g * 0.7); t.A = t.men / MEN * fq(t.f) * (t.sea ? 0.7 : 1); A += t.A; });
+    A *= 0.9 + rnd() * 0.2;
+    ts.sort(function (x, y) { return y.A - x.A; });
+    ts.forEach(function (t) { var n = fname(t.f); if (names.indexOf(n) < 0) names.push(n); });
+    var lead = ts[0], who = names.slice(0, 3).join('と') + (names.length > 3 ? 'ら' : '');
     // 守る自衛隊は弾を使う
-    var here = unitsAt(t.to), ammoNeed = 0;
+    var here = unitsAt(rid), ammoNeed = 0;
     here.forEach(function (u) { ammoNeed += Math.ceil(ustat(u).ammo * 0.5); });
-    var Dp = defensePower(t.to);
+    var Dp = defensePower(rid);
     if (ammoNeed > S.res.ammo) { var up = 0; here.forEach(function (u) { up += ustat(u).def * u.hp / 100; }); Dp -= up * 0.6; ammoNeed = S.res.ammo; }
     S.res.ammo -= ammoNeed; S.stats.ammoUsed += ammoNeed;
     if (A > Dp) {
-      to.o = t.f; to.g = r100(attackers * 0.6); from.g = Math.max(0, from.g - attackers); to.b = null; to.p = null;
-      var esc = links(t.to).filter(function (l) { return isP(l.id) && !l.sea; })[0] || links(t.to).filter(function (l) { return isP(l.id); })[0];
+      to.o = lead.f; to.g = r100(lead.men * 0.6); to.b = null; to.p = null;
+      ts.forEach(function (t) { var from = S.regions[t.from]; from.g = Math.max(0, from.g - (t === lead ? t.men : r100(t.men * 0.3))); }); // 城に入るのは、いちばんの大軍
+      var esc = links(rid).filter(function (l) { return isP(l.id) && !l.sea; })[0] || links(rid).filter(function (l) { return isP(l.id); })[0];
       var lost = [];
       here.forEach(function (u) { if (esc) { u.loc = esc.id; u.hp = Math.max(1, u.hp - 20); } else { u.hp = 0; lost.push(u.name); } });
       S.units = S.units.filter(function (u) { return u.hp > 0; });
       S.prestige = Math.max(0, S.prestige - 3);
-      ev('bad', fname(t.f) + 'に' + rname(t.to) + 'を奪われた。' + (lost.length ? lost.join('・') + 'が壊滅した。' : (here.length ? '部隊は' + rname(esc.id) + 'へ退いた。' : '')), { rid: t.to, fid: t.f });
+      ev('bad', who + 'に' + rname(rid) + 'を奪われた。' + (lost.length ? lost.join('・') + 'が壊滅した。' : (here.length ? '部隊は' + rname(esc.id) + 'へ退いた。' : '')), { rid: rid, fid: lead.f });
     } else {
       var k = clamp(0.3 + 0.3 * (Dp / Math.max(1, A)), 0.3, 0.9);
-      from.g = Math.max(0, r100(from.g - attackers * k));
+      ts.forEach(function (t) { var from = S.regions[t.from]; from.g = Math.max(0, r100(from.g - t.men * k)); });
       to.g = r100(to.g * (1 - clamp(0.25 * A / Math.max(1, Dp), 0.02, 0.3)));
       here.forEach(function (u) { u.hp = Math.max(1, u.hp - Math.min(12, Math.round(6 * A / Math.max(1, Dp)))); });
-      ev('good', rname(t.to) + 'に攻め寄せた' + fname(t.f) + 'の軍勢を退けた。', { rid: t.to, fid: t.f });
+      ev('good', rname(rid) + 'に攻め寄せた' + who + 'の軍勢を退けた。', { rid: rid, fid: lead.f });
     }
+  }
+  // その土地へ、次の季節に向かってくる敵の戦力(修羅では合わせた力、ふつうはいちばん強い一手)
+  function threatOn(rid) {
+    var list = S.threats.filter(function (t) { return t.to === rid; }), sum = 0, max = 0;
+    list.forEach(function (t) { var A = S.regions[t.from].g * 0.7 / MEN * fq(t.f) * (t.sea ? 0.7 : 1); sum += A; max = Math.max(max, A); });
+    return { n: list.length, joint: !!diff().gang && list.length > 1, power: diff().gang ? sum : max };
   }
   function planThreats() {
     if (S.flags.asi != null) return;   // 調和圏に槍を向ける者は、もういない
@@ -965,6 +986,21 @@
           ev('warn', fname(fid) + 'が' + rname(rid) + 'から' + rname(best.id) + 'をうかがっている。次の季節に攻めてくる。', { rid: best.id, fid: fid });
         }
       });
+    });
+    if (dd.gang) playerRegions().forEach(function (pid) { // 修羅:一国では届かない守りにも、隣り合う敵が示し合わせて攻めかかる
+      if (S.threats.some(function (t) { return t.to === pid; })) return;
+      var Dp = defensePower(pid), sum = 0, cand = [], names = [];
+      links(pid).forEach(function (l) {
+        var o = S.regions[l.id].o, f = S.factions[o];
+        if (o === 'player' || !f || !f.alive || !f.war || f.pact > 0) return;
+        if (l.sea && D.REGIONS[l.id].map !== D.REGIONS[pid].map && !dd.sea) return;
+        if (S.threats.some(function (t) { return t.from === l.id; })) return;
+        var A = S.regions[l.id].g * 0.7 / MEN * fq(o) * (l.sea ? 0.7 : 1);
+        if (A > 0) { sum += A; cand.push({ rid: l.id, f: o, sea: l.sea }); if (names.indexOf(fname(o)) < 0) names.push(fname(o)); }
+      });
+      if (cand.length < 2 || sum < Dp * (dd.edge || 1.2) || rnd() >= (dd.raid || 0.4)) return;
+      cand.forEach(function (c) { S.threats.push({ from: c.rid, to: pid, f: c.f, turn: S.turn + 1, sea: c.sea }); });
+      ev('warn', names.slice(0, 3).join('と') + (names.length > 3 ? 'ら' : '') + 'が' + (names.length > 1 ? '示し合わせて' : '兵を集めて') + rname(pid) + 'をうかがっている。次の季節に、力を合わせて攻めてくる。', { rid: pid, fid: cand[0].f });
     });
   }
   // 修羅:強い国が、隣の弱い国を呑みこんで大きくなる
@@ -1067,7 +1103,11 @@
     var due = S.threats.filter(function (t) { return t.turn <= S.turn + 1; });
     S.threats = S.threats.filter(function (t) { return t.turn > S.turn + 1; });
     S.turn++;
-    due.forEach(resolveThreat);
+    if (diff().gang) { // 同じ土地へ向かう軍勢は、まとめて裁く
+      var groups = {}, order = [];
+      due.forEach(function (t) { if (!groups[t.to]) { groups[t.to] = []; order.push(t.to); } groups[t.to].push(t); });
+      order.forEach(function (id) { resolveThreats(groups[id]); });
+    } else due.forEach(function (t) { resolveThreats([t]); });
     runHistory();
     aiDeclare();
     planThreats();
@@ -1378,7 +1418,10 @@
   function autoGuard() { // 狙われた土地と前線に、守備兵を足す
     var men = 0, dist = frontDist(), reserve = autoReserve() * 0.5;
     function add(id) { if (S.res.gold < reserve + 15 || S.res.food < 60) return false; var r = recruit(id, 1000); if (r.ok) men += r.n; return !!r.ok; }
-    S.threats.forEach(function (t) {
+    if (diff().gang) { // 修羅:示し合わせて来る敵の、合わせた戦力に備える
+      var aimed = []; S.threats.forEach(function (t) { if (aimed.indexOf(t.to) < 0) aimed.push(t.to); });
+      aimed.forEach(function (id) { var need = threatOn(id).power * 1.15; for (var g = 0; g < 40 && defensePower(id) < need * 1.1; g++) if (!add(id)) break; });
+    } else S.threats.forEach(function (t) {
       var from = S.regions[t.from], A = from.g * 0.7 / MEN * fq(t.f) * (t.sea ? 0.7 : 1) * 1.15;
       for (var g = 0; g < 30 && defensePower(t.to) < A * 1.1; g++) if (!add(t.to)) break;
     });
@@ -1435,7 +1478,8 @@
     var warned = {};
     S.threats.forEach(function (t) {
       if (warned[t.to]) return; warned[t.to] = 1;
-      h('gin', rname(t.to) + 'が' + fname(t.f) + 'に狙われています。守備隊を増やすか、部隊を置いてください。', t.to, 1);
+      var on = threatOn(t.to);
+      h('gin', rname(t.to) + 'が' + (on.joint ? '複数の敵に、示し合わせて' : fname(t.f) + 'に') + '狙われています' + (on.joint ? '(合わせた戦力 約' + Math.round(on.power) + '、守りは ' + Math.round(defensePower(t.to)) + ')' : '') + '。守備隊を増やすか、部隊を置いてください。', t.to, 1);
     });
     if (mine.length === 1 && S.turn < 4) {
       var first = links(mine[0]).filter(function (l) { return !isP(l.id) && !l.sea; }).sort(function (x, y) { return enemyPower(x.id) - enemyPower(y.id); })[0];
@@ -1501,7 +1545,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

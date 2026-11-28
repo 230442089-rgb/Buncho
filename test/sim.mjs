@@ -130,9 +130,10 @@ function botTurn(log) {
   // 脅威への備え
   for (const t of AUTO ? [] : S.threats) {
     const from = S.regions[t.from];
-    const A = from.g * 0.7 / E.MEN * (S.factions[t.f].q) * D.DIFFICULTY[S.diff].enemy * 1.15;
+    // 修羅では、同じ土地へ向かう敵が力を合わせる。画面に出る「合わせた戦力」を見て備える
+    const A = (D.DIFFICULTY[S.diff].gang ? E.threatOn(t.to).power : from.g * 0.7 / E.MEN * (S.factions[t.f].q) * D.DIFFICULTY[S.diff].enemy) * 1.15;
     let guard = 0;
-    while (E.defensePower(t.to) < A * 1.1 && guard++ < 30) { const r = E.recruit(t.to, 1000); if (!r.ok) break; }
+    while (E.defensePower(t.to) < A * 1.1 && guard++ < 40) { const r = E.recruit(t.to, 1000); if (!r.ok) break; }
   }
   // 国境の最低限の守り
   for (const id of AUTO ? [] : frontier()) {

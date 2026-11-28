@@ -341,16 +341,59 @@ section('施設の段と、それを解く研究', () => {
 section('難易度「修羅」', () => {
   const count = (diff, turns) => {
     E.newGame({ difficulty: diff, seed: 77 });
-    const S = E.S; let war = 0, feud = 0, raid = 0;
+    const S = E.S; let feud = 0, thr = 0;
     for (const id of ['sagami', 'suruga', 'kai', 'musashi', 'kozuke', 'shinano']) S.regions[id].o = 'player';
-    for (let i = 0; i < turns; i++) { for (const id of E.playerRegions()) S.regions[id].g = 800; S.res.gold = 5000; S.res.food = 5000; const r = E.endTurn(); for (const e of r.events) { if (/兵を向けた/.test(e.t)) war++; if (/攻め取った/.test(e.t)) feud++; if (/うかがっている/.test(e.t)) raid++; } if (S.over) break; }
-    return { war, feud, raid, q: S.factions.mori.q, base: D.FACTIONS.mori.q };
+    for (let i = 0; i < turns; i++) {
+      for (const id of E.playerRegions()) S.regions[id].g = 800; S.res.gold = 5000; S.res.food = 5000;
+      const r = E.endTurn(); for (const e of r.events) if (/攻め取った/.test(e.t)) feud++;
+      thr += S.threats.length; if (S.over) break;
+    }
+    return { feud, thr, q: S.factions.mori.q, base: D.FACTIONS.mori.q };
   };
   const n = count('normal', 30), h = count('hell', 30);
   ok(D.DIFFICULTY.hell && D.DIFFICULTY.hell.name === '修羅', '難易度の一覧にある');
-  ok(h.war + h.raid >= (n.war + n.raid) * 1.4 && h.war > n.war && h.war + h.raid >= 8, '宣戦と侵攻が多い(実戦 ' + (n.war + n.raid) + ' / 修羅 ' + (h.war + h.raid) + ')');
+  ok(h.thr > n.thr && h.thr >= 8, '攻めてくる回数が多い(実戦 ' + n.thr + ' / 修羅 ' + h.thr + ')');
   ok(h.feud >= 3 && n.feud === 0, '強国が弱国を呑みこむ(修羅 ' + h.feud + ' 回)');
   ok(h.q > h.base + 0.1 && n.q === n.base, '年を追うごとに兵の質が上がる(' + h.base + ' → ' + h.q + ')');
+
+  // 包囲網:日本で六つめの国を取ると、諸大名がこぞって敵になる
+  const siege = (diff, extra) => {
+    E.newGame({ difficulty: diff, seed: 3 });
+    const S = E.S;
+    for (const id of extra) { S.regions[id].o = 'player'; S.regions[id].g = 60000; }
+    for (const f of Object.values(S.factions)) { f.war = false; f.pact = 8; }
+    const r = E.endTurn();
+    const jp = Object.keys(S.factions).filter(f => S.factions[f].alive && E.factionRegions(f).length && D.REGIONS[E.factionRegions(f)[0]].map === 'jp');
+    return { flag: S.flags.siege, card: r.events.some(e => e.big && e.big.title === '包囲網'), allWar: jp.every(f => S.factions[f].war && !S.factions[f].pact), anyWar: jp.some(f => S.factions[f].war), chron: S.chron.some(c => /包囲網/.test(c.t)) };
+  };
+  const s5 = siege('hell', ['sagami', 'suruga', 'kai', 'musashi']), s6 = siege('hell', ['sagami', 'suruga', 'kai', 'musashi', 'kozuke']), sn = siege('normal', ['sagami', 'suruga', 'kai', 'musashi', 'kozuke', 'shinano']);
+  ok(s5.flag == null && !s5.card, '五つまでは、包囲網は結ばれない');
+  ok(s6.flag != null && s6.card && s6.allWar && s6.chron, '六つめで包囲網。日本の大名がみな敵になり、不可侵は反故になる');
+  ok(sn.flag == null && !sn.card && !sn.anyWar, '実戦では、包囲網は起きない');
+
+  // 示し合わせた攻め:一国ずつでは届かない守りを、隣り合う二国が合わせて破る
+  const gang = diff => {
+    E.newGame({ difficulty: diff, seed: 9 });
+    const S = E.S, P = 'suruga', X = 300, en = D.DIFFICULTY[diff].enemy;
+    S.regions[P].o = 'player';
+    const foes = E.links(P).filter(l => !l.sea && S.regions[l.id].o !== 'player').map(l => l.id);
+    const set = () => {
+      for (const f of Object.values(S.factions)) { f.war = false; f.pact = 0; }
+      for (const id of foes) { const f = S.factions[S.regions[id].o]; f.war = true; S.regions[id].g = Math.round(X * 50 / (0.7 * f.q * en)); }
+      let g = 100; do { S.regions[P].g = g; g += 100; } while (E.defensePower(P) < X * 1.5);   // 守りは、敵一国ぶんの 1.5 倍
+      S.res.gold = 5000; S.res.food = 5000;
+    };
+    let planned = null;
+    for (let i = 0; i < 6 && !planned; i++) { set(); S.threats = []; E.endTurn(); if (S.regions[P].o !== 'player') break; if (S.threats.some(t => t.to === P)) planned = { n: S.threats.filter(t => t.to === P).length, on: E.threatOn(P), dp: E.defensePower(P) }; }
+    if (!planned) return { foes: foes.length, planned: null, held: S.regions[P].o === 'player' };
+    const r = E.endTurn();
+    return { foes: foes.length, planned, held: S.regions[P].o === 'player', text: (r.events.find(e => /奪われた|退けた/.test(e.t)) || {}).t };
+  };
+  const gh = gang('hell'), gn = gang('normal');
+  ok(gh.foes >= 2, '駿河は二国以上と陸でつながる(' + gh.foes + ')');
+  ok(gh.planned && gh.planned.n >= 2 && gh.planned.on.joint && gh.planned.on.power > gh.planned.dp, '修羅:隣り合う敵がそろって予告を出し、合わせた戦力が守りを上回る(' + JSON.stringify(gh.planned) + ')');
+  ok(gh.planned && !gh.held && /と/.test(gh.text || ''), '修羅:合わせた力で奪われる(' + gh.text + ')');
+  ok(!gn.planned && gn.held, '実戦:同じ守りでも、一国ずつでは攻めてこない');
 });
 
 section('民の声(全地域・全時代)', () => {
