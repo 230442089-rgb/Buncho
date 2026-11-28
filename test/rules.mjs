@@ -508,6 +508,135 @@ section('全軍で進む(攻め落とした土地へ、部隊が続く)', () => 
   ok(E.setAuto({ follow: false }).follow === false, '切れる');
 });
 
+section('鳥たちの夢(最後の兵器と、禁断の手術)', () => {
+  const T = id => D.TECHS.find(t => t.id === id), cost = id => T(id).cost;
+  ok(['bundam', 'bunchorion', 'birdify', 'buncho2'].every(id => T(id) && T(id).tier === 9), '第九段階に、四つの研究がある');
+  ok(T('birdify').manual && T('birdify').taboo && T('buncho2').manual && T('buncho2').taboo && !T('bundam').manual && !T('bunchorion').manual, '手術の二つは「司令の命令で」。兵器の二つは、鳥たちが自分で進める');
+  ok(T('birdify').req.includes('bunchorion') && T('buncho2').req.includes('birdify'), '鳥化手術は汎用型鳥造決戦兵器のあと、ブンーチョウ手術は鳥化手術のあと');
+  const fresh = (seed, upto) => {   // upto: 'pre' なら第八段階まで、'all' なら兵器の研究まで済んでいる
+    E.newGame({ seed }); const S = E.S;
+    for (const t of D.TECHS) if (!t.manual && (upto === 'all' || t.tier < 9)) S.techs[t.id] = true;
+    for (const f of Object.values(S.factions)) { f.war = false; f.pact = 99; f.trade = false; }
+    S.res.gold = 90000; S.res.steel = 90000; S.res.food = 900; S.autoResearch = true;
+    return S;
+  };
+  const finish = tid => { const S = E.S; D.BIRDS.forEach(b => E.assign(b.id, tid)); S.prog[tid] = cost(tid) - 1; return E.endTurn(); };   // 司令が命じて、次の季節に成る
+  const win = () => { const S = E.S; for (const id of Object.keys(S.regions)) S.regions[id].o = 'player'; return E.endTurn(); };
+  const tog = (flag, fn) => { const S = E.S, v = S.flags[flag]; delete S.flags[flag]; const a = fn(); S.flags[flag] = v; return [a, fn()]; };   // その手術が無かった場合と、くらべる
+
+  // ── 鳥たちは、兵器までは自分で進める。手術には手を付けない ──
+  let S = fresh(41, 'pre');
+  ok(E.bunPush() === null && E.techStatus('birdify') === 'locked', '兵器が成るまでは、手術は研究できない');
+  E.autoAssign();
+  ok(D.BIRDS.every(b => ['bundam', 'bunchorion'].includes(S.assign[b.id])), '手の空いた鳥は、ブンダムと汎用型鳥造決戦兵器に取りかかる');
+  let intro = 0; const isIntro = e => e.big && e.big.title === '鳥たちの上申';
+  for (let i = 0; i < 14 && !(S.techs.bundam && S.techs.bunchorion); i++) intro += E.endTurn().events.filter(isIntro).length;
+  ok(S.techs.bundam && S.techs.bunchorion && D.BIRDS.every(b => !S.assign[b.id]) && !E.autoTechLeft(), '二つとも成ると、鳥たちの手が空く(手術には、自分からは手を付けない)');
+  ok(E.bunPush() === 'birdify' && E.manualAvail().includes('birdify') && !E.manualAvail().includes('buncho2'), 'いま勧めてくるのは、鳥化手術');
+  // ── やけに勧めてくる ──
+  const n0 = S.stats.nag || 0, seen = new Set();
+  let r, last = null;
+  for (let i = 0; i < 7; i++) { r = E.endTurn(); intro += r.events.filter(isIntro).length; const g = r.events.filter(e => e.k === 'bird'); if (g.length === 1 && g[0].bun === 'birdify' && D.BIRDS.some(b => b.id === g[0].bird)) { seen.add(g[0].t); last = g[0]; } }
+  ok(seen.size === 7 && S.stats.nag === n0 + 7, '毎季、一羽ずつ、ちがう言い方で勧めにくる(7季で7通り): ' + (last ? last.t.slice(0, 22) : '') + '…');
+  ok(intro === 1 && S.chron.filter(c => /上申/.test(c.t)).length === 1, '最初の季節に一度だけ、七羽がそろって上申に来る');
+  let hs = E.hints();
+  ok(hs.filter(h => h.bird !== 'dario' && /鳥化手術/.test(h.text)).length === 2 && hs.some(h => h.bird === 'dario' && /私は、勧めません/.test(h.text) && /\d+ 通/.test(h.text)), '進言でも、鳥が二羽勧め、ダリオくんだけが勧めない');
+  ok(!hs.some(h => /司令がご自分でお決めください/.test(h.text) && /鳥化手術/.test(h.text)), '控えめな進言(核兵器・超知能)には、手術は入らない');
+  ok(D.BIRDS.every(b => !S.assign[b.id]) && !S.techs.birdify && !(S.prog.birdify > 0), 'どれだけ勧められても、命じなければ進まない');
+  S.autoResearch = true; E.autoAssign();
+  ok(D.BIRDS.every(b => !S.assign[b.id]), '「手の空いた鳥におまかせ」でも、手術には取りかからない');
+  // ── 鳥化手術 ──
+  D.BIRDS.forEach(b => E.assign(b.id, 'birdify'));
+  r = E.endTurn();
+  ok(r.events.filter(e => e.k === 'bird').every(e => !D.BUN.nag.birdify.some(x => x.t === e.t)), '命じたあとは、勧めるのをやめる(研究棟のようすだけが届く)');
+  const att0 = S.factions.hojo.att; let big = null, attDrop = null;
+  for (let i = 0; i < 30 && !S.techs.birdify; i++) { const a = S.factions.hojo.att; r = E.endTurn(); big = r.events.find(e => e.big && e.big.bun) || big; if (S.techs.birdify) attDrop = a - S.factions.hojo.att; }
+  ok(S.techs.birdify && E.bunStage() === 1 && big && big.big.title === '鳥化手術' && big.big.bun === 1 && S.chron.some(c => c.k === 'bun'), '鳥化手術が成ると、節目の知らせと年表が残る');
+  ok(attDrop === 15, '諸国の友好 −15(' + att0 + ' → ' + S.factions.hojo.att + ')');
+  let [f0, f1] = tog('bun', () => E.income().upkeep.food), [m0, m1] = tog('bun', () => E.moodTarget('izu'));
+  ok(Math.abs(f1 - f0 * 0.7) < 1e-9 && m1 === m0 + 10, '兵糧の消費 −30%、民心 +10(消費 ' + f0.toFixed(1) + ' → ' + f1.toFixed(1) + ')');
+  ok(E.bunRate() > 0 && E.bunRate() <= 55 && E.nation().name !== 'B.U.N society', '鳥になった民は半分ほどまで。国の名は、まだ変わらない');
+  // 海を、輸送艦なしで渡る
+  S.regions.sagami.o = 'player'; S.units = S.units.filter(u => D.UNIT_TYPES[u.type].cls !== 'naval');
+  const foot = S.units.find(u => u.type === 'inf'); foot.loc = 'sagami';
+  let [pa, pb] = tog('bun', () => E.predictAttack('boso', [foot.id]).problems.some(x => /海上輸送力/.test(x)));
+  ok(pa === true && pb === false, '房総へ、輸送艦なしで上陸できる(手術の前は、船が要る)');
+  S.regions.boso.o = 'player';
+  let [ma, mb] = tog('bun', () => { const t = E.moveTargets([foot.id]).boso; return !!(t && t.ok); });
+  ok(ma === false && mb === true, '自領どうしも、海を飛んで移れる');
+  ok(E.voices(6).length > 0 && [1, 2, 3, 4, 5, 6].some(k => { S.turn += 1; const v = E.voice('izu'); return v && D.VOICES.bun.some(x => x.t === v.t); }), '民の声に、鳥になった者の声がまじる');
+  // ── すぐに、次を勧めてくる ──
+  ok(E.bunPush() === 'buncho2', '鳥化手術が成ると、こんどはブンーチョウ手術を勧めてくる');
+  r = E.endTurn();
+  ok(r.events.some(e => e.k === 'bird' && e.bun === 'buncho2'), 'ブンーチョウ手術の勧めが届く');
+  // ── ブンーチョウ手術 ──
+  S.factions.imagawa.att = 10; S.factions.imagawa.pride = 30; S.factions.imagawa.pact = 0;
+  r = finish('buncho2');
+  ok(S.techs.buncho2 && E.bunStage() === 2 && r.events.some(e => e.big && e.big.bun === 2 && e.big.title === 'B.U.N society'), 'ブンーチョウ手術が成ると、「B.U.N society」の知らせ');
+  ok(E.nation().name === 'B.U.N society' && E.bunRate() === 100 && !r.events.some(e => e.big && e.big.nation != null), '国の名が「B.U.N society」になる(国号改めの知らせは、別には出ない)。鳥になった民 100%');
+  [f0, f1] = tog('bun2', () => E.income().upkeep.food); [m0, m1] = tog('bun2', () => E.moodTarget('izu'));
+  ok(Math.abs(f1 / f0 - 0.5 / 0.7) < 1e-9 && m1 === m0 + 5, '兵糧の消費は −50% に、民心は +15 に');
+  const [r0, r1] = tog('bun2', () => E.researchMult()), [d0, d1] = tog('bun2', () => E.defensePower('boso')), [c0, c1] = tog('bun2', () => E.submitChance('imagawa'));
+  ok(Math.abs(r1 - r0 * 1.5) < 1e-9, '研究速度 +50%');
+  ok(Math.abs(d1 - d0 * 1.5) < 1e-6 && d0 > 0, '守備隊の戦力 1.5倍(房総 ' + Math.round(d0) + ' → ' + Math.round(d1) + ')');
+  const ashi = give('ashi'), [a0, a1] = tog('bun2', () => E.ustat(ashi).atk);
+  ok(Math.abs(a1 - a0 * 1.5) <= 1, '現地歩兵団の戦力 1.5倍');
+  ok(c0 > 0 && c0 < 80 && c1 === c0 + 15, '降伏勧告の成功率 +15(' + c0 + ' → ' + c1 + ')');
+  ok(D.VOICES.bun2.some(x => x.t === E.voice('izu').t), '民の声は、文鳥の声になる: ' + E.voice('izu').t);
+  r = E.endTurn();
+  ok(E.bunPush() === null && !r.events.some(e => e.k === 'bird'), '勧めるものが、もう無い');
+  const j = E.serialize(); E.load(j); S = E.S;
+  ok(E.serialize() === j && E.bunStage() === 2 && E.nation().name === 'B.U.N society', 'セーブの往復で変わらない');
+  // ── 結末 ──
+  r = win();
+  let e = r.events.find(x => x.big && x.big.bun === 2 && /くわえて、持っていかれた/.test(x.big.body));
+  ok(S.over && S.over.win && S.over.bun === 2 && e && !/\{date\}/.test(e.big.body) && /人と鳥の区別/.test(e.big.body), '地球を一つにすると、結末は「B.U.N society」(ブンーチョウ手術まで)');
+  S = fresh(42, 'all'); finish('birdify'); r = win(); e = r.events.find(x => x.big && x.big.bun === 1 && /人の半分は/.test(x.big.body));
+  ok(S.over.win && S.over.bun === 1 && e && E.nation().name === 'B.U.N society', '鳥化手術だけでも、結末は「B.U.N society」になる。国の名も、そこで変わる');
+  S = fresh(43, 'all'); r = win();
+  ok(S.over.win && !S.over.bun && E.nation().name === '惑星日本' && !r.events.some(x => x.big && x.big.bun), '手術を命じなければ、結末は変わらない(惑星日本)');
+  S = fresh(44, 'all'); finish('asi'); finish('birdify'); r = win();
+  ok(S.flags.asi != null && S.over.win && S.over.bun === 1 && S.over.asi === true && E.nation().name === 'B.U.N society', '超知能を起こしていても、手術を進めていれば「B.U.N society」になる');
+  S = fresh(45, 'all'); win(); ok(S.over.win && !S.over.bun, '(先に、ふつうに統一する)');
+  E.keepGoing(); r = finish('birdify');
+  ok(S.over.bun === 1 && r.events.some(x => x.big && x.big.bun === 1) && E.nation().name === 'B.U.N society', '統一のあとで手術を進めても、結末は「B.U.N society」に変わる');
+
+  // ── 三つの兵器 ──
+  S = fresh(47, 'all'); S.regions.izu.fac.arsenal = 1; S.regions.izu.fac.airfield = 1; S.regions.izu.fac.bauxite = 1; S.regions.izu.ctl = 100; S.res.food = 1200;
+  let po = Object.fromEntries(E.produceOptions('izu').map(o => [o.type, o]));
+  ok(po.bundam && po.bundam.ok && po.inkorion && po.inkorion.ok && po.bunchorion && !po.bunchorion.ok && po.bunchorion.why === '兵糧不足', '工廠でブンダム、飛行場でインコリオンを作れる。ブンチョリオンは粟(兵糧 1500)が要る');
+  ok(E.produce('izu', 'bundam').ok && S.res.gold === 90000 - 8000 && S.res.steel === 90000 - 4000, 'ブンダムの建造に、資金 8000 と鉄鋼 4000');
+  for (let i = 0; i < 8 && !S.units.some(u => u.type === 'bundam'); i++) E.endTurn();
+  const made = S.units.find(u => u.type === 'bundam');
+  ok(made && made.name === 'ブンダム1号機' && made.loc === 'izu', '完成すると「ブンダム1号機」と名が付く');
+  E.setAuto({ make: true }); S.regions.izu.p = null; S.res.gold = 90000; S.res.food = 5000;
+  ok(E.autoMake()[0] === 'bunchorion', 'おまかせの編成は、作れるならブンチョリオンから');
+  S.regions.izu.p = null; S.res.gold = 90000; S.res.food = 0;
+  ok(E.autoMake()[0] === 'bundam', '粟が足りなければ、ブンダムを作る');
+  E.setAuto({ make: false }); S.regions.izu.p = null;
+  const tgt = 'suruga', R = S.regions[tgt]; S.factions.imagawa.pact = 0;
+  const bz = give('bunchorion'), bd = give('bundam'), ik = give('inkorion'), ik2 = give('inkorion'), A = E.ustat(bz).atk;
+  const setE = want => { R.g = 1000000; R.gmax = 1000000; R.fort = 0; const k = E.enemyPower(tgt); R.g = Math.round(1000000 * want / k / 100) * 100; R.gmax = R.g; return E.enemyPower(tgt); };
+  // 暴走:劣勢のときだけ
+  setE(A * 0.5); let pr = E.predictAttack(tgt, [bz.id]);
+  ok(!pr.berserk && pr.P === A && !pr.parts[0].tag.includes('暴走'), '優勢なら、ブンチョリオンは暴走しない');
+  setE(A * 1.5); pr = E.predictAttack(tgt, [bz.id]);
+  ok(pr.berserk && pr.P === A * 2 && pr.parts[0].tag.includes('暴走') && pr.chance > 0.9, '劣勢になると暴走して、戦力が2倍になる(勝算 ' + Math.round(pr.chance * 100) + '%)');
+  // 口まね:敵の戦力を3割そぐ(重ねても3割)
+  const p0 = E.predictAttack(tgt, [bd.id]), p1 = E.predictAttack(tgt, [bd.id, ik.id]), p2 = E.predictAttack(tgt, [bd.id, ik.id, ik2.id]);
+  ok(p0.jam === 0 && p1.jam === 0.3 && p1.E0 === p0.E && Math.abs(p1.E - p0.E * 0.7) <= 1 && p2.E === p1.E && p1.parts.some(x => x.tag.includes('口まね')), 'インコリオンが加わると、敵の戦力 −30%(二機いても同じ)');
+  ok(!p1.canCapture === false && E.predictAttack(tgt, [ik.id]).canCapture === false, 'インコリオンだけでは、占領できない(空の兵器)');
+  // 盾:いっしょに戦う部隊の損耗を半分に
+  const base = x => x >= 1 ? Math.min(25, Math.max(0.5, 6 / x)) : Math.min(50, Math.max(10, 12 / Math.max(0.1, x)));
+  const q0 = E.predictAttack(tgt, [bz.id]), q1 = E.predictAttack(tgt, [bz.id, bd.id]);
+  ok(q0.cover === 1 && q1.cover === 0.5 && Math.abs(q1.lossPct - base(q1.ratio) * 0.7 * 0.5) < 1e-9 && Math.abs(q0.lossPct - base(q0.ratio) * 0.7) < 1e-9 && q1.parts.some(x => x.tag.includes('盾')), 'ブンダムがいると、損耗の見込みが半分になる');
+  // 暴走して勝つ:自分も、取った土地も傷む
+  setE(A * 1.5);
+  const res = E.attack(tgt, [bz.id]);
+  ok(res.win && res.berserk && res.events.some(x => /ブンチョリオンが暴走した/.test(x.t)) && S.regions[tgt].mood === 8 && bz.hp <= 90 && bz.loc === tgt, '暴走して攻め落とすと、民心がさらに −20(28 → 8)、機体も傷む(' + bz.hp + '%)');
+  ok(JSON.stringify(D).includes('禁断の手術') && JSON.stringify(D).includes('鳥たちの夢(最後の兵器)'), '説明に「鳥たちの夢(最後の兵器)」と「禁断の手術」がある');
+});
+
 section('燃料と弾薬が尽きたときの助言', () => {
   E.newGame({ seed: 16 });
   const S = E.S, has = re => E.hints().some(h => re.test(h.text));

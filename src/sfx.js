@@ -320,6 +320,14 @@
       tone(t + 0.15, { f0: 62, f1: 24, dur: 6, gain: 0.6, attack: 0.3 });
       tone(t + 0.2, { type: 'triangle', f0: 170, f1: 55, dur: 3.5, gain: 0.3, attack: 0.3 });
     },
+    flock: function (t) { // B.U.N society:数えきれない鳥が、だんだん集まって鳴く。最後に一羽だけ「ぴ」
+      for (var i = 0; i < 26; i++) {
+        var tt = t + Math.pow(i / 26, 0.7) * 1.5 + rnd(0, 0.06), f = rnd(2100, 3900), g = 0.08 + 0.13 * (i / 26);
+        tone(tt, { f0: f, f1: f * rnd(1.3, 1.6), dur: 0.05, gain: g, rev: 0.25 }); tone(tt + 0.045, { f0: f * 1.45, f1: f * 1.05, dur: 0.05, gain: g * 0.7 });
+      }
+      [N.D4, N.A4, N.D5, N['F#5']].forEach(function (f, i) { koto(t + 1.55 + i * 0.09, f, 0.24, 0.4); });
+      tone(t + 2.05, { f0: 2900, f1: 4300, dur: 0.07, gain: 0.3 });
+    },
     asi: function (t) { // 超知能:濁りのない、冷たい和音
       [293.66, 440, 587.33, 880, 1174.66].forEach(function (f, i) { tone(t + i * 0.02, { f0: f, dur: 3.2, gain: 0.1, attack: 0.9 }); });
       tone(t + 0.4, { f0: 2349.32, dur: 2.6, gain: 0.04, attack: 1.0 });

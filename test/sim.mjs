@@ -2,6 +2,7 @@
 //   node test/sim.mjs [難易度=normal] [試行回数=3] [最大ターン=400] [-v]
 // 環境変数: ASI=1 超知能まで研究する / NUKE=1 核兵器を研究して作り、撃つ / MAXATK=n 1ターンの攻撃回数を絞る(ゆっくり遊ぶ人の再現)
 //           AUTO=scarce|study|fuel|gold… 建設・徴兵・編成・移動をエンジンの「おまかせ」に任せる(ボットは外交と攻撃だけ)
+//           BUN=1 鳥化手術とブンーチョウ手術を命じる(結末が「B.U.N society」になるはず)
 //           FOLLOW=1 「全軍で進む」を入れる(攻め落とした土地へ、動ける部隊がすべて続く)
 //           ATK=auto|war 攻撃もおまかせに任せる(勝算九割で仕掛ける。war は交戦中の相手だけ)。AUTO と合わせると、ボットは外交と研究だけ
 //           POL=none 施策を布告しない / POL=all 見守り網まで全部布告する / DUMP_DIR=… 途中のセーブを書き出す
@@ -18,7 +19,7 @@ const VERBOSE = process.argv.includes('-v');
 const DIFF = args[0] || 'normal';
 const RUNS = +(args[1] || 3);
 const MAXT = +(args[2] || 400);
-const WANT_ASI = process.env.ASI === '1', WANT_NUKE = process.env.NUKE === '1';
+const WANT_ASI = process.env.ASI === '1', WANT_NUKE = process.env.NUKE === '1', WANT_BUN = process.env.BUN === '1';   // BUN=1: 鳥たちの勧めに乗って、手術を二つとも命じる
 const MAXATK = +(process.env.MAXATK || 999), POL = process.env.POL || 'default', AUTO = process.env.AUTO || '', ATK = process.env.ATK || '';   // ATK=auto|war: 攻撃もおまかせに任せる
 
 function assertState(tag) {
@@ -48,6 +49,11 @@ function assertState(tag) {
   if (!(S.flags.nation >= 0 && S.flags.nation < D.NATION.length)) throw new Error(`${tag}: 国号が不正 ${S.flags.nation}`);
   if (S.flags.asi != null && S.threats.length) throw new Error(`${tag}: 超知能のあとに脅威が残っている`);
   if (!Number.isFinite(S.prestige)) throw new Error(`${tag}: 威信が不正`);
+  const br = E.bunRate();
+  if (!(br >= 0 && br <= 100) || (S.flags.bun == null) !== (E.bunStage() === 0)) throw new Error(`${tag}: 鳥になった民の割合が不正 ${br}`);
+  if (S.flags.bun2 != null && E.nation().name !== 'B.U.N society') throw new Error(`${tag}: ブンーチョウ手術のあとなのに、国の名が ${E.nation().name}`);
+  if (S.over && S.over.win && (S.flags.bun != null) !== !!S.over.bun) throw new Error(`${tag}: 手術と結末が食いちがっている`);
+  if (!S.over && WANT_BUN === false && S.flags.bun != null) throw new Error(`${tag}: 命じていないのに、手術が進んだ`);
 }
 
 function frontier() { // 敵地と接している自領
@@ -75,6 +81,7 @@ function botTurn(log) {
     const f = S.factions[fid];
     if (!f.alive || S.dipLeft <= 0 || !E.inContact(fid)) continue;
     if (WANT_ASI && S.flags.asi == null && Object.keys(S.regions).filter(id => !E.isP(id)).length <= 4) break;
+    if (WANT_BUN && S.flags.bun2 == null && Object.keys(S.regions).filter(id => !E.isP(id)).length <= 4) break;
     const opts = E.diploOptions(fid);
     const sub = opts.find(o => o.key === 'submit');
     if (sub && sub.ok && sub.chance >= 45) { const r = E.diplo(fid, 'submit'); if (r.ok) log(`  降伏: ${E.fname(fid)} (${sub.chance}%)`); continue; }
@@ -94,7 +101,7 @@ function botTurn(log) {
   }
   // ── 研究(鳥が自分では手を付けないもの) ──
   for (const tid of E.manualAvail()) {
-    if ((tid === 'asi' && WANT_ASI) || (tid === 'nukeweapon' && WANT_NUKE)) for (const b of D.BIRDS) E.assign(b.id, tid);
+    if ((tid === 'asi' && WANT_ASI) || (tid === 'nukeweapon' && WANT_NUKE) || (D.TECHS.find(t => t.id === tid).taboo && WANT_BUN)) for (const b of D.BIRDS) E.assign(b.id, tid);
   }
   // ── 内政 ──
   const mine = E.playerRegions();
@@ -148,7 +155,7 @@ function botTurn(log) {
   for (const id of AUTO ? [] : mine) {
     const r = S.regions[id]; if (r.p) continue;
     const po = Object.fromEntries(E.produceOptions(id).map(o => [o.type, o]));
-    const order = ['birdmech', 'orbital', 'drone', 'modern', 'ktank', 'kair', 'bb', 'fgun'];
+    const order = ['bunchorion', 'bundam', 'birdmech', 'orbital', 'inkorion', 'drone', 'modern', 'ktank', 'kair', 'bb', 'fgun'];
     if (WANT_NUKE && !S.units.some(u => u.type === 'nuke') && !mine.some(x => S.regions[x].p && S.regions[x].p.type === 'nuke')) order.unshift('nuke');
     if (navalT < 4) order.unshift('ironclad');
     let done = false;
@@ -183,7 +190,7 @@ function botTurn(log) {
   }
   let atkN = 0;
   const left = Object.keys(S.regions).filter(id => !E.isP(id)).length;
-  const hold = WANT_ASI && S.flags.asi == null && left <= 4;   // 超知能を待つあいだ、最後の数地域は残す
+  const hold = (WANT_ASI && S.flags.asi == null && left <= 4) || (WANT_BUN && S.flags.bun2 == null && left <= 4);   // 超知能や手術を待つあいだ、最後の数地域は残す
   if (process.env.FOLLOW) E.setAuto({ follow: true });   // 全軍で進む
   if (ATK) E.setAuto({ attack: ATK === 'war' ? 'war' : 'all' });   // 攻撃をまかせる:ここでは攻めない(季節の変わり目に、おまかせが仕掛ける)
   for (const { tid } of list) {
@@ -234,7 +241,7 @@ function run(seed) {
     assertState('endTurn');
     if (VERBOSE) for (const e of rep.events) if (['event', 'bad', 'warn', 'tech', 'news', 'good', 'asi'].includes(e.k)) console.log('   · ' + e.t);
     if (VERBOSE) for (const e of rep.events) if (e.k === 'auto') console.log('   ◇ ' + e.t);
-    for (const e of rep.events) if (e.k === 'tech' && ['electronics', 'modern', 'computer', 'llm', 'agi', 'fusion', 'birdmech', 'asi', 'nukeweapon'].includes(e.tech)) marks['t_' + e.tech] = E.S.turn;
+    for (const e of rep.events) if (e.k === 'tech' && ['electronics', 'modern', 'computer', 'llm', 'agi', 'fusion', 'birdmech', 'asi', 'nukeweapon', 'bundam', 'bunchorion', 'birdify', 'buncho2'].includes(e.tech)) marks['t_' + e.tech] = E.S.turn;
     const ns = E.nationStage();
     if (marks['n' + ns] == null) marks['n' + ns] = E.S.turn;
     for (const id of E.playerRegions()) { const v = E.voice(id); if (!v || !v.t) throw new Error('民の声が出ない: ' + id); }
@@ -265,7 +272,7 @@ let failed = 0;
 for (let i = 0; i < RUNS; i++) {
   try {
     const r = run(1000 + i * 7919);
-    console.log(`\n[${DIFF} seed ${r.seed}] ${r.over ? (r.over.win ? '勝利' : '敗北') : '未決着'} T${r.turn}(${1560 + Math.floor(r.turn / 4)}年) 日本${r.jp}/45 世界${r.w}/54 技術${r.techs} 部隊${r.units} 威信${r.prestige}`);
+    console.log(`\n[${DIFF} seed ${r.seed}] ${r.over ? (r.over.win ? '勝利' + (r.over.bun ? '(B.U.N society)' : (r.over.asi ? '(調和)' : '')) : '敗北') : '未決着'} T${r.turn}(${1560 + Math.floor(r.turn / 4)}年) 日本${r.jp}/45 世界${r.w}/54 技術${r.techs} 部隊${r.units} 威信${r.prestige}`);
     console.log('  節目:', JSON.stringify(r.marks));
     console.log(`  国号: ${r.nation} 民心${r.mood} 施策${r.pol} 研究力${r.rp}`);
     console.log('  戦績:', JSON.stringify(r.stats));

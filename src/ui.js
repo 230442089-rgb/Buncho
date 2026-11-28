@@ -812,6 +812,9 @@
       '<div class="lab"><span>' + icon('fuel') + ' 燃料 <b class="' + (pr.fuel > st.res.fuel ? 'bad' : '') + '">' + pr.fuel + '</b> / ' + fmt(st.res.fuel) + '</span><span>' + icon('ammo') + ' 弾薬 <b class="' + (pr.ammo > st.res.ammo ? 'bad' : '') + '">' + pr.ammo + '</b> / ' + fmt(st.res.ammo) + '</span></div></div>';
     if (ids.length) pr.problems.forEach(function (p) { h += '<p class="bad">' + p + '</p>'; });
     if (pr.onFoot && ids.length) h += '<p class="warn">燃料が足りないので、歩ける部隊は徒歩で向かう(戦力3割減)。</p>';
+    if (pr.jam && ids.length) h += '<p class="good">インコリオンの口まねで、敵の戦力 −' + Math.round(pr.jam * 100) + '%(' + fmt(pr.E0) + ' → ' + fmt(pr.E) + ')。</p>';
+    if (pr.cover < 1 && ids.length) h += '<p class="good">ブンダムの盾で、部隊の損耗が半分になる。</p>';
+    if (pr.berserk) h += '<p class="warn">劣勢なので、ブンチョリオンが暴走する(戦力2倍。自分の損耗が増え、取った土地の民心 −20)。</p>';
     if (pr.nuke) h += '<p class="bad">核を撃つ。全勢力の友好 −25、自領の民心 −8、威信 −10。土地は焦土になる。</p>';
     var f = S().factions[r.o];
     if (f && f.pact > 0) h += '<p class="bad">不可侵の約定を破ることになる。威信と諸国の友好を失う。</p>';
@@ -825,6 +828,9 @@
   }
   function battleLines(types, win, bombard) {
     var L = [];
+    if (types.bunchorion) L.push('ブンチョリオンが、城をついばんだ。石垣は、粟の殻のように割れた。');
+    if (types.bundam) L.push('ブンダムが、盾を構えて前に出た。矢も鉄砲も、盾の赤い丸に吸いこまれて消えた。');
+    if (types.inkorion) L.push('空からインコリオンが、敵将の声で「退け」と三度鳴いた。敵陣は、本当に退いた。');
     if (types.birdmech) L.push('全高四十メートルの文鳥が、城をまたいだ。城兵は槍を置いて、ただ見上げた。');
     if (types.orbital) L.push('空の上から光の柱が降り、櫓のあった場所に、きれいな丸い穴が残った。');
     if (types.drone) L.push('羽音のような唸りが空を覆い、数百の無人機が一斉に降りてきた。');
@@ -857,7 +863,7 @@
       if (TF.sfx && TF.sfx.duck) TF.sfx.duck(res.nuke ? 0 : 0.3);
       TF.Battle3D.play($('#battle'), { title: d.name + (res.nuke ? ' 核攻撃' : (res.bombard ? ' 砲爆撃' : ' 攻略戦')), win: res.win, bombard: res.bombard, ratio: res.ratio, chance: res.chance,
         men: res.gBefore, menAfter: res.nuke ? Math.round(res.gBefore * 0.05) : (res.win ? 0 : res.gAfter), fort: res.fort, siege: res.siege, color: color, season: season, snow: d.snow, fuji: !!FUJI[res.rid], tier: tier, types: types,
-        enemy: D.CULTURE[fid0], leader: boss, nuke: !!res.nuke, laser: E.tech('laser') }, show);
+        enemy: D.CULTURE[fid0], leader: boss, nuke: !!res.nuke, laser: E.tech('laser'), berserk: !!res.berserk }, show);
     } else show();
   }
   function showBattleResult(res, types, gained) {
@@ -924,17 +930,25 @@
   }
   function storyHTML(b, btn) {
     var ey = b.eyebrow || b.kicker;
-    return '<div class="card-body' + (b.asi ? ' asi-card' : (b.grave ? ' grave-card' : '')) + '">' + (ey ? '<p class="eyebrow">' + esc(ey) + '</p>' : '') + '<h2' + (b.fanfare || b.nation != null ? ' class="win' + (b.nation != null ? ' slam' : '') + '"' : '') + '>' + esc(b.title) + '</h2>' +
+    return '<div class="card-body' + (b.bun ? ' bun-card' : (b.asi ? ' asi-card' : (b.grave ? ' grave-card' : ''))) + '">' + (ey ? '<p class="eyebrow">' + esc(ey) + '</p>' : '') + '<h2' + (b.fanfare || b.nation != null ? ' class="win' + (b.nation != null ? ' slam' : '') + '"' : '') + '>' + esc(b.title) + '</h2>' +
+      (b.bun ? flockHTML(b.bun) : '') +
       '<div class="story">' + (b.bird ? birdSVG(b.bird, 'b56') : '<span></span>') + '<p>' + esc(b.body) + '</p></div>' + (b.extra || '') + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">' + (btn || 'つぎへ') + '</button></div>';
+  }
+  // 鳥の群れ。手術が進むほど、数が増える
+  function flockHTML(n) {
+    var bun = [0, 1, 2, 6], h = '<div class="flock' + (n >= 2 ? ' many' : '') + '">' + D.BIRDS.map(function (b) { return birdSVG(b); }).join('');
+    if (n >= 2) { for (var i = 0; i < 13; i++) h += birdSVG(D.BIRDS[bun[(i * 3 + 1) % 4]]); h += birdSVG(D.BIRDS[3]); }   // あとは文鳥ばかり。端に、インコが一羽
+    return h + '</div>';
   }
   function queueStory(b, opts) {
     opts = opts || {};
-    if (!opts.sfx) opts.sfx = b.fanfare ? 'bigwin' : (b.sfx || (b.asi ? 'asi' : (b.nation != null ? 'stamp' : (b.bird === 'dario' ? 'dario' : (b.bird ? 'chirp' : 'open')))));
+    if (!opts.sfx) opts.sfx = b.fanfare ? 'bigwin' : (b.sfx || (b.bun ? 'flock' : b.asi ? 'asi' : (b.nation != null ? 'stamp' : (b.bird === 'dario' ? 'dario' : (b.bird ? 'chirp' : 'open')))));
     if (b.fanfare) opts.fireworks = 5200;
     showModal(storyHTML(b, opts.btn), opts);
   }
   function queueEnding() {
     var st = S(), o = st.over, dl = E.dateLabel(), nk = st.stats.nukes || 0;
+    if (o.win && o.bun) { queueBunEnding(); return; }
     var h = '<div class="card-body' + (o.asi ? ' asi-card' : '') + '"><p class="eyebrow">' + dl.text + ' ・ ' + esc(E.nation().name) + '</p><h2 class="huge ' + (o.asi ? 'grave' : (o.win ? 'win' : 'lose')) + '">' + (o.asi ? '調和' : (o.win ? '地球統一' : '敗北')) + '</h2><div class="flock">' + (o.asi ? birdSVG('dario') : '') + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +
       (o.asi ? '<p>戦は終わった。飢えも、一揆も、口論も終わった。誰もが満ち足りていて、誰も理由を尋ねない。</p>' : '') +
       (nk ? '<p class="note" style="border-color:var(--bad)">核を ' + nk + ' 発使った。その土地には、まだ草が生えない。</p>' : '') +
@@ -948,11 +962,28 @@
         : '<div class="card-foot"><button class="btn gold" data-act="modal-close">地図へもどる</button><button class="btn" data-act="to-title">表紙へ</button></div>');
     showModal(h);
   }
+  // 手術を進めた国の結末
+  function queueBunEnding() {
+    var st = S(), o = st.over, dl = E.dateLabel(), nk = st.stats.nukes || 0, pop = E.census().pop;
+    var h = '<div class="card-body bun-card"><p class="eyebrow">' + dl.text + ' ・ ' + esc(E.nation().name) + '</p><h2 class="huge bun">B.U.N society</h2>' + flockHTML(o.bun) +
+      '<p>' + D.BUN.fin[o.bun >= 2 ? 1 : 0] + '</p>' + (o.asi ? '<p>超知能は、いまも動いている。計算機室の窓辺に、ときどき誰かが止まりにくる。</p>' : '') +
+      (nk ? '<p class="note" style="border-color:var(--bad)">核を ' + nk + ' 発使った。その土地には、まだ草が生えない。鳥も、そこには降りない。</p>' : '') +
+      '<div class="sum"><div class="fact"><span>鳥になった民</span><b>' + E.bunRate() + '%</b></div><div class="fact"><span>届いた推薦状</span><b>' + fmt(E.bunLetters()) + ' 通</b></div></div>' +
+      '<div class="sum"><div class="fact"><span>かかった歳月</span><b>' + Math.floor(o.turn / 4) + '年' + (o.turn % 4 ? (o.turn % 4) * 3 + 'か月' : '') + '</b></div><div class="fact"><span>戦い</span><b>' + st.stats.battles + '回</b></div>' +
+      '<div class="fact"><span>' + (o.bun >= 2 ? '羽数(もとの人口)' : '人口') + '</span><b>' + fmt(Math.round(pop)) + '万</b></div><div class="fact"><span>民心(平均)</span><b>' + Math.round(E.moodAvg()) + '</b></div></div>' +
+      '<p class="dim">難易度「' + D.DIFFICULTY[st.diff].name + '」。B.U.N が何の略なのかは、最後まで分からなかった。手術を命じずに、地球を一つにする道もあります。</p></div>' +
+      (st.flags.cont == null
+        ? '<div class="card-foot"><button class="btn gold" data-act="keep-going">このまま治めつづける</button><button class="btn" data-act="modal-close">地図を眺める</button></div>' +
+          '<div class="acts" style="justify-content:center;padding-bottom:12px"><button class="btn sm" data-act="to-title">表紙へ</button></div>'
+        : '<div class="card-foot"><button class="btn gold" data-act="modal-close">地図へもどる</button><button class="btn" data-act="to-title">表紙へ</button></div>');
+    showModal(h, { sfx: 'flock' });
+  }
 
   // ───────────────────────── ターン終了 ─────────────────────────
   // 季節の変わり目に、総括指揮AIがいちばん大事なことを一つだけ言う
   function darioReport(inc, kinds) {
     var st = S(), r = st.res;
+    if (st.flags.bun2 != null) return D.BUN.report[st.turn % D.BUN.report.length];
     if (st.flags.asi != null) return ['すべて順調です。', '問題はありません。問題というものが、もうありません。', '今季も、みなさん幸せでした。', '司令は、何も心配しなくてよいのです。', '静かな季節でした。これからは、ずっと静かです。'][st.turn % 5];
     if (!E.darioOn()) return '……省電力モードです。燃料をください……。';
     if (kinds.bad) return '領地を失いました。守備隊を増やすか、部隊を戻してください。';
@@ -966,7 +997,7 @@
     return ['静かな季節でした。こういう季節が、いちばん好きです。', '異状なし。計算機の排熱で、鳥たちが暖を取っています。', '平穏です。戦わずに済む季節は、弾薬の節約になります。',
       '報告事項なし。……ところで司令、地球を日本にする件、まだ本気ですか。', '今季も計算は順調です。'][st.turn % 5];
   }
-  var EV_MARK = { good: '◎', bad: '×', warn: '!', tech: '研', build: '建', news: '報', info: '・', battle: '戦', event: '★', policy: '布', asi: '和', auto: '任' };
+  var EV_MARK = { good: '◎', bad: '×', warn: '!', tech: '研', build: '建', news: '報', info: '・', battle: '戦', event: '★', policy: '布', asi: '和', auto: '任', bird: '鳥' };
   function endTurn() {
     if (S().over && !S().flags.cont) { queueEnding(); return; }
     ui.mv = null;
@@ -988,8 +1019,9 @@
     bigs.forEach(function (e) { queueStory(e.big, e.cine ? { cine: e.cine } : null); });
     techs.forEach(function (e) {
       var t = TECH[e.tech], b = BIRD[e.bird];
-      if (e.tech === 'asi') return; // 超知能は、それ自身の知らせで伝える
-      queueStory({ eyebrow: '研究完了 ・ ' + D.FIELD_NAMES[t.field], title: t.name, bird: e.bird, sfx: 'tech', body: '「' + b.lines.done + '」', extra: '<p class="note">' + esc(t.hist) + '</p><p><b class="good">' + esc(t.effect) + '</b></p>' });
+      if (e.tech === 'asi' || t.taboo) return; // 超知能と手術は、それ自身の知らせで伝える
+      var push = E.bunPush(), also = push && !E.bunBusy(push) ? '\n' + D.BUN.after.replace('{name}', TECH[push].name) : '';   // ついでに、手術を勧めてくる
+      queueStory({ eyebrow: '研究完了 ・ ' + D.FIELD_NAMES[t.field], title: t.name, bird: e.bird, sfx: 'tech', body: '「' + b.lines.done + '」' + also, extra: '<p class="note">' + esc(t.hist) + '</p><p><b class="good">' + esc(t.effect) + '</b></p>' });
     });
     var inc = rep.income, sumr = '<div class="res" style="grid-template-columns:repeat(5,minmax(0,1fr))">';
     RES.forEach(function (r) { var dlt = inc[r[0]]; sumr += '<div class="chip">' + icon(r[0]) + '<b>' + compact(S().res[r[0]]) + '</b><i class="' + (dlt > 0 ? 'up' : (dlt < 0 ? 'down' : '')) + '">' + csgn(dlt) + '</i></div>'; });
@@ -997,7 +1029,7 @@
     var word = '<div class="row dario">' + birdSVG('dario', 'b40') + '<div><p>' + esc(darioReport(inc, kinds)) + '</p></div><span></span></div>';
     showModal('<div class="card-body"><p class="eyebrow">' + before + ' の出来事</p><h2>' + E.dateLabel().text + '</h2>' + sumr + word + (list ? '<div>' + list + '</div>' : '') + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">つぎへ</button></div>',
       { sfx: kinds.bad ? 'defeat' : (kinds.warn ? 'warn' : (autoWon ? 'victory' : null)), onClose: gained.length ? function () { return fxCascade(gained); } : null });
-    if (S().over && (!wasOver || bigs.some(function (e) { return e.big.asi; }))) queueEnding();   // 決着の季節と、統一のあとで超知能を起こした季節にだけ
+    if (S().over && (!wasOver || bigs.some(function (e) { return e.big.asi || e.big.bun; }))) queueEnding();   // 決着の季節と、統一のあとで超知能を起こした・手術を進めた季節にだけ
   }
 
   // ───────────────────────── パネル ─────────────────────────
@@ -1031,23 +1063,25 @@
   }
   function eta(tid) { var rp = E.techRp(tid), left = TECH[tid].cost - (S().prog[tid] || 0); return rp > 0 ? Math.ceil(left / rp) : null; }
   function panelResearch() {
-    var st = S(), h = '', total = 0;
+    var st = S(), h = '', total = 0, push = E.bunPush(), pushing = push && !E.bunBusy(push);
     D.BIRDS.forEach(function (b) { total += E.birdRp(b.id); });
     h += '<div class="birds">';
     D.BIRDS.forEach(function (b) {
       var tid = st.assign[b.id];
-      h += '<button class="bcard' + (tid || !E.autoTechLeft() ? '' : ' idle') + '" data-act="bird" data-bid="' + b.id + '">' + birdSVG(b, 'b40') + '<div><h3>' + b.name + ' <span class="fld">' + b.field + '</span>' + (b.field2 ? '<span class="fld">' + b.field2 + '</span>' : '') + '</h3><p>' + b.role + '</p><p class="job">' + (tid ? TECH[tid].name + ' +' + (Math.round(E.birdRp(b.id) * 10) / 10) : '手が空いている') + '</p></div></button>';
+      h += '<button class="bcard' + (tid || !E.autoTechLeft() ? '' : ' idle') + '" data-act="bird" data-bid="' + b.id + '">' + birdSVG(b, 'b40') + '<div><h3>' + b.name + ' <span class="fld">' + b.field + '</span>' + (b.field2 ? '<span class="fld">' + b.field2 + '</span>' : '') + '</h3><p>' + b.role + '</p><p class="job">' + (tid ? TECH[tid].name + ' +' + (Math.round(E.birdRp(b.id) * 10) / 10) : (pushing ? TECH[push].name + 'なら、いますぐ' : '手が空いている')) + '</p></div></button>';
     });
     h += '</div><button class="row dario" data-act="bird" data-bid="dario">' + birdSVG('dario', 'b40') + '<div><h3>ダリオくん <span class="dim" style="font-weight:400">総括指揮AI</span></h3><p>' +
       (asiOn() ? '研究は、すべて私がやります。' : (E.darioOn() ? '計算機で研究を後押し中。' + (E.tech('computer') ? '' : (E.tech('electronics') ? '「電子計算機」でさらに増える。' : (E.tech('electric') ? '「電子工学」でさらに増える。' : '「電力」の研究で倍になる。'))) : '発電機の燃料切れで、省電力モード。')) + '</p></div><div class="side"><b class="' + (E.darioOn() ? 'good' : 'bad') + '">+' + E.darioRp() + '</b>研究力</div></button>' +
       '<div class="acts"><button class="btn sm" data-act="auto-research">手の空いた鳥におまかせ: ' + (st.autoResearch ? 'する' : 'しない') + '</button></div>';
-    var tiers = ['', '第一段階 近世の底上げ', '第二段階 産業革命', '第三段階 電気と内燃機関', '第四段階 二十世紀', '第五段階 現代へ', '第六段階 原子と計算機', '第七段階 情報の時代', '第八段階 まだ誰も見ていない未来'];
-    for (var t = 1; t <= 8; t++) {
-      h += '<h3 class="tier' + (t >= 6 ? ' future' : '') + '">' + tiers[t] + '</h3>' + (t === 6 ? '<p class="dim" style="font-size:12px">ここから先は、鳥たちの生きた時代とその先。研究を速める計算機の系統から進めるのが早道。</p>' : '') + '<div class="list">';
+    var tiers = ['', '第一段階 近世の底上げ', '第二段階 産業革命', '第三段階 電気と内燃機関', '第四段階 二十世紀', '第五段階 現代へ', '第六段階 原子と計算機', '第七段階 情報の時代', '第八段階 まだ誰も見ていない未来', '第九段階 鳥たちの夢'];
+    for (var t = 1; t <= 9; t++) {
+      h += '<h3 class="tier' + (t === 9 ? ' dream' : (t >= 6 ? ' future' : '')) + '">' + tiers[t] + '</h3>' + (t === 6 ? '<p class="dim" style="font-size:12px">ここから先は、鳥たちの生きた時代とその先。研究を速める計算機の系統から進めるのが早道。</p>' : '') +
+        (t === 9 ? '<p class="dim" style="font-size:12px">鳥たちが、いちばん作りたかったもの。下の二つの手術は、司令が命じなければ進まない。鳥たちは、やけに勧めてくる。</p>' : '') + '<div class="list">';
       D.TECHS.filter(function (x) { return x.tier === t; }).forEach(function (x) {
         var s = E.techStatus(x.id), who = D.BIRDS.filter(function (b) { return st.assign[b.id] === x.id; }), pg = (st.prog[x.id] || 0) / x.cost * 100, e = eta(x.id);
         var side = s === 'done' ? '<b class="good">完了</b>' : (who.length ? '<b>あと' + e + '季</b>' : (s === 'avail' ? '<b>' + x.cost + '</b>研究力' : '<b class="dim">' + x.cost + '</b>'));
-        h += '<button class="row' + (s === 'done' ? ' done' : (s === 'avail' ? (who.length ? ' on' : '') : ' off')) + (x.manual ? ' manual' : '') + '" data-act="tech" data-tid="' + x.id + '"><span class="fld">' + x.field + '</span><div><h3>' + x.name + (x.manual && s !== 'done' ? ' <span class="tag war">司令の命令で</span>' : '') + '</h3><p>' + x.effect + '</p>' +
+        h += '<button class="row' + (s === 'done' ? ' done' : (s === 'avail' ? (who.length ? ' on' : '') : ' off')) + (x.manual ? ' manual' : '') + (x.taboo ? ' taboo' : '') + '" data-act="tech" data-tid="' + x.id + '"><span class="fld">' + x.field + '</span><div><h3>' + x.name +
+          (x.manual && s !== 'done' ? (x.taboo ? ' <span class="tag war">禁断</span>' + (s === 'avail' ? ' <span class="tag rec">鳥たちが推薦</span>' : '') : ' <span class="tag war">司令の命令で</span>') : '') + '</h3><p>' + x.effect + '</p>' +
           (s !== 'done' && s !== 'avail' ? '<p class="warn">' + E.techLockReason(x.id) + '</p>' : '') + (s === 'avail' && (pg > 0 || who.length) ? '<div class="bar"><i style="width:' + Math.min(100, pg) + '%"></i></div>' : '') + '</div>' +
           '<div class="side">' + side + (who.length ? '<div class="who">' + who.map(function (b) { return birdSVG(b); }).join('') + '</div>' : '') + '</div></button>';
       });
@@ -1119,7 +1153,7 @@
     if (S().over) queueEnding();
   }
   function nextNation() { // 次に国の名が変わる条件
-    var n = D.NATION[E.nationStage() + 1]; if (!n || n.when.asi) return '';
+    var n = D.NATION[E.nationStage() + 1]; if (!n || n.when.asi || n.when.bun) return '';
     var w = n.when;
     return w.jp ? '日本の領地が' + w.jp + 'か国になると、国の名が変わる。' : (w.kyoto ? '京(山城)に入ると、国の名が変わる。' : (w.unified ? '天下を統一すると、国の名が変わる。' : (w.w ? '海外の領地が' + w.w + '地域になると、国の名が変わる。' : (w.all ? '地球を一つにすると、国の名が変わる。' : ''))));
   }
@@ -1145,7 +1179,8 @@
   function nationSummary() {
     var st = S(), inc = E.income(), sm = E.summary(), na = E.nation(), era = D.ERAS[E.eraStage()], dl = E.dateLabel(), mood = Math.round(E.moodAvg()), h = '';
     h += '<div class="ncard"><p class="eyebrow">' + dl.era + ' ・ ' + era.name + '</p><h3>' + esc(na.name) + '</h3><p class="by">土地の人々の呼び名 「' + esc(na.by) + '」</p><p>' + esc(na.desc) + '</p><p class="dim">' + esc(era.look) + '</p>' +
-      '<div class="vox-m"><span>民心</span>' + moodBar(mood) + '<b class="' + moodCls(mood) + '">' + mood + '</b></div>' + (nextNation() ? '<p class="dim" style="font-size:12px">' + nextNation() + '</p>' : '') +
+      '<div class="vox-m"><span>民心</span>' + moodBar(mood) + '<b class="' + moodCls(mood) + '">' + mood + '</b></div>' +
+      (E.bunStage() ? '<div class="vox-m bunrate"><span>鳥になった民</span><div class="bar mood"><i style="width:' + E.bunRate() + '%"></i></div><b>' + E.bunRate() + '%</b></div>' : '') + (nextNation() ? '<p class="dim" style="font-size:12px">' + nextNation() + '</p>' : '') +
       '<div class="acts">' + (TF.Diorama3D && TF.Diorama3D.available() ? '<button class="btn sm" data-act="diorama">' + icon('film') + '国のようすを眺める</button>' : '') + (TF.Chronicle && TF.Chronicle.available() ? '<button class="btn sm" data-act="chronicle">' + icon('scroll') + '年代記を見る</button>' : '') + '</div></div>';
     h += '<div><div class="vs"><div class="lab"><span>日本 <b>' + sm.jp + '</b> / ' + sm.jpAll + '</span><span>世界 <b>' + sm.w + '</b> / ' + sm.wAll + '</span></div><div class="prog"><i style="width:' + ((sm.jp + sm.w) / (sm.jpAll + sm.wAll) * 100) + '%"></i></div></div></div>';
     h += censusHTML();
@@ -1232,7 +1267,7 @@
     return h + '</div><p class="dim" style="font-size:12px">研究の割り振りは「研究」の画面の「手の空いた鳥におまかせ」で。外交は、いつも司令が決めます。攻撃をまかせても、手で出した攻撃はそのまま通り、核と、不可侵・通商の相手への攻撃は司令だけが決められます。</p>';
   }
   var RES_ICON = { gold: 'gold', food: 'food', steel: 'steel', fuel: 'fuel', ammo: 'ammo' };
-  var CH_MARK = { start: '霧', nation: '号', policy: '布', era: '世', event: '★', submit: '降', fall: '戦', nuke: '核', asi: '和', bad: '×' };
+  var CH_MARK = { start: '霧', nation: '号', policy: '布', era: '世', event: '★', submit: '降', fall: '戦', nuke: '核', asi: '和', bad: '×', bun: '鳥' };
   function nationChron() { // 国の歩み。新しいものが上
     var st = S(), L = st.chron.slice().reverse(), last = -1, h = '<p class="dim">' + esc(E.nation().name) + 'の歩み。国の名、布告、時代の変わり目、降した相手を、起きた順に残している。</p><div class="chron">';
     L.forEach(function (e) {
@@ -1288,7 +1323,8 @@
     var st = S(), t = TECH[tid], s = E.techStatus(tid), h = '';
     h += '<p class="eyebrow">' + D.FIELD_NAMES[t.field] + ' ・ ' + (s === 'done' ? '研究完了' : '必要な研究力 ' + t.cost + '(現在 ' + Math.floor(st.prog[tid] || 0) + ')') + '</p><h2>' + t.name + '</h2><p><b class="good">' + esc(t.effect) + '</b></p><p class="note">' + esc(t.hist) + '</p>';
     if (t.req.length) h += '<p class="dim" style="font-size:12.5px">前提: ' + t.req.map(function (r) { return TECH[r].name + (st.techs[r] ? '(済)' : ''); }).join('、') + '</p>';
-    if (t.manual && s !== 'done') h += '<p class="note bad" style="border-color:var(--bad)">' + (tid === 'asi' ? 'この研究だけは、鳥たちもダリオくんも自分からは手を付けない。完成すれば、民の心そのものが書き換えられる。後戻りはできない。' : '鳥たちは、この研究に自分からは手を付けない。進めるかどうかは司令が決める。') + '</p>';
+    if (t.manual && s !== 'done') h += '<p class="note bad" style="border-color:var(--bad)">' + (tid === 'asi' ? 'この研究だけは、鳥たちもダリオくんも自分からは手を付けない。完成すれば、民の心そのものが書き換えられる。後戻りはできない。' :
+      (t.taboo ? '鳥たちは、この研究に自分から手を付けることができない。そのかわり、全員が強く勧めている。完成すれば、地球を一つにしたときの結末が変わる。後戻りはできない。' : '鳥たちは、この研究に自分からは手を付けない。進めるかどうかは司令が決める。')) + '</p>';
     if (s === 'avail') {
       h += '<div class="acts"><button class="btn sm" data-act="assign-all" data-tid="' + tid + '">全員でこの研究に当たる</button></div>';
       h += '<div class="sec">だれに任せるか(得意分野なら1.6倍)</div><div class="list">';
@@ -1304,6 +1340,12 @@
   // 核兵器と超知能は、命じる前に一度だけ確かめる
   function confirmManual(tid, bid, from) {
     var t = TECH[tid], asi = tid === 'asi';
+    if (t.taboo) { // 禁断の手術。鳥たちは全員が賛成で、ダリオくんだけが勧めない
+      showModal('<div class="card-body"><p class="eyebrow">司令の決断 ・ 禁断の技術</p><h2 class="lose">「' + t.name + '」の研究を命じる</h2><div class="story">' + birdSVG('dario', 'b56') + '<p>' + esc(D.BUN.ask[tid]) + '</p></div>' +
+        '<div class="chorus">' + D.BIRDS.map(function (b, i) { return '<span>' + birdSVG(b) + '<i>「' + D.BUN.yes[i] + '」</i></span>'; }).join('') + '</div></div>' +
+        '<div class="card-foot"><button class="btn gold" data-act="manual-no" data-tid="' + tid + '">やめておく</button><button class="btn shu" data-act="manual-yes" data-tid="' + tid + '" data-bid="' + bid + '" data-from="' + (from || '') + '">研究を命じる</button></div>', { replace: true, sfx: 'tech' });
+      return;
+    }
     showModal('<div class="card-body"><p class="eyebrow">司令の決断</p><h2 class="lose">「' + t.name + '」の研究を命じる</h2><div class="story">' + birdSVG(asi ? 'dario' : 'gin', 'b56') + '<p>' +
       (asi ? '司令。これは、私からのお願いです。\n超知能は、人の心を読み、書き換えることができます。完成すれば、一揆も、反対も、戦も、なくなります。ただしそれは、民が納得したからではありません。\nここから先へ進むと、私は私でなくなります。後戻りはできません。'
         : '作れます。設計図は頭に入っています。\n持つだけで、諸国は我が国を恐れます。撃てば、その土地は長く焦土になり、世界中に憎まれます。\n作るかどうかは、兵器屋の決めることではありません。司令がお決めください。') + '</p></div></div>' +
@@ -1323,13 +1365,13 @@
   function openBird(bid) {
     if (bid === 'dario') { openDario(); return; }
     var st = S(), b = BIRD[bid], cur = st.assign[bid], h = '';
-    h += '<div class="story">' + birdSVG(b, 'b84') + '<div><p class="eyebrow">' + b.species + ' ・ ' + b.role + '</p><h2>' + b.name + '</h2><p style="font-size:13px" class="dim">' + esc(b.bio) + '</p></div></div><p class="note">「' + esc(cur ? b.lines.greet : b.lines.idle) + '」</p>';
+    h += '<div class="story">' + birdSVG(b, 'b84') + '<div><p class="eyebrow">' + b.species + ' ・ ' + b.role + '</p><h2>' + b.name + '</h2><p style="font-size:13px" class="dim">' + esc(b.bio) + '</p></div></div><p class="note">「' + esc(cur ? b.lines.greet : (E.bunPush() && !E.bunBusy(E.bunPush()) ? D.BUN.push[bid].replace(/\{name\}/g, TECH[E.bunPush()].name) : b.lines.idle)) + '」</p>';
     h += '<div class="sec">研究を任せる</div><div class="list">';
     var av = D.TECHS.filter(function (t) { return E.techStatus(t.id) === 'avail'; });
     av.sort(function (x, y) { return (x.manual ? 1 : 0) - (y.manual ? 1 : 0) || (E.isSpec(b, y) ? 1 : 0) - (E.isSpec(b, x) ? 1 : 0) || x.cost - y.cost; });
     av.forEach(function (t) {
       var on = cur === t.id;
-      h += '<button class="row' + (on ? ' on' : '') + '" data-act="assign" data-bid="' + bid + '" data-tid="' + t.id + '" data-from="bird"><span class="fld">' + t.field + '</span><div><h3>' + t.name + (E.isSpec(b, t) ? ' <span class="good" style="font-weight:400;font-size:12px">得意</span>' : '') + (t.manual ? ' <span class="tag war">司令の命令で</span>' : '') + '</h3><p>' + t.effect + '</p><div class="bar"><i style="width:' + Math.min(100, (st.prog[t.id] || 0) / t.cost * 100) + '%"></i></div></div><div class="side"><b>' + (on ? '✓' : t.cost) + '</b></div></button>';
+      h += '<button class="row' + (on ? ' on' : '') + '" data-act="assign" data-bid="' + bid + '" data-tid="' + t.id + '" data-from="bird"><span class="fld">' + t.field + '</span><div><h3>' + t.name + (E.isSpec(b, t) ? ' <span class="good" style="font-weight:400;font-size:12px">得意</span>' : '') + (t.manual ? ' <span class="tag war">' + (t.taboo ? '禁断' : '司令の命令で') + '</span>' : '') + '</h3><p>' + t.effect + '</p><div class="bar"><i style="width:' + Math.min(100, (st.prog[t.id] || 0) / t.cost * 100) + '%"></i></div></div><div class="side"><b>' + (on ? '✓' : t.cost) + '</b></div></button>';
     });
     if (!av.length) h += '<p class="dim">いま研究できるものがありません。</p>';
     h += '</div>';
@@ -1511,10 +1553,12 @@
         break;
       case 'manual-yes':
         tid = el.getAttribute('data-tid'); bid = el.getAttribute('data-bid');
-        st.flags['ok_' + tid] = 1; sfx(tid === 'asi' ? 'asi' : 'taiko'); assignTo(tid, bid);
+        st.flags['ok_' + tid] = 1; sfx(tid === 'asi' ? 'asi' : (TECH[tid].taboo ? 'flock' : 'taiko')); assignTo(tid, bid);
         if (el.getAttribute('data-from') === 'bird') openBird(bid); else openTech(tid);
         break;
-      case 'manual-no': openTech(el.getAttribute('data-tid')); break;
+      case 'manual-no': tid = el.getAttribute('data-tid'); openTech(tid);
+        if (TECH[tid].taboo) { st.flags.bunNo = (st.flags.bunNo || 0) + 1; toast(D.BUN.no[(st.flags.bunNo - 1) % D.BUN.no.length]); save(); }
+        break;
       case 'ntab': ui.ntab = el.getAttribute('data-t'); renderPanel(); $('.panel-body', $('#panel')).scrollTop = 0; break;
       case 'policy': openPolicy(el.getAttribute('data-pid')); break;
       case 'enact': doEnact(el.getAttribute('data-pid')); break;

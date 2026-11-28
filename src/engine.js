@@ -23,7 +23,7 @@
     // ここから先は現代と未来。研究を速める計算機の系統を先に。核兵器と超知能は司令が自分で命じたときだけ進む(manual)
     // 施設の格上げを解く研究(用水・銀行・品種改良…)は本筋の合間に。得意な鳥は、手が空けば先に取りかかる
     'computer', 'catcrack', 'jet', 'irrigation', 'bank', 'network', 'modern', 'breeding', 'corp', 'assembly', 'tractor', 'offshore', 'retail',
-    'nuclear', 'deeplearn', 'rocket', 'llm', 'agi', 'drone', 'fusion', 'laser', 'orbital', 'birdmech'];
+    'nuclear', 'deeplearn', 'rocket', 'llm', 'agi', 'drone', 'fusion', 'laser', 'orbital', 'birdmech', 'bundam', 'bunchorion'];
   var POLICY_BY_ID = {};
   (D.POLICIES || []).forEach(function (p) { POLICY_BY_ID[p.id] = p; });
 
@@ -100,7 +100,7 @@
     var T = D.UNIT_TYPES[type], n = 1;
     S.flags.unitNo = S.flags.unitNo || {};
     n = (S.flags.unitNo[type] || 0) + 1; S.flags.unitNo[type] = n;
-    return '第' + n + T.short;
+    return T.nm ? T.nm.replace('{n}', n) : '第' + n + T.short;
   }
 
   function serialize() { return JSON.stringify(S); }
@@ -260,7 +260,7 @@
     var o = { atk: T.atk, def: T.def, siege: T.siege, fuel: T.fuel, ammo: T.ammo, mv: T.mv || 0, name: T.name, cls: T.cls, foot: !!T.foot, transport: T.transport || 0, range: T.range || 0, vuln: T.vuln != null ? T.vuln : 1 };
     if (T.tiered) {
       var tr = D.INF_TIERS[infTier()];
-      o.atk = T.atk * tr.mult; o.def = T.def * tr.mult; o.fuel = tr.fuel; o.ammo = tr.ammo; o.name = tr.name; o.mv = tr.fuel ? 1 : 0;
+      o.atk = T.atk * tr.mult * bunK(); o.def = T.def * tr.mult * bunK(); o.fuel = tr.fuel; o.ammo = tr.ammo; o.name = tr.name; o.mv = tr.fuel ? 1 : 0;
     }
     if (tech('fusion')) { o.fuel = 0; o.mv = 0; }   // 核融合:どの部隊も燃料がいらない
     o.atk = Math.round(o.atk * atkMult()); o.def = Math.round(o.def);
@@ -277,7 +277,15 @@
     var fk = key === 'coal' ? 'coalmine' : key;
     return playerRegions().some(function (id) { return S.regions[id].fac[fk]; });
   }
-  function hasTransportShip() { return S.units.some(function (u) { return (D.UNIT_TYPES[u.type].transport || 0) > 0; }); }
+  function hasTransportShip() { return canFly() || S.units.some(function (u) { return (D.UNIT_TYPES[u.type].transport || 0) > 0; }); }
+  // 禁断の手術。0=まだ / 1=鳥化手術まで / 2=ブンーチョウ手術まで
+  function bunStage() { return S.flags.bun2 != null ? 2 : (S.flags.bun != null ? 1 : 0); }
+  function bunK() { return S.flags.bun2 != null ? 1.5 : 1; }          // 守備隊と現地歩兵団の戦力
+  function canFly() { return S.flags.bun != null; }                   // 鳥になった兵は、輸送艦なしで海を渡る
+  function bunRate() {                                                 // 鳥になった民の割合(%)。見せるための数字
+    if (S.flags.bun == null) return 0;
+    return S.flags.bun2 != null ? 100 : Math.min(55, 8 + 6 * (S.turn - S.flags.bun));   // 望む者だけのうちは、半分ほどで頭打ち
+  }
   function freeTransportOnly() { return S.units.some(function (u) { var T = D.UNIT_TYPES[u.type]; return (T.transport || 0) > 0 && T.fuel === 0; }); }
 
   // ───────────────────────── 収支 ─────────────────────────
@@ -318,6 +326,7 @@
     var tierN = infTier();
     S.units.forEach(function (u) { var T = D.UNIT_TYPES[u.type]; up.food += T.food || 0; up.gold += (T.upkeep || 0) * (T.tiered ? 1 + tierN : 1); if (T.jsdf) jsdfAlive = true; });
     up.food += garr / 500;
+    up.food *= [1, 0.7, 0.5][bunStage()];              // 鳥になった民と兵は、少しの粟で足りる
     up.fuel = jsdfAlive && !tech('nuclear') ? 4 : 0;   // 基地の発電・整備ぶん(原子力があれば要らない)
     t.rp += polSum('rp');                              // 学制
     // 弾薬は鉄鋼を食う(弾薬3につき鉄鋼1)。鉄鋼が足りなければ、そのぶん作れない
@@ -351,7 +360,7 @@
   function isSpec(b, t) { return t.field === b.field || (!!b.field2 && t.field === b.field2); } // 得意分野か
   function researchMult() {
     var m = 1 + (tech('electric') ? 0.25 : 0) + (tech('electronics') ? 0.25 : 0) + (tech('computer') ? 0.3 : 0) + (tech('deeplearn') ? 0.4 : 0);
-    return tech('agi') ? m * 2 : m;   // 汎用人工知能:研究そのものを機械がやる
+    return (tech('agi') ? m * 2 : m) * (S.flags.bun2 != null ? 1.5 : 1);   // 汎用人工知能:研究そのものを機械がやる。ブンーチョウ手術:全員が天才文鳥
   }
   function birdRp(bid) {
     var b = BIRD_BY_ID[bid], tid = S.assign[bid];
@@ -383,6 +392,7 @@
   // 鳥たちが自分から手を付ける研究が残っているか(核兵器と超知能は数えない)
   function autoTechLeft() { return RESEARCH_PRIORITY.some(function (t) { return techStatus(t) === 'avail'; }); }
   function manualAvail() { return D.TECHS.filter(function (t) { return t.manual && techStatus(t.id) === 'avail'; }).map(function (t) { return t.id; }); }
+  function plainManual() { return manualAvail().filter(function (t) { return !TECH_BY_ID[t].taboo; }); }   // 核兵器と超知能(鳥たちが黙っているほう)
 
   // ───────────────────────── 戦力の計算 ─────────────────────────
   function enemyPower(rid, fortEff) {
@@ -392,7 +402,7 @@
   }
   function defensePower(rid) {
     var r = S.regions[rid], d = D.REGIONS[rid];
-    var p = r.g / MEN * D.INF_TIERS[infTier()].mult * (1 + 0.3 * r.fort) * (d.mtn ? 1.15 : 1) * (1 + polSum('defend'));
+    var p = r.g / MEN * D.INF_TIERS[infTier()].mult * bunK() * (1 + 0.3 * r.fort) * (d.mtn ? 1.15 : 1) * (1 + polSum('defend'));
     unitsAt(rid).forEach(function (u) { p += ustat(u).def * u.hp / 100; });
     return p;
   }
@@ -439,13 +449,13 @@
     var sel = [], problems = [];
     ids.forEach(function (id) { var o = byId[id]; if (o && o.ok) sel.push(o); });
     var winter = season() === 3 && t.snow;
-    var fuel = 0, ammo = 0, P = 0, siege = 0, ground = 0, seaGround = 0, cap = 0, parts = [];
+    var fuel = 0, ammo = 0, P = 0, siege = 0, ground = 0, seaGround = 0, cap = 0, parts = [], jam = 0, cover = 1, zerk = [];
     // まず燃料が足りるか。足りなければ徒歩で動ける部隊は徒歩に切り替える
     var needFuel = 0;
     sel.forEach(function (o) { needFuel += ustat(o.u).fuel; });
     var onFoot = needFuel > S.res.fuel;
     sel.forEach(function (o) {
-      var st = ustat(o.u), m = 1, f = st.fuel, tag = [];
+      var st = ustat(o.u), T = D.UNIT_TYPES[o.u.type], m = 1, f = st.fuel, tag = [];
       if (onFoot && st.foot) { f = 0; if (st.fuel > 0) { m *= 0.7; tag.push('徒歩'); } }
       if (winter && (st.cls === 'ground' || st.cls === 'heli')) { m *= 0.6; tag.push('豪雪'); }
       if (o.via === 'sea') { m *= 0.85; tag.push('上陸'); seaGround++; }
@@ -454,20 +464,26 @@
       fuel += f; ammo += st.ammo;
       var p = st.atk * o.u.hp / 100 * m;
       P += p; if (st.atk > 0) siege += st.siege;
+      if (T.jam) { jam = Math.max(jam, T.jam); tag.push('口まね'); }
+      if (T.cover) { cover = Math.min(cover, T.cover); tag.push('盾'); }
       parts.push({ u: o.u, p: Math.round(p), tag: tag });
+      if (T.berserk) zerk.push({ i: parts.length - 1, p: p });
     });
     if (!sel.length) problems.push('部隊を選んでください');
     if (fuel > S.res.fuel) problems.push('燃料が足りません(必要 ' + fuel + ')');
     if (ammo > S.res.ammo) problems.push('弾薬が足りません(必要 ' + ammo + ')');
-    if (seaGround > cap) problems.push('海上輸送力が足りません(必要 ' + seaGround + ' / 可能 ' + cap + ')');
-    var fortEff = Math.max(0, r.fort - siege), E = enemyPower(tid, fortEff);
+    if (seaGround > cap && !canFly()) problems.push('海上輸送力が足りません(必要 ' + seaGround + ' / 可能 ' + cap + ')');
+    var fortEff = Math.max(0, r.fort - siege), E0 = enemyPower(tid, fortEff), E = E0 * (1 - jam);
+    var berserk = zerk.length > 0 && P > 0 && P < E;   // 劣勢になると、ブンチョリオンは暴走する(戦力2倍)
+    if (berserk) zerk.forEach(function (z) { P += z.p; parts[z.i].p = Math.round(z.p * 2); parts[z.i].tag.push('暴走'); });
     var chance = P <= 0 ? 0 : clamp((1.1 * P - E) / (0.2 * P), 0, 1);
     var ratio = E > 0 ? P / E : 99;
     var lossPct = ratio >= 1 ? clamp(6 / ratio, 0.5, 25) : clamp(12 / Math.max(0.1, ratio), 10, 50);
     if (tech('medicine')) lossPct *= 0.7;
+    lossPct *= cover;
     var nuke = sel.some(function (o) { return !!D.UNIT_TYPES[o.u.type].nuke; });
     return { P: Math.round(P), E: Math.round(E), fort: r.fort, fortEff: fortEff, siege: siege, fuel: fuel, ammo: ammo, chance: chance, ratio: ratio,
-      canCapture: ground > 0, problems: problems, parts: parts, winter: winter, onFoot: onFoot, lossPct: lossPct, seaGround: seaGround, cap: cap, sel: sel, nuke: nuke };
+      canCapture: ground > 0, problems: problems, parts: parts, winter: winter, onFoot: onFoot, lossPct: lossPct, seaGround: seaGround, cap: cap, sel: sel, nuke: nuke, jam: jam, cover: cover, berserk: berserk, E0: Math.round(E0) };
   }
 
   // 「おすすめ」編成:勝算が minChance に届くまで、費用対効果のよい部隊から順に足していく
@@ -593,8 +609,13 @@
     }
     if (!S.over && jp.every(isP) && w.every(isP)) {
       S.over = { win: true, turn: S.turn };
-      mark('event', S.flags.asi != null ? '地球の上から、国境と反対意見がなくなる。' : '地球統一。「日本」は、星の名になる。');
-      if (S.flags.asi != null) {
+      var bs = bunStage();
+      mark(bs ? 'bun' : 'event', bs ? '地球の上から、国境と、人と鳥の区別がなくなる。' : (S.flags.asi != null ? '地球の上から、国境と反対意見がなくなる。' : '地球統一。「日本」は、星の名になる。'));
+      if (bs) {   // 手術を進めた国の行き着く先(超知能を起こしていても、こちらになる)
+        S.over.bun = bs; if (S.flags.asi != null) S.over.asi = true;
+        var be = D.BUN.big['end' + bs];
+        events.push(ev('event', '地球は、鳥たちのものになった。', { big: { title: be.title, body: be.body.replace('{date}', dateLabel().text), bird: 'haku', bun: bs } }));
+      } else if (S.flags.asi != null) {
         S.over.asi = true;
         events.push(ev('event', '地球は、調和した。', { big: { title: '調和', body: '最後の旗は、降ろされるまでもなかった。' + dateLabel().text + '、地球の上から、国境と、反対意見がなくなった。鳥たちは羽づくろいをしている。いつもと同じ角度で、いつもと同じ回数だけ。', bird: 'dario', asi: true } }));
       } else {
@@ -610,9 +631,9 @@
     if (ns > (S.flags.nation || 0)) {
       S.flags.nation = ns;
       var N = D.NATION[ns];
-      mark('nation', '国の名を「' + N.name + '」と改める。' + (N.when.asi ? '' : '土地の人々は「' + N.by + '」と呼ぶ。'));
-      // 地球統一と超知能は、それぞれの知らせの中で名が変わる
-      if (!N.when.all && !N.when.asi) events.push(ev('event', '国の名を「' + N.name + '」と改めた。', { big: { kicker: '国号改め', title: N.name, body: N.desc + '\n土地の人々は、こう呼んでいる——「' + N.by + '」。', bird: N.bird, nation: ns } }));
+      mark('nation', '国の名を「' + N.name + '」と改める。' + (N.when.asi || N.when.bun ? '' : '土地の人々は「' + N.by + '」と呼ぶ。'));
+      // 地球統一と超知能と手術は、それぞれの知らせの中で名が変わる
+      if (!N.when.all && !N.when.asi && !N.when.bun) events.push(ev('event', '国の名を「' + N.name + '」と改めた。', { big: { kicker: '国号改め', title: N.name, body: N.desc + '\n土地の人々は、こう呼んでいる——「' + N.by + '」。', bird: N.bird, nation: ns } }));
     }
   }
 
@@ -647,8 +668,10 @@
       r.g = r100(r.g * (1 - clamp(0.5 * ratio, 0.05, 0.45)));
     }
     if (tech('medicine')) lossBase *= 0.7;
+    lossBase *= pr.cover;                                   // ブンダムの盾
     pr.sel.forEach(function (o) {
       var T = D.UNIT_TYPES[o.u.type], st = ustat(o.u), dh = Math.round(lossBase * st.vuln * (0.7 + rnd() * 0.6));
+      if (pr.berserk && T.berserk) dh = dh * 2 + 10;         // 暴走した機体は、自分も傷む
       if (st.atk === 0) dh = 0;
       o.u.hp = Math.max(0, o.u.hp - dh); o.u.acted = true;
       var dead = o.u.hp <= 0;
@@ -670,12 +693,16 @@
     } else {
       ev('battle', rname(tid) + 'を砲爆撃した。', { rid: tid });
     }
+    if (pr.berserk) {
+      if (captured) S.regions[tid].mood = Math.max(0, S.regions[tid].mood - 20);
+      events.push(ev('warn', 'ブンチョリオンが暴走した。戦力は倍になったが、誰の命令も届いていなかった。' + (captured ? rname(tid) + 'の町が踏み荒らされた(民心 −20)。' : ''), { rid: tid }));
+    }
     S.units = S.units.filter(function (u) { return u.hp > 0; });
     var follow = captured && S.auto && S.auto.follow ? followTo(tid) : null;   // 全軍で進む
     checkMilestones(events);
     REPORT = prevReport;
     res = { win: win, bombard: bombard, captured: captured, P: Math.round(P), E: Math.round(E), ratio: ratio, chance: pr.chance, fuel: pr.fuel, ammo: pr.ammo, losses: losses,
-      gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter, nuke: pr.nuke, follow: follow };
+      gBefore: gBefore, gAfter: S.regions[tid].g, joined: joined, fortEff: pr.fortEff, fort: pr.fort, siege: pr.siege, fid: fid, rid: tid, events: events, winter: pr.winter, nuke: pr.nuke, follow: follow, berserk: pr.berserk, jam: pr.jam, cover: pr.cover };
     return res;
   }
   // 核を撃った土地と、世界の受け止め
@@ -707,7 +734,7 @@
     var here = us[0].loc, from = moveOrigin(us[0]), out = {}, paid = 0;
     if (us.some(function (u) { return u.loc !== here || !movable(u) || moveOrigin(u) !== from; })) return {};
     us.forEach(function (u) { paid += u.mf || 0; });   // いまの移動に払った燃料。行き先を変えれば、いったん戻ってくる
-    var range = moveRange(), seaOk = hasTransportShip(), freeSea = freeTransportOnly() && hasSite('coal');
+    var range = moveRange(), seaOk = hasTransportShip(), freeSea = canFly() || (freeTransportOnly() && hasSite('coal'));
     var dist = {}; dist[from] = { hops: 0, sea: 0 };
     var q = [from];
     while (q.length) {
@@ -942,6 +969,7 @@
     if (S.flags.kyoto != null && isJp(fid)) c += 10;
     if (f.war) c -= 8;
     if (tech('llm')) c += 10;                // 相手の言葉で、相手の理屈で話せる
+    if (S.flags.bun2 != null) c += 15;       // 空を埋める文鳥の群れを見て、城門を開ける
     c += (moodAvg() - 50) * 0.3;             // 善政の評判は国境を越える。圧政の噂も
     return clamp(Math.round(c), 0, 95);
   }
@@ -1234,9 +1262,12 @@
         if (tid === 'nukeweapon') mark('bad', '核兵器を持つ。鳥たちは、この件についてだけは口数が少ない。');
         if (tid === 'agi') mark('era', '汎用人工知能が成る。設計会議のあいだ、ダリオくんはずっと黙っていた。');
         if (tid === 'asi') startAsi();
+        if (tid === 'birdify') startBun(1);
+        if (tid === 'buncho2') startBun(2);
         D.BIRDS.forEach(function (b) { if (S.assign[b.id] === tid) S.assign[b.id] = null; });
       }
     });
+    bunNag();
     if (S.autoResearch) autoAssign();
     else D.BIRDS.forEach(function (b) { var c = S.assign[b.id]; if (c && techStatus(c) !== 'avail') S.assign[b.id] = null; });
     // 3. 建設・編成・統治・整備
@@ -1367,6 +1398,7 @@
     var t = (w ? 42 : 50) + polSum('mood') + (w ? polSum('moodW') : 0);
     t += (tech('agri') ? 2 : 0) + (tech('hygiene') ? 4 : 0) + (tech('fertilizer') ? 2 : 0) + (tech('medicine') ? 4 : 0) + (tech('electric') ? 3 : 0);
     t += (r.fac.school ? 3 : 0) + (r.fac.market ? 2 : 0) + (r.fac.farm ? 2 : 0);
+    t += [0, 10, 15][bunStage()];              // 鳥は、だいたい機嫌がいい
     t -= (r.ruin || 0) * 35;
     return clamp(Math.round(t), 0, 100);
   }
@@ -1439,6 +1471,7 @@
       if (w.unified && S.flags.unified == null) return;
       if (w.all && !(S.over && S.over.win)) return;
       if (w.asi && S.flags.asi == null) return;
+      if (w.bun && !(S.flags.bun2 != null || (S.flags.bun != null && S.over && S.over.win))) return;
       best = i;
     });
     return best;
@@ -1453,8 +1486,10 @@
     var V = D.VOICES, r = S.regions[rid], w = D.REGIONS[rid].map === 'w', list;
     if (!r || r.o !== 'player') return null;
     var m = r.mood == null ? 50 : r.mood;
-    if (S.flags.asi != null) list = V.asi;
+    if (S.flags.bun2 != null) list = V.bun2;
+    else if (S.flags.asi != null) list = V.asi;
     else if ((r.ruin || 0) > 0.3) list = V.ruin;
+    else if (S.flags.bun != null && (hashStr(rid) + S.turn) % 3) list = V.bun;   // 三つに二つは、鳥になった者の声
     else {
       var fresh = r.since != null && S.turn - r.since < 3;
       if (fresh && r.how === 'force') list = w ? V.wForce : V.force;
@@ -1481,6 +1516,38 @@
       if (v && !seen[v.t]) { seen[v.t] = 1; out.push(v); }
     });
     return out;
+  }
+
+  // ───────────────────────── 禁断の手術 ─────────────────────────
+  // 鳥化手術(1)とブンーチョウ手術(2)。どちらも司令が命じたときだけ進み、一つでも成れば、地球を一つにしたときの結末が変わる。
+  function startBun(n) {
+    var tid = n === 2 ? 'buncho2' : 'birdify', b = D.BUN.big[tid];
+    if (S.flags.bun == null) S.flags.bun = S.turn;
+    if (n === 2) S.flags.bun2 = S.turn;
+    S.flags.bunDone = S.turn;
+    Object.keys(S.factions).forEach(function (k) { var f = S.factions[k]; if (f.alive) f.att = Math.max(-100, f.att - (n === 2 ? 20 : 15)); });   // 人が鳥になる国を、諸国は気味悪がる
+    mark('bun', n === 2 ? 'ブンーチョウ手術が成る。但し書きが消え、国じゅうが文鳥になる。' : '鳥化手術が成る。翌朝、窓口に村ひとつぶんの列ができる。');
+    if (S.over && S.over.win) S.over.bun = n;   // 統一のあとで行った場合も、結末は変わる
+    ev('event', n === 2 ? '国じゅうが、文鳥になった。' : '鳥化手術が始まった。', { big: { kicker: dateLabel().text, title: b.title, body: b.body, bird: 'haku', bun: n } });
+  }
+  // 鳥たちが、いま勧めている手術(研究できるのに、まだ成っていないもの)
+  function bunPush() { return techStatus('birdify') === 'avail' ? 'birdify' : (techStatus('buncho2') === 'avail' ? 'buncho2' : null); }
+  function bunBusy(tid) { return D.BIRDS.some(function (b) { return S.assign[b.id] === tid; }); }
+  function bunLetters() { return Math.max(1, S.stats.nag || 0) * 7; }   // 届いた推薦状(一季に七羽ぶん)
+  // 季節の変わり目に、一羽ずつ勧めにくる。命じたあとは、ときどき研究棟のようすが届く
+  function bunNag() {
+    var tid = bunPush(); if (!tid || S.flags.bunDone === S.turn) return;
+    S.stats.nag = (S.stats.nag || 0) + 1;
+    S.flags.nagN = S.flags.nagN || {};
+    var k = S.flags.nagN[tid] = (S.flags.nagN[tid] || 0) + 1, L;
+    if (bunBusy(tid)) { if (k % 2) { L = D.BUN.doing; ev('bird', L[(k >> 1) % L.length], { bird: 'haku', bun: tid }); } return; }
+    L = D.BUN.nag[tid];
+    var x = L[(k - 1) % L.length];
+    ev('bird', x.t, { bird: x.bird, bun: tid });
+    if (tid === 'birdify' && !S.flags.bunIntro) {   // 最初の一度だけ、七羽がそろって上申に来る
+      S.flags.bunIntro = S.turn; mark('bun', '参謀団の七羽が、そろって「鳥化手術」を上申する。');
+      ev('event', '参謀団が、そろって上申に来た。', { big: { kicker: dateLabel().text, title: D.BUN.big.intro.title, body: D.BUN.big.intro.body, bird: 'haku' } });
+    }
   }
 
   // ───────────────────────── 超知能 ─────────────────────────
@@ -1598,7 +1665,7 @@
     return men;
   }
   function autoMake() { // 作れる中でいちばん新しい部隊を、工廠・造船所・飛行場で作りつづける(核は作らない)
-    var list = [], order = ['birdmech', 'orbital', 'drone', 'modern', 'ktank', 'kair', 'bb', 'fgun'], dist = frontDist();
+    var list = [], order = ['bunchorion', 'bundam', 'birdmech', 'orbital', 'inkorion', 'drone', 'modern', 'ktank', 'kair', 'bb', 'fgun'], dist = frontDist();
     var ships = S.units.filter(function (u) { return (D.UNIT_TYPES[u.type].transport || 0) > 0; }).length;
     playerRegions().forEach(function (id) {
       var r = S.regions[id]; if (r.p) return;
@@ -1734,7 +1801,13 @@
     }
     var idle = idleBirds();
     if (idle.length && autoTechLeft()) h('haku', '手の空いている者がいます(' + idle.map(function (b) { return BIRD_BY_ID[b].name; }).join('、') + ')。研究を割り振ってください。', null, 2);
-    else if (idle.length && manualAvail().length && S.flags.asi == null) h('haku', '残る研究は「' + manualAvail().map(function (t) { return TECH_BY_ID[t].name; }).join('」「') + '」です。これを進めるかどうかは、司令がご自分でお決めください。', null, 6);
+    else if (idle.length && plainManual().length && S.flags.asi == null) h('haku', '残る研究は「' + plainManual().map(function (t) { return TECH_BY_ID[t].name; }).join('」「') + '」です。これを進めるかどうかは、司令がご自分でお決めください。', null, 6);
+    var push = bunPush();
+    if (push && !bunBusy(push)) {   // 手術だけは、やけに勧めてくる
+      var pn = TECH_BY_ID[push].name;
+      [0, 3].forEach(function (d) { var bb = D.BIRDS[(S.turn + d) % D.BIRDS.length].id; h(bb, D.BUN.push[bb].replace(/\{name\}/g, pn), null, 2); });
+      h('dario', D.BUN.dario[push].replace('{n}', bunLetters()), null, 3);
+    }
     if (S.flags.asi == null) {
       var pols = policyOptions().filter(function (p) { return p.ok; });
       if (pols.length) h(pols[0].bird, '施策「' + pols[0].name + '」を布告できます(' + pols[0].sum + ')。「国勢」の「施策」から。', null, 4);
@@ -1787,7 +1860,7 @@
   function world() {
     var s = summary();
     return { nation: nationStage(), era: eraStage(), mood: Math.round(moodAvg()), jp: s.jp, jpAll: s.jpAll, w: s.w, wAll: s.wAll,
-      asi: S.flags.asi != null, nukes: S.stats.nukes || 0, policies: D.POLICIES.filter(function (p) { return polHas(p.id); }).map(function (p) { return p.id; }) };
+      asi: S.flags.asi != null, bun: bunStage(), nukes: S.stats.nukes || 0, policies: D.POLICIES.filter(function (p) { return polHas(p.id); }).map(function (p) { return p.id; }) };
   }
 
   var Engine = {
@@ -1796,7 +1869,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    threatOn: threatOn, followTo: followTo, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, followTo: followTo, bunStage: bunStage, bunPush: bunPush, bunBusy: bunBusy, bunLetters: bunLetters, bunRate: bunRate, canFly: canFly, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

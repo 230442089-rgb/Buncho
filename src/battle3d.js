@@ -151,6 +151,68 @@
       { g: box(0.12, 1.4, 0.12), p: [0.6, 2.8, 0.4], c: 0x8791a3 }, { g: ball(0.22, 0.22, 0.22, 1), p: [0.6, 3.55, 0.4], c: 0xe2492d }
     ]);
   }
+  // ── 鳥たちの夢 ──  どれも前は −z。色は鳥たちの羽の色から
+  function bundamGeo() { // ブンダム。白文鳥の配色の、人の形。左に盾、右にくちばし型の光刃
+    var W = 0xf4f1ea, G = 0x9aa3b2, Dk = 0x4a5261, R = 0xe04a4a, P = 0xe8707e;
+    return merge([
+      { g: box(1.7, 4.2, 1.9), p: [-1.3, 2.9, 0], c: W }, { g: box(1.7, 4.2, 1.9), p: [1.3, 2.9, 0], c: W },
+      { g: box(2.0, 0.9, 3.0), p: [-1.3, 0.45, -0.5], c: G }, { g: box(2.0, 0.9, 3.0), p: [1.3, 0.45, -0.5], c: G },
+      { g: box(4.6, 1.3, 2.4), p: [0, 5.5, 0], c: G },
+      { g: box(5.6, 3.4, 3.0), p: [0, 7.8, 0], c: W },
+      { g: box(2.4, 1.7, 0.5), p: [0, 7.9, -1.6], c: Dk }, { g: new T.CylinderGeometry(0.5, 0.5, 0.2, 12), p: [0, 7.9, -1.9], r: [Math.PI / 2, 0, 0], c: R },   // 胸の巣箱と、丸い入口
+      { g: box(1.9, 1.9, 2.4), p: [-3.8, 8.7, 0], c: G }, { g: box(1.9, 1.9, 2.4), p: [3.8, 8.7, 0], c: G },
+      { g: box(1.3, 3.8, 1.5), p: [-3.9, 6.0, 0], c: W }, { g: box(1.3, 3.8, 1.5), p: [3.9, 6.2, -0.8], r: [-0.55, 0, 0], c: W },
+      { g: box(4.4, 6.4, 0.5), p: [-4.4, 6.0, -2.3], r: [0, 0.25, 0], c: W }, { g: box(4.8, 0.5, 0.6), p: [-4.4, 9.2, -2.3], r: [0, 0.25, 0], c: G },
+      { g: new T.CylinderGeometry(1.25, 1.25, 0.16, 16), p: [-4.5, 6.3, -2.62], r: [Math.PI / 2, 0, 0.25], c: R }, { g: new T.CylinderGeometry(1.25, 1.25, 0.16, 16), p: [-4.3, 6.3, -1.98], r: [Math.PI / 2, 0, 0.25], c: R },
+      { g: box(1.6, 0.35, 3.6), p: [0, 5.0, 2.6], r: [0.5, 0, 0], c: G }, { g: box(0.9, 0.3, 2.6), p: [0, 4.3, 3.9], r: [0.5, 0, 0], c: Dk },
+      { g: box(0.36, 0.36, 5.4), p: [3.9, 5.0, -4.2], c: P }, { g: box(0.7, 0.7, 1.0), p: [3.9, 5.0, -1.4], c: Dk }
+    ]);
+  }
+  function bundamHeadGeo() {
+    return merge([
+      { g: ball(1.7, 1.6, 1.7), p: [0, 0, 0], c: 0xf7f5f0 }, { g: new T.ConeGeometry(0.8, 1.9, 8), p: [0, -0.15, -2.0], r: [-Math.PI / 2, 0, 0], c: 0xe8707e },
+      { g: new T.CylinderGeometry(0.42, 0.42, 0.1, 12), p: [-1.5, 0.35, -0.7], r: [0, 0, Math.PI / 2], c: 0xe04a4a }, { g: new T.CylinderGeometry(0.42, 0.42, 0.1, 12), p: [1.5, 0.35, -0.7], r: [0, 0, Math.PI / 2], c: 0xe04a4a },
+      { g: ball(0.27, 0.27, 0.27, 1), p: [-1.58, 0.35, -0.7], c: 0x0d0d0d }, { g: ball(0.27, 0.27, 0.27, 1), p: [1.58, 0.35, -0.7], c: 0x0d0d0d },
+      { g: box(0.16, 1.5, 1.0), p: [0, 1.9, 0.2], c: 0xe04a4a }
+    ]);
+  }
+  function chorionGeo() { // ブンチョリオン。育てた文鳥に、鎧という名の重しを着せたもの。細長く、前かがみ
+    var B0 = 0xd9bf9e, Be = 0xf0dcc4, Wg = 0xb99a78, A = 0x23262d, Au = 0xd9b24c, L = 0xeb8a8f;
+    return merge([
+      { g: ball(2.9, 4.6, 3.6), p: [0, 9.6, 0.4], r: [0.25, 0, 0], c: B0 }, { g: ball(2.4, 3.0, 2.6), p: [0, 8.4, -1.1], c: Be },
+      { g: ball(0.45, 3.0, 2.8), p: [-2.9, 9.8, 1.0], r: [0.2, 0, 0.1], c: Wg }, { g: ball(0.45, 3.0, 2.8), p: [2.9, 9.8, 1.0], r: [0.2, 0, -0.1], c: Wg },
+      { g: box(1.2, 0.4, 5.6), p: [0, 8.2, 5.4], r: [0.45, 0, 0], c: 0x8a6a48 },
+      { g: new T.CylinderGeometry(0.34, 0.42, 5.8, 8), p: [-1.3, 3.2, 0.4], c: L }, { g: new T.CylinderGeometry(0.34, 0.42, 5.8, 8), p: [1.3, 3.2, 0.4], c: L },
+      { g: box(0.5, 0.45, 3.0), p: [-1.3, 0.25, -0.8], c: L }, { g: box(0.5, 0.45, 3.0), p: [1.3, 0.25, -0.8], c: L },
+      { g: box(0.42, 0.4, 2.2), p: [-2.0, 0.22, -0.5], r: [0, 0.5, 0], c: L }, { g: box(0.42, 0.4, 2.2), p: [2.0, 0.22, -0.5], r: [0, -0.5, 0], c: L },
+      { g: box(4.4, 2.6, 0.6), p: [0, 9.9, -3.0], r: [0.2, 0, 0], c: A }, { g: box(3.0, 0.35, 0.7), p: [0, 10.7, -3.2], r: [0.2, 0, 0], c: Au },
+      { g: box(5.4, 0.9, 5.6), p: [0, 6.5, 0.2], c: A }, { g: box(5.6, 0.25, 5.8), p: [0, 7.05, 0.2], c: Au },
+      { g: box(0.5, 4.6, 1.6), p: [-3.3, 13.0, 0.9], r: [0, 0, 0.12], c: A }, { g: box(0.5, 4.6, 1.6), p: [3.3, 13.0, 0.9], r: [0, 0, -0.12], c: A },
+      { g: box(0.55, 0.4, 1.7), p: [-3.58, 15.3, 0.9], c: Au }, { g: box(0.55, 0.4, 1.7), p: [3.58, 15.3, 0.9], c: Au }
+    ]);
+  }
+  function chorionHeadGeo(ink) { // シナモン文鳥の頭に、額当て。ink ならセキセイインコ
+    var H = ink ? 0xf2df5a : 0xb9895f, Ck = ink ? 0x6a58c8 : 0xfff6ea, Bk = ink ? 0xe7b24a : 0xeb8a8f, parts = [
+      { g: ball(2.2, 2.1, 2.2), p: [0, 0, 0], c: H },
+      { g: ball(0.65, 1.0, 1.2), p: [-1.75, -0.6, -0.5], c: Ck }, { g: ball(0.65, 1.0, 1.2), p: [1.75, -0.6, -0.5], c: Ck },
+      { g: ball(0.34, 0.34, 0.34, 1), p: [-1.98, 0.4, -0.9], c: 0x0d0d0d }, { g: ball(0.34, 0.34, 0.34, 1), p: [1.98, 0.4, -0.9], c: 0x0d0d0d },
+      { g: box(3.9, 0.9, 2.6), p: [0, 1.3, -0.4], r: [0.15, 0, 0], c: 0x23262d }, { g: box(4.0, 0.22, 2.7), p: [0, 0.82, -0.45], r: [0.15, 0, 0], c: 0xd9b24c }
+    ];
+    if (ink) parts.push({ g: new T.ConeGeometry(0.7, 1.3, 8), p: [0, -0.5, -2.2], r: [-2.2, 0, 0], c: Bk }, { g: box(1.1, 0.5, 0.6), p: [0, 0.2, -2.1], c: 0x4d86d9 });
+    else parts.push({ g: new T.ConeGeometry(1.0, 2.3, 8), p: [0, -0.2, -2.6], r: [-Math.PI / 2, 0, 0], c: Bk });
+    return merge(parts);
+  }
+  function inkoBodyGeo() { // インコリオンの胴と尾。飛ぶ姿
+    return merge([
+      { g: ball(2.2, 2.0, 4.6), p: [0, 0, 0], c: 0x7cc35a }, { g: ball(1.9, 1.5, 3.2), p: [0, -0.6, -0.6], c: 0x8fd06a },
+      { g: box(1.0, 0.3, 6.4), p: [0, 0.2, 6.6], c: 0x2f6fb0 }, { g: box(2.0, 0.25, 3.0), p: [0, 0.1, 4.6], c: 0x3f86c9 },
+      { g: box(4.6, 0.7, 2.2), p: [0, 0.95, 0.2], c: 0x23262d }, { g: box(4.8, 0.2, 2.4), p: [0, 1.35, 0.2], c: 0xd9b24c }
+    ]);
+  }
+  function inkoWingGeo(sg) { // 片翼。付け根が原点。sg=1 が右、−1 が左
+    return merge([{ g: box(7.5, 0.3, 3.4), p: [3.9 * sg, 0, 0.3], c: 0x4f9a3c }, { g: box(6.4, 0.32, 1.0), p: [3.6 * sg, 0.02, -1.0], c: 0xf2df5a },
+      { g: box(2.6, 0.31, 2.4), p: [8.4 * sg, 0, 0.9], c: 0x2e2e33 }]);
+  }
   function infGeo() { // 自衛隊の普通科
     return merge([
       { g: box(0.44, 0.95, 0.32), p: [0, 0.475, 0], c: 0x55673c },
@@ -449,12 +511,21 @@
       for (i = 0; i < B.droneN; i++) { B.drones.push({ on: false }); B.droneM.setMatrixAt(i, zero); }
     }
     B.nOrb = Math.min(2, ty.orbital || 0);
-    if (ty.birdmech) { // 機動文鳥。右うしろから跳ねてくる
-      var mg = new T.Group(), body = new T.Mesh(geo('mech', mechGeo), matVC), head = new T.Mesh(geo('mechHead', mechHeadGeo), matVC);
-      head.position.set(0, 12.2, -2.6); mg.add(body); mg.add(head); mg.position.set(4.2, 0, 34); sc.add(mg);
-      B.mech = { g: mg, head: head, x: 4.2, y: 0, z: 34, hop: null, tilt: 0, beam: null, sq: 0 };
+    var mk = ty.bunchorion ? 'bunchorion' : (ty.bundam ? 'bundam' : (ty.birdmech ? 'birdmech' : null));   // 大きな機体は、いちばん新しいものを一つだけ出す
+    if (mk) { // 右うしろから跳ねてくる。[胴, 頭, 頭の高さ, 頭の前後, 光線の出る高さ, 前後]
+      var MK = { birdmech: [mechGeo, mechHeadGeo, 12.2, -2.6, 11.9, -5.6], bundam: [bundamGeo, bundamHeadGeo, 11.2, -0.4, 11.0, -2.5], bunchorion: [chorionGeo, chorionHeadGeo, 14.9, -3.0, 14.6, -5.9] }[mk];
+      var mg = new T.Group(), body = new T.Mesh(geo(mk, MK[0]), matVC), head = new T.Mesh(geo(mk + 'Head', function () { return MK[1](); }), matVC);
+      head.position.set(0, MK[2], MK[3]); mg.add(body); mg.add(head); mg.position.set(4.2, 0, 34); sc.add(mg);
+      B.mech = { g: mg, head: head, kind: mk, hy: MK[4], hz: MK[5], x: 4.2, y: 0, z: 34, hop: null, tilt: 0, beam: null, sq: 0 };
     }
-    B.modern = !!(nInf || nTank || B.nArty || B.nHeli || B.nJet || B.nNaval || B.nDrone || B.nOrb || B.mech);
+    if (ty.inkorion) { // インコリオン。敵陣の上を、輪を描いて飛ぶ
+      var ig = new T.Group(), ih = new T.Mesh(geo('inkoHead', function () { return chorionHeadGeo(true); }), matVC);
+      var wr = new T.Mesh(geo('inkoWingR', function () { return inkoWingGeo(1); }), matVC), wl = new T.Mesh(geo('inkoWingL', function () { return inkoWingGeo(-1); }), matVC);
+      ih.position.set(0, 0.9, -4.6); wr.position.set(1.6, 0.6, 0); wl.position.set(-1.6, 0.6, 0);
+      ig.add(new T.Mesh(geo('inko', inkoBodyGeo), matVC)); ig.add(ih); ig.add(wr); ig.add(wl); ig.scale.set(0.62, 0.62, 0.62); ig.position.set(-40, 22, 24); sc.add(ig);
+      B.inko = { g: ig, wr: wr, wl: wl, head: ih };
+    }
+    B.modern = !!(nInf || nTank || B.nArty || B.nHeli || B.nJet || B.nNaval || B.nDrone || B.nOrb || B.mech || B.inko);
   }
 
   function buildPools() {
@@ -663,13 +734,20 @@
     }
     // 機動文鳥:跳ねてきて、くちばしから光線
     if (B.mech) {
-      at(0.7, function () { say('機動文鳥、発進。……技師長、なぜ文鳥型に。'); mechHop(4.2, 24, 3.5, 0.5, function () { mechLand(5); }); });
+      var mline = { bundam: 'ブンダム、発進。盾を前へ。……操縦席は、巣箱です。', bunchorion: 'ブンチョリオン、鎧の留め金を外します。……粟の残りは、五分ぶん。' }[B.mech.kind] || '機動文鳥、発進。……技師長、なぜ文鳥型に。';
+      at(0.7, function () { say(mline); mechHop(4.2, 24, 3.5, 0.5, function () { mechLand(5); }); });
+      if (s.berserk && B.mech.kind === 'bunchorion') at(2.6, function () { say('……暴走しています。命令が、届きません。'); sfx('bigchirp'); B.mech.rage = B.t; B.shake = Math.min(1.7, B.shake + 0.8); });
       at(1.4, function () { mechHop(4.0, 14, 3.5, 0.5, function () { mechLand(5); }); });
       at(2.1, function () { mechHop(3.6, 5, 4, 0.55, function () { mechLand(6); B.mech.tilt = B.t; }); });
       if (!win) at(mainEnd - 0.1, function () { mechHop(4.2, 30, 3, 0.7); });
       else {
         at(3.0, function () { var m = B.mech; m.beam = { t0: B.t, dur: 1.5, next: 0 }; sfx('laser', { dur: 1.5 }); });
       }
+    }
+    // インコリオン:空から、敵将の声をまねる
+    if (B.inko) {
+      at(B.mech ? 1.9 : 1.1, function () { say('インコリオン「テッタイ。テッタイ。テッタイ」……敵将の声を、まねています。'); sfx('bigchirp'); });
+      every(2.4, mainEnd, 0.95, function () { sfx('chirp', { n: 3 }); });
     }
     if (!ground) { // 砲爆撃だけ
       at(mainEnd + 0.5, function () { say('砲爆撃、完了。守備兵 ' + fmt(s.men) + ' → ' + fmt(s.menAfter) + '。'); });
@@ -895,6 +973,13 @@
       bm.g.position.x = bx; bm.g.scale.set(bw, 1, bw);
       if (t > bm.next) { bm.next = t + 0.07; blast(bx, bm.z + rnd(-3, 3), 5.6, 1.6, 0.6, false, 4.4); puff(bx, 1.2, bm.z, 0, 2, 0, 0.3, 2.5, 5, 0xffffff, 0x9cecff, 0); }
     }
+    // インコリオン:敵陣の上を、大きな輪を描いて飛ぶ
+    if (B.inko) {
+      var ik = B.inko, ia = t * 0.85 + 2.6, ir = 7.5, en = 1 - smooth(t / 1.3), fl = Math.sin(t * 7.5) * 0.5;
+      ik.g.position.set(Math.sin(ia) * ir - 22 * en, 12.5 + Math.sin(t * 2.3) * 0.6 + 6 * en, -11 + Math.cos(ia) * 8 + 12 * en);
+      ik.g.rotation.set(0, Math.atan2(-Math.cos(ia) * ir, Math.sin(ia) * 8), -0.28 * Math.cos(ia), 'YXZ');
+      ik.wr.rotation.z = 0.15 + fl; ik.wl.rotation.z = -0.15 - fl; ik.head.rotation.y = Math.sin(t * 2.6) * 0.5;
+    }
     // 機動文鳥
     if (B.mech) {
       var mc = B.mech, hp = mc.hop;
@@ -906,6 +991,7 @@
       mc.sq = Math.max(0, mc.sq - dt * 4);
       mc.g.position.set(mc.x, mc.y, mc.z); mc.g.scale.set(1 + mc.sq * 0.06, 1 - mc.sq * 0.1, 1 + mc.sq * 0.06);
       mc.g.rotation.x = hp ? -0.12 : 0;
+      if (mc.rage) mc.g.rotation.z = Math.sin(t * 31) * 0.045;   // 暴走:小刻みに震える
       var tk2 = mc.tilt ? (t - mc.tilt) / 0.9 : 2; // 首をかしげる
       mc.head.rotation.z = tk2 < 1 ? Math.sin(tk2 * Math.PI) * 0.42 : 0; mc.head.rotation.y = Math.sin(t * 2.1) * 0.8; // 鳥なので、きょろきょろする
       if (mc.turn) mc.g.rotation.y = Math.PI * smooth((t - mc.turn) / 0.45); // こちらを振り向く
@@ -913,7 +999,7 @@
         var mb = mc.beam, mbk = (t - mb.t0) / mb.dur;
         if (mbk >= 1) mc.beam = null;
         else {
-          var tx2 = (-B.half - 3) + (B.half * 2 + 6) * mbk, tz2 = -7 - B.rows * 0.65 + Math.sin(mbk * 9) * B.rows * 0.4, hy = mc.y + 11.9, hz = mc.z - 5.6;
+          var tx2 = (-B.half - 3) + (B.half * 2 + 6) * mbk, tz2 = -7 - B.rows * 0.65 + Math.sin(mbk * 9) * B.rows * 0.4, hy = mc.y + mc.hy, hz = mc.z + mc.hz;
           mc.head.rotation.y = Math.atan2(mc.x - tx2, mc.z - tz2) * 0.6;
           tracer(mc.x, hy, hz, tx2, 0.3, tz2, 0.05, 0.55, 0); tracer(mc.x, hy, hz, tx2, 0.3, tz2, 0.05, 0.2, 0);
           if (t > mb.next) { mb.next = t + 0.06; blast(tx2, tz2, 5.4, 1.55, 0.6, false, 4.2); }
