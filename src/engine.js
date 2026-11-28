@@ -200,7 +200,7 @@
       var k = 'boss_' + b.id, st = S.flags[k], f = S.factions[b.id];
       if (st && st.down != null) return;
       if (!st) {
-        if (S.flags.asi == null && (playerRegions().length >= b.at.regions || S.turn >= b.at.turn)) { S.flags[k] = { omen: S.turn }; ev('warn', b.omen, { rid: b.home }); }
+        if (playerRegions().length >= b.at.regions || S.turn >= b.at.turn) { S.flags[k] = { omen: S.turn }; ev('warn', b.omen, { rid: b.home }); }   // 超知能のあとでも現れる(説得の外にいる)
         return;
       }
       if (st.up == null) { if (S.turn > st.omen) bossRise(b); return; }
