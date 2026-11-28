@@ -32,7 +32,7 @@
   function script() {
     var d = D(), V = d.VOICES, F = d.FACTIONS || {};
     function v(key, i) { var a = key.split('.'), l = V[a[0]]; if (l && a[1]) l = l[a[1]]; var x = l && l[i || 0]; return x ? { k: 'voice', who: x.who, t: x.t } : null; }
-    function rv(id, i) { var l = V.region && V.region[id], x = l && l[i || 0], r = d.REGIONS && d.REGIONS[id]; return x ? { k: 'voice', who: x.who, t: x.t, where: r ? r.name : '' } : null; }
+    function rv(id, i) { var l = V.region && V.region[id], x = l && l[i || 0], r = d.REGIONS && d.REGIONS[id]; return x ? { k: 'voice', who: x.who, t: x.t, where: r ? (r.name0 || r.name) : '' } : null; }
     function col(fid) { return F[fid] ? F[fid].color : '#d9b24c'; }
     function clip(o) { return mix({ win: true, bombard: false, ratio: 3.4, chance: 1, men: 9000, menAfter: 0, fort: 3, siege: 3, color: '#d9b24c', season: 0, snow: false, fuji: false, tier: 0, types: { inf: 2, tank: 1 }, cine: true, t0: 5.1, maxT: 9.4 }, o); }
     function nation(i, from, short) { return { k: 'nation', i: i, from: from, short: !!short }; }

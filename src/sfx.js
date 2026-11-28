@@ -382,14 +382,20 @@
     sine: function (t, f, d, g) { tone(t, { f0: f, dur: d * 1.3, gain: g, attack: Math.min(1.2, d * 0.4) }); },
     bass: function (t, f, d, g) { tone(t, { type: 'triangle', f0: f, dur: Math.max(0.14, d * 0.9), gain: g, attack: 0.005 }); tone(t, { type: 'triangle', f0: f * 2, dur: Math.max(0.1, d * 0.5), gain: g * 0.35, attack: 0.005 }); },
     sbass: function (t, f, d, g) { tone(t, { type: 'sawtooth', f0: f, dur: Math.max(0.1, d * 0.8), gain: g * 0.8, attack: 0.004, lp: 750 }); tone(t, { type: 'triangle', f0: f * 2, dur: Math.max(0.08, d * 0.5), gain: g * 0.25, attack: 0.004 }); },
-    brass: function (t, f, d, g) { brass(t, f, Math.max(0.09, d * 0.85), g * 0.55); }
+    brass: function (t, f, d, g) { brass(t, f, Math.max(0.09, d * 0.85), g * 0.55); },
+    // 鳥が、その音で鳴く(音が低ければ、鳴ける高さまで上げる)
+    bird: function (t, f, d, g) { var F = f; while (F < 1500) F *= 2; tone(t, { f0: F, f1: F * 1.5, dur: 0.06, gain: g * 1.1 }); tone(t + 0.05, { f0: F * 1.45, f1: F * 1.02, dur: 0.07, gain: g * 0.8 }); },
+    // 太い声のかけ声「ブン!」
+    grunt: function (t, f, d, g) { tone(t, { type: 'sawtooth', f0: f * 1.5, f1: f, glide: 0.07, dur: 0.17, gain: g, attack: 0.008, lp: 1100 }); tone(t, { type: 'square', f0: f * 0.75, f1: f * 0.5, glide: 0.08, dur: 0.17, gain: g * 0.5, attack: 0.008, lp: 700 }); noise(t, { type: 'bandpass', f0: 500, q: 1.2, dur: 0.06, gain: g * 0.35 }); }
   };
   var DRUM = {
     k: function (t, g) { tone(t, { f0: 130, f1: 45, dur: 0.16, gain: g, attack: 0.002 }); tone(t, { type: 'triangle', f0: 300, f1: 120, dur: 0.05, gain: g * 0.6, attack: 0.002 }); },
     s: function (t, g) { noise(t, { type: 'bandpass', f0: 1800, q: 0.8, dur: 0.11, gain: g }); tone(t, { type: 'triangle', f0: 220, f1: 160, dur: 0.06, gain: g * 0.4 }); },
     h: function (t, g) { noise(t, { type: 'highpass', f0: 6000, dur: 0.03, gain: g * 0.7 }); },
     t: function (t, g) { taiko(t, g); },
-    r: function (t, g) { noise(t, { type: 'bandpass', f0: 2600, q: 4, dur: 0.02, gain: g }); tone(t, { f0: 1500, f1: 1100, dur: 0.04, gain: g * 0.6 }); }
+    r: function (t, g) { noise(t, { type: 'bandpass', f0: 2600, q: 4, dur: 0.02, gain: g }); tone(t, { f0: 1500, f1: 1100, dur: 0.04, gain: g * 0.6 }); },
+    w: function (t, g) { [0, 0.045, 0.09, 0.135, 0.18].forEach(function (d, i) { tone(t + d, { type: 'square', f0: i % 2 ? 2950 : 2750, dur: 0.05, gain: g, lp: 5200 }); }); },   // 審判の笛
+    c: function (t, g) { noise(t, { type: 'bandpass', f0: 900, q: 0.6, dur: 1.3, gain: g, attack: 0.35 }); noise(t + 0.2, { type: 'bandpass', f0: 2200, q: 0.8, dur: 1.0, gain: g * 0.5, attack: 0.4 }); }   // 客席のどよめき
   };
   function rp(str, n) { var o = []; for (var i = 0; i < n; i++) o.push(str); return o.join(' | '); }
   function chordBar(pat, ch) { return pat.replace(/X/g, ch); } // 型の X を和音に置きかえる
@@ -447,7 +453,16 @@
     era8: { name: '調和', bpm: 60, div: 1, bar: 8, tracks: [
       { i: 'sine', g: 0.1, p: 'D3+A3+D4+F#4+A4 . . . . . . .' },
       { i: 'sine', g: 0.05, p: 'A5 . . . A5 . . .' },
-      { i: 'sine', g: 0.03, p: '- . D6 . - . D6 .' }], drums: [] }
+      { i: 'sine', g: 0.03, p: '- . D6 . - . D6 .' }], drums: [] },
+    // B.U.N society:闘技場の応援歌。金管と太鼓に、かけ声と笛とさえずり。ゆがめて鳴らす(WARP 2)
+    bun: { name: 'G.A.C.H.I Fight のテーマ', bpm: 150, div: 2, bar: 8, tracks: [
+      { i: 'brass', g: 0.3, p: 'C5 . C5 G4 A4 . G4 . | C5 . C5 G4 A4 . G4 . | E5 . D5 C5 D5 . E5 . | D5 . . . G4 . . . | C5 . C5 G4 A4 . G4 . | F5 . E5 D5 E5 . C5 . | D5 . D5 E5 D5 . B4 . | C5 . . . C5 . - -' },
+      { i: 'sbass', g: 0.3, p: 'C2 . G2 . C2 . G2 . | C2 . G2 . C2 . G2 . | A2 . E3 . A2 . E3 . | G2 . D3 . G2 . D3 . | C2 . G2 . C2 . G2 . | F2 . C3 . F2 . C3 . | G2 . D3 . G2 . B2 . | C2 . G2 . C2 . - .' },
+      { i: 'sq', g: 0.11, p: [rp(chordBar('- . X . - . X .', 'E4+G4+C5'), 2), chordBar('- . X . - . X .', 'E4+A4+C5'), chordBar('- . X . - . X .', 'D4+G4+B4'), chordBar('- . X . - . X .', 'E4+G4+C5'), chordBar('- . X . - . X .', 'F4+A4+C5'), chordBar('- . X . - . X .', 'D4+G4+B4'), chordBar('- . X . - . - .', 'E4+G4+C5')].join(' | ') },
+      { i: 'grunt', g: 0.3, p: rp('- . C3 . - . C3 C3', 8) },
+      { i: 'bird', g: 0.16, p: '- - - - - - C6 C6 | - - - - - - G5 G5 | - - - - - - E6 E6 | - - G5 . G5 . G5 . | - - - - - - C6 C6 | - - - - - - F6 F6 | - - - - - - D6 D6 | - - C6 C6 C6 . - -' }],
+      drums: [{ d: 'k', g: 0.34, p: 'x.x.x.x.' }, { d: 's', g: 0.17, p: '..x...x.' }, { d: 'h', g: 0.07, p: 'xxxxxxxx' }, { d: 't', g: 0.26, p: '........ ......xx' },
+        { d: 'w', g: 0.1, p: 'x....... ........ ........ ........' }, { d: 'c', g: 0.1, p: '........ ........ ........ ....x...' }] }
   };
   function compile(song) { // 文字の並びを、刻みごとの音にしておく
     if (song._c) return song._c;
@@ -469,11 +484,23 @@
     });
     return (song._c = cs);
   }
+  // BGM のゆがみ。0: ふつう/1: 音程がふらつき、ときどき外れ、鳥が旋律に割りこむ(鳥化手術のあと)/2: もっとひどい(ブンーチョウ手術のあと)
+  var WARP = 0;
   function schedStep(cs, n, t, out) { // n 番目の刻みを、時刻 t に置く
-    var saved = master, i, j; master = out;
+    var saved = master, i, j, W = WARP; master = out;
+    if (W) t += Math.sin(n * 1.3) * 0.011 * W;   // 拍も、少しよれる
     try {
-      for (i = 0; i < cs.tracks.length; i++) { var tr = cs.tracks[i], st = tr.steps[n % tr.steps.length]; if (st) for (j = 0; j < st.f.length; j++) tr.fn(t, st.f[j], st.len * cs.sp, tr.g); }
+      for (i = 0; i < cs.tracks.length; i++) {
+        var tr = cs.tracks[i], st = tr.steps[n % tr.steps.length]; if (!st) continue;
+        var fn = tr.fn, bend = 1;
+        if (W) {
+          if (i === 0 && fn !== INST.bird && (n * 7 + 3) % (W > 1 ? 3 : 5) === 0) fn = INST.bird;   // 鳥が、旋律を横取りする
+          bend = Math.pow(2, (Math.sin(t * 0.83 + i * 1.7) * (W > 1 ? 0.45 : 0.3) + Math.sin(t * 6.1 + i) * 0.07 + ((n * 13 + i * 5) % 11 === 0 ? (W > 1 ? 1 : 0.5) : 0)) / 12);
+        }
+        for (j = 0; j < st.f.length; j++) fn(t, st.f[j] * bend, st.len * cs.sp, tr.g);
+      }
       for (i = 0; i < cs.drums.length; i++) { var dr = cs.drums[i]; if (dr.steps[n % dr.steps.length]) dr.fn(t, dr.g); }
+      if (W && n % cs.bar === cs.bar - 1 && Math.floor(n / cs.bar) % 2 === 0) SOUNDS.chirp(t, { n: W > 1 ? 4 : 2 });   // 小節の終わりに、さえずり
     } finally { master = saved; }
   }
   function musicBus() {
@@ -484,7 +511,9 @@
     var c = MU.cur; if (!c || !ctx || ctx.state !== 'running' || (root.document && document.hidden)) return;
     var now = ctx.currentTime;
     if (c.next < now - 0.2) c.next = now + 0.05; // 止まっていたあとは、たまった分をまとめて鳴らさない
+    WARP = MU.warp || 0;
     while (c.next < now + 0.35) { try { schedStep(c.cs, c.n, c.next + (c.n % 2 ? c.cs.swing * c.cs.sp : 0), c.gain); } catch (e) { lastErr = 'bgm: ' + e; } c.n++; c.next += c.cs.sp; }
+    WARP = 0;
   }
   function musicSync() { // 鳴らしたい曲と、いま鳴っている曲を合わせる。曲が変わるときは、前の曲を絞りながら入れ替える
     if (!ctx || ctx.state !== 'running') return;
@@ -501,13 +530,15 @@
     if (!MU.cur && MU.timer) { clearInterval(MU.timer); MU.timer = null; }
   }
   // 検査用:曲を画面外で数秒ぶん合成して、波形の大きさを返す
-  function renderSong(name, sec, hp) {
+  function renderSong(name, sec, hp, warp) {
     var OC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
     if (!OC) return Promise.reject(new Error('OfflineAudioContext がありません'));
     var rate = 44100, oc = new OC(1, Math.ceil(rate * sec), rate), saved = [ctx, master, noiseBuf, revIn], g = build(oc), err = null, notes = 0;
     if (hp) { var f1 = oc.createBiquadFilter(), f2 = oc.createBiquadFilter(); f1.type = f2.type = 'highpass'; f1.frequency.value = f2.frequency.value = hp; g.out.disconnect(); g.out.connect(f1); f1.connect(f2); f2.connect(oc.destination); }
     ctx = oc; master = g.master; noiseBuf = g.noise; revIn = g.rev; master.gain.value = VOL;
+    WARP = warp || 0;
     try { var cs = compile(SONGS[name]), bus = oc.createGain(); bus.gain.value = MVOL; bus.connect(master); for (var n = 0, t = 0.05; t < sec - 0.4; n++, t += cs.sp) { schedStep(cs, n, t + (n % 2 ? cs.swing * cs.sp : 0), bus); notes++; } } catch (e) { err = e; }
+    WARP = 0;
     ctx = saved[0]; master = saved[1]; noiseBuf = saved[2]; revIn = saved[3];
     if (err) return Promise.reject(err);
     return oc.startRendering().then(function (buf) {
@@ -544,10 +575,12 @@
     },
     // BGM。name は 'era0'〜'era8'(null で止める)。まだ音を出せない状態なら、出せるようになったときに始まる
     music: function (name) { MU.want = name || null; if (ensure()) musicSync(); },
+    // BGM のゆがみ(0〜2)。曲はそのまま、次の刻みから音が外れはじめる
+    warp: function (n) { MU.warp = Math.max(0, Math.min(2, n | 0)); },
     setMusic: function (on, vol) { MU.on = !!on; if (vol != null) MU.vol = vol; if (ctx) { musicBus().gain.setTargetAtTime(MU.on ? MVOL * MU.vol * MU.duck : 0, ctx.currentTime, 0.1); musicSync(); } },
     duck: function (k) { MU.duck = k; if (ctx && MU.bus) MU.bus.gain.setTargetAtTime(MU.on ? MVOL * MU.vol * k : 0, ctx.currentTime, 0.25); }, // 戦闘のあいだは小さく
     songs: function () { return Object.keys(SONGS).map(function (k) { return { id: k, name: SONGS[k].name }; }); },
-    musicState: function () { return { want: MU.want, playing: MU.cur ? MU.cur.name : null, on: MU.on, duck: MU.duck }; },
+    musicState: function () { return { want: MU.want, playing: MU.cur ? MU.cur.name : null, on: MU.on, duck: MU.duck, warp: MU.warp || 0 }; },
     _renderSong: renderSong,
     isEnabled: function () { return enabled; },
     setBypass: function (on) { bypass = !!on; if (!bypass) mediaOff(); },

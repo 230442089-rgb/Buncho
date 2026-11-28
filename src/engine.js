@@ -87,8 +87,23 @@
     autoAssign();
     S.dipLeft = dipMax();
     mark('start', '富士の裾野に、霧とともに現れる。帰る道は、まだ探している。');
+    applyNames();
     return S;
   }
+  // 土地の名。手術のあと、治めている土地の名が変わる(鳥化手術:鳴き声が付く/ブンーチョウ手術:ひどいことになる)。
+  // 画面も記録も D.REGIONS[id].name を読むので、そこを書きかえる。もとの名は name0 に残す。
+  function bunName(id) {
+    var d = D.REGIONS[id], n0 = d.name0, bs = S ? bunStage() : 0, B = D.BUN && D.BUN.names;
+    if (!bs || !B || !S.regions[id] || S.regions[id].o !== 'player') return n0;
+    var n = n0.split('・')[0], h = hashStr(id);
+    if (bs === 1) return n + B.suf1[h % B.suf1.length];
+    var P = n.length >= 5 ? B.pat2s : B.pat2;
+    return B.fix2[id] || P[h % P.length].replace('{n}', n);
+  }
+  function applyNames(off) { // off: もとの名に戻すだけ(表紙や年代記のあいだ)
+    Object.keys(D.REGIONS).forEach(function (id) { var d = D.REGIONS[id]; if (d.name0 == null) d.name0 = d.name; d.name = off ? d.name0 : bunName(id); });
+  }
+  function realName(id) { var d = D.REGIONS[id]; return d.name0 != null ? d.name0 : d.name; }
 
   function addUnit(type, name, loc) {
     var T = D.UNIT_TYPES[type];
@@ -126,6 +141,7 @@
     });
     if (!S.hist) S.hist = [];
     if (S.flags.nation == null) S.flags.nation = nationCalc();
+    applyNames();
     return S;
   }
 
@@ -545,6 +561,7 @@
       S.flags.kyoto = S.turn; S.prestige += 10; mark('event', '上洛。帝に拝謁し、官軍の御旗を受ける。');
       events.push(ev('event', '京に入り、帝に拝謁した。朝廷は「官軍」の御旗を授けた。', { big: { title: '上洛', body: '都に戦車の列が入った。帝は鉄の車と、肩に鳥を乗せた司令に目を丸くされたという。朝廷は我が軍を官軍と認めた。これより、日本の諸大名は降伏勧告に応じやすくなる。', bird: 'haku' } }));
     }
+    if (S.flags.bun != null) applyNames();   // 手術のあとは、取った土地の名も変わる
     return prev;
   }
   function afterLoss(fid, lostRid, events) { // 勢力が地域を失ったあとの処理(本拠陥落・滅亡)
@@ -1258,7 +1275,7 @@
         if (tid === 'nukeweapon') Object.keys(S.factions).forEach(function (k) { S.factions[k].pride = Math.max(10, S.factions[k].pride - 10); });
         S.prestige += 1;
         ev('tech', '「' + t.name + '」の研究が完了した。', { tech: tid, bird: lead.id });
-        D.ERAS.forEach(function (e) { if (e.tech === tid && tid !== 'asi') mark('era', '「' + t.name + '」が成る。' + e.name + 'が始まる。' + e.look); });
+        D.ERAS.forEach(function (e) { if (e.tech === tid && tid !== 'asi' && !t.taboo) mark('era', '「' + t.name + '」が成る。' + e.name + 'が始まる。' + e.look); });
         if (tid === 'nukeweapon') mark('bad', '核兵器を持つ。鳥たちは、この件についてだけは口数が少ない。');
         if (tid === 'agi') mark('era', '汎用人工知能が成る。設計会議のあいだ、ダリオくんはずっと黙っていた。');
         if (tid === 'asi') startAsi();
@@ -1271,7 +1288,7 @@
     if (S.autoResearch) autoAssign();
     else D.BIRDS.forEach(function (b) { var c = S.assign[b.id]; if (c && techStatus(c) !== 'avail') S.assign[b.id] = null; });
     // 3. 建設・編成・統治・整備
-    var ctlAdd = polSum('ctl'), ctlMax = polAny('ctlMax') || S.flags.asi != null, calm = polAny('noRevolt') || S.flags.asi != null;
+    var ctlAdd = polSum('ctl'), ctlMax = polAny('ctlMax') || S.flags.asi != null, calm = polAny('noRevolt') || S.flags.asi != null || S.flags.bun2 != null;   // B.U.N society:不満は、殴り合いで決着がつく
     playerRegions().forEach(function (id) {
       var r = S.regions[id];
       r.bq = r.bq.filter(function (w) { // 工事は、どれも一季ずつ進む
@@ -1343,6 +1360,7 @@
     if (S.res.fuel === 0 && !S.flags.fuelOut && S.units.some(function (u) { return D.UNIT_TYPES[u.type].jsdf; })) { S.flags.fuelOut = true; ev('bad', '燃料が底をついた。戦車もヘリも艦も動けない。'); }
     if (S.res.fuel > 60) S.flags.fuelOut = false;
     checkMilestones([]);
+    if (S.flags.bun != null) applyNames();   // 失った土地は、もとの名に戻る
     var out = REPORT; REPORT = null;
     return { events: out, income: n };
   }
@@ -1528,6 +1546,7 @@
     Object.keys(S.factions).forEach(function (k) { var f = S.factions[k]; if (f.alive) f.att = Math.max(-100, f.att - (n === 2 ? 20 : 15)); });   // 人が鳥になる国を、諸国は気味悪がる
     mark('bun', n === 2 ? 'ブンーチョウ手術が成る。但し書きが消え、国じゅうが文鳥になる。' : '鳥化手術が成る。翌朝、窓口に村ひとつぶんの列ができる。');
     if (S.over && S.over.win) S.over.bun = n;   // 統一のあとで行った場合も、結末は変わる
+    applyNames();
     ev('event', n === 2 ? '国じゅうが、文鳥になった。' : '鳥化手術が始まった。', { big: { kicker: dateLabel().text, title: b.title, body: b.body, bird: 'haku', bun: n } });
   }
   // 鳥たちが、いま勧めている手術(研究できるのに、まだ成っていないもの)
@@ -1536,6 +1555,12 @@
   function bunLetters() { return Math.max(1, S.stats.nag || 0) * 7; }   // 届いた推薦状(一季に七羽ぶん)
   // 季節の変わり目に、一羽ずつ勧めにくる。命じたあとは、ときどき研究棟のようすが届く
   function bunNag() {
+    if (S.flags.bun2 != null) {   // B.U.N society:季節ごとに、G.A.C.H.I Fight の便りが届く
+      if (S.flags.bunDone === S.turn) return;
+      var G = D.BUN.gachi, mine = playerRegions(), gk = S.flags.gachiN = (S.flags.gachiN || 0) + 1;
+      if (mine.length) ev('bird', G[(gk - 1) % G.length].replace(/\{r\}/g, rname(mine[(gk * 7 + S.turn) % mine.length])), { bird: 'gin', gachi: true });
+      return;
+    }
     var tid = bunPush(); if (!tid || S.flags.bunDone === S.turn) return;
     S.stats.nag = (S.stats.nag || 0) + 1;
     S.flags.nagN = S.flags.nagN || {};
@@ -1869,7 +1894,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    threatOn: threatOn, followTo: followTo, bunStage: bunStage, bunPush: bunPush, bunBusy: bunBusy, bunLetters: bunLetters, bunRate: bunRate, canFly: canFly, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, followTo: followTo, bunStage: bunStage, bunPush: bunPush, bunBusy: bunBusy, bunLetters: bunLetters, bunRate: bunRate, canFly: canFly, applyNames: applyNames, realName: realName, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

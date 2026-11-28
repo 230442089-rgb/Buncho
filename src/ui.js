@@ -64,15 +64,16 @@
   // BGM は時代で変わる。表紙は戦国の曲、超知能のあとは「調和」
   function syncMusic() {
     if (!TF.sfx || !TF.sfx.music || (TF.Chronicle && TF.Chronicle.active())) return;
-    var st = E.S, inGame = st && $('#title').hidden;
-    TF.sfx.music(ui.opts.bgm ? 'era' + (inGame ? (st.flags.asi != null ? 8 : E.eraStage()) : 0) : null);
+    var st = E.S, inGame = st && $('#title').hidden, bs = inGame ? E.bunStage() : 0;
+    if (TF.sfx.warp) TF.sfx.warp(bs);   // 鳥化手術のあとは音が外れ、鳥が歌に割りこむ
+    TF.sfx.music(ui.opts.bgm ? (bs >= 2 ? 'bun' : 'era' + (inGame ? (st.flags.asi != null ? 8 : Math.min(7, E.eraStage())) : 0)) : null);   // ブンーチョウ手術のあとは、闘技場の応援歌
   }
   function animOn() { return ui.opts.anim && !reduce && TF.Battle3D && TF.Battle3D.available(); }
 
   // ───────────────────────── 演出 ─────────────────────────
   function tween(ms, fn, done) {
     var t0 = performance.now();
-    function f(now) { var k = Math.min(1, (now - t0) / ms); fn(k); if (k < 1) requestAnimationFrame(f); else if (done) done(); }
+    function f(now) { var k = Math.max(0, Math.min(1, (now - t0) / ms)); fn(k); if (k < 1) requestAnimationFrame(f); else if (done) done(); }   // 描画の時刻が開始より前のこともある(重い端末)。負にしない
     requestAnimationFrame(f);
   }
   function svgEl(tag, attrs) { var el = document.createElementNS('http://www.w3.org/2000/svg', tag); for (var k in attrs) el.setAttribute(k, attrs[k]); return el; }
@@ -921,11 +922,13 @@
     if (wait && ui.queue.length) setTimeout(next, wait); else next();
   }
   // 特別な画(いまは地下壕の場面だけ)。流せたら true を返し、終わったら done を呼ぶ
-  function playCine(name, done) {
-    if (name !== 'bunker' || !TF.Bunker || !ui.opts.anim || reduce) return false;
+  function playCine(name, done, force) {
+    var mod = name === 'bunker' ? TF.Bunker : (name === 'bunend' ? TF.BunEnd : null);
+    if (!mod || !mod.available() || ((!ui.opts.anim || reduce) && !force)) return false;
     ui.cine = true; $('#modal').hidden = true;
-    if (TF.sfx && TF.sfx.duck) TF.sfx.duck(0.12);
-    TF.Bunker.play(function () { ui.cine = false; if (TF.sfx && TF.sfx.duck) TF.sfx.duck(1); done(); });
+    if (TF.sfx && TF.sfx.duck) TF.sfx.duck(name === 'bunker' ? 0.12 : 1);   // 結末のあいだは、応援歌をそのまま流す
+    if (name === 'bunend' && S()) { S().flags.bunCine = 1; save(); syncMusic(); }
+    mod.play(function () { ui.cine = false; if (TF.sfx && TF.sfx.duck) TF.sfx.duck(1); done(); });
     return true;
   }
   function storyHTML(b, btn) {
@@ -965,6 +968,7 @@
   // 手術を進めた国の結末
   function queueBunEnding() {
     var st = S(), o = st.over, dl = E.dateLabel(), nk = st.stats.nukes || 0, pop = E.census().pop;
+    var again = o.bun >= 2 && TF.BunEnd && TF.BunEnd.available() ? '<button class="btn sm" data-act="bun-cine">' + icon('film') + '結末の画を見る</button>' : '';
     var h = '<div class="card-body bun-card"><p class="eyebrow">' + dl.text + ' ・ ' + esc(E.nation().name) + '</p><h2 class="huge bun">B.U.N society</h2>' + flockHTML(o.bun) +
       '<p>' + D.BUN.fin[o.bun >= 2 ? 1 : 0] + '</p>' + (o.asi ? '<p>超知能は、いまも動いている。計算機室の窓辺に、ときどき誰かが止まりにくる。</p>' : '') +
       (nk ? '<p class="note" style="border-color:var(--bad)">核を ' + nk + ' 発使った。その土地には、まだ草が生えない。鳥も、そこには降りない。</p>' : '') +
@@ -974,9 +978,9 @@
       '<p class="dim">難易度「' + D.DIFFICULTY[st.diff].name + '」。B.U.N が何の略なのかは、最後まで分からなかった。手術を命じずに、地球を一つにする道もあります。</p></div>' +
       (st.flags.cont == null
         ? '<div class="card-foot"><button class="btn gold" data-act="keep-going">このまま治めつづける</button><button class="btn" data-act="modal-close">地図を眺める</button></div>' +
-          '<div class="acts" style="justify-content:center;padding-bottom:12px"><button class="btn sm" data-act="to-title">表紙へ</button></div>'
-        : '<div class="card-foot"><button class="btn gold" data-act="modal-close">地図へもどる</button><button class="btn" data-act="to-title">表紙へ</button></div>');
-    showModal(h, { sfx: 'flock' });
+          '<div class="acts" style="justify-content:center;padding-bottom:12px">' + again + '<button class="btn sm" data-act="to-title">表紙へ</button></div>'
+        : '<div class="card-foot"><button class="btn gold" data-act="modal-close">地図へもどる</button><button class="btn" data-act="to-title">表紙へ</button></div>' + (again ? '<div class="acts" style="justify-content:center;padding-bottom:12px">' + again + '</div>' : ''));
+    showModal(h, { sfx: 'flock', cine: o.bun >= 2 && !st.flags.bunCine ? 'bunend' : null });
   }
 
   // ───────────────────────── ターン終了 ─────────────────────────
@@ -1301,7 +1305,7 @@
     if (!(TF.Diorama3D && TF.Diorama3D.available())) { toast('この端末では3D表示が使えません'); return; }
     var cur = E.eraStage(), era = D.ERAS[cur];
     showModal('<div class="card-body dio-body"><p class="eyebrow">' + esc(E.nation().name) + ' ・ <span id="dio-era">' + era.name + '</span></p><div class="dio" id="dio"></div><p class="dim" id="dio-cap">' + esc(era.look) + '</p>' +
-      '<div class="acts">' + D.ERAS.map(function (e, i) { return i <= cur ? '<button class="btn sm' + (i === cur ? ' gold' : '') + '" data-act="dio-era" data-i="' + i + '">' + e.name + '</button>' : ''; }).join('') + '</div>' +
+      '<div class="acts">' + D.ERAS.map(function (e, i) { return i <= cur && (!e.tech || E.tech(e.tech)) ? '<button class="btn sm' + (i === cur ? ' gold' : '') + '" data-act="dio-era" data-i="' + i + '">' + e.name + '</button>' : ''; }).join('') + '</div>' +
       (S().flags.unified != null ? '<div class="sec">どこの町を見るか</div><div class="acts">' + [['', '日本'], ['east', '明・朝鮮'], ['india', 'インド'], ['islam', 'オスマン'], ['europe', 'ヨーロッパ']].map(function (c) { return '<button class="btn sm' + (c[0] === '' ? ' gold' : '') + '" data-act="dio-land" data-c="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div><p class="dim" style="font-size:12px">海の向こうの町も、丘の上の建物だけを残して、同じ形の駅と学校と街灯に替わっていく。</p>' : '') + '</div>' +
       '<div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true, dio: true });
     try { ui.dio = TF.Diorama3D.mount($('#dio'), { stage: cur, orbit: true }); } catch (e) { ui.dio = null; $('#dio').innerHTML = '<p class="dim">3D表示を始められませんでした。</p>'; }
@@ -1313,6 +1317,7 @@
     var tm = setInterval(function () { // 章の時代に合わせて曲を替え、戦闘の画のあいだは下げる
       if (!TF.Chronicle.active()) { clearInterval(tm); if (TF.sfx && TF.sfx.duck) TF.sfx.duck(1); syncMusic(); return; }
       var inf = TF.Chronicle._info(); if (!inf || !TF.sfx || !TF.sfx.music) return;
+      if (TF.sfx.warp) TF.sfx.warp(0);
       TF.sfx.music(ui.opts.bgm ? 'era' + clamp(inf.stage || 0, 0, 8) : null); TF.sfx.duck(inf.clip ? 0.3 : 1);
     }, 400);
     TF.Chronicle.play($('#cine'), function () { /* 終われば元の画面にもどる */ });
@@ -1470,7 +1475,7 @@
   // 押したときの音。null は、その操作の結果に合わせて別に鳴らすもの
   var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'opt-ringer': null, 'sound-test': null, 'io-load': null,
     rush: null, 'auto-build': 'select', 'auto-res': 'select', 'auto-atk': 'select', 'auto-toggle': null, 'auto-now': null, 'opt-bgm': null,
-    'keep-going': null,
+    'keep-going': null, 'bun-cine': 'launch',
     'dio-land': 'select',
     enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'tab', 'dio-era': 'select', 'assign-all': 'chirp',
     tab: 'tab', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
@@ -1599,7 +1604,8 @@
       case 'io-load':
         try { E.load($('#io-in').value.trim()); save(); ui.queue = []; closeModal(); resumeGame(); toast('読み込みました'); } catch (err) { toast('読み込めません。文字がすべて貼り付けられているか確かめてください'); }
         break;
-      case 'to-title': ui.queue = []; closeModal(); ui.panel = null; showTitle(); break;
+      case 'to-title': ui.queue = []; closeModal(); ui.panel = null; E.applyNames(true); showTitle(); break;   // 表紙では、土地はもとの名
+      case 'bun-cine': $('#modal').hidden = true; $('#modal').innerHTML = ''; ui.modal = null; if (!playCine('bunend', queueBunEnding, true)) queueBunEnding(); break;
       case 'title-diff': showTitle('diff'); break;
       case 'title-back': showTitle(); break;
       case 'new-game': startGame(el.getAttribute('data-diff')); break;

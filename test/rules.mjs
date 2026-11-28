@@ -584,13 +584,16 @@ section('鳥たちの夢(最後の兵器と、禁断の手術)', () => {
   ok(c0 > 0 && c0 < 80 && c1 === c0 + 15, '降伏勧告の成功率 +15(' + c0 + ' → ' + c1 + ')');
   ok(D.VOICES.bun2.some(x => x.t === E.voice('izu').t), '民の声は、文鳥の声になる: ' + E.voice('izu').t);
   r = E.endTurn();
-  ok(E.bunPush() === null && !r.events.some(e => e.k === 'bird'), '勧めるものが、もう無い');
+  ok(E.bunPush() === null && r.events.filter(e => e.k === 'bird').length === 1 && r.events.some(e => e.gachi && D.BUN.gachi.some(g => e.t.startsWith(g.split('{r}')[0]))), '勧めるものは、もう無い。かわりに、季節ごとにG.A.C.H.I Fight の便りが届く');
+  ok(E.eraStage() === 10 && D.ERAS[10].name === 'ガチの世', '時代は「ガチの世」になる');
+  const rev0 = S.stats.revolts; for (let i = 0; i < 12; i++) { S.regions.izu.mood = 0; E.endTurn(); }
+  ok(S.stats.revolts === rev0, '民心が底でも、一揆は起きない(不満は、殴り合いで決着がつく)');
   const j = E.serialize(); E.load(j); S = E.S;
   ok(E.serialize() === j && E.bunStage() === 2 && E.nation().name === 'B.U.N society', 'セーブの往復で変わらない');
   // ── 結末 ──
   r = win();
-  let e = r.events.find(x => x.big && x.big.bun === 2 && /くわえて、持っていかれた/.test(x.big.body));
-  ok(S.over && S.over.win && S.over.bun === 2 && e && !/\{date\}/.test(e.big.body) && /人と鳥の区別/.test(e.big.body), '地球を一つにすると、結末は「B.U.N society」(ブンーチョウ手術まで)');
+  let e = r.events.find(x => x.big && x.big.bun === 2 && /片手で引きちぎって/.test(x.big.body));
+  ok(S.over && S.over.win && S.over.bun === 2 && e && !/\{date\}/.test(e.big.body) && /G\.A\.C\.H\.I Fight/.test(e.big.body) && /ここから始まる/.test(e.big.body), '地球を一つにすると、結末は「B.U.N society」(ブンーチョウ手術まで)');
   S = fresh(42, 'all'); finish('birdify'); r = win(); e = r.events.find(x => x.big && x.big.bun === 1 && /人の半分は/.test(x.big.body));
   ok(S.over.win && S.over.bun === 1 && e && E.nation().name === 'B.U.N society', '鳥化手術だけでも、結末は「B.U.N society」になる。国の名も、そこで変わる');
   S = fresh(43, 'all'); r = win();
@@ -601,6 +604,29 @@ section('鳥たちの夢(最後の兵器と、禁断の手術)', () => {
   E.keepGoing(); r = finish('birdify');
   ok(S.over.bun === 1 && r.events.some(x => x.big && x.big.bun === 1) && E.nation().name === 'B.U.N society', '統一のあとで手術を進めても、結末は「B.U.N society」に変わる');
 
+  // ── 土地の名 ──
+  S = fresh(48, 'all');
+  const N0 = Object.fromEntries(Object.keys(D.REGIONS).map(id => [id, D.REGIONS[id].name]));
+  ok(N0.izu === '伊豆' && N0.yamashiro === '山城' && E.eraStage() === 7, '手術の前は、もとの名(時代は「人工知能の世」)');
+  S.regions.sagami.o = 'player';
+  finish('birdify');
+  ok(D.REGIONS.izu.name !== '伊豆' && D.REGIONS.izu.name.startsWith('伊豆') && D.REGIONS.sagami.name !== '相模' && D.REGIONS.sagami.name.startsWith('相模') && D.REGIONS.suruga.name === '駿河' && E.eraStage() === 9,
+    '鳥化手術のあと、治めている土地の名に鳴き声が付く(' + D.REGIONS.izu.name + '、' + D.REGIONS.sagami.name + ')。よその土地は、そのまま。時代は「鳥の世」');
+  finish('buncho2');
+  ok(D.REGIONS.izu.name === 'ガチ伊豆本部' && D.REGIONS.sagami.name === 'サガミ筋' && D.REGIONS.suruga.name === '駿河' && E.realName('izu') === '伊豆', 'ブンーチョウ手術のあと、名がひどいことになる(' + D.REGIONS.izu.name + '、' + D.REGIONS.sagami.name + ')');
+  S.factions.imagawa.pact = 0; S.regions.suruga.g = 100; S.regions.suruga.gmax = 100; S.regions.suruga.fort = 0;
+  const rr = E.attack('suruga', [S.units.find(x => x.type === 'inf').id]);
+  ok(rr.win && D.REGIONS.suruga.name === 'スルガチ' && S.log.some(x => /スルガチを攻略した/.test(x.t)), '攻め落とした土地も、その場で名が変わる(駿河 → スルガチ)');
+  S.regions.suruga.o = 'imagawa'; E.endTurn();
+  ok(D.REGIONS.suruga.name === '駿河', '失った土地は、もとの名に戻る');
+  for (const id of Object.keys(S.regions)) S.regions[id].o = 'player'; E.applyNames();
+  ok(Object.keys(D.REGIONS).every(id => D.REGIONS[id].name && D.REGIONS[id].name !== N0[id] && !D.REGIONS[id].name.includes('・') && D.REGIONS[id].name.length <= 9), 'すべての土地に、もとと違う名が付く(区切りなし、9字まで)');
+  E.applyNames(true); ok(Object.keys(D.REGIONS).every(id => D.REGIONS[id].name === N0[id]), 'もとの名に戻せる(表紙や年代記のあいだ)');
+  const jn = E.serialize(); E.newGame({ seed: 1 });
+  ok(D.REGIONS.izu.name === '伊豆', '新しく始めれば、もとの名');
+  E.load(jn); S = E.S;
+  ok(D.REGIONS.izu.name === 'ガチ伊豆本部', 'セーブを読み込めば、また変わった名になる');
+  E.newGame({ seed: 2 });
   // ── 三つの兵器 ──
   S = fresh(47, 'all'); S.regions.izu.fac.arsenal = 1; S.regions.izu.fac.airfield = 1; S.regions.izu.fac.bauxite = 1; S.regions.izu.ctl = 100; S.res.food = 1200;
   let po = Object.fromEntries(E.produceOptions('izu').map(o => [o.type, o]));

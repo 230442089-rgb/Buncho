@@ -181,12 +181,16 @@
 
   // ── 時代ごとの空と光 ──
   var SKY = [['#7db3e0', '#dcebf2', '#b7c7ae'], ['#6daee2', '#e4eef2', '#bcc9a8'], ['#93a7b5', '#ebe0c8', '#b5a98e'], ['#27295a', '#d07a5c', '#3b2b45'], ['#4c9be4', '#d6eaf8', '#a7c0cc'],
-    ['#3a8ee8', '#cfe7fb', '#9db9cf'], ['#1a2552', '#7a5f94', '#1a2036'], ['#080f2a', '#1c3a5e', '#070c1a'], ['#eef2f7', '#e3e9f0', '#d3dbe5']];
+    ['#3a8ee8', '#cfe7fb', '#9db9cf'], ['#1a2552', '#7a5f94', '#1a2036'], ['#080f2a', '#1c3a5e', '#070c1a'], ['#eef2f7', '#e3e9f0', '#d3dbe5'],
+    ['#f3b3be', '#fdebdc', '#cbd8b2'], ['#1b1020', '#a8262f', '#2a1418']];   // 鳥の世(くちばし色の朝)、ガチの世(闘技場の夕暮れ)
   var LIT = [ // 空の光, 地の照り返し, 強さ, 日の色, 日の強さ, 夜らしさ, 霧の始まり, 霧の終わり(カメラ距離の倍数)
     [0xdfeeff, 0x6f7550, 0.78, 0xfff1d0, 0.62, 0.00, 1.0, 3.2], [0xdfeeff, 0x6f7550, 0.78, 0xfff1d0, 0.62, 0.00, 1.0, 3.2], [0xe9e2d0, 0x6f6a50, 0.74, 0xffe2b0, 0.58, 0.10, 0.9, 2.8],
     [0x9a8fd0, 0x3a3050, 0.56, 0xff9c6a, 0.52, 0.85, 0.9, 3.0], [0xe6f2ff, 0x7a8060, 0.80, 0xffffff, 0.64, 0.00, 1.0, 3.4], [0xe6f2ff, 0x7a8060, 0.82, 0xffffff, 0.66, 0.00, 1.0, 3.4],
-    [0x7f8fd0, 0x2a2c48, 0.54, 0xc7a8ff, 0.36, 0.60, 0.9, 3.0], [0x5f7ac0, 0x1c2238, 0.48, 0x8fb0ff, 0.30, 0.92, 0.9, 3.0], [0xf4f8ff, 0xc3cedc, 0.80, 0xffffff, 0.46, 0.00, 0.8, 2.7]];
-  var VIEWS = { all: [0, 2.5, 0, 0, 0], hq: [3.8, 1.8, 24.0, 8.0, 20], castle: [-23.5, 7.5, -23.5, 13, 20], town: [3, 3.5, -5, 17, 26], works: [21, 3, -24, 14, 24], pad: [21.5, 4, 20, 12, 22], rail: [-3.5, 1.5, 4.5, 12, 24], furnace: [-14, 2.5, -8, 11, 24] };
+    [0x7f8fd0, 0x2a2c48, 0.54, 0xc7a8ff, 0.36, 0.60, 0.9, 3.0], [0x5f7ac0, 0x1c2238, 0.48, 0x8fb0ff, 0.30, 0.92, 0.9, 3.0], [0xf4f8ff, 0xc3cedc, 0.80, 0xffffff, 0.46, 0.00, 0.8, 2.7],
+    [0xffe9ec, 0x80705a, 0.82, 0xfff0e0, 0.62, 0.00, 1.0, 3.3], [0xffc4b0, 0x40202a, 0.66, 0xffa868, 0.62, 0.78, 0.9, 3.0]];
+  var VIEWS = { all: [0, 2.5, 0, 0, 0], hq: [3.8, 1.8, 24.0, 8.0, 20], castle: [-23.5, 7.5, -23.5, 13, 20], town: [3, 3.5, -5, 17, 26],
+    ring: [3, 2.0, -5, 7.5, 15], arena: [3, 3.2, -5, 17, 30], plant: [20, 2.4, -22.5, 11, 24], park: [22, 1.6, 19.5, 11, 30], statue: [-8.5, 6.2, -16, 10.5, 12], bunall: [1, 3, -3, 0, 0],
+    works: [21, 3, -24, 14, 24], pad: [21.5, 4, 20, 12, 22], rail: [-3.5, 1.5, 4.5, 12, 24], furnace: [-14, 2.5, -8, 11, 24] };
 
   function riverZ(x) { return 10 + 1.8 * Math.sin(x * 0.11 + 0.6); }
   var BRX = 3, BRZ = riverZ(3); // 橋の位置
@@ -207,6 +211,14 @@
     var reduced = false; try { reduced = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* 古い端末 */ }
     if (reduced) M.orbit = false;
     function keep(o) { M.trash.push(o); return o; }
+    // その時代に出ているか。9(鳥の世)は、7 の町に鳥のものを足した姿。10(ガチの世)は、土台と山と城と橋だけを残して建て替えた姿
+    function inR(a, b, n) {
+      if (n == null) n = M.stage;
+      if (a >= 9) return n >= a && n <= b;
+      if (n === 9) return a <= 7 && b >= 7;
+      if (n === 10) return a < 8 && b >= 8;
+      return n >= a && n <= b;
+    }
 
     // 画面の部品:空を二枚重ねて、時代の変わり目に溶かす
     var wrap = document.createElement('div'), skyA = document.createElement('div'), skyB = document.createElement('div');
@@ -527,6 +539,100 @@
     } });
     (function () { var s, t; for (s = -1; s <= 1; s += 2) for (t = -1; t <= 1; t += 2) { light(8, 8, HX + s * 8, 6.6, HZ + t * 8, 3.46, 0.12, 3.46, 0x9fd0ff); light(8, 8, HX + s * 10.3, 3.6, HZ + t * 4.0, 2.66, 0.1, 2.66, 0x9fd0ff); light(8, 8, HX + s * 4.0, 3.6, HZ + t * 10.3, 2.66, 0.1, 2.66, 0x9fd0ff); } })();
 
+    // ── 禁断の手術のあと ──
+    function sign(text, w, hgt, fg, bg) { // 看板(面は +z を向く)
+      var cv = document.createElement('canvas'), c2, fs;
+      cv.width = 512; cv.height = Math.max(32, Math.round(512 * hgt / w)); c2 = cv.getContext('2d');
+      c2.fillStyle = bg; c2.fillRect(0, 0, cv.width, cv.height); c2.fillStyle = fg; c2.textAlign = 'center'; c2.textBaseline = 'middle';
+      fs = Math.round(cv.height * 0.62); c2.font = '900 ' + fs + 'px sans-serif';
+      while (c2.measureText(text).width > cv.width * 0.92 && fs > 10) { fs -= 2; c2.font = '900 ' + fs + 'px sans-serif'; }
+      c2.fillText(text, cv.width / 2, cv.height / 2 + fs * 0.04);
+      return new T.Mesh(keep(new T.PlaneGeometry(w, hgt)), keep(new T.MeshBasicMaterial({ map: keep(new T.CanvasTexture(cv)), fog: false })));
+    }
+    // 鳥の世:町はそのまま、屋根という屋根に止まり木と巣箱。塔の上に大きな巣。空には群れ
+    chunk('perches', 9, 9, 0, 0, function (o) {
+      var a = o.lit, i, x, z, W = 0x8a6a48, C = [0xf7f5f0, 0x26262b, 0xb9895f, 0x8e96a3, 0x7cc35a, 0xf2df5a];
+      function perch(px, pz, ry) {
+        a.push(cy(0.07, 0.09, 2.6, 6, px, 1.3, pz, W), bx(1.5, 0.08, 0.08, px, 2.6, pz, W, [0, ry, 0]));
+        for (var k = -1; k <= 1; k++) if (R() < 0.8) { var ox = Math.cos(ry) * k * 0.5, oz = -Math.sin(ry) * k * 0.5, c = C[Math.floor(R() * C.length)]; a.push(sp(0.17, px + ox, 2.82, pz + oz, c, [1, 1.15, 1.2]), sp(0.11, px + ox, 3.02, pz + oz + 0.05, c), co(0.045, 0.12, 5, px + ox, 3.0, pz + oz + 0.17, 0xe8707e, [PI / 2, 0, 0])); }
+      }
+      function nest(px, pz) { a.push(cy(0.06, 0.08, 2.0, 6, px, 1.0, pz, W), bx(0.6, 0.6, 0.5, px, 2.3, pz, 0xc9a45a), pr(0.78, 0.3, 0.64, px, 2.6, pz, 0xb3262f), cy(0.11, 0.11, 0.05, 10, px, 2.32, pz + 0.26, 0x2a1a1a, [PI / 2, 0, 0])); }
+      for (i = 0; i < 9; i++) { x = -15 + i * 4.2; perch(x, -3.3, 0); if (i % 2) nest(x + 2, -6.8); }
+      for (i = 0; i < 5; i++) { z = -11 + i * 3.6; perch(4.9, z, PI / 2); if (i % 2 === 0) nest(1.2, z + 1.5); }
+      for (i = 0; i < 5; i++) perch(-5 + i * 3.2, 19.2, 0);
+      a.push(cy(1.9, 1.3, 0.8, 10, -4, 9.2, -18.2, 0x9a7a48), cy(1.5, 1.5, 0.2, 10, -4, 9.55, -18.2, 0x6f5536), sp(0.75, -4, 10.1, -18.2, 0xfbf7ee, [1, 1.3, 1]), sp(0.6, -3.2, 9.95, -17.8, 0xfbf7ee, [1, 1.3, 1]));
+    }, { after: function (g) {
+      var fl = new T.Group(), i, m, an, rr, gg = geo('flockBird', function () { return merge([sp(0.22, 0, 0, 0, 0xffffff, [1, 0.9, 1.5]), bx(1.3, 0.05, 0.42, 0, 0.05, 0, 0xe9e4da), co(0.07, 0.2, 5, 0, 0, 0.36, 0xe8707e, [PI / 2, 0, 0])]); });
+      for (i = 0; i < 14; i++) { m = new T.Mesh(gg, MAT.vc); an = i / 14 * TAU; rr = 9 + (i % 3) * 2.2; m.position.set(Math.cos(an) * rr, 11 + (i % 4) * 1.1, Math.sin(an) * rr); m.rotation.y = -an + PI; fl.add(m); }
+      fl.position.set(3, 0, -5); g.add(fl); M.flock = fl;
+    } });
+    // ガチの世:町のまん中に闘技場。まわりに、筋肉の像、人工生殖プラント、ブン・リーグの球場
+    chunk('bun_ring', 10, 10, HX, HZ, function (o) {
+      var a = o.lit, i, s, t, u, d, hh, ry, cx, cz, K = 0x2a2c33, RD = 0xb3262f, WH = 0xf0ece2, ST = 0x4b505b, C = [0xf2f0ea, 0x26262b, 0xd9bf9e, 0x8e9299, 0xc4c9d1, 0x1c1c20];
+      a.push(gb(25, 0.14, 25, 0, 0, K, 0.09), gb(25, 0.02, 0.6, 0, 0, RD, 0.23), gb(0.6, 0.02, 25, 0, 0, RD, 0.23));
+      a.push(gb(6.6, 0.62, 6.6, 0, 0, RD, 0.23), gb(6.2, 0.12, 6.2, 0, 0, WH, 0.85));
+      for (s = -1; s <= 1; s += 2) for (t = -1; t <= 1; t += 2) a.push(cy(0.13, 0.13, 1.5, 8, s * 2.95, 1.72, t * 2.95, s * t > 0 ? RD : 0x2b3d61));
+      for (i = 0; i < 3; i++) for (s = -1; s <= 1; s += 2) a.push(bx(5.9, 0.05, 0.05, 0, 1.3 + i * 0.4, s * 2.95, i === 1 ? WH : RD), bx(0.05, 0.05, 5.9, s * 2.95, 1.3 + i * 0.4, 0, i === 1 ? WH : RD));
+      for (s = 0; s < 4; s++) { // 四方の客席(三段)と、客
+        ry = s * PI / 2; cx = Math.sin(ry); cz = Math.cos(ry);
+        for (i = 0; i < 3; i++) {
+          d = 9.4 + i * 1.5; hh = 0.8 + i * 0.8;
+          a.push(P(new T.BoxGeometry(15, hh, 1.5), cx * d, 0.23 + hh / 2, cz * d, ST, [0, ry, 0]));
+          for (t = 0; t < 11; t++) if (R() < 0.85) { u = (t - 5) * 1.3 + (R() - 0.5) * 0.3; a.push(P(new T.BoxGeometry(0.62, 0.7, 0.45), cx * d + cz * u, 0.23 + hh + 0.35, cz * d - cx * u, C[Math.floor(R() * C.length)], [0, ry, 0])); }
+        }
+      }
+      for (s = -1; s <= 1; s += 2) for (t = -1; t <= 1; t += 2) { // 照明塔と旗
+        a.push(cy(0.22, 0.3, 10, 6, s * 12, 5.2, t * 12, 0x30343c), bx(2.2, 1.2, 0.4, s * 12, 10.6, t * 12, 0x30343c, [0, Math.atan2(-s, -t), 0]));
+        a.push(cy(0.05, 0.05, 4.2, 5, s * 8.4, 2.3, t * 12.3, 0x30343c), bx(0.06, 2.4, 0.9, s * 8.4, 3.1, t * 11.8, RD));
+      }
+      a.push(bx(10.4, 2.9, 0.4, 0, 8.2, -13.6, 0x15171c), bx(0.4, 6.8, 0.4, -4.4, 3.5, -13.6, 0x30343c), bx(0.4, 6.8, 0.4, 4.4, 3.5, -13.6, 0x30343c));
+    }, { slow: true, after: function (g) {
+      var sg = sign('G.A.C.H.I Fight', 10, 2.5, '#f6d77a', '#15171c'); sg.position.set(0, 8.2, -13.38); g.add(sg);
+      function fighter(body, head, trunk) { // 闘士。胸と肩が大きい
+        var m = new T.Mesh(keep(merge([
+          bx(0.34, 0.8, 0.36, -0.24, 0.4, 0, trunk), bx(0.34, 0.8, 0.36, 0.24, 0.4, 0, trunk), bx(0.9, 0.5, 0.5, 0, 0.98, 0, body), bx(1.25, 0.7, 0.62, 0, 1.5, 0, body),
+          sp(0.3, -0.75, 1.72, 0, body), sp(0.3, 0.75, 1.72, 0, body), bx(0.26, 0.6, 0.28, -0.82, 1.3, 0.2, body, [-0.9, 0, 0]), bx(0.26, 0.6, 0.28, 0.82, 1.3, 0.2, body, [-0.9, 0, 0]),
+          sp(0.19, -0.82, 1.38, 0.55, 0xb3262f), sp(0.19, 0.82, 1.38, 0.55, 0xb3262f), sp(0.36, 0, 2.12, 0.02, head, [1, 0.95, 1]), co(0.13, 0.3, 6, 0, 2.08, 0.42, 0xe8707e, [PI / 2, 0, 0]),
+          bx(0.03, 0.2, 0.24, -0.345, 2.05, 0.08, 0xffffff), bx(0.03, 0.2, 0.24, 0.345, 2.05, 0.08, 0xffffff)])), MAT.vc), grp = new T.Group();
+        m.scale.set(1.25, 1.25, 1.25); grp.add(m); g.add(grp); return grp;
+      }
+      var fa = fighter(0x2b2b30, 0x1c1c20, 0x15171c), fb = fighter(0xf2f0ea, 0xf7f5f0, 0x2b3d61);
+      fa.children[0].rotation.y = PI / 2; fb.children[0].rotation.y = -PI / 2; M.fight = [fa, fb];
+    } });
+    (function () { var s, t; for (s = -1; s <= 1; s += 2) for (t = -1; t <= 1; t += 2) light(10, 10, HX + s * 11.7, 10.6, HZ + t * 11.7, 1.9, 0.95, 0.5, 0xfff2c0, 0xfff6d8, null, 1.5); })();
+    chunk('bun_statue', 10, 10, -8.5, -16, function (o) { // 力こぶを見せる、金の像
+      var a = o.lit, G = 0xd9b24c, Gd = 0xb08a2c;
+      a.push(gb(5, 1.6, 5, 0, 0, 0x30343c), gb(4.2, 0.5, 4.2, 0, 0, 0x4b505b, 1.6));
+      a.push(bx(0.9, 2.6, 1.0, -0.75, 3.4, 0, G), bx(0.9, 2.6, 1.0, 0.75, 3.4, 0, G), bx(2.6, 1.3, 1.3, 0, 5.3, 0, G), bx(3.6, 1.9, 1.6, 0, 6.8, 0, G), sp(0.85, -2.1, 7.5, 0, G), sp(0.85, 2.1, 7.5, 0, G),
+        bx(0.75, 1.5, 0.8, -2.75, 8.0, 0, Gd, [0, 0, 0.5]), bx(0.75, 1.5, 0.8, 2.75, 8.0, 0, Gd, [0, 0, -0.5]), sp(0.62, -3.05, 8.2, 0, G), sp(0.62, 3.05, 8.2, 0, G),
+        bx(0.6, 1.4, 0.65, -2.5, 9.3, 0, Gd, [0, 0, -0.6]), bx(0.6, 1.4, 0.65, 2.5, 9.3, 0, Gd, [0, 0, 0.6]), sp(0.45, -2.0, 9.9, 0, G), sp(0.45, 2.0, 9.9, 0, G),
+        sp(1.05, 0, 8.7, 0.05, G, [1, 0.95, 1]), co(0.38, 0.9, 6, 0, 8.6, 1.2, Gd, [PI / 2, 0, 0]));
+    }, { slow: true });
+    chunk('bun_plant', 10, 10, 20, -24, function (o) { // 人工生殖プラント。育成槽が並ぶ
+      var a = o.lit, gl = o.glow, i, x, K = 0x30343c;
+      a.push(gb(15, 0.2, 9.5, 0, 0, 0x22252b), gb(13, 3.2, 3.4, 0, -2.6, K), gb(13.4, 0.3, 3.8, 0, -2.6, 0xb3262f, 3.2), sp(2.3, -4.4, 3.4, -2.6, 0x4b505b, [1, 0.8, 1]), cy(0.35, 0.35, 5.5, 8, 5.2, 4.2, -2.9, 0x4b505b));
+      for (i = 0; i < 8; i++) { x = -5.6 + i * 1.6; a.push(cy(0.55, 0.62, 0.3, 10, x, 0.35, 1.3, K), cy(0.55, 0.55, 0.2, 10, x, 2.6, 1.3, K), bx(0.12, 0.12, 2.6, x, 2.8, -0.1, 0x4b505b)); gl.push(cy(0.46, 0.46, 2.05, 10, x, 1.52, 1.3, i % 3 === 1 ? 0xffb3c0 : 0x8fe6d8)); }
+      for (i = 0; i < 6; i++) { x = -4 + i * 1.6; a.push(cy(0.45, 0.5, 0.25, 10, x, 0.33, 3.3, K)); gl.push(cy(0.38, 0.38, 1.6, 10, x, 1.25, 3.3, 0x8fe6d8)); }
+      a.push(bx(7.4, 1.3, 0.25, 0, 4.6, -0.82, 0x15171c));
+    }, { slow: true, after: function (g) { var sg = sign('人工生殖プラント', 7, 1.1, '#8fe6d8', '#15171c'); sg.position.set(0, 4.6, -0.68); g.add(sg); } });
+    chunk('bun_park', 10, 10, 22, 19.5, function (o) { // ブン・リーグの球場
+      var a = o.lit, i, an, sx, G = 0x3f8f4f;
+      a.push(cy(7.4, 7.4, 0.16, 20, 0, 0.1, 0, 0x2f6f3f), cy(6.9, 6.9, 0.04, 20, 0, 0.2, 0, G));
+      a.push(P(new T.BoxGeometry(3.6, 0.05, 3.6), 0, 0.22, 1.6, 0xb9895f, [0, PI / 4, 0]), P(new T.BoxGeometry(2.7, 0.06, 2.7), 0, 0.23, 1.6, G, [0, PI / 4, 0]), cy(0.4, 0.5, 0.12, 10, 0, 0.27, 1.6, 0xb9895f));
+      [[0, 4.15], [2.55, 1.6], [0, -0.95], [-2.55, 1.6]].forEach(function (b2) { a.push(bx(0.34, 0.08, 0.34, b2[0], 0.27, b2[1], 0xffffff)); });
+      for (i = 0; i < 9; i++) { an = PI + (i - 4) * 0.2; a.push(P(new T.BoxGeometry(1.5, 1.3, 0.2), Math.sin(an) * 6.9, 0.85, Math.cos(an) * 6.9, 0x2b3d61, [0, an, 0])); }
+      a.push(bx(4.6, 2.2, 0.3, 0, 3.7, -6.2, 0x15171c), bx(0.3, 2.8, 0.3, -1.8, 1.4, -6.2, 0x30343c), bx(0.3, 2.8, 0.3, 1.8, 1.4, -6.2, 0x30343c));
+      for (i = 0; i < 2; i++) { sx = i ? 1 : -1; a.push(P(new T.BoxGeometry(5.5, 1.4, 1.4), sx * 5.4, 0.9, 4.6, 0x4b505b, [0, sx * -0.75, 0])); }
+    }, { slow: true, after: function (g) { var sg = sign('BUN LEAGUE', 4.4, 1.9, '#ffffff', '#15171c'); sg.position.set(0, 3.7, -6.04); g.add(sg); } });
+    chunk('bun_town', 10, 10, 0, 0, function (o) { // 黒い棟(屋上に止まり木)と、鉄亜鈴の碑
+      var a = o.lit, K = 0x30343c, RD = 0xb3262f;
+      [[-16, -8, 3.2, 3.2, 7], [-20.5, -3.5, 3.4, 3, 5], [-15.5, 1.5, 3, 3, 9], [-21, 3, 3, 3.4, 6], [-1.5, -23.5, 3.2, 3.2, 8], [3, -25.5, 3, 3, 5.5], [7.2, -23.5, 3.4, 3, 6.5], [10.6, -26.5, 3, 3, 9], [26, 3.5, 3, 3, 6]].forEach(function (b2, k) {   // 西と北に寄せる(東は、プラントと球場が見えるように空ける)
+        tower(o, b2[0], b2[1], b2[2], b2[3], b2[4], k % 2 ? 0x3a3d46 : K);
+        a.push(gb(b2[2] + 0.2, 0.3, b2[3] + 0.2, b2[0], b2[1], RD, b2[4] * 0.5), bx(1.2, 0.07, 0.07, b2[0], b2[4] + 1.2, b2[1], 0x8a6a48), cy(0.05, 0.05, 0.7, 5, b2[0], b2[4] + 0.86, b2[1], 0x8a6a48));
+      });
+      [[-11.5, 8.2], [17.8, 8.4], [-12.2, -20.5]].forEach(function (d2) { a.push(gb(1.8, 0.5, 1.2, d2[0], d2[1], 0x4b505b), bx(2.4, 0.22, 0.22, d2[0], 1.3, d2[1], 0xc4c9d1), sp(0.55, d2[0] - 1.25, 1.3, d2[1], 0x1c1c20), sp(0.55, d2[0] + 1.25, 1.3, d2[1], 0x1c1c20)); });
+    }, { slow: true });
+
     // ダリオくんのラックの灯り(駐屯地。端末は -x を向いている)
     var DX = 6.8, DZ = 24.7, DR = -0.55, DS = 1.05;
     [[-0.55, 0x6fe08a, 0.9], [-0.3, 0xffb86b, 1.7], [-0.05, 0x6fe08a, 0.6]].forEach(function (l) {
@@ -549,7 +655,7 @@
     function bridgeH(x, z) { // 橋の上を歩く高さ
       if (Math.abs(x - BRX) > 1.6) return 0;
       var d = Math.abs(z - BRZ);
-      return M.stage >= 4 ? 0.44 * clamp((5.4 - d) / 1.3, 0, 1) : 1.02 * clamp((4.2 - d) / 2.6, 0, 1);
+      return inR(4, 8) ? 0.44 * clamp((5.4 - d) / 1.3, 0, 1) : 1.02 * clamp((4.2 - d) / 2.6, 0, 1);
     }
 
     // ── かたまりを作る・出し入れする ──
@@ -591,7 +697,7 @@
     function stepTrees(dt) {
       var i, t, want, any = false;
       for (i = 0; i < TREES.length; i++) {
-        t = TREES[i]; want = M.stage >= t.a && M.stage <= t.b ? 1 : 0;
+        t = TREES[i]; want = inR(t.a, t.b) ? 1 : 0;
         if (t.k !== want) { t.k = dt < 0 ? want : (want > t.k ? Math.min(1, t.k + dt / 0.7) : Math.max(0, t.k - dt / 0.3)); any = true; }
         var k = t.k <= 0 ? 0 : t.s * (t.k >= 1 ? 1 : back(t.k)); s3.set(k, k, k); v3.set(t.x, t.y, t.z); q4.set(0, 0, 0, 1); m4.compose(v3, q4, s3); treeM.setMatrixAt(i, m4);
       }
@@ -619,7 +725,7 @@
     }
     function setLights(anim) {
       LT.forEach(function (l, i) {
-        var want = M.stage >= l.a && M.stage <= l.b;
+        var want = inR(l.a, l.b);
         if (want && !l.vis && l.t0 == null) l.t0 = M.t + (anim ? (l.a === 8 ? 3.3 : 0.75) + R() * 0.5 : 0);
         else if (!want && (l.vis || l.t0 != null)) { l.vis = false; l.t0 = null; m4.makeScale(0, 0, 0); lightM.setMatrixAt(i, m4); if (l.hi >= 0) haloM.setMatrixAt(l.hi, m4); }
       });
@@ -634,7 +740,7 @@
     }
     function stepSmoke(dt) {
       var i, e, p, k, s;
-      for (i = 0; i < EM.length; i++) { e = EM[i]; if (M.stage < e.a || M.stage > e.b) continue; e.acc += e.rate * dt; while (e.acc >= 1) { e.acc -= 1; puff(e.x + (Math.random() - 0.5) * 0.3, e.y, e.z + (Math.random() - 0.5) * 0.3, 0.5 + Math.random() * 0.3, e.rise * (0.8 + Math.random() * 0.4), (Math.random() - 0.5) * 0.3, e.size, 3.2 + Math.random() * 1.4, e.grey); } }
+      for (i = 0; i < EM.length; i++) { e = EM[i]; if (!inR(e.a, e.b)) continue; e.acc += e.rate * dt; while (e.acc >= 1) { e.acc -= 1; puff(e.x + (Math.random() - 0.5) * 0.3, e.y, e.z + (Math.random() - 0.5) * 0.3, 0.5 + Math.random() * 0.3, e.rise * (0.8 + Math.random() * 0.4), (Math.random() - 0.5) * 0.3, e.size, 3.2 + Math.random() * 1.4, e.grey); } }
       for (i = 0; i < NS; i++) {
         p = SM[i]; if (p.life <= 0) continue;
         p.age += dt; k = p.age / p.life;
@@ -649,7 +755,9 @@
     var ROUTES = [[3, -12, 3, 7.5, 0.9, 0], [-17, -5, 21, -5, 0, 1.45], [3, 7.7, 3, 20.5, 0.55, 0], [-15.5, -17.5, -2.5, -6.5, 0.4, 0.4], [-27, 14.35, -9.5, 14.35, 0, 0], [-6, 21.2, 9.4, 21.2, 0, 0.5], [-7, -12.9, 14, -12.9, 0, 0.3]];
     var RCOUNT = [8, 10, 5, 4, 4, 6, 3], NP = 40, PEOPLE = [];
     var PAL = [[0x8a6a4a, 0x5f6f8a, 0xa39274, 0x6f5f4a, 0xc9b99a, 0x7a4a3a], [0x8a6a4a, 0x5f6f8a, 0xa39274, 0x6f5f4a, 0xc9b99a, 0x4f6a7a], [0x5a5f75, 0x7a5a4a, 0xd9cfc0, 0x5a6f8a, 0x8a4a4a, 0x3a3f55], [0x3a3f55, 0x7a5a4a, 0xe3dccb, 0x5a6f8a, 0x6f4a5a, 0x4a4a4a],
-      [0x3a4a65, 0xc8b89a, 0xe9e4d8, 0x5a7a9a, 0x8a5a4a, 0x55606e], [0xe2492d, 0x3d8fe6, 0xf2c230, 0xf4f4f4, 0x2b3d61, 0x7cc47f], [0xe2492d, 0x3d8fe6, 0xf2c230, 0xf4f4f4, 0x2b3d61, 0x7cc47f], [0xdfe6ee, 0x6fa8dc, 0xf4f4f4, 0x9fb7c9, 0x2b3d61, 0xffb86b], [0xf2f4f6, 0xf2f4f6, 0xf2f4f6, 0xf2f4f6, 0xf2f4f6, 0xf2f4f6]];
+      [0x3a4a65, 0xc8b89a, 0xe9e4d8, 0x5a7a9a, 0x8a5a4a, 0x55606e], [0xe2492d, 0x3d8fe6, 0xf2c230, 0xf4f4f4, 0x2b3d61, 0x7cc47f], [0xe2492d, 0x3d8fe6, 0xf2c230, 0xf4f4f4, 0x2b3d61, 0x7cc47f], [0xdfe6ee, 0x6fa8dc, 0xf4f4f4, 0x9fb7c9, 0x2b3d61, 0xffb86b], [0xf2f4f6, 0xf2f4f6, 0xf2f4f6, 0xf2f4f6, 0xf2f4f6, 0xf2f4f6],
+      [0xdfe6ee, 0x6fa8dc, 0xf4f4f4, 0x9fb7c9, 0x2b3d61, 0xffb86b], [0x8e9299, 0xf2f0ea, 0xd9bf9e, 0xc4c9d1, 0x2b2b30, 0xf2f0ea]];   // 鳥の世は服のまま。ガチの世は羽の色(桜・白・シナモン・シルバー・黒)
+    var BHEAD = [0x26262b, 0xf7f5f0, 0xb9895f, 0x8e96a3, 0x1c1c20, 0xf7f5f0];   // 文鳥の頭の色(体の色と対)
     (function () {
       var r, i, n = 0, side, row, col;
       for (r = 0; r < ROUTES.length; r++) for (i = 0; i < RCOUNT[r]; i++) {
@@ -662,20 +770,29 @@
     })();
     var bodyM = new T.InstancedMesh(keep(merge([bx(0.42, 0.74, 0.3, 0, 0.42, 0, 0xffffff)])), MAT.inst, NP), headM = new T.InstancedMesh(keep(merge([bx(0.28, 0.28, 0.28, 0, 0.96, 0, 0xe2b58f)])), MAT.instPlain, NP);
     bodyM.frustumCulled = headM.frustumCulled = false; scene.add(bodyM); scene.add(headM);
+    // 手術のあとの頭:文鳥の頭(色は一羽ずつ)と、くちばし・白いほお
+    var bheadM = new T.InstancedMesh(keep(merge([bx(0.34, 0.33, 0.34, 0, 0.99, 0, 0xffffff)])), MAT.inst, NP);
+    var beakM = new T.InstancedMesh(keep(merge([co(0.085, 0.2, 6, 0, 0.95, 0.25, 0xe8707e, [PI / 2, 0, 0]), bx(0.02, 0.15, 0.17, -0.18, 0.94, 0.04, 0xffffff), bx(0.02, 0.15, 0.17, 0.18, 0.94, 0.04, 0xffffff)])), MAT.instPlain, NP);
+    bheadM.frustumCulled = beakM.frustumCulled = false; scene.add(bheadM); scene.add(beakM);
+    PEOPLE.forEach(function (p, i) { bheadM.setColorAt(i, c3.set(BHEAD[p.ci])); }); bheadM.instanceColor.needsUpdate = true;
+    var m0 = new T.Matrix4().makeScale(0, 0, 0);
     function paintPeople(anim) { PEOPLE.forEach(function (p) { p.c0.copy(anim ? p.c1 : c3.set(0)); p.c1.set(p.jsdf && M.stage < 8 ? 0x55673c : PAL[M.stage][p.ci]); if (!anim) p.c0.copy(p.c1); }); M.paintK = anim ? 0 : 1; M.paint = true; }
     function stepPeople(dt) {
-      var i, p, rt, x, z, y, ang, e, f = M.form, bob, k = 1.15;
+      var i, p, rt, x, z, y, ang, e, f = M.form, bob, k = 1.15, bg = M.big || 0, st9 = M.stage === 9, st10 = M.stage === 10, bird;
       if (M.paintK < 1) { M.paintK = Math.min(1, M.paintK + dt / 1.6); M.paint = true; }
       for (i = 0; i < NP; i++) {
         p = PEOPLE[i]; rt = ROUTES[p.r];
         if (f < 1) { p.u += p.dir * p.sp * dt / p.len; if (p.u > 1) { p.u = 1; p.dir = -1; } else if (p.u < 0) { p.u = 0; p.dir = 1; } }
         x = rt[0] + (rt[2] - rt[0]) * p.u + p.ox; z = rt[1] + (rt[3] - rt[1]) * p.u + p.oz; y = bridgeH(x, z);
         ang = Math.atan2((rt[2] - rt[0]) * p.dir, (rt[3] - rt[1]) * p.dir); bob = Math.abs(Math.sin(M.t * 7 + p.ph)) * 0.07;
-        if (f > 0) { e = smooth(clamp(f * 1.6 - p.lag, 0, 1)); x += (p.fx - x) * e; z += (p.fz - z) * e; y = y * (1 - e) + 0.23 * e; ang = turn(ang, p.fa, e); bob *= 1 - e; }
-        m4.makeRotationY(ang); s3.set(k, k, k); m4.scale(s3); m4.setPosition(x, y + bob, z); bodyM.setMatrixAt(i, m4); headM.setMatrixAt(i, m4);
+        if (f > 0) { e = smooth(clamp(f * 1.6 - p.lag, 0, 1)); x += (p.fx - x) * e; z += (p.fz - z) * e; y = y * (1 - e) + 0.23 * e; ang = turn(ang, p.fa, e); bob = st10 ? Math.abs(Math.sin(M.t * 5.5 + p.ph)) * 0.22 * e : bob * (1 - e); }   // ガチの世:リングを囲んで、跳ねて応援する
+        bird = st10 || (st9 && i % 2 === 0);   // 鳥の世は、半分が鳥の頭
+        m4.makeRotationY(ang); s3.set(k * (1 + 0.8 * bg), k * (1 + 0.38 * bg), k * (1 + 0.5 * bg)); m4.scale(s3); m4.setPosition(x, y + bob, z); bodyM.setMatrixAt(i, m4);
+        m4.makeRotationY(ang); s3.set(k * (1 + 0.25 * bg), k * (1 + 0.38 * bg), k * (1 + 0.25 * bg)); m4.scale(s3); m4.setPosition(x, y + bob, z);
+        headM.setMatrixAt(i, bird ? m0 : m4); bheadM.setMatrixAt(i, bird ? m4 : m0); beakM.setMatrixAt(i, bird ? m4 : m0);
         if (M.paint) { c3.copy(p.c0).lerp(p.c1, M.paintK); bodyM.setColorAt(i, c3); }
       }
-      bodyM.instanceMatrix.needsUpdate = true; headM.instanceMatrix.needsUpdate = true; if (M.paint) { bodyM.instanceColor.needsUpdate = true; M.paint = false; }
+      bodyM.instanceMatrix.needsUpdate = true; headM.instanceMatrix.needsUpdate = true; bheadM.instanceMatrix.needsUpdate = true; beakM.instanceMatrix.needsUpdate = true; if (M.paint) { bodyM.instanceColor.needsUpdate = true; M.paint = false; }
     }
 
     // ── 鳥たちとダリオくん ──
@@ -700,7 +817,7 @@
         p = (M.t * b.f + b.off) % 1; hop = p < 0.36 ? Math.sin(p / 0.36 * PI) * 0.36 : 0;
         if (b.scare > 0) { b.scare = Math.max(0, b.scare - dt); hop += Math.sin((1.2 - b.scare) / 1.2 * PI) * 1.5; face += (1.2 - b.scare) * 10; }
         y = hop * (1 - e); x += (b.lx - x) * e; z += (b.lz - z) * e; face = turn(face, Math.atan2(HX - b.lx, HZ - b.lz), e);
-        b.m.position.set(x, y, z); b.m.rotation.set(-hop * 0.25 * (1 - e), face, 0); b.m.scale.set(1.3, 1.3 * (1 - (p > 0.36 && p < 0.44 ? 0.07 * (1 - e) : 0)), 1.3);
+        b.m.position.set(x, y, z); b.m.rotation.set(-hop * 0.25 * (1 - e), face, 0); var bsz = 1.3 * (1 + 1.1 * (M.big || 0)); b.m.scale.set(bsz, bsz * (1 - (p > 0.36 && p < 0.44 ? 0.07 * (1 - e) : 0)), bsz);
       }
       // ダリオくん:ときどきまばたきして、少しだけ首をかしげる。調和のあとは、動かない
       if (asiFace) { dario.rotation.z = 0; darioEyesM.scale.y = 1; }
@@ -711,7 +828,7 @@
     // ── 乗りもの ──
     function dyn(a, b) { return { a: a, b: b, k: 0, wait: 0 }; }
     function fade(o, dt) {
-      var want = M.stage >= o.a && M.stage <= o.b ? 1 : 0;
+      var want = inR(o.a, o.b) ? 1 : 0;
       if (o.k === want) return o.k;
       if (want > o.k) { if (o.wait > 0) { o.wait -= dt; return o.k; } o.k = Math.min(1, o.k + dt / 0.5); } else o.k = Math.max(0, o.k - dt / 0.3);
       return o.k;
@@ -767,7 +884,7 @@
       // 水車
       if (M.wheel) M.wheel.rotation.z -= dt * 1.1;
       // ロケット:ときどき打ち上がる。大きな音が苦手なオカメ技師長が飛び上がる
-      if (M.rocket && M.stage >= 6 && M.stage <= 7) {
+      if (M.rocket && inR(6, 7)) {
         rocketT -= dt;
         if (rocketPh === 0 && rocketT <= 0) { rocketPh = 1; rocketT = 1.3; M.flame.visible = true; birds.forEach(function (b) { if (b.id === 'okame') b.scare = 1.2; }); if (h.onLaunch) try { h.onLaunch(); } catch (e) { /* 呼び出し側の都合 */ } }
         else if (rocketPh === 1) { for (i = 0; i < 2; i++) puff(24 + (Math.random() - 0.5) * 2.4, 0.5, 19.5 + (Math.random() - 0.5) * 2.4, (Math.random() - 0.5) * 3, 0.6, (Math.random() - 0.5) * 3, 0.8, 2.4, 0.95); if (rocketT <= 0) { rocketPh = 2; rocketV = 1; } }
@@ -781,25 +898,25 @@
 
     // ── 時代を変える ──
     function setStage(n, o) {
-      n = clamp(Math.round(+n || 0), 0, 8); var anim = !!(o && o.animate) && !reduced && M.stage >= 0, prev = M.stage;
+      n = clamp(Math.round(+n || 0), 0, 10); var anim = !!(o && o.animate) && !reduced && M.stage >= 0, prev = M.stage;
       if (n === prev) return;
       M.stage = n; h.stage = n;
       defs.forEach(function (c) {
-        var want = n >= c.a && n <= c.b; if (want && !c.group) build(c); if (!c.group) return;
+        var want = inR(c.a, c.b, n) || (n === 10 && c.id === 'hq'); if (want && !c.group) build(c); if (!c.group) return;   // ガチの世にも、研究本部は残る
         if (!anim) { c.k = want ? 1 : 0; c.anim = null; applyK(c); }
         else if (want !== c.want) c.anim = { from: c.k, to: want ? 1 : 0, t0: M.t + (want ? 0.12 + c.delay + (c.slow ? 0.6 : 0) : 0), dur: want ? (c.slow ? 2.6 : 0.62) : 0.34 };
         c.want = want;
       });
       setLights(anim);
-      DYN.concat([carD, carD2, droneD]).forEach(function (d) { var want = n >= d.a && n <= d.b; if (!anim) d.k = want ? 1 : 0; else if (want && d.k < 1) d.wait = 0.9; });
+      DYN.concat([carD, carD2, droneD]).forEach(function (d) { var want = inR(d.a, d.b, n); if (!anim) d.k = want ? 1 : 0; else if (want && d.k < 1) d.wait = 0.9; });
       if (!anim) { stepTrees(-1); SM.forEach(function (p, i) { if (p.life > 0) { p.life = 0; m4.makeScale(0, 0, 0); smokeM.setMatrixAt(i, m4); } }); smokeM.instanceMatrix.needsUpdate = true; } else treesDirty = true; // 一気に切り替えるときは、前の時代の煙を残さない
-      litA = anim ? curLit() : LIT[n].slice(); litB = LIT[n]; M.skyK = anim ? 0 : 1; M.skyDur = n === 8 ? 3.2 : 1.4;
+      litA = anim ? curLit() : LIT[n].slice(); litB = LIT[n]; M.skyK = anim ? 0 : 1; M.skyDur = n === 8 ? 3.2 : (n >= 9 ? 2.4 : 1.4);
       if (anim) fogA.copy(scene.fog.color); else fogA.set(SKY[n][1]);
       paleA = anim ? (M.pale || 0) : (n === 8 ? 1 : 0); paleB = n === 8 ? 1 : 0;
       skyA.style.background = prev >= 0 ? grad(prev) : grad(n); skyB.style.background = grad(n); skyB.style.opacity = anim ? '0' : '1';
       paintPeople(anim);
-      if (n >= 6 && prev < 6) { rocketPh = 0; rocketY = 0; rocketT = anim ? 4.2 : 6; if (M.rocket) { M.rocket.visible = true; M.flame.visible = false; } }
-      if (anim) M.asiAt = M.t + (n === 8 ? 2.2 : 0); else { M.asiAt = null; setAsi(n === 8); M.form = n === 8 ? 1 : 0; }
+      if (inR(6, 7, n) && !(prev >= 0 && inR(6, 7, prev))) { rocketPh = 0; rocketY = 0; rocketT = anim ? 4.2 : 6; if (M.rocket) { M.rocket.visible = true; M.flame.visible = false; } }
+      if (anim) M.asiAt = M.t + (n === 8 ? 2.2 : 0); else { M.asiAt = null; setAsi(n === 8); M.form = n === 8 || n === 10 ? 1 : 0; M.big = n === 10 ? 1 : 0; }
       applyLit(); M.dirty = true;
     }
     function curLit() { var k = smooth(M.skyK), a = litA, b = litB, out = [], i; if (!a) return LIT[Math.max(0, M.stage)].slice(); for (i = 0; i < 8; i++) out.push(i === 0 || i === 1 || i === 3 ? cA.set(a[i]).lerp(cB.set(b[i]), k).getHex() : a[i] + (b[i] - a[i]) * k); return out; }
@@ -831,7 +948,15 @@
         applyK(c);
       }
       if (M.skyK < 1) { M.skyK = Math.min(1, M.skyK + dt / M.skyDur); applyLit(); }
-      var wantForm = M.stage === 8 ? 1 : 0; if (M.form !== wantForm) M.form = wantForm > M.form ? Math.min(1, M.form + dt / 4.5) : Math.max(0, M.form - dt / 1.2);
+      var wantForm = M.stage === 8 || M.stage === 10 ? 1 : 0, wantBig = M.stage === 10 ? 1 : 0;
+      if (M.big !== wantBig) M.big = wantBig > (M.big || 0) ? Math.min(1, (M.big || 0) + dt / 2.5) : Math.max(0, M.big - dt / 1.2);   // ガチの世:人も鳥も、大きくなる
+      if (M.flock) { M.flock.rotation.y = M.t * 0.24; M.flock.position.y = Math.sin(M.t * 0.7) * 0.6; }
+      if (M.fight) { // 闘技場のふたり:かわるがわる、踏みこんで打つ
+        var ft = M.t * 5.2, pa = Math.max(0, Math.sin(ft)), pb = Math.max(0, Math.sin(ft + PI)), fa = M.fight[0], fb = M.fight[1], hop = 0.97 + Math.abs(Math.sin(ft * 0.5)) * 0.07;
+        fa.position.set(-1.0 + pa * 0.46 - pb * 0.18, hop, Math.sin(M.t * 0.9) * 0.5); fb.position.set(1.0 - pb * 0.46 + pa * 0.18, hop, Math.sin(M.t * 0.9) * 0.5);
+        fa.rotation.z = pb * 0.2; fb.rotation.z = -pa * 0.2;
+      }
+      if (M.form !== wantForm) M.form = wantForm > M.form ? Math.min(1, M.form + dt / 4.5) : Math.max(0, M.form - dt / 1.2);
       if (treesDirty) stepTrees(dt);
       stepLights(); stepSmoke(dt); stepPeople(dt); stepBirds(dt); stepVehicles(dt);
       if (M.orb) { var pk = 1 + Math.sin(M.t * 0.9) * 0.05; M.orb.scale.set(pk, pk, pk); pk = 1 + Math.sin(M.t * 0.9 - 0.6) * 0.12; M.orbHalo.scale.set(pk, pk, pk); }
@@ -881,7 +1006,7 @@
         if (M.dead) return; M.dead = true;
         var top = stack[stack.length - 1] === M, i = stack.indexOf(M); if (i >= 0) stack.splice(i, 1);
         M.suspend();
-        [treeM, lightM, haloM, smokeM, bodyM, headM, carM, droneM].forEach(function (m) { try { m.dispose(); } catch (e) { /* 古い版 */ } });
+        [treeM, lightM, haloM, smokeM, bodyM, headM, bheadM, beakM, carM, droneM].forEach(function (m) { try { m.dispose(); } catch (e) { /* 古い版 */ } });
         M.trash.forEach(function (o) { try { o.dispose(); } catch (e) { /* 破棄済み */ } });
         try { renderer.renderLists.dispose(); } catch (e) { /* 古い版 */ }
         if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
@@ -902,8 +1027,8 @@
   }
 
   TF.Diorama3D = {
-    available: available, mount: mount, stages: 9,
-    sky: function (n) { var k = SKY[Math.max(0, Math.min(8, n | 0))]; return 'linear-gradient(' + k[0] + ' 0%,' + k[1] + ' 54%,' + k[2] + ' 100%)'; }, // その時代の空(3Dが使えないときの背景にも使う)
+    available: available, mount: mount, stages: 11,
+    sky: function (n) { var k = SKY[Math.max(0, Math.min(10, n | 0))]; return 'linear-gradient(' + k[0] + ' 0%,' + k[1] + ' 54%,' + k[2] + ' 100%)'; }, // その時代の空(3Dが使えないときの背景にも使う)
     _count: function () { return stack.length; }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
