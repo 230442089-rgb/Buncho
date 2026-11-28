@@ -230,6 +230,12 @@
     launch: function (t) { taiko(t, 0.5); taiko(t + 0.14, 0.4); noise(t + 0.05, { type: 'bandpass', f0: 280, f1: 3200, q: 0.8, dur: 0.4, gain: 0.4, attack: 0.1 }); },
     taiko: function (t, o) { taiko(t, o.gain || 0.42); },
     horagai: function (t, o) { horagai(t, o.dur || 1.5, o.gain || 0.3); },
+    bugle: function (t) { [N.G4, N.B4, N.D5, N.G5, N.D5, N.G5].forEach(function (f, i) { brass(t + i * 0.13 + (i > 3 ? 0.07 : 0), f, i === 5 ? 0.55 : 0.12, 0.2); }); },   // 西洋の軍の喇叭
+    siren: function (t, o) { // 空襲のサイレン。上がって、下がる
+      var d = o.dur || 2.2;
+      tone(t, { type: 'sawtooth', f0: 430, f1: 900, glide: d * 0.45, dur: d * 0.55, gain: 0.14, attack: 0.15, lp: 1900 });
+      tone(t + d * 0.5, { type: 'sawtooth', f0: 900, f1: 480, glide: d * 0.45, dur: d * 0.5, gain: 0.12, attack: 0.05, lp: 1900 });
+    },
     roar: function (t, o) { // 鬨の声
       var d = o.dur || 1.3;
       noise(t, { type: 'bandpass', f0: 560, f1: 760, q: 1.1, dur: d, gain: 0.55, attack: 0.35 });

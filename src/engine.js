@@ -569,7 +569,7 @@
     if (isBoss(fid) && lostRid === f.cap) { // 最後の敵は、本拠が落ちれば残りも崩れる
       var bz = bossOf(fid);
       factionRegions(fid).forEach(function (id) { takeRegion(id, 'defect', events); });
-      f.alive = false; f.war = false; f.trade = false; S.prestige += 10; S.flags['boss_' + fid].down = S.turn;
+      f.alive = false; f.war = false; f.trade = false; S.prestige += 10; (S.flags['boss_' + fid] = S.flags['boss_' + fid] || {}).down = S.turn;
       mark('fall', fname(fid) + 'の本拠' + rname(lostRid) + 'を落とす。残る軍団は、武器を置いた。');
       events.push(ev('event', fname(fid) + 'は崩壊した。', { big: { kicker: dateLabel().text, title: bz.fall.title, body: bz.fall.body, bird: bz.fall.bird }, cine: bz.cine || null, fid: fid, bossDown: fid }));
       return;
@@ -578,7 +578,7 @@
     if (!rest.length) {
       f.alive = false; f.war = false; f.trade = false;
       events.push(ev('good', fname(fid) + 'は滅亡した。', { fid: fid }));
-      S.prestige += 1; mark('fall', fname(fid) + '(' + f.leader + ')を降す。最後の城は' + rname(lostRid) + '。');
+      S.prestige += 1; mark('fall', fname(fid) + '(' + f.leader + ')を降す。最後の' + (D.REGIONS[lostRid].map === 'w' ? '拠点' : '城') + 'は' + rname(lostRid) + '。');
       return;
     }
     if (lostRid === f.cap) {
@@ -589,7 +589,7 @@
       });
       S.prestige += 1;
       var still = factionRegions(fid);
-      if (defected.length) events.push(ev('good', '本拠を失った' + fname(fid) + 'から、' + defected.join('・') + 'が開城して降った。', { fid: fid }));
+      if (defected.length) events.push(ev('good', '本拠を失った' + fname(fid) + 'から、' + defected.join('・') + (D.REGIONS[lostRid].map === 'w' ? 'が戦わずに降った。' : 'が開城して降った。'), { fid: fid }));
       if (!still.length) { f.alive = false; f.war = false; f.trade = false; events.push(ev('good', fname(fid) + 'は滅亡した。', { fid: fid })); S.prestige += 1; mark('fall', fname(fid) + '(' + f.leader + ')の本拠' + rname(lostRid) + 'を落とす。残る城も門を開いた。'); }
       else {
         still.sort(function (a, b) { return D.REGIONS[b].koku - D.REGIONS[a].koku; });
@@ -737,7 +737,7 @@
     });
     playerRegions().forEach(function (id) { S.regions[id].mood = Math.max(0, S.regions[id].mood - 8); });
     ev('bad', rname(tid) + 'に核を撃った。', { rid: tid, nuke: true }); mark('nuke', rname(tid) + 'に核を撃つ。城も町も、影だけを残して消える。');
-    if (first) events.push(ev('event', '核の火が使われた。', { big: { kicker: dateLabel().text, title: '核の火', body: rname(tid) + 'の空に、二つめの太陽が昇った。城も、町も、そこにいた人も、影だけを残して消えた。\n世界中の宮廷が震え上がり、我が国への友好は地に落ちた。自領の民も、口をつぐんでいる。鳥たちは一羽も鳴かない。ダリオくんは作戦記録の末尾に、ただ一行を残した。「私は反対しました」。', bird: 'dario', grave: true } }));
+    if (first) events.push(ev('event', '核の火が使われた。', { big: { kicker: dateLabel().text, title: '核の火', body: rname(tid) + 'の空に、二つめの太陽が昇った。' + (D.REGIONS[tid].map === 'w' ? '街も、港も' : '城も、町も') + '、そこにいた人も、影だけを残して消えた。\n世界中の宮廷が震え上がり、我が国への友好は地に落ちた。自領の民も、口をつぐんでいる。鳥たちは一羽も鳴かない。ダリオくんは作戦記録の末尾に、ただ一行を残した。「私は反対しました」。', bird: 'dario', grave: true } }));
   }
 
   // ───────────────────────── 移動 ─────────────────────────
@@ -1049,7 +1049,7 @@
       var su = showUnit(fid);
       su.u.acted = true; S.res.fuel -= su.fuel; S.stats.fuelUsed += su.fuel;
       f.awe = 6; f.att -= 4; res.ok = true; res.unit = su.u.name;
-      ev('news', su.u.name + 'が' + fname(fid) + 'の城の上を飛んだ。城下は大騒ぎになった。', { fid: fid });
+      ev('news', su.u.name + 'が' + fname(fid) + (isJp(fid) ? 'の城の上を飛んだ。城下は大騒ぎになった。' : 'の都の上を飛んだ。街は大騒ぎになった。'), { fid: fid });
     } else if (key === 'pact') {
       res.chance = opt.chance;
       if (rnd() * 100 < opt.chance) {

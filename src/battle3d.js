@@ -60,10 +60,57 @@
     europe: { skin: 0xf0c9a8, style: 'keep' },
     africa: { skin: 0x6b4226, style: 'palisade' },
     america: { skin: 0xb9774a, style: 'palisade' },
-    pacific: { skin: 0xa66a3c, style: 'palisade' }
+    pacific: { skin: 0xa66a3c, style: 'palisade' },
+    // 銃の軍(gun 1: 先込めの銃で一斉射撃/2: 小銃と機関銃、戦車)。coat は軍服、helm は鉄帽、tank は戦車の色、flag は軍旗の色
+    legion: { skin: 0xe2b58f, style: 'keep', gun: 1 },                                                                  // 続いてきたローマ:とさかの兜と大盾はそのまま、槍が銃に替わった
+    line: { skin: 0xf0c9a8, style: 'keep', gun: 1 },                                                                    // 産業を進めた列強:国の色の上衣に筒帽、銃剣
+    modern: { skin: 0xf0c9a8, style: 'bunker', gun: 2 },                                                                // さらに進めた列強:鉄帽と小銃
+    reich: { skin: 0xf0c9a8, style: 'bunker', gun: 2, coat: 0x5c655f, helm: 0x3d4440, tank: 0x565b60, mark: 0xf2f0ea },   // 第三帝国:灰緑の軍服、灰色の戦車
+    soviet: { skin: 0xf0c9a8, style: 'redfort', gun: 2, coat: 0x8a7b4f, helm: 0x55603a, tank: 0x4f5d3a, mark: 0xd0342c, flag: 0xc8372d }   // ソビエト:カーキの軍服、緑の戦車、赤い旗
   };
+  function gunnerGeo(kind, flag) { // 銃を持つ兵(前は +z)
+    var C = CULT[kind], coat = C.coat || (C.gun === 1 ? flag : shade(flag, 0.62)), helm = C.helm || shade(flag, 0.36), parts = [
+      { g: box(0.4, 0.42, 0.28), p: [0, 0.21, 0], c: kind === 'line' ? 0xe9e4d8 : (kind === 'legion' ? C.skin : shade(coat, 0.72)) },
+      { g: box(0.44, 0.55, 0.32), p: [0, 0.69, 0], c: coat }, { g: box(0.46, 0.08, 0.34), p: [0, 0.5, 0], c: 0x2a2622 },
+      { g: box(0.26, 0.26, 0.26), p: [0, 1.09, 0], c: C.skin }
+    ];
+    if (kind === 'legion') parts.push({ g: new T.SphereGeometry(0.2, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2), p: [0, 1.2, 0], c: 0xc9ced4 }, { g: box(0.06, 0.2, 0.4), p: [0, 1.46, 0], c: 0xc8372d },
+      { g: box(0.08, 0.72, 0.5), p: [-0.28, 0.66, 0.16], c: 0xb3262f }, { g: box(0.09, 0.14, 0.14), p: [-0.3, 0.66, 0.16], c: 0xd9b24c });   // とさかの兜、赤い大盾
+    else if (kind === 'line') parts.push({ g: new T.CylinderGeometry(0.15, 0.17, 0.3, 8), p: [0, 1.36, 0], c: 0x23262d }, { g: box(0.1, 0.12, 0.04), p: [0, 1.4, 0.16], c: 0xd9b24c }, { g: box(0.5, 0.06, 0.34), p: [0, 0.72, 0], r: [0, 0, 0.7], c: 0xf2f0ea });   // 筒帽と、たすきの白帯
+    else {
+      parts.push({ g: new T.SphereGeometry(0.21, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2), p: [0, 1.2, 0], c: helm });
+      if (kind === 'soviet') parts.push({ g: box(0.08, 0.08, 0.03), p: [0, 1.28, 0.2], c: 0xd0342c });       // 鉄帽に赤い印
+      else parts.push({ g: new T.CylinderGeometry(0.25, 0.27, 0.07, 9), p: [0, 1.21, -0.02], c: helm });      // 縁の張った鉄帽
+      parts.push({ g: box(0.3, 0.3, 0.14), p: [0, 0.74, -0.22], c: shade(coat, 0.6) });                       // 背のう
+    }
+    parts.push({ g: box(0.06, 0.07, 1.05), p: [0.22, 0.86, 0.42], c: 0x3b2c1e }, { g: box(0.035, 0.035, 0.5), p: [0.22, 0.88, 1.1], c: C.gun === 1 ? 0xc9ced4 : 0x1f2320 });   // 銃。列強の兵は、先に銃剣
+    return merge(parts);
+  }
+  function officerGeo(kind, flag) { // 銃の軍の大将:長い外套に、ひさしのある帽子(列強は二角帽と肩章)
+    var C = CULT[kind], coat = C.coat || flag, cap = C.helm || shade(flag, 0.45), gold = 0xd9b24c, parts = [
+      { g: box(0.5, 0.36, 0.34), p: [0, 0.18, 0], c: 0x1d1b19 }, { g: box(0.56, 0.92, 0.4), p: [0, 0.8, 0], c: coat }, { g: box(0.6, 0.08, 0.42), p: [0, 0.84, 0], c: 0x2a2622 },
+      { g: box(0.72, 0.14, 0.44), p: [0, 1.2, 0], c: shade(coat, 0.8) }, { g: box(0.28, 0.28, 0.28), p: [0, 1.41, 0], c: C.skin }
+    ];
+    if (kind === 'legion') parts.push({ g: box(0.34, 0.07, 0.34), p: [0, 1.56, 0], c: gold }, { g: box(0.6, 0.9, 0.08), p: [0, 0.82, -0.25], c: 0x7d2fa3 }, { g: box(0.2, 0.2, 0.06), p: [0.2, 1.16, 0.2], c: gold });   // 月桂の冠、紫の外套
+    else if (kind === 'line') parts.push({ g: box(0.7, 0.2, 0.2), p: [0, 1.64, 0], c: 0x23262d }, { g: box(0.16, 0.08, 0.3), p: [-0.36, 1.3, 0], c: gold }, { g: box(0.16, 0.08, 0.3), p: [0.36, 1.3, 0], c: gold }, { g: box(0.05, 1.0, 0.05), p: [0.36, 0.7, 0.24], r: [0.3, 0, 0], c: 0xc9ced4 });
+    else parts.push({ g: box(0.42, 0.13, 0.42), p: [0, 1.63, 0], c: cap }, { g: box(0.44, 0.05, 0.44), p: [0, 1.57, 0], c: kind === 'soviet' ? 0xd0342c : 0xc4c9d1 }, { g: box(0.36, 0.04, 0.2), p: [0, 1.56, 0.28], c: 0x15171c },
+      { g: box(0.08, 0.08, 0.03), p: [0, 1.66, 0.22], c: kind === 'soviet' ? 0xd9b24c : 0xc4c9d1 }, { g: box(0.16, 0.06, 0.3), p: [-0.36, 1.29, 0], c: shade(coat, 0.55) }, { g: box(0.16, 0.06, 0.3), p: [0.36, 1.29, 0], c: shade(coat, 0.55) });
+    return merge(parts);
+  }
+  function enemyTankGeo(col, mark, kind) { // 敵の戦車(前は +z)。角ばった車体に、短い砲
+    var dk = shade(col, 0.55), parts = [
+      { g: box(0.6, 0.7, 3.9), p: [-1.1, 0.35, 0], c: 0x1f1f1c }, { g: box(0.6, 0.7, 3.9), p: [1.1, 0.35, 0], c: 0x1f1f1c },
+      { g: box(2.2, 0.7, 3.7), p: [0, 0.85, 0], c: col }, { g: box(2.2, 0.34, 1.0), p: [0, 0.7, 1.9], r: [-0.5, 0, 0], c: dk },
+      { g: box(1.6, 0.62, 1.9), p: [0, 1.5, -0.2], c: shade(col, 1.12) }, { g: new T.CylinderGeometry(0.1, 0.1, 2.4, 6), p: [0, 1.5, 1.9], r: [Math.PI / 2, 0, 0], c: dk },
+      { g: box(0.5, 0.2, 0.5), p: [0.35, 1.9, -0.4], c: dk }
+    ];
+    if (kind === 'soviet') parts.push({ g: box(0.02, 0.34, 0.34), p: [0.81, 1.5, -0.2], r: [Math.PI / 4, 0, 0], c: mark }, { g: box(0.02, 0.34, 0.34), p: [-0.81, 1.5, -0.2], r: [Math.PI / 4, 0, 0], c: mark });
+    else parts.push({ g: box(0.02, 0.12, 0.6), p: [0.81, 1.5, -0.2], c: mark }, { g: box(0.02, 0.12, 0.6), p: [-0.81, 1.5, -0.2], c: mark });
+    return merge(parts);
+  }
   function cultureGeo(kind, flag) {
     var C = CULT[kind], dark = shade(flag, 0.45), wood = 0x6b4a2c, parts = [];
+    if (C.gun) return gunnerGeo(kind, flag);
     if (kind === 'steppe') { // 馬上の弓騎兵
       return merge([
         { g: box(0.46, 0.5, 1.25), p: [0, 0.72, 0], c: 0x7a5636 }, { g: box(0.24, 0.42, 0.4), p: [0, 1.05, 0.72], r: [-0.5, 0, 0], c: 0x7a5636 },
@@ -102,6 +149,7 @@
     return merge(parts);
   }
   function leaderGeo(kind, flag) { // 大将。兵の倍ほどの背丈にして、陣の奥に立たせる
+    if (CULT[kind] && CULT[kind].gun) return officerGeo(kind, flag);
     var C = CULT[kind] || { skin: 0xe2b58f }, gold = 0xd9b24c, parts = [
       { g: box(0.5, 1.0, 0.36), p: [0, 0.5, 0], c: flag }, { g: box(0.64, 0.3, 0.42), p: [0, 0.92, 0], c: shade(flag, 0.6) },
       { g: box(0.28, 0.28, 0.28), p: [0, 1.2, 0], c: C.skin }, { g: box(0.52, 0.9, 0.06), p: [0, 0.6, -0.24], c: shade(flag, 0.7) }
@@ -364,7 +412,7 @@
   // 陣。層ごと・棟ごとに別の部品にして、砲撃で吹き飛ぶようにする
   function buildCastle() {
     var s = B.spec, sc = B.scene, fort = s.fort || 0, cz = -40, i, C = CULT[s.enemy], style = C ? C.style : 'tenshu';
-    var wall = (C && C.wall) || 0xeee7d8, roof = (C && C.roof) || 0x2e3440, stone = 0x868991, wood = 0x7a5a3a, post = 0x5d432b, flag = new T.Color(s.color).getHex();
+    var wall = (C && C.wall) || 0xeee7d8, roof = (C && C.roof) || 0x2e3440, stone = 0x868991, wood = 0x7a5a3a, post = 0x5d432b, flag = (C && C.flag) || new T.Color(s.color).getHex();
     function piece(g, x, y, z, hh) { var m = new T.Mesh(keep(g), matVC); m.position.set(x, y, z); sc.add(m); B.castle.push({ m: m, hh: hh, fly: false, done: false, vx: 0, vy: 0, vz: 0, wx: 0, wy: 0, wz: 0 }); return m; }
     function fence(n, z) { for (var k = -n; k <= n; k++) piece(merge([{ g: box(2.3, 1.9, 0.3), p: [0, 0, 0], c: wood }, { g: box(0.25, 2.5, 0.35), p: [-1.1, 0.3, 0], c: post }]), k * 2.35, 0.95, z, 0.95); }
     function watch(x, z) {
@@ -418,6 +466,35 @@
       var ny = 3 + Math.min(4, fort);
       for (i = 0; i < ny; i++) piece(merge([{ g: new T.CylinderGeometry(2.1, 2.1, 1.6, 10), p: [0, 0, 0], c: 0xe9e2d2 }, { g: new T.ConeGeometry(2.4, 1.3, 10), p: [0, 1.45, 0], c: 0xd6cdb8 }, { g: box(0.8, 1.2, 0.1), p: [0, -0.2, 2.1], c: flag }]), (i - (ny - 1) / 2) * 6.2, 0.8, cz + 4 + (i % 2) * 4, 0.8);
       if (fort >= 3) fence(5, cz + 12);
+    } else if (style === 'bunker') { // コンクリートの陣地:鉄条網、対戦車の歯、トーチカ。固い陣には、奥に高射砲の塔
+      var con = 0x8b8f8a, cd = 0x6f736f, wire = 0x55585c;
+      if (fort >= 1) for (i = -4; i <= 4; i++) piece(merge([{ g: box(0.12, 1.3, 0.12), p: [-1.1, 0, 0], c: 0x3a3a3a }, { g: box(0.12, 1.3, 0.12), p: [1.1, 0, 0], c: 0x3a3a3a }, { g: box(2.3, 0.05, 0.05), p: [0, 0.4, 0], c: wire }, { g: box(2.3, 0.05, 0.05), p: [0, 0, 0], c: wire },
+        { g: box(2.3, 0.05, 0.05), p: [0, -0.4, 0], c: wire }, { g: box(2.4, 0.05, 0.05), p: [0, 0, 0], r: [0, 0, 0.55], c: wire }]), i * 2.4, 0.65, cz + 13, 0.65);
+      else tents(4, cz + 8);
+      if (fort >= 2) {
+        for (i = -6; i <= 6; i++) piece(merge([{ g: new T.ConeGeometry(0.6, 1.1, 4), p: [0, 0, 0], r: [0, Math.PI / 4, 0], c: con }]), i * 1.7, 0.55, cz + 10.6 + (i % 2 ? 0.7 : 0), 0.55);
+        (fort >= 3 ? [-1, 0, 1] : [-0.5, 0.5]).forEach(function (k) {
+          piece(merge([{ g: box(6, 2.4, 4.4), p: [0, 0, 0], c: con }, { g: box(6.5, 0.5, 4.9), p: [0, 1.45, 0], c: cd }, { g: box(3.4, 0.42, 0.3), p: [0, 0.35, 2.1], c: 0x15171c }, { g: new T.CylinderGeometry(0.09, 0.09, 1.5, 6), p: [0, 0.35, 2.7], r: [Math.PI / 2, 0, 0], c: 0x1f2320 }]), k * 9.5, 1.2, cz + 5, 1.2);
+        });
+      } else if (fort === 1) watch(0, cz);
+      if (fort >= 4) {
+        var fk = [{ g: box(7, 9, 7), p: [0, 0, 0], c: cd }, { g: box(7.6, 0.6, 7.6), p: [0, 3.2, 0], c: con }];
+        [[-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(function (q) { fk.push({ g: new T.CylinderGeometry(1.5, 1.5, 2.2, 10), p: [q[0] * 2.9, 5.5, q[1] * 2.9], c: con }, { g: new T.CylinderGeometry(0.11, 0.11, 2.8, 6), p: [q[0] * 2.9, 7.3, q[1] * 2.9 + 0.5], r: [0.6, 0, 0], c: 0x1f2320 }); });
+        piece(merge(fk), 0, 4.5, cz - 2, 4.5);
+      }
+    } else if (style === 'redfort') { // 赤い煉瓦の城壁と、緑の尖塔。奥に、白い庁舎
+      var brick = 0x9c3b2e, bd = 0x7d2f25, spire = 0x2f5d48;
+      if (fort >= 2) {
+        var rw = 13 + fort, cr = [{ g: box(rw, 3.2, 1.2), p: [0, 0, 0], c: brick }];
+        for (i = 0; i < 11; i++) cr.push({ g: box(rw / 26, 0.7, 1.2), p: [(i - 5) * rw / 11, 1.95, 0], c: bd });
+        piece(merge(cr), 0, 1.6, cz + 6, 1.6);
+        (fort >= 4 ? [-1, 0, 1] : [-1, 1]).forEach(function (k) {
+          var th = k === 0 ? 9.5 : 6.5;
+          piece(merge([{ g: box(2.6, th, 2.6), p: [0, 0, 0], c: brick }, { g: box(3.0, 0.5, 3.0), p: [0, th / 2, 0], c: bd }, { g: new T.ConeGeometry(1.5, 3.4, 4), p: [0, th / 2 + 1.95, 0], r: [0, Math.PI / 4, 0], c: spire },
+            { g: box(0.55, 0.55, 0.14), p: [0, th / 2 + 4.0, 0], r: [0, 0, Math.PI / 4], c: 0xd0342c }]), k * rw / 2, th / 2, cz + 6, th / 2);
+        });
+        piece(merge([{ g: box(9, 4.6, 5), p: [0, 0, 0], c: 0xe9dfc2 }, { g: box(9.4, 0.5, 5.4), p: [0, 2.55, 0], c: spire }, { g: new T.SphereGeometry(1.6, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), p: [0, 2.8, 0], c: spire }]), 0, 2.3, cz - 1, 2.3);
+      } else if (fort === 1) { fence(4, cz + 6); watch(0, cz); } else tents(5, cz + 8);
     } else { // 柵と家々
       var nh = 2 + Math.ceil(fort / 2);
       for (i = 0; i < nh; i++) piece(merge([{ g: box(3.4, 1.8, 3), p: [0, 0, 0], c: 0x8a6a42 }, { g: new T.ConeGeometry(3.1, 2, 4), p: [0, 1.9, 0], r: [0, Math.PI / 4, 0], c: 0xb89a55 }]), (i - (nh - 1) / 2) * 6.5, 0.9, cz + 2 + (i % 2) * 3, 0.9);
@@ -430,7 +507,8 @@
 
   function buildEnemy() {
     var s = B.spec, N = clamp(Math.round(Math.sqrt(s.men) * 2.3), 40, 430);
-    var flag = new T.Color(s.color).getHex(), g = keep(CULT[s.enemy] ? cultureGeo(s.enemy, flag) : soldierGeo(flag, shade(flag, 0.34), 0x1d1b19));
+    var EC = CULT[s.enemy], flag = (EC && EC.flag) || new T.Color(s.color).getHex(), g = keep(EC ? cultureGeo(s.enemy, flag) : soldierGeo(flag, shade(flag, 0.34), 0x1d1b19));
+    B.etanks = [];
     var im = new T.InstancedMesh(g, matVC, N); im.frustumCulled = false; B.scene.add(im);
     B.N = N; B.im = im;
     ['sx', 'sy', 'sz', 'vx', 'vy', 'vz', 'rx', 'ry', 'rz', 'wx', 'wz', 'skyY', 'ph'].forEach(function (k) { B[k] = new Float32Array(N); });
@@ -446,6 +524,14 @@
     if (s.enemy === 'india') { // 戦象。最初の砲声で、兵より先に逃げ出す
       var eg = keep(elephantGeo(flag));
       [-1, 1].forEach(function (sd) { var em = new T.Mesh(eg, matVC), ex = sd * (B.half + 3.5); em.position.set(ex, 0, -9); B.scene.add(em); B.eles.push({ m: em, x: ex, z: -9, run: false, sd: sd }); });
+    }
+    var nET = EC && EC.gun >= 2 && !s.nuke ? Math.min(4, s.eTanks || 0) : 0;   // 敵の戦車。陣の前と両脇に据える
+    if (nET) {
+      var tg = keep(enemyTankGeo(EC.tank || shade(new T.Color(s.color).getHex(), 0.7), EC.mark || 0xf2f0ea, s.enemy));
+      for (i = 0; i < nET; i++) {
+        var tk = nET === 1 ? 0 : i / (nET - 1) * 2 - 1, tm = new T.Mesh(tg, matVC), tx = tk * (B.half + 2.6), tz = Math.abs(tk) > 0.9 ? -8.5 : -4.4;
+        tm.position.set(tx, 0, tz); B.scene.add(tm); B.etanks.push({ m: tm, x: tx, z: tz, kick: 0, dead: false, smoke: 0 });
+      }
     }
     if (s.leader) buildLeader(flag);
     if (s.nuke) { // 影だけを残すための平たい板
@@ -468,6 +554,11 @@
     var sp = new T.Sprite(keep(new T.SpriteMaterial({ map: keep(new T.CanvasTexture(cv)), depthWrite: false, fog: false, transparent: true })));
     sp.scale.set(9.4, 2.06, 1); sp.renderOrder = 5; B.scene.add(sp);
     B.leader = { m: m, lab: sp, x: 0, y: 0, z: z, vx: 0, vy: 0, vz: 0, wx: 0, wz: 0, st: 0 };
+  }
+  function etankDie(et) { // 敵の戦車が、燃える
+    if (et.dead) return; et.dead = true;
+    boomFx(et.x, et.z, 3.6); sfx('cannon', { gain: 0.4 }); B.shake = Math.min(1.7, B.shake + 0.5);
+    et.m.rotation.set(rnd(-0.12, 0.12), rnd(-0.5, 0.5), rnd(-0.1, 0.1)); et.m.scale.set(1, 0.82, 1);
   }
   function leaderHit() { // 大将も空へ(三日ほどで歩いて帰ってくる)
     var L = B.leader; if (!L || L.st) return;
@@ -665,8 +756,32 @@
     var mainEnd = win ? 5.0 : (s.bombard ? 3.4 : 2.9), rate = win ? 1 : 0.45;
     B.pace = { t1: mainEnd, f: 1, release: mainEnd };
     if (s.nuke) { nukeTimeline(); return; }
-    at(0.05, function () { sfx('horagai', { dur: 1.5, gain: 0.14 }); sfx('roar', { dur: 1.4, delay: 0.25 }); });
+    var EC = CULT[s.enemy];
+    at(0.05, function () { // 開戦の合図:戦国の日本は法螺貝、銃の軍はサイレンか喇叭、ほかの国は鬨の声だけ
+      if (!EC) sfx('horagai', { dur: 1.5, gain: 0.14 }); else if (EC.gun >= 2) sfx('siren', { dur: 2.2 }); else if (EC.gun || s.enemy === 'europe') sfx('bugle');
+      if (!EC || EC.gun !== 2) sfx('roar', { dur: 1.4, delay: 0.25 });
+    });
     if (B.eles.length) at(1.25, function () { B.eles.forEach(function (e) { e.run = true; }); });
+    if (EC && EC.gun) { // 銃を持つ敵は、撃ち返してくる(こちらの装甲と射程には届かない)
+      if (EC.gun >= 2) {
+        if (B.etanks.length) at(1.0, function () { say('敵は、戦車と機関銃を持っています。槍の軍勢とは、勝手が違います。'); });
+        every(0.9, mainEnd + (win ? 0.4 : 1.2), 0.11, function () { var i = aliveTarget(true); if (i < 0) return; tracer(B.sx[i], 0.9, B.sz[i] + 0.9, rnd(-13, 13), rnd(0.2, 1.6), rnd(10, 15), 0.08, 0.05, 6); });
+        every(1.0, mainEnd + (win ? 0.4 : 1.2), 0.55, function () { if (B.alive > 3) sfx('mg', { n: 4, gain: 0.1 }); });
+      } else {
+        every(1.3, mainEnd + (win ? 0 : 1), 1.25, function () { // 一斉射撃。前列に白い煙
+          if (B.alive < 6) return; sfx('volley');
+          for (var k = 0; k < 9; k++) { var i = aliveTarget(true); if (i >= 0) puff(B.sx[i], 1.0, B.sz[i] + 1.0, rnd(-0.3, 0.3), rnd(0.4, 1.0), rnd(0.8, 1.6), rnd(0.6, 1.0), 0.3, 1.3, 0xf2f0ea, 0xb8b4aa, 0.3); }
+        });
+      }
+      B.etanks.forEach(function (et, k) { // 戦車は前へ出て撃つ。勝ち戦なら、順に燃える
+        every(1.1 + k * 0.4, mainEnd + (win ? 0 : 1.5), 1.6, function () {
+          if (et.dead) return; et.kick = 1; sfx('cannon', { gain: 0.22 });
+          puff(et.x, 1.5, et.z + 3.4, 0, 0.4, 2.6, 0.16, 0.5, 1.6, 0xfff3b0, 0xff9a2a, 0);
+          var px = rnd(-12, 12), pz = rnd(9, 17); shell(et.x, 1.5, et.z + 3.2, px, pz, 0.22, 0.2, function () { dust(px, pz, 2.2); }, 0.13);
+        });
+        if (win) at(1.9 + k * 0.8, function () { etankDie(et); });
+      });
+    }
     at(0.35, function () { say(s.bombard ? '砲爆撃を開始します。' : '作戦開始。勝算 ' + Math.round((s.chance || 0) * 100) + '%。'); });
     // 普通科:曳光弾と迫撃砲
     if (B.inf.length) {
@@ -819,6 +934,7 @@
     B.shadowM.instanceMatrix.needsUpdate = true;
     B.castle.forEach(function (c) { c.m.visible = false; c.fly = true; c.done = true; });
     B.eles.forEach(function (el) { el.m.visible = false; });
+    B.etanks.forEach(function (et) { et.m.visible = false; et.dead = true; et.smoke = 1e9; });
     if (B.leader) { B.leader.st = 2; B.leader.m.visible = false; B.leader.lab.visible = false; }
     if (B.trees) B.trees.visible = false;
     if (B.snow) B.snow.visible = false;
@@ -900,6 +1016,11 @@
     }
     B.im.instanceMatrix.needsUpdate = true; B.alive = alive;
     for (i = 0; i < B.eles.length; i++) { var el = B.eles[i]; if (el.run) { el.z -= 9 * dt; el.x += el.sd * 2.5 * dt; } el.m.position.set(el.x, el.run ? Math.abs(Math.sin(t * 9 + i)) * 0.35 : 0, el.z); el.m.rotation.y = el.run ? Math.PI - el.sd * 0.25 : 0; if (el.z < -90) el.m.visible = false; }
+    for (i = 0; i < B.etanks.length; i++) {
+      var et = B.etanks[i];
+      if (!et.dead) { if (t > 0.8 && et.z < -2.6) et.z += 0.7 * dt; et.kick = Math.max(0, et.kick - dt * 4); et.m.position.set(et.x, 0, et.z - et.kick * 0.25); }
+      else if (t > et.smoke) { et.smoke = t + 0.17; puff(et.x + rnd(-0.5, 0.5), 1.7, et.z + rnd(-0.6, 0.6), rnd(-0.4, 0.4), rnd(1.6, 2.6), rnd(-0.3, 0.3), rnd(1.1, 1.7), 0.8, 2.6, 0x4a4743, 0x1d1b19, 0.2); }
+    }
     if (B.leader) {
       var L = B.leader;
       if (L.st === 1) { L.vy -= 6 * dt; L.x += L.vx * dt; L.y += L.vy * dt; L.z += L.vz * dt; L.m.rotation.x += L.wx * dt; L.m.rotation.z += L.wz * dt; if (L.y > 30) { L.st = 2; L.m.visible = false; L.lab.visible = false; star(L.x, L.y, L.z); star(L.x + 2.5, L.y - 2, L.z); } }

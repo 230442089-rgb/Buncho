@@ -824,11 +824,20 @@
   function confirmNuke() { // 核だけは、もう一度たずねる
     var d = reg(ui.atk.tid);
     showModal('<div class="card-body"><p class="eyebrow">最終確認</p><h2 class="lose">' + esc(d.name) + 'に核を撃つ</h2><div class="story">' + birdSVG('dario', 'b56') +
-      '<p>司令。再考を求めます。\nこの一発で、' + esc(d.name) + 'の城も、町も、そこにいる人も消えます。土地は二十五季のあいだ焦土になり、世界中が我が国を恐れ、憎みます。自領の民も口をつぐみます。\n勝つだけなら、ほかの手があります。</p></div></div>' +
+      '<p>司令。再考を求めます。\nこの一発で、' + esc(d.name) + (d.map === 'w' ? 'の街も、港も' : 'の城も、町も') + '、そこにいる人も消えます。土地は二十五季のあいだ焦土になり、世界中が我が国を恐れ、憎みます。自領の民も口をつぐみます。\n勝つだけなら、ほかの手があります。</p></div></div>' +
       '<div class="card-foot"><button class="btn gold" data-act="nuke-no">やめる</button><button class="btn shu" data-act="nuke-yes">それでも撃つ</button></div>', { replace: true, sfx: 'warn', atk: true });
   }
-  function battleLines(types, win, bombard) {
-    var L = [];
+  // 戦闘アニメでの、敵のいでたち。最後の敵は、その国の軍(軍服と戦車)。産業を進めた列強は、銃の軍。ほかは文化圏ごと(戦国の日本は指定なし)
+  function enemyLook(fid) {
+    var f = S().factions[fid], ind = f && f.ind != null ? f.ind : -1;
+    if (E.isBoss(fid)) return { kind: fid, tanks: 3 };
+    if (f && E.isPower(fid)) return ind >= 4 ? { kind: 'modern', tanks: ind >= 6 ? 2 : 0 } : { kind: fid === 'rome' ? 'legion' : 'line', tanks: 0 };
+    return { kind: D.CULTURE[fid], tanks: 0 };
+  }
+  var MODERN_LOOK = { reich: 1, soviet: 1, modern: 1 };
+  function battleLines(types, win, bombard, look) {
+    var L = [], md = !!MODERN_LOOK[look], fg = !!look;   // md: 銃と戦車の軍/fg: 海の向こうの軍
+    if (md || fg) return battleLinesAbroad(types, win, bombard, md);
     if (types.bunchorion) L.push('ブンチョリオンが、城をついばんだ。石垣は、粟の殻のように割れた。');
     if (types.bundam) L.push('ブンダムが、盾を構えて前に出た。矢も鉄砲も、盾の赤い丸に吸いこまれて消えた。');
     if (types.inkorion) L.push('空からインコリオンが、敵将の声で「退け」と三度鳴いた。敵陣は、本当に退いた。');
@@ -845,13 +854,31 @@
     if (!win && !bombard) L = ['敵は城に拠って持ちこたえた。こちらの兵は消耗し、退くほかなかった。'];
     return L.slice(0, 2);
   }
+  function battleLinesAbroad(types, win, bombard, md) { // 海の向こうの軍との戦い(城・櫓・大手門とは言わない)
+    var L = [];
+    if (types.bunchorion) L.push(md ? 'ブンチョリオンが、トーチカをついばんだ。コンクリートは、粟の殻のように割れた。' : 'ブンチョリオンが、城壁をついばんだ。石積みは、粟の殻のように割れた。');
+    if (types.bundam) L.push(md ? 'ブンダムが、盾を構えて前に出た。砲弾は、盾の赤い丸に吸いこまれて消えた。' : 'ブンダムが、盾を構えて前に出た。矢も弾も、盾の赤い丸に吸いこまれて消えた。');
+    if (types.inkorion) L.push('空からインコリオンが、敵の指揮官の声で「退け」と三度鳴いた。敵陣は、本当に退いた。');
+    if (types.birdmech) L.push(md ? '全高四十メートルの文鳥が、塹壕をまたいだ。兵は銃を置いて、ただ見上げた。' : '全高四十メートルの文鳥が、城壁をまたいだ。守備兵は武器を置いて、ただ見上げた。');
+    if (types.orbital) L.push(md ? '空の上から光の柱が降り、司令部のあった場所に、きれいな丸い穴が残った。' : '空の上から光の柱が降り、塔のあった場所に、きれいな丸い穴が残った。');
+    if (types.drone) L.push(md ? '羽音のような唸りが空を覆い、数百の無人機が、高射砲より先に降りてきた。' : '羽音のような唸りが空を覆い、数百の無人機が一斉に降りてきた。');
+    if (types.jet) L.push(md ? '敵の戦闘機が上がってくる前に、こちらの戦闘機は仕事を終えていた。飛行場が消えた。' : '雷のような音とともに戦闘機が陣の上を飛びすぎ、次の瞬間、塔が消えた。');
+    if (types.ddg || types.bb || types.ironclad) L.push(md ? '沖の艦から放たれた砲弾が、沿岸の砲台を黙らせた。' : '沖の艦から放たれた砲弾が、港と城壁を揺らした。');
+    if (types.arty || types.fgun) L.push(md ? 'りゅう弾砲の一斉射で、トーチカが崩れ落ちた。' : 'りゅう弾砲の一斉射で、城壁が崩れ落ちた。');
+    if (types.heli) L.push(md ? '低く飛ぶヘリの群れに、対空砲は間に合わなかった。' : '空飛ぶ鉄の怪鳥に、守備兵は武器を取り落とした。');
+    if (types.tank || types.ktank || types.modern) L.push(md ? '戦車と戦車が、正面からぶつかった。相手の砲弾は、こちらの装甲に弾かれた。' : '戦車が城門を踏み越えた。槍も銃も、鉄の箱には通じない。');
+    if (types.inf && L.length < 2) L.push(md ? '機関銃と機関銃が撃ち合った。射程と精度で、こちらが勝った。' : '機関銃の前に、突撃は三度くじけた。');
+    if (types.ashi && L.length < 2) L.push(md ? '現地の兵たちが、塹壕から塹壕へ駆けた。' : '現地の兵たちが、列をそろえて城門に迫った。');
+    if (!win && !bombard) L = [md ? '敵は陣地に拠って持ちこたえた。戦車と機関銃の前に、こちらの兵は消耗し、退くほかなかった。' : '敵は城壁に拠って持ちこたえた。こちらの兵は消耗し、退くほかなかった。'];
+    return L.slice(0, 2);
+  }
   function goAttack() {
     var a = ui.atk, ids = Object.keys(a.ids).map(Number), types = {}, before = {};
     ids.forEach(function (i) { var u = E.unitById(i); if (u) types[u.type] = (types[u.type] || 0) + 1; });
     if (types.nuke && !a.nukeOk) { confirmNuke(); return; }
     var fid0 = E.owner(a.tid), f0 = S().factions[fid0], boss = f0 && f0.cap === a.tid ? f0.leader : '';
     E.playerRegions().forEach(function (id) { before[id] = 1; });
-    var color = colorOf(a.tid), season = E.season(), tier = E.infTier();
+    var color = colorOf(a.tid), season = E.season(), tier = E.infTier(), look = enemyLook(fid0);
     var res = E.attack(a.tid, ids);
     if (res.error) { oops(res.error); return; }
     var gained = E.playerRegions().filter(function (id) { return !before[id]; });
@@ -859,21 +886,22 @@
     ui.atk = null; save();
     $('#modal').hidden = true; $('#modal').innerHTML = ''; ui.modal = null; // 作戦の窓を閉じる(順番待ちは進めない)
     sfx('launch');
+    res.look = look.kind;
     var d = reg(res.rid), show = function () { if (TF.sfx && TF.sfx.duck) TF.sfx.duck(1); showBattleResult(res, types, gained); };
     if (animOn()) {
       if (TF.sfx && TF.sfx.duck) TF.sfx.duck(res.nuke ? 0 : 0.3);
       TF.Battle3D.play($('#battle'), { title: d.name + (res.nuke ? ' 核攻撃' : (res.bombard ? ' 砲爆撃' : ' 攻略戦')), win: res.win, bombard: res.bombard, ratio: res.ratio, chance: res.chance,
         men: res.gBefore, menAfter: res.nuke ? Math.round(res.gBefore * 0.05) : (res.win ? 0 : res.gAfter), fort: res.fort, siege: res.siege, color: color, season: season, snow: d.snow, fuji: !!FUJI[res.rid], tier: tier, types: types,
-        enemy: D.CULTURE[fid0], leader: boss, nuke: !!res.nuke, laser: E.tech('laser'), berserk: !!res.berserk }, show);
+        enemy: look.kind, eTanks: look.tanks, leader: boss, nuke: !!res.nuke, laser: E.tech('laser'), berserk: !!res.berserk }, show);
     } else show();
   }
   function showBattleResult(res, types, gained) {
     var d = reg(res.rid), h = '<p class="eyebrow">' + E.dateLabel().text + ' ・ ' + esc(d.name) + '</p>';
     if (res.nuke) { // 核は、勝っても祝わない
-      h += '<h2 class="huge grave">核攻撃</h2><p>閃光。遅れて、音。</p><p>城も、町も、そこにいた人も、影だけを残して消えた。' + (res.captured ? '焼け跡に、我が軍の旗が立った。' : '') + '</p>';
+      h += '<h2 class="huge grave">核攻撃</h2><p>閃光。遅れて、音。</p><p>' + (res.look ? '街も、陣地も' : '城も、町も') + '、そこにいた人も、影だけを残して消えた。' + (res.captured ? '焼け跡に、我が軍の旗が立った。' : '') + '</p>';
     } else {
       h += '<h2 class="huge slam ' + (res.win ? 'win' : (res.bombard ? '' : 'lose')) + '">' + (res.win ? '攻略' : (res.bombard ? '砲爆撃' : '敗退')) + '</h2>';
-      battleLines(types, res.win, res.bombard).forEach(function (l) { h += '<p>' + l + '</p>'; });
+      battleLines(types, res.win, res.bombard, res.look).forEach(function (l) { h += '<p>' + l + '</p>'; });
       if (res.win && res.ratio >= 2) h += '<p class="over"><span>オーバーキル</span><b>' + Math.round(res.ratio * 100) + '%</b></p>';
     }
     var tot = res.P + res.E || 1;
@@ -1130,15 +1158,15 @@
     showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn" data-act="modal-close">とじる</button><button class="btn" data-act="goto" data-id="' + (regs.indexOf(f.cap) >= 0 ? f.cap : regs[0]) + '">' + icon('map') + '領地を見る</button></div>', { replace: true });
   }
   function doDiplo(fid, key) {
-    var F = D.FACTIONS[fid], f0 = S().factions[fid], leader = f0.leader, res = E.diplo(fid, key);
+    var F = D.FACTIONS[fid], f0 = S().factions[fid], leader = f0.leader, abroad = !E.isJp(fid), res = E.diplo(fid, key);   // abroad: 海の向こうの国(城・城下とは言わない)
     if (res.error) { oops(res.error); return; }
     save();
     var t = '', b = '', bird = 'gin', win = false, gained = key === 'submit' && res.ok ? res.regions : [];
     var snd = key === 'show' ? 'jet' : (key === 'trade' || key === 'gift' ? 'coin' : (res.ok ? 'submit' : 'refuse'));
     if (key === 'submit') {
-      if (res.ok) { win = true; t = F.name + '、降る'; b = leader + 'は城門を開いた。' + res.regions.map(function (id) { return reg(id).name; }).join('、') + 'が、一発の弾も撃たずに我が領となった。守備兵の多くはそのまま味方についた。'; bird = 'haku'; }
+      if (res.ok) { win = true; t = F.name + '、降る'; b = leader + (abroad ? 'は降伏の文書に署名した。' : 'は城門を開いた。') + res.regions.map(function (id) { return reg(id).name; }).join('、') + 'が、一発の弾も撃たずに我が領となった。守備兵の多くはそのまま味方についた。'; bird = 'haku'; }
       else { t = '勧告は拒まれた'; b = leader + 'は使者を追い返した。友好度が下がり、しばらくは話を聞かない。' + (res.war ? 'それどころか、兵を挙げるかまえだ。' : ''); }
-    } else if (key === 'show') { t = '威嚇飛行'; b = res.unit + 'が城の真上を飛んだ。見たこともない轟音に、城下は大騒ぎになった。しばらくのあいだ、' + F.name + 'は降伏や和睦に応じやすくなる。'; bird = 'okame'; }
+    } else if (key === 'show') { t = '威嚇飛行'; b = res.unit + (abroad ? 'が都の真上を飛んだ。見たこともない轟音に、街は大騒ぎになった。しばらくのあいだ、' : 'が城の真上を飛んだ。見たこともない轟音に、城下は大騒ぎになった。しばらくのあいだ、') + F.name + 'は降伏や和睦に応じやすくなる。'; bird = 'okame'; }
     else if (key === 'pact') { t = res.ok ? (res.wasWar ? '和睦が成った' : '不可侵が成った') : '申し出は断られた'; b = res.ok ? F.name + 'とは、8ターンのあいだ互いに攻めない。背後を気にせず動ける。' : leader + 'は首を縦に振らなかった。'; win = res.ok; }
     else if (key === 'trade') { t = '通商を開いた'; b = F.name + 'との商いが始まった。毎季、資金が入る。'; bird = 'seki'; win = true; }
     else if (key === 'gift') { t = '贈り物を届けた'; b = leader + 'は珍しい品々を喜んだ。友好度が上がった。'; bird = 'cinnamon'; win = true; }
