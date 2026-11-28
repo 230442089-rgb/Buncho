@@ -330,7 +330,7 @@
       s += '<circle class="hit" r="13" data-id="' + id + '"/>';
       if (!own && f && f.cap === id && E.factionRegions(r.o).length > 1) s += '<path class="cap" d="M0-20l3.600 4.500-3.600 4.500-3.600-4.500z"/>';
       s += '<text class="lbl" y="4">' + esc(short(id)) + '</text>';
-      if (!own) s += '<text class="sub" y="16">' + men(r.g) + '</text>';
+      if (!own) s += '<text class="sub" y="16">' + (unseen(id) ? '見えない' : men(r.g)) + '</text>';
       var sites = Object.keys(d.res), n = sites.length, sy = own ? 16 : 27;
       if (n) {
         s += '<g class="sites">';
@@ -685,7 +685,7 @@
     } else {
       var lock = E.lockedOverseas(id);
       h += '<div class="facts"><div class="fact"><span>国力</span><b class="num">' + d.koku + '</b></div>' +
-        '<div class="fact"><span>守備兵</span><b>' + men(r.g) + '</b></div>' +
+        '<div class="fact"><span>守備兵</span><b>' + (unseen(id) ? '見えない' : men(r.g)) + '</b></div>' +
         '<div class="fact"><span>城郭</span><b>' + pips(r.fort, 5) + '</b></div>' +
         '<div class="fact"><span>敵の戦力</span><b>' + fmt(E.enemyPower(id)) + '</b></div></div>';
       if (d.note) h += '<p class="note">' + esc(d.note) + '</p>';
@@ -785,7 +785,7 @@
     var a = ui.atk, tid = a.tid, d = reg(tid), r = S().regions[tid], opts = E.attackOptions(tid), st = S();
     var ids = Object.keys(a.ids).map(Number), pr = E.predictAttack(tid, ids, opts);
     var h = '<p class="eyebrow">' + esc(E.fname(r.o)) + ' ・ ' + (pr.canCapture || !ids.length ? '攻略作戦' : '砲爆撃') + '</p><h2>' + esc(d.name) + '</h2>';
-    h += '<div class="facts"><div class="fact"><span>守備兵</span><b>' + men(r.g) + '</b></div><div class="fact"><span>城郭</span><b>' + r.fort + (pr.siege ? ' → ' + pr.fortEff : '') + '</b></div><div class="fact"><span>敵の戦力</span><b>' + fmt(pr.E) + '</b></div></div>';
+    h += '<div class="facts"><div class="fact"><span>守備兵</span><b>' + (unseen(tid) ? '見えない' : men(r.g)) + '</b></div><div class="fact"><span>城郭</span><b>' + r.fort + (pr.siege ? ' → ' + pr.fortEff : '') + '</b></div><div class="fact"><span>敵の戦力</span><b>' + fmt(pr.E) + '</b></div></div>';
     if (pr.winter) h += '<p class="note warn" style="border-color:var(--warn)">冬の豪雪。陸上部隊とヘリの戦力が4割落ちる。</p>';
     h += '<div class="acts"><button class="btn sm" data-act="atk-sug">おすすめ</button><button class="btn sm" data-act="atk-all">全部隊</button><button class="btn sm" data-act="atk-none">解除</button>' +
       '<button class="btn sm follow' + (st.auto.follow ? ' gold' : '') + '" data-act="atk-follow">' + icon('flag') + '落としたら全軍で進む:<b>' + (st.auto.follow ? '入' : '切') + '</b></button></div>';
@@ -828,15 +828,25 @@
       '<div class="card-foot"><button class="btn gold" data-act="nuke-no">やめる</button><button class="btn shu" data-act="nuke-yes">それでも撃つ</button></div>', { replace: true, sfx: 'warn', atk: true });
   }
   // 戦闘アニメでの、敵のいでたち。最後の敵は、その国の軍(軍服と戦車)。産業を進めた列強は、銃の軍。ほかは文化圏ごと(戦国の日本は指定なし)
+  function unseen(rid) { var o = E.owner(rid), bz = E.isBoss(o) ? E.bossOf(o) : null; return !!(bz && bz.hide); }   // 守備兵の数が見えない相手(ジョン・シナの軍)
   function enemyLook(fid) {
     var f = S().factions[fid], ind = f && f.ind != null ? f.ind : -1;
-    if (E.isBoss(fid)) return { kind: fid, tanks: 3 };
+    if (E.isBoss(fid)) { var bz = E.bossOf(fid); return bz && bz.derby ? { kind: 'football', tanks: 0 } : { kind: fid, tanks: fid === 'reich' || fid === 'soviet' ? 3 : (fid === 'academy' ? 2 : 0) }; }
     if (f && E.isPower(fid)) return ind >= 4 ? { kind: 'modern', tanks: ind >= 6 ? 2 : 0 } : { kind: fid === 'rome' ? 'legion' : 'line', tanks: 0 };
     return { kind: D.CULTURE[fid], tanks: 0 };
   }
   var MODERN_LOOK = { reich: 1, soviet: 1, modern: 1 };
+  // 難易度「お前は頭がおかしい」の相手との戦い
+  var MEME_LINES = {
+    academy: ['なぎ倒された生徒たちは、「いたた…」と言って起き上がり、歩いて帰っていった。', '弾は、当たっている。効いていないだけだ。校舎を押さえるまで、三時間かかった。'],
+    xina: ['ジョン・シナの軍は、見えない。見えないが、いる。当てずっぽうの砲撃が、たまたま当たった。', '黄色いクマは、蜂蜜の壺を抱えたまま退いた。あとには、溶けたアイスだけが残った。'],
+    prank: ['撮影隊は、撃たれながらも撮りつづけた。この戦いは、もう八百万回再生されている。', '撒かれた牛乳で滑った戦車が、そのまま敵陣を突き抜けた。'],
+    football: ['相手は、最後までボールを離さなかった。こちらは、ボールごと陣地を取った。', '主審はいない。戦車は、オフサイドを取られなかった。']
+  };
+  var MEME_LOSE = { academy: '生徒たちは、ぴんぴんしている。こちらの弾が、先に尽きた。', xina: '見えない相手を撃ちつづけて、日が暮れた。', prank: '目からビームが来た。動画の題は「軍隊を追い返してみた」。', football: '四対〇。完敗である。' };
   function battleLines(types, win, bombard, look) {
     var L = [], md = !!MODERN_LOOK[look], fg = !!look;   // md: 銃と戦車の軍/fg: 海の向こうの軍
+    if (MEME_LINES[look]) return !win && !bombard ? [MEME_LOSE[look]] : MEME_LINES[look];
     if (md || fg) return battleLinesAbroad(types, win, bombard, md);
     if (types.bunchorion) L.push('ブンチョリオンが、城をついばんだ。石垣は、粟の殻のように割れた。');
     if (types.bundam) L.push('ブンダムが、盾を構えて前に出た。矢も鉄砲も、盾の赤い丸に吸いこまれて消えた。');
@@ -1288,7 +1298,8 @@
       h += '<div class="acts chips">' + [['all', '不可侵・通商の相手以外すべて'], ['war', '交戦中の相手だけ']].map(function (m) { return '<button class="btn sm' + (A.attack === m[0] ? ' gold' : '') + '" data-act="auto-atk" data-v="' + m[0] + '">' + m[1] + '</button>'; }).join('') + '</div>';
       var fc = E.autoFocus(), sg = fc ? E.suggestAttack(fc, 0.9) : null, ch = sg ? Math.round(sg.pr.chance * 100) : 0;
       h += '<p class="dim" style="font-size:12.5px;padding-left:4px">' + (fc ? 'いまの狙い:<button class="tag nb" data-act="goto" data-id="' + fc + '"><i style="background-color:' + colorOf(fc) + '"></i>' + esc(reg(fc).name) + '</button> ' + esc(E.fname(E.owner(fc))) + '。' +
-        (sg.ok ? '次の季節の変わり目に仕掛ける(勝算 ' + ch + '%)。' : 'いま届く部隊では勝算 ' + ch + '%。九割になるまで、部隊を手前へ集める。') : 'いまは、勝てそうな相手がいない。研究と編成が進むのを待つ。') + '</p>';
+        (sg.ok ? '次の季節の変わり目に仕掛ける(勝算 ' + ch + '%)。' : 'いま届く部隊では勝算 ' + ch + '%。九割になるまで、部隊を手前へ集める。') : 'いまは、勝てそうな相手がいない。研究と編成が進むのを待つ。') +
+        (E.derbyTeams().some(function (b) { return E.derbyQuiet(b.id) && E.inContact(b.id); }) ? 'サッカーの四か国には、おまかせでは手を出さない(出すかどうかは、司令が決める)。' : '') + '</p>';
     }
     [['follow', 'flag', '全軍で進む', '攻め落とした土地へ、一手で届く部隊をすべて進める。戦わなかった部隊は行動を残したまま進むので、その先を同じ季節に攻められる。元の土地に残るのは守備兵だけ。狙われた土地の部隊と、燃料の予備を割る部隊は残す。', '進む', '残る'],
       ['move', 'flag', '部隊を前線へ進める', '未行動の部隊が、季節の終わりに前線へ一歩ずつ寄る。狙われた土地を守っている部隊は動かない。'],
@@ -1467,7 +1478,7 @@
     el.hidden = false; syncMusic();
     if (step === 'diff') {
       h = '<p class="subt">難しさをえらぶ</p><div class="diffs">';
-      Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row' + (k === 'hell' ? ' hell' : (x.boss ? ' extreme' : '')) + '" data-act="new-game" data-diff="' + k + '"><span class="fld">' + (x.mark || x.name.charAt(0)) + '</span><div><h3>' + x.name + (x.boss ? ' <span class="tag war">修羅の上</span>' : '') + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
+      Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row' + (k === 'hell' ? ' hell' : (x.meme ? ' extreme insane' : (x.boss ? ' extreme' : ''))) + '" data-act="new-game" data-diff="' + k + '"><span class="fld">' + (x.mark || x.name.charAt(0)) + '</span><div><h3>' + x.name + (x.meme ? ' <span class="tag war">正気ではない</span>' : (x.boss ? ' <span class="tag war">修羅の上</span>' : '')) + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
       h += '</div>' + (has ? '<p class="seal warn">いまのセーブデータは上書きされます。</p>' : '') + '<div class="acts"><button class="btn" data-act="title-back">もどる</button></div>';
     } else {
       h = '<p class="subt">戦国タイムスリップ戦略</p><h1>天下布<span>鳥</span></h1><div class="flock">' + birdSVG('dario') + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +
@@ -1484,7 +1495,7 @@
     $('#title').hidden = true;
     ui.sel = null; ui.panel = null; ui.mv = null; ui.map = 'japan'; ui.view = { japan: null, world: null }; ui.queue = []; ui.modal = null; $('#modal').hidden = true;
     buildMap(); applyView(); refreshAll();
-    var pages = D.TEXT.intro.concat(D.DIFFICULTY[diff] && D.DIFFICULTY[diff].alt ? D.ALT.intro : []);
+    var pages = D.TEXT.intro.concat(D.DIFFICULTY[diff] && D.DIFFICULTY[diff].alt ? D.ALT.intro : []).concat(D.DIFFICULTY[diff] && D.DIFFICULTY[diff].meme ? D.MEME.intro : []);
     pages.forEach(function (p, i) { queueStory({ eyebrow: (i + 1) + ' / ' + pages.length, title: p.title, bird: p.bird, body: p.body }, { btn: i === pages.length - 1 ? '作戦開始' : 'つぎへ' }); });
   }
   function resumeGame() {

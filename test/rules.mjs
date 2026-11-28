@@ -754,6 +754,68 @@ section('移動は、季節のあいだなら変えられる', () => {
   ok(b.loc === 'sagami' && !b.acted && b.from == null && b.mf == null && !E.moveTargets([b.id]).sagami, '季節が変わると確定し、そこが新しい出発地になる');
 });
 
+section('難易度「お前は頭がおかしい」', () => {
+  const X = D.DIFFICULTY.insane, EX = D.DIFFICULTY.extreme, keys = Object.keys(D.DIFFICULTY), MEMES = ['academy', 'xina', 'prank', 'messi', 'cr7', 'mbappe', 'neymar'], TEAMS = ['messi', 'cr7', 'mbappe', 'neymar'];
+  ok(X && X.meme && X.boss && X.alt && X.open && X.enemy === EX.enemy && X.siege === EX.siege && keys.indexOf('insane') === keys.indexOf('extreme') + 1, 'エクストリームハードの決まりを土台に、その上にある');
+  const calm = () => { for (const [id, f] of Object.entries(E.S.factions)) if (!E.isBoss(id)) { f.war = false; f.pact = 99; } E.S.threats = []; };
+  const skip = (to, n) => { const S = E.S, all = []; S.turn = to; for (let i = 0; i < (n || 2); i++) { calm(); all.push(...E.endTurn().events); } return all; };
+  // ほかの難易度には現れない
+  E.newGame({ difficulty: 'extreme', seed: 61 }); let S = E.S, evs = skip(110, 3);
+  ok(MEMES.every(id => !S.flags['boss_' + id] && !S.factions[id].alive) && E.bossUp('reich') && S.factions.reich.leader === '総統' && !evs.some(e => e.meme), 'エクストリームハードには、ミームの勢力は現れない(第三帝国も、これまでどおり)');
+  // サッカーの四か国
+  E.newGame({ difficulty: 'insane', seed: 62 }); S = E.S;
+  ok(MEMES.every(id => S.factions[id] && !S.factions[id].alive), 'はじめは、どれも眠っている');
+  evs = skip(20, 2);
+  ok(evs.some(e => /ボールを持った男/.test(e.t)) && evs.filter(e => e.big && e.big.title === '四か国対抗戦').length === 1, '20季めに前ぶれ、次の季節に四か国がそろって現れる(知らせは一枚)');
+  ok(TEAMS.every(id => E.bossUp(id) && !S.factions[id].war && E.derbyQuiet(id)) && S.regions.laplata.o === 'messi' && S.regions.iberia.o === 'cr7' && S.regions.france.o === 'mbappe' && S.regions.brazil.o === 'neymar', 'アルゼンチン・ポルトガル・フランス・ブラジルに現れ、こちらとは戦っていない');
+  ok(E.diploOptions('messi')[0].name === '試合中' && E.submitChance('cr7') === 0, '外交の窓口は「試合中」');
+  const g0 = TEAMS.map(id => S.regions[E.bossOf(id).home].g).join();
+  evs = skip(22, 12);
+  const matches = evs.filter(e => /四か国対抗戦:/.test(e.t));
+  ok(matches.length >= 5 && TEAMS.every(id => E.bossUp(id) && !S.factions[id].war) && TEAMS.map(id => S.regions[E.bossOf(id).home].g).join() !== g0, '四か国は、互いに試合をつづける(12季で ' + matches.length + ' 試合)。守備兵が増えたり減ったりする');
+  ok(!evs.some(e => e.k === 'warn' && TEAMS.some(id => e.fid === id)) && TEAMS.every(id => E.factionRegions(id).length === 1), 'こちらにも、ほかの国にも、手を出さない');
+  // おまかせの攻撃は、勝手に手を出さない
+  S.regions.italy.o = 'player'; S.regions.italy.g = 9000; S.regions.france.g = 100; S.regions.france.gmax = 100; S.regions.france.fort = 0;
+  S.units.forEach(u => { if (u.loc !== null) u.loc = 'italy'; u.acted = false; }); S.res.fuel = 9000; S.res.ammo = 9000;
+  E.setAuto({ attack: 'all' });
+  ok(E.links('italy').some(l => l.id === 'france') && !E.autoTargets().some(t => t.id === 'france'), 'おまかせの攻撃は、サッカーの四か国を狙わない');
+  E.setAuto({ attack: 'off' });
+  ok(E.hints().some(h => /サッカーの四か国は、互いに試合をしているだけ/.test(h.text)), '接したら、参謀が念を押す');
+  // 手を出す
+  const q0 = S.factions.messi.q, inf = S.units.find(u => u.type === 'inf');
+  const res = E.attack('france', [inf.id]);
+  ok(res.win && S.flags.derbyBroken != null && res.events.some(e => e.big && e.big.title === 'ドリームチーム'), '手を出すと、四人が手を組む');
+  ok(['messi', 'cr7', 'neymar'].every(id => S.factions[id].war && !E.derbyQuiet(id)) && Math.abs(S.factions.messi.q - (q0 + 1.5)) < 0.011, '残る三か国が宣戦し、兵の質が上がる(' + q0 + ' → ' + S.factions.messi.q + ')');
+  ok(!S.factions.mbappe.alive && res.events.some(e => e.big && e.big.title === 'エムバペのフランス、試合終了' && /エムバペは、ボールを抱えたまま/.test(e.big.body)), '本拠を落とされた国は、試合終了');
+  evs = skip(40, 6);
+  ok(!evs.some(e => /四か国対抗戦:/.test(e.t)), '手を組んだあとは、もう互いに試合をしない');
+  // 学園都市:耐久力
+  ok(E.bossUp('academy') && S.regions.korea.o === 'academy' && E.bossOf('academy').tough === 0.25, '朝鮮に、某学園都市が現れている');
+  S.regions.korea.g = 60000; S.regions.korea.gmax = 60000;
+  const jet = S.units.find(u => u.type === 'jet'); jet.acted = false; jet.hp = 100; S.regions.izu.fac.airfield = 1;
+  const b1 = E.attack('korea', [jet.id]);
+  const want = Math.round(60000 * (1 - Math.min(0.6, Math.max(0.08, 0.3 * b1.ratio)) * 0.25) / 100) * 100;
+  ok(b1.bombard && S.regions.korea.g === want && want > 60000 * 0.84, '学園都市への砲爆撃は、ふつうの四分の一しか効かない(6万 → ' + S.regions.korea.g + ')');
+  // アイスと蜂蜜の国、迷惑動画の国、総統閣下
+  evs = skip(52, 2).concat(skip(76, 2)).concat(skip(84, 2));
+  ok(E.bossUp('xina') && S.regions.huabei.o === 'xina' && E.bossOf('xina').hide === true && E.bossUp('prank') && S.regions.na_east.o === 'prank', '華北にアイスと蜂蜜の国、北米東部に迷惑動画の国が現れる');
+  ok(E.bossUp('reich') && S.factions.reich.leader === '総統閣下' && evs.some(e => e.big && e.big.title === '総統閣下は、お怒りのようです') && evs.some(e => /言っていない内容の字幕/.test(e.t)), '第三帝国は、字幕つきで現れる');
+  const hp0 = S.units.reduce((a, u) => a + u.hp, 0), mood0 = E.playerRegions().reduce((a, id) => a + S.regions[id].mood, 0);
+  evs = skip(86, 24);
+  const rants = evs.filter(e => /^総統閣下は、.+に、お怒りのようです。$/.test(e.t)), beams = evs.filter(e => e.meme && e.fid === 'prank');
+  ok(rants.length >= 8 && new Set(rants.map(e => e.t)).size >= 8, '総統閣下は、毎季ちがうことに怒っている(24季で ' + rants.length + ' 回)');
+  ok(beams.length >= 3 && beams.every(e => /ビーム|牛乳|叫んで/.test(e.t)), '迷惑動画の国は、接していなくても騒ぎを起こす(ビームは届く): ' + (beams[0] ? beams[0].t.slice(0, 30) : '') + '…');
+  // 接すると、蜂蜜を取られる
+  S.regions.manchuria.o = 'player'; S.regions.manchuria.g = 99000; S.regions.jiangnan.o = 'player'; S.regions.jiangnan.g = 99000; S.res.food = 5000;
+  evs = skip(120, 16);
+  ok(evs.some(e => e.meme && e.fid === 'xina' && /黄色いクマ|ジョン・シナ/.test(e.t)), 'アイスと蜂蜜の国と接すると、クマが兵糧庫に来る');
+  const j = E.serialize(); E.load(j); S = E.S;
+  ok(E.serialize() === j && S.flags.derbyBroken != null && E.bossUp('prank'), 'セーブの往復で変わらない');
+  for (const id of Object.keys(S.regions)) S.regions[id].o = 'player';
+  E.endTurn();
+  ok(S.over && S.over.win, 'それでも、地球は一つにできる');
+});
+
 section('エクストリームハード', () => {
   const X = D.DIFFICULTY.extreme, keys = Object.keys(D.DIFFICULTY);
   ok(X && X.name === 'エクストリームハード' && keys.indexOf('extreme') === keys.indexOf('hell') + 1, '修羅の上にある');

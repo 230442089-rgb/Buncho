@@ -68,6 +68,44 @@
     reich: { skin: 0xf0c9a8, style: 'bunker', gun: 2, coat: 0x5c655f, helm: 0x3d4440, tank: 0x565b60, mark: 0xf2f0ea },   // 第三帝国:灰緑の軍服、灰色の戦車
     soviet: { skin: 0xf0c9a8, style: 'redfort', gun: 2, coat: 0x8a7b4f, helm: 0x55603a, tank: 0x4f5d3a, mark: 0xd0342c, flag: 0xc8372d }   // ソビエト:カーキの軍服、緑の戦車、赤い旗
   };
+  // 難易度「お前は頭がおかしい」の勢力(meme)。ko は、右上の数字の呼び名
+  CULT.academy = { skin: 0xf6d5b8, style: 'school', gun: 2, meme: 1, ko: '保健室送り' };   // 学園都市:制服、頭の上の輪、銃
+  CULT.xina = { skin: 0xe9c29a, style: 'tenshu', wall: 0xb5433a, roof: 0x3d5648, meme: 1 };   // 緑の服に、アイス
+  CULT.prank = { skin: 0xf0c9a8, style: 'mall', meme: 1, ko: '撮影中止' };                     // 撮影隊:自撮り棒と牛乳
+  CULT.football = { skin: 0xd9a877, style: 'pitch', meme: 1, ko: '退場' };                     // 代表チーム:ユニフォームとボール
+  function memeGeo(kind, flag, boss) {
+    var C = CULT[kind], parts = [], k;
+    if (kind === 'academy') {
+      parts.push({ g: box(0.3, 0.42, 0.22), p: [0, 0.21, 0], c: C.skin }, { g: box(0.52, 0.26, 0.38), p: [0, 0.52, 0], c: 0x2b3d61 }, { g: box(0.44, 0.44, 0.3), p: [0, 0.86, 0], c: flag }, { g: box(0.12, 0.1, 0.04), p: [0, 0.98, 0.16], c: 0xd0342c },
+        { g: box(0.26, 0.26, 0.26), p: [0, 1.2, 0], c: C.skin }, { g: box(0.3, 0.1, 0.3), p: [0, 1.36, 0], c: 0xc9a06a }, { g: box(0.3, 0.34, 0.1), p: [0, 1.16, -0.16], c: 0xc9a06a },
+        { g: new T.TorusGeometry(boss ? 0.27 : 0.2, 0.024, 4, 12), p: [0, 1.6, 0], r: [Math.PI / 2, 0, 0], c: 0xbfeaff },   // 頭の上の輪
+        { g: box(0.06, 0.07, 1.0), p: [0.22, 0.86, 0.4], c: 0x2a2e36 }, { g: box(0.035, 0.035, 0.4), p: [0.22, 0.88, 1.0], c: 0x1f2320 });
+      if (boss) parts.push({ g: box(0.47, 0.1, 0.33), p: [0, 0.96, 0], c: 0xd0342c }, { g: box(0.3, 0.22, 0.03), p: [-0.2, 0.8, 0.22], c: 0xf2f0ea });   // 腕章と、書類の板
+    } else if (kind === 'xina') {
+      parts.push({ g: box(0.4, 0.44, 0.28), p: [0, 0.22, 0], c: shade(flag, 0.8) }, { g: box(0.46, 0.56, 0.32), p: [0, 0.72, 0], c: flag }, { g: box(0.05, 0.4, 0.02), p: [0, 0.74, 0.17], c: shade(flag, 0.6) },
+        { g: box(0.3, 0.1, 0.12), p: [0, 1.0, 0.12], c: shade(flag, 0.85) }, { g: box(0.26, 0.26, 0.26), p: [0, 1.13, 0], c: C.skin }, { g: box(0.3, 0.1, 0.3), p: [0, 1.29, -0.02], c: 0x16181c }, { g: box(0.3, 0.2, 0.08), p: [0, 1.18, -0.15], c: 0x16181c },
+        { g: new T.ConeGeometry(0.07, 0.24, 6), p: [0.3, 1.24, 0.18], r: [Math.PI, 0, 0], c: 0xd9a55a }, { g: new T.IcosahedronGeometry(0.1, 0), p: [0.3, 1.42, 0.18], c: 0xfff4e6 });   // 片手に、アイス
+      if (boss) { // 顔の前で手を振る大男と、蜂蜜の壺を抱えた黄色いクマ
+        parts.push({ g: box(0.34, 0.1, 0.06), p: [-0.05, 1.14, 0.2], c: C.skin });
+        k = 0xf2c230;
+        parts.push({ g: new T.IcosahedronGeometry(0.3, 1), p: [0.78, 0.36, 0.05], c: k }, { g: new T.IcosahedronGeometry(0.22, 1), p: [0.78, 0.78, 0.07], c: k },
+          { g: new T.IcosahedronGeometry(0.07, 0), p: [0.62, 0.98, 0.05], c: k }, { g: new T.IcosahedronGeometry(0.07, 0), p: [0.94, 0.98, 0.05], c: k }, { g: new T.IcosahedronGeometry(0.05, 0), p: [0.78, 0.74, 0.27], c: 0x2a1a12 },
+          { g: new T.CylinderGeometry(0.13, 0.11, 0.2, 8), p: [0.78, 0.4, 0.34], c: 0x8a5a2c }, { g: new T.CylinderGeometry(0.135, 0.135, 0.04, 8), p: [0.78, 0.5, 0.34], c: 0xf2b21c });
+      }
+    } else if (kind === 'prank') {
+      parts.push({ g: box(0.4, 0.44, 0.28), p: [0, 0.22, 0], c: 0x3a5a8a }, { g: box(0.48, 0.56, 0.34), p: [0, 0.72, 0], c: flag }, { g: box(0.34, 0.3, 0.14), p: [0, 1.12, -0.14], c: shade(flag, 0.8) },
+        { g: box(0.26, 0.26, 0.26), p: [0, 1.13, 0], c: C.skin }, { g: box(0.04, 1.0, 0.04), p: [0.3, 1.2, 0.3], r: [0.5, 0, 0], c: 0x2a2e36 }, { g: box(0.16, 0.26, 0.03), p: [0.3, 1.66, 0.56], c: 0x15171c },   // 自撮り棒
+        { g: box(0.16, 0.26, 0.16), p: [-0.3, 0.6, 0.12], c: 0xf7f7f2 }, { g: box(0.08, 0.06, 0.08), p: [-0.3, 0.76, 0.12], c: 0x3d8fe6 });                                                    // 牛乳
+      if (boss) parts.push({ g: box(0.06, 0.06, 6.5), p: [-0.07, 1.16, 3.4], c: 0xff2a2a }, { g: box(0.06, 0.06, 6.5), p: [0.07, 1.16, 3.4], c: 0xff2a2a },   // 目からビーム
+        { g: box(0.12, 0.03, 0.03), p: [-0.07, 1.22, 0.14], r: [0, 0, -0.45], c: 0x15171c }, { g: box(0.12, 0.03, 0.03), p: [0.07, 1.22, 0.14], r: [0, 0, 0.45], c: 0x15171c });               // 怒った眉
+    } else { // football
+      parts.push({ g: box(0.12, 0.26, 0.14), p: [-0.11, 0.13, 0], c: flag }, { g: box(0.12, 0.26, 0.14), p: [0.11, 0.13, 0], c: flag }, { g: box(0.12, 0.14, 0.14), p: [-0.11, 0.33, 0], c: C.skin }, { g: box(0.12, 0.14, 0.14), p: [0.11, 0.33, 0], c: C.skin },
+        { g: box(0.42, 0.2, 0.28), p: [0, 0.5, 0], c: 0xf7f7f2 }, { g: box(0.44, 0.46, 0.3), p: [0, 0.83, 0], c: flag }, { g: box(0.1, 0.46, 0.31), p: [0, 0.83, 0], c: 0xf7f7f2 },
+        { g: box(0.26, 0.26, 0.26), p: [0, 1.19, 0], c: C.skin }, { g: box(0.28, 0.08, 0.28), p: [0, 1.34, 0], c: 0x2a1a12 }, { g: new T.IcosahedronGeometry(0.13, 1), p: [0.16, 0.13, 0.36], c: 0xffffff });
+      if (boss) parts.push({ g: box(0.08, 0.1, 0.33), p: [-0.24, 0.92, 0], c: 0xf2c230 });   // 主将の腕章
+    }
+    return merge(parts);
+  }
   function gunnerGeo(kind, flag) { // 銃を持つ兵(前は +z)
     var C = CULT[kind], coat = C.coat || (C.gun === 1 ? flag : shade(flag, 0.62)), helm = C.helm || shade(flag, 0.36), parts = [
       { g: box(0.4, 0.42, 0.28), p: [0, 0.21, 0], c: kind === 'line' ? 0xe9e4d8 : (kind === 'legion' ? C.skin : shade(coat, 0.72)) },
@@ -110,6 +148,7 @@
   }
   function cultureGeo(kind, flag) {
     var C = CULT[kind], dark = shade(flag, 0.45), wood = 0x6b4a2c, parts = [];
+    if (C.meme) return memeGeo(kind, flag, false);
     if (C.gun) return gunnerGeo(kind, flag);
     if (kind === 'steppe') { // 馬上の弓騎兵
       return merge([
@@ -149,6 +188,7 @@
     return merge(parts);
   }
   function leaderGeo(kind, flag) { // 大将。兵の倍ほどの背丈にして、陣の奥に立たせる
+    if (CULT[kind] && CULT[kind].meme) return memeGeo(kind, flag, true);
     if (CULT[kind] && CULT[kind].gun) return officerGeo(kind, flag);
     var C = CULT[kind] || { skin: 0xe2b58f }, gold = 0xd9b24c, parts = [
       { g: box(0.5, 1.0, 0.36), p: [0, 0.5, 0], c: flag }, { g: box(0.64, 0.3, 0.42), p: [0, 0.92, 0], c: shade(flag, 0.6) },
@@ -466,6 +506,21 @@
       var ny = 3 + Math.min(4, fort);
       for (i = 0; i < ny; i++) piece(merge([{ g: new T.CylinderGeometry(2.1, 2.1, 1.6, 10), p: [0, 0, 0], c: 0xe9e2d2 }, { g: new T.ConeGeometry(2.4, 1.3, 10), p: [0, 1.45, 0], c: 0xd6cdb8 }, { g: box(0.8, 1.2, 0.1), p: [0, -0.2, 2.1], c: flag }]), (i - (ny - 1) / 2) * 6.2, 0.8, cz + 4 + (i % 2) * 4, 0.8);
       if (fort >= 3) fence(5, cz + 12);
+    } else if (style === 'school') { // 校舎と時計塔。門の前に柵
+      piece(merge([{ g: box(16, 4.6, 4), p: [0, 0, 0], c: 0xf2f0ea }, { g: box(16.4, 0.4, 4.4), p: [0, 2.5, 0], c: 0x4aa8e8 }, { g: box(15, 0.5, 0.1), p: [0, 0.9, 2.02], c: 0x2b3d61 }, { g: box(15, 0.5, 0.1), p: [0, -0.7, 2.02], c: 0x2b3d61 }, { g: box(1.6, 1.8, 0.14), p: [0, -1.4, 2.02], c: 0x6b4a2c }]), 0, 2.3, cz, 2.3);
+      piece(merge([{ g: box(3, 4.4, 3), p: [0, 0, 0], c: 0xf2f0ea }, { g: new T.CylinderGeometry(1.0, 1.0, 0.12, 16), p: [0, 0.7, 1.52], r: [Math.PI / 2, 0, 0], c: 0xfff6e0 }, { g: box(0.08, 0.7, 0.05), p: [0, 0.95, 1.6], c: 0x15171c }, { g: box(0.5, 0.08, 0.05), p: [0.2, 0.7, 1.6], c: 0x15171c },
+        { g: new T.ConeGeometry(2.4, 2.2, 4), p: [0, 3.3, 0], r: [0, Math.PI / 4, 0], c: 0x4aa8e8 }]), 0, 6.8, cz, 2.2);
+      if (fort >= 3) piece(merge([{ g: box(7, 3.2, 5), p: [0, 0, 0], c: 0xd9dde4 }, { g: new T.CylinderGeometry(2.5, 2.5, 7, 12, 1, false, 0, Math.PI), p: [0, 1.6, 0], r: [0, 0, Math.PI / 2], c: 0x8fb7e8 }]), -13, 1.6, cz + 2, 1.6);   // 体育館
+      if (fort >= 1) fence(5, cz + 9);
+    } else if (style === 'mall') { // 大きな店と看板。前に、撒かれた牛乳
+      piece(merge([{ g: box(18, 4, 7), p: [0, 0, 0], c: 0xe9e2d2 }, { g: box(18.4, 0.5, 7.4), p: [0, 2.2, 0], c: 0x8a857d }, { g: box(5, 2.4, 0.2), p: [0, -0.8, 3.52], c: 0x9cc8ff }]), 0, 2, cz, 2);
+      piece(merge([{ g: box(9, 2.6, 0.5), p: [0, 0, 0], c: flag }, { g: box(7.6, 0.5, 0.1), p: [0, 0.3, 0.28], c: 0xffffff }, { g: box(5.4, 0.4, 0.1), p: [0, -0.5, 0.28], c: 0xffffff }]), 0, 5.6, cz + 3.4, 1.3);
+      piece(merge([{ g: new T.CylinderGeometry(3.4, 3.4, 0.06, 18), p: [0, 0, 0], c: 0xfbfbf6 }, { g: new T.CylinderGeometry(1.6, 1.6, 0.06, 14), p: [3.6, 0, 1.2], c: 0xfbfbf6 }]), -3, 0.04, cz + 9, 0.04);
+      if (fort >= 2) [-8, 8].forEach(function (x) { piece(merge([{ g: box(0.14, 3.2, 0.14), p: [0, 0, 0], c: 0x2a2e36 }, { g: new T.TorusGeometry(0.7, 0.09, 5, 14), p: [0, 2.1, 0], c: 0xfff6d8 }]), x, 1.6, cz + 8, 1.6); });   // 撮影用の輪の灯り
+    } else if (style === 'pitch') { // 競技場:観客席、ゴール、得点板
+      piece(merge([{ g: box(22, 1.2, 2), p: [0, 0, 0], c: 0x6f736f }, { g: box(22, 1.2, 2), p: [0, 1.2, -2], c: 0x7b807b }, { g: box(22, 1.2, 2), p: [0, 2.4, -4], c: 0x8b8f8a }]), 0, 0.6, cz + 1, 1.8);
+      [-1, 1].forEach(function (sd) { piece(merge([{ g: box(0.14, 2.4, 0.14), p: [-2.4, 0, 0], c: 0xffffff }, { g: box(0.14, 2.4, 0.14), p: [2.4, 0, 0], c: 0xffffff }, { g: box(4.94, 0.14, 0.14), p: [0, 1.2, 0], c: 0xffffff }, { g: box(4.8, 2.3, 0.04), p: [0, 0, -0.5], c: 0xd9dde4 }]), sd * 9, 1.2, cz + 8.5, 1.2); });
+      piece(merge([{ g: box(6, 2.6, 0.4), p: [0, 0, 0], c: 0x15171c }, { g: box(1.6, 1.4, 0.1), p: [-1.4, 0, 0.24], c: flag }, { g: box(1.6, 1.4, 0.1), p: [1.4, 0, 0.24], c: 0xf7f7f2 }, { g: box(0.3, 6, 0.3), p: [-2.4, -4, 0], c: 0x30343c }, { g: box(0.3, 6, 0.3), p: [2.4, -4, 0], c: 0x30343c }]), 0, 8.4, cz - 3.5, 1.3);
     } else if (style === 'bunker') { // コンクリートの陣地:鉄条網、対戦車の歯、トーチカ。固い陣には、奥に高射砲の塔
       var con = 0x8b8f8a, cd = 0x6f736f, wire = 0x55585c;
       if (fort >= 1) for (i = -4; i <= 4; i++) piece(merge([{ g: box(0.12, 1.3, 0.12), p: [-1.1, 0, 0], c: 0x3a3a3a }, { g: box(0.12, 1.3, 0.12), p: [1.1, 0, 0], c: 0x3a3a3a }, { g: box(2.3, 0.05, 0.05), p: [0, 0.4, 0], c: wire }, { g: box(2.3, 0.05, 0.05), p: [0, 0, 0], c: wire },
@@ -508,6 +563,7 @@
   function buildEnemy() {
     var s = B.spec, N = clamp(Math.round(Math.sqrt(s.men) * 2.3), 40, 430);
     var EC = CULT[s.enemy], flag = (EC && EC.flag) || new T.Color(s.color).getHex(), g = keep(EC ? cultureGeo(s.enemy, flag) : soldierGeo(flag, shade(flag, 0.34), 0x1d1b19));
+    if (dom && dom.kills && dom.kills.previousSibling) dom.kills.previousSibling.nodeValue = ((EC && EC.ko) || '撃破') + ' ';   // 学園都市の生徒は、倒れても保健室へ行くだけ
     B.etanks = [];
     var im = new T.InstancedMesh(g, matVC, N); im.frustumCulled = false; B.scene.add(im);
     B.N = N; B.im = im;

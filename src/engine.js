@@ -209,17 +209,31 @@
     r.o = b.id; r.g = r100(b.troops * en); r.gmax = r.g; r.fort = Math.max(r.fort, b.fort); r.ruin = 0; r.feud = S.turn;
     f.alive = true; f.war = true; f.pact = 0; f.trade = false; f.att = -100; f.cap = b.home; f.q = D.FACTIONS[b.id].q; f.lost = 0; f.awe = 0;
     if (prev !== 'player') afterAiLoss(prev, b.home);
+    var meme = !!diff().meme, rs = (meme && b.memeRise) || b.rise;
+    if (meme && b.id === 'reich') f.leader = '総統閣下';
+    if (b.derby) { // サッカーの四か国:互いに争うだけで、こちらには来ない。知らせは、まとめて一枚
+      f.war = false; f.att = 0; if (S.flags.derbyBroken != null) { f.war = true; f.att = -100; }
+      if (prev === 'player') ev('bad', rname(b.home) + 'に「' + fname(b.id) + '」が現れ、我が軍は追われた。', { rid: b.home, fid: b.id });
+      if (S.flags.derbyUp == null) {
+        S.flags.derbyUp = S.turn; mark('bad', '四つの国に、ボールを持った男が現れる。四か国対抗戦が始まる。');
+        var dr = D.MEME.derby.rise;
+        ev('event', 'サッカーの四か国対抗戦が始まった。', { big: { kicker: dateLabel().text, title: dr.title, body: dr.body, bird: dr.bird }, fid: b.id, rid: b.home, boss: b.id });
+      }
+      return;
+    }
     mark('bad', '「' + fname(b.id) + '」が現れる。' + rname(b.home) + 'は、一季で別の国になった。');
     ev('event', rname(b.home) + 'に「' + fname(b.id) + '」が現れた。' + (prev === 'player' ? '我が軍は' + rname(b.home) + 'を追われた。' : ''),
-      { big: { kicker: dateLabel().text, title: b.rise.title, body: b.rise.body, bird: b.rise.bird }, fid: b.id, rid: b.home, boss: b.id });
+      { big: { kicker: dateLabel().text, title: rs.title, body: rs.body, bird: rs.bird }, fid: b.id, rid: b.home, boss: b.id });
   }
   function bossStep() {
     if (!diff().boss) return;
+    var meme = !!diff().meme;
     D.BOSSES.forEach(function (b) {
+      if (b.meme && !meme) return;   // ミームの勢力は、難易度「お前は頭がおかしい」だけ
       var k = 'boss_' + b.id, st = S.flags[k], f = S.factions[b.id];
       if (st && st.down != null) return;
       if (!st) {
-        if (playerRegions().length >= b.at.regions || S.turn >= b.at.turn) { S.flags[k] = { omen: S.turn }; ev('warn', b.omen, { rid: b.home }); }   // 超知能のあとでも現れる(説得の外にいる)
+        if (playerRegions().length >= b.at.regions || S.turn >= b.at.turn) { S.flags[k] = { omen: S.turn }; var om = (meme && b.memeOmen) || b.omen; if (om) ev('warn', om, { rid: b.home }); }   // 超知能のあとでも現れる(説得の外にいる)
         return;
       }
       if (st.up == null) { if (S.turn > st.omen) bossRise(b); return; }
@@ -240,9 +254,60 @@
       var tr = S.regions[best.to], prev = tr.o;
       tr.o = b.id; tr.g = r100(b.troops * 0.35 * diff().enemy); tr.gmax = Math.max(tr.gmax, tr.g); tr.fort = Math.max(tr.fort, 3); tr.feud = S.turn;
       S.threats = S.threats.filter(function (t) { return t.from !== best.to; });
-      ev('news', b.take.replace('{r}', rname(best.to)), { fid: b.id, rid: best.to });
+      ev('news', ((meme && b.memeTake) || b.take).replace('{r}', rname(best.to)), { fid: b.id, rid: best.to });
       afterAiLoss(prev, best.to);
     });
+  }
+  // ── 難易度「お前は頭がおかしい」:季節ごとの騒ぎ ──
+  function bossUp(fid) { var st = S.flags['boss_' + fid], f = S.factions[fid]; return !!(st && st.up != null && st.down == null && f && f.alive); }
+  function derbyTeams() { return D.BOSSES.filter(function (b) { return b.derby && bossUp(b.id); }); }
+  function derbyQuiet(fid) { var b = isBoss(fid) ? bossOf(fid) : null; return !!(b && b.derby && S.flags.derbyBroken == null); }   // まだ手を出していない四か国(こちらには来ない)
+  function breakDerby(events) { // 四か国のどれかに手を出した:四人が手を組む
+    if (S.flags.derbyBroken != null) return;
+    S.flags.derbyBroken = S.turn; mark('bad', 'サッカーの四か国に手を出す。四人が、はじめて同じ方向を向く。');
+    D.BOSSES.forEach(function (b) { if (!b.derby) return; var f = S.factions[b.id]; if (!f || !f.alive) return; f.war = true; f.att = -100; f.q = Math.round((f.q + 1.5) * 100) / 100; });
+    var x = D.MEME.derby.broke;
+    events.push(ev('event', 'サッカーの四か国が、手を組んだ。', { big: { kicker: dateLabel().text, title: x.title, body: x.body, bird: x.bird } }));
+  }
+  function memeStep() {
+    if (!diff().meme || !D.MEME) return;
+    var M = D.MEME, mine = playerRegions();
+    // 総統閣下の、今季のお怒り
+    if (bossUp('reich') && rnd() < 0.6) { S.flags.rantN = (S.flags.rantN || 0) + 1; ev('news', M.rant.replace('{x}', M.rants[(S.flags.rantN - 1) % M.rants.length]), { fid: 'reich', meme: true }); }
+    // こちらの土地で起きる騒ぎ(接している国だけ。ビームだけは、どこへでも届く)
+    Object.keys(M.mischief).forEach(function (fid) {
+      if (!bossUp(fid) || !mine.length) return;
+      var near = mine.filter(function (id) { return links(id).some(function (l) { return S.regions[l.id].o === fid; }); });
+      if (!near.length && fid !== 'prank') return;
+      if (rnd() >= (near.length ? 0.55 : 0.35)) return;
+      var L = M.mischief[fid], k = S.flags['mis_' + fid] = (S.flags['mis_' + fid] || 0) + 1, x = L[(k - 1) % L.length], pool = near.length ? near : mine;
+      var rid = pool[Math.floor(rnd() * pool.length)], r = S.regions[rid], e = x.eff, t = x.t.replace(/\{r\}/g, rname(rid));
+      if (e.beam) {
+        var cand = unitsAt(rid); if (!cand.length) cand = S.units.filter(function (u) { return !D.UNIT_TYPES[u.type].nuke; });
+        if (!cand.length) return;
+        var u = cand[Math.floor(rnd() * cand.length)]; u.hp = Math.max(5, u.hp - e.beam); t = t.replace('{u}', u.name);
+      }
+      if (e.ammo) S.res.ammo = Math.max(0, Math.round(S.res.ammo * (1 + e.ammo)));
+      if (e.food) S.res.food = Math.max(0, Math.round(S.res.food * (1 + e.food)));
+      if (e.gold) S.res.gold = Math.max(0, S.res.gold + e.gold);
+      if (e.mood) r.mood = clamp(r.mood + e.mood, 0, 100);
+      if (e.ctl) r.ctl = clamp(r.ctl + e.ctl, 10, 100);
+      if (e.garr) r.g = r100(r.g * (1 + e.garr));
+      ev('news', t, { rid: rid, fid: fid, meme: true });
+    });
+    // 四か国対抗戦:手を出されるまで、互いに争いつづける(一季おきに一試合)
+    var teams = derbyTeams();
+    if (teams.length >= 2 && S.flags.derbyBroken == null && S.turn % 2 === 0) {
+      var i = Math.floor(rnd() * teams.length), j = (i + 1 + Math.floor(rnd() * (teams.length - 1))) % teams.length, a = teams[i], b2 = teams[j];
+      var sa = Math.floor(rnd() * 5), sb = Math.floor(rnd() * 5), X = M.derby;
+      if (sa === sb) ev('news', X.draw.replace('{a}', fname(a.id)).replace('{b}', fname(b2.id)).replace(/\{sa\}/g, sa), { meme: true });
+      else {
+        var w = sa > sb ? a : b2, lo = sa > sb ? b2 : a, lr = S.regions[lo.home], wr = S.regions[w.home];
+        if (lr.o === lo.id) lr.g = Math.max(r100(lr.gmax * 0.5), r100(lr.g * 0.92));
+        if (wr.o === w.id) wr.g = Math.min(r100(wr.gmax * 1.2), r100(wr.g * 1.04));
+        ev('news', X.match.replace('{a}', fname(a.id)).replace('{b}', fname(b2.id)).replace('{sa}', sa).replace('{sb}', sb).replace('{w}', S.factions[w.id].leader), { meme: true });
+      }
+    }
   }
 
   // ───────────────────────── 基本の問い合わせ ─────────────────────────
@@ -571,7 +636,8 @@
       factionRegions(fid).forEach(function (id) { takeRegion(id, 'defect', events); });
       f.alive = false; f.war = false; f.trade = false; S.prestige += 10; (S.flags['boss_' + fid] = S.flags['boss_' + fid] || {}).down = S.turn;
       mark('fall', fname(fid) + 'の本拠' + rname(lostRid) + 'を落とす。残る軍団は、武器を置いた。');
-      events.push(ev('event', fname(fid) + 'は崩壊した。', { big: { kicker: dateLabel().text, title: bz.fall.title, body: bz.fall.body, bird: bz.fall.bird }, cine: bz.cine || null, fid: fid, bossDown: fid }));
+      var fl = bz.fall || { title: D.MEME.derby.fall.title.replace('{n}', fname(fid)), body: D.MEME.derby.fall.body.replace(/\{l\}/g, f.leader), bird: D.MEME.derby.fall.bird };
+      events.push(ev('event', fname(fid) + 'は崩壊した。', { big: { kicker: dateLabel().text, title: fl.title, body: fl.body, bird: fl.bird }, cine: bz.cine || null, fid: fid, bossDown: fid }));
       return;
     }
     var rest = factionRegions(fid);
@@ -668,12 +734,14 @@
     if (f) {
       if (f.pact > 0) { S.prestige = Math.max(0, S.prestige - 8); Object.keys(S.factions).forEach(function (k) { S.factions[k].att -= 8; }); events.push(ev('bad', fname(fid) + 'との不可侵の約定を破った。諸国の信を失った。')); f.pact = 0; }
       f.war = true; f.trade = false; f.att = Math.min(f.att, -40);
+      if (derbyQuiet(fid)) breakDerby(events);
     }
+    var tough = isBoss(fid) && bossOf(fid).tough ? bossOf(fid).tough : 1;   // 耐久力:砲爆撃や負け戦では、守備兵がほとんど減らない
     var roll = 0.9 + rnd() * 0.2, P = pr.P * roll, E = pr.E, win = P >= E && pr.canCapture, bombard = !pr.canCapture;
     var ratio = E > 0 ? P / E : 99, lossBase, losses = [], gBefore = r.g, res;
     if (bombard) {
       lossBase = clamp(2 / Math.max(0.2, ratio), 0.3, 8);
-      var cut = clamp(0.3 * ratio, 0.08, 0.6);
+      var cut = clamp(0.3 * ratio, 0.08, 0.6) * tough;
       r.g = r100(r.g * (1 - cut));
       var fortHit = pr.siege > 0 && r.fort > 0 && rnd() < 0.4;
       if (fortHit) r.fort--;
@@ -682,7 +750,7 @@
       lossBase = clamp(6 / ratio, 0.5, 25);
     } else {
       lossBase = clamp(12 / Math.max(0.1, ratio), 10, 50);
-      r.g = r100(r.g * (1 - clamp(0.5 * ratio, 0.05, 0.45)));
+      r.g = r100(r.g * (1 - clamp(0.5 * ratio, 0.05, 0.45) * tough));
     }
     if (tech('medicine')) lossBase *= 0.7;
     lossBase *= pr.cover;                                   // ブンダムの盾
@@ -1014,7 +1082,7 @@
     if (!f || !f.alive) return out;
     var regs0 = factionRegions(fid);
     if (regs0.length && lockedOverseas(regs0[0])) { out.push({ key: 'locked', name: '天下統一のあとで', ok: false, why: '海の向こうとの外交は、天下統一のあとです' }); return out; }
-    if (isBoss(fid)) { out.push({ key: 'locked', name: '交渉の余地なし', ok: false, why: '使者は国境で追い返された。この相手とは、戦うほかない' }); return out; }
+    if (isBoss(fid)) { out.push({ key: 'locked', name: derbyQuiet(fid) ? '試合中' : '交渉の余地なし', ok: false, why: derbyQuiet(fid) ? '試合中につき、応対できないという。手を出さなければ、こちらには来ない' : '使者は国境で追い返された。この相手とは、戦うほかない' }); return out; }
     var sc = submitChance(fid);
     o('submit', '降伏勧告', contact && f.cool <= 0, !contact ? '接していない勢力には使者を送れない' : (f.cool > 0 ? 'あと' + f.cool + 'ターンは聞く耳を持たない' : ''), { chance: sc, desc: '全領地を明け渡させる。失敗すると関係が悪化する。' });
     var su = showUnit(fid);
@@ -1238,6 +1306,7 @@
     if (S.flags.asi != null) return;
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid], df = D.FACTIONS[fid];
+      if (isBoss(fid)) return;   // 最後の敵は現れたときから交戦中。サッカーの四か国は、手を出されるまで来ない
       if (!f.alive || f.war || f.pact > 0 || f.awe > 0 || f.att >= (diff().peace || 30) || !inContact(fid)) return;
       var p = (df.aggr * 0.06 + (f.att < -20 ? 0.04 : 0)) * (diff().war || 1);
       if (rnd() < p) { f.war = true; f.trade = false; ev('warn', fname(fid) + '(' + f.leader + ')が我が軍に兵を向けた。', { fid: fid }); }
@@ -1326,6 +1395,7 @@
     runHistory();
     powerStep();
     bossStep();
+    memeStep();
     aiDeclare();
     planThreats();
     if (diff().feud && S.flags.asi == null) aiFeud(diff().feud);
@@ -1712,7 +1782,7 @@
     playerRegions().forEach(function (pid) {
       links(pid).forEach(function (l) {
         if (seen[l.id] || isP(l.id) || lockedOverseas(l.id)) return; seen[l.id] = 1;
-        var o = S.regions[l.id].o, f = S.factions[o]; if (!f || !f.alive || f.pact > 0 || f.trade || (war && !f.war)) return;
+        var o = S.regions[l.id].o, f = S.factions[o]; if (!f || !f.alive || f.pact > 0 || f.trade || (war && !f.war) || derbyQuiet(o)) return;   // サッカーの四か国には、司令が決めるまで手を出さない
         out.push({ id: l.id, sc: (f.war ? 3 : 0) + (S.threats.some(function (t) { return t.from === l.id; }) ? 3 : 0) + (f.cap === l.id ? 2 : 0) + (D.REGIONS[l.id].res.oil ? 2 : 0) - enemyPower(l.id) / 200000 });
       });
     });
@@ -1820,6 +1890,7 @@
       h('gin', fname(fid) + 'と国境を接しています。産業が「' + D.POWER_STAGES[pf.ind] + '」まで進んだ大国です。接する土地、とくに本拠の守りを空けないでください。', null, 1);
       return true;
     });
+    if (diff().meme && S.flags.derbyBroken == null && derbyTeams().some(function (b) { return inContact(b.id); })) h('gin', D.MEME.derby.hint, null, 3);
     if (mine.length === 1 && S.turn < 4) {
       var first = links(mine[0]).filter(function (l) { return !isP(l.id) && !l.sea; }).sort(function (x, y) { return enemyPower(x.id) - enemyPower(y.id); })[0];
       if (first) h('dario', 'まずは足場を。隣の' + rname(first.id) + 'をタップして「攻撃」。編成は私の「おすすめ」のままで決行できます。', first.id, 1);
@@ -1894,7 +1965,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    threatOn: threatOn, followTo: followTo, bunStage: bunStage, bunPush: bunPush, bunBusy: bunBusy, bunLetters: bunLetters, bunRate: bunRate, canFly: canFly, applyNames: applyNames, realName: realName, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, followTo: followTo, bunStage: bunStage, bunPush: bunPush, bunBusy: bunBusy, bunLetters: bunLetters, bunRate: bunRate, canFly: canFly, applyNames: applyNames, realName: realName, bossOf: bossOf, bossUp: bossUp, derbyQuiet: derbyQuiet, derbyTeams: derbyTeams, buildSlots: buildSlots, buildSlotsWhy: buildSlotsWhy, movable: movable, moveOrigin: moveOrigin, undoMove: undoMove, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,
