@@ -107,19 +107,19 @@ function botTurn(log) {
   for (const id of AUTO ? [] : mine) {
     const r = S.regions[id]; if (r.b) continue;
     const bo = Object.fromEntries(E.buildOptions(id).map(o => [o.key, o]));
-    const want = [];
-    if (bo.oilwell) want.push('oilwell');
-    if (bo.mine && bo.mine.amount >= 2) want.push('mine');
-    if (bo.ironmine) want.push('ironmine');
+    const want = [], nb = Object.fromEntries(Object.entries(bo).filter(([, o]) => !o.upgrade)); // nb: 新設できるもの
+    if (nb.oilwell) want.push('oilwell');
+    if (nb.mine && nb.mine.amount >= 2) want.push('mine');
+    if (nb.ironmine) want.push('ironmine');
     if (bo.coalmine) want.push('coalmine');
     if (bo.bauxite) want.push('bauxite');
-    if (bo.arsenal && nArs < Math.max(1, Math.floor(mine.length / 6)) && D.REGIONS[id].koku >= 30) want.push('arsenal');
+    if (nb.arsenal && nArs < Math.max(1, Math.floor(mine.length / 6)) && D.REGIONS[id].koku >= 30) want.push('arsenal');
     if (bo.shipyard && nYard < 2 && D.REGIONS[id].koku >= 20) want.push('shipyard');
     if (bo.school && !bo.school.upgrade && nSchool < Math.max(1, Math.floor(mine.length / 3)) && S.res.gold > 250) want.push('school');
-    if (bo.school && bo.school.upgrade && S.res.gold > bo.school.cost.gold + 300) want.push('school');
-    if (bo.datacenter && nDC < (WANT_ASI ? 10 : 5) && S.res.gold > bo.datacenter.cost.gold + 600 && D.REGIONS[id].koku >= 40) want.unshift('datacenter');
-    if (bo.market && D.REGIONS[id].koku >= 40 && S.res.gold > 200) want.push('market');
-    if (bo.farm && D.REGIONS[id].koku >= 40 && S.res.gold > 200 && S.res.food < 2000) want.push('farm');
+    for (const k of ['oilwell', 'school', 'ironmine', 'mine', 'arsenal', 'market', 'farm', 'datacenter']) if (bo[k] && bo[k].upgrade && S.res.gold > bo[k].cost.gold + 3000) want.push(k);
+    if (nb.datacenter && nDC < (WANT_ASI ? 10 : 5) && S.res.gold > bo.datacenter.cost.gold + 600 && D.REGIONS[id].koku >= 40) want.unshift('datacenter');
+    if (nb.market && D.REGIONS[id].koku >= 40 && S.res.gold > 200) want.push('market');
+    if (nb.farm && D.REGIONS[id].koku >= 40 && S.res.gold > 200 && S.res.food < 2000) want.push('farm');
     for (const k of want) {
       if (bo[k] && bo[k].ok) {
         const res = E.build(id, k);

@@ -4,6 +4,12 @@
   var TF = window.TF, D = TF.DATA, E = TF.Engine, MAP = window.MAPDATA, icon = TF.icon, birdSVG = TF.birdSVG;
   var SAVE_KEY = 'tenkafucho.save.v1';
   var SITE_COLOR = { oil: '#f5a742', coal: '#aab3c6', iron: '#d98a68', gold: '#f2d568', bauxite: '#dba3e6' };
+  // 施設の色は、もたらすもので決める:資金は黄、兵糧は緑、学問は青と紫、軍の設備は銀。地図の印と、地域シートの札で同じ色を使う
+  var SITE_FAC = { gold: 'mine', iron: 'ironmine', coal: 'coalmine', oil: 'oilwell', bauxite: 'bauxite' };
+  var FAC_COLOR = { mine: SITE_COLOR.gold, ironmine: SITE_COLOR.iron, coalmine: SITE_COLOR.coal, oilwell: SITE_COLOR.oil, bauxite: SITE_COLOR.bauxite,
+    farm: '#8fd16a', market: '#f7dc7a', school: '#7fb6ff', datacenter: '#b8a2ff', arsenal: '#e6ebf4', shipyard: '#e6ebf4', airfield: '#e6ebf4', fort: '#d9b24c' };
+  var FAC_ICON = TF.FAC_ICON, FAC_MAP = ['farm', 'market', 'school', 'datacenter', 'arsenal', 'shipyard', 'airfield'];
+  var FAC_TILES = ['mine', 'ironmine', 'coalmine', 'oilwell', 'bauxite', 'farm', 'market', 'school', 'datacenter', 'arsenal', 'shipyard', 'airfield', 'fort'];
   var RES = [['gold', '資金'], ['food', '兵糧'], ['steel', '鉄鋼'], ['fuel', '燃料'], ['ammo', '弾薬']];
   var ui = { map: 'japan', sel: null, sub: null, panel: null, pick: {}, mv: null, atk: null, view: { japan: null, world: null }, u: 1, queue: [], modal: null, diploTab: 'near' };
   var TECH = E.TECH_BY_ID, BIRD = E.BIRD_BY_ID;
@@ -129,20 +135,95 @@
 
   // ───────────────────────── 地図 ─────────────────────────
   function buildMap() {
-    var m = MAP[ui.map], h = [], i;
+    var m = MAP[ui.map], h = [], i, rl = relief[ui.map];
+    function img(id, k) { return '<image id="' + id + '" class="rel' + (rl ? ' in' : '') + '" x="0" y="0" width="' + m.w + '" height="' + m.h + '" preserveAspectRatio="none"' + (rl ? ' href="' + rl[k] + '"' : '') + '/>'; }
+    h.push('<defs><linearGradient id="g-badge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6876a"/><stop offset=".5" stop-color="#dd4428"/><stop offset="1" stop-color="#9c2a16"/></linearGradient></defs>');
     h.push('<rect class="sea" x="-4000" y="-4000" width="' + (m.w + 8000) + '" height="' + (m.h + 8000) + '"/>');
     var g = '', sx = ui.map === 'japan' ? m.proj.kx * 2 : m.w / 18, sy = ui.map === 'japan' ? m.proj.ky * 2 : m.h / 8;
     for (i = -4; i * sx < m.w + 4 * sx; i++) g += 'M' + (i * sx).toFixed(1) + ' -400V' + (m.h + 400);
     for (i = -4; i * sy < m.h + 4 * sy; i++) g += 'M-400 ' + (i * sy).toFixed(1) + 'H' + (m.w + 400);
     h.push('<path class="grat" d="' + g + '"/>');
-    h.push('<path class="deco" d="' + m.deco + '"/><g id="rgs">');
+    h.push(img('rel-under', 'under') + '<path class="deco" d="' + m.deco + '"/><g id="rgs">'); // 下の絵:浅瀬の明かりと、陸が海に落とす影
     Object.keys(m.regions).forEach(function (id) {
       h.push('<path class="rg" ' + (id === 'japan' ? 'data-jumpmap="japan"' : 'data-id="' + id + '"') + ' d="' + m.regions[id].d + '"/>');
     });
-    h.push('</g>');
+    h.push('</g>' + img('rel-over', 'over')); // 上の絵:国ざかいから内へ沈む陰と、縁の光
     if (m.lakes) h.push('<path class="lake" d="' + m.lakes + '"/>');
     h.push('<g id="over"></g><g id="marks"></g><g id="fx"></g>');
     $('#map').innerHTML = h.join('');
+    if (rl == null) ensureRelief(ui.map);
+  }
+
+  // ── 地図の立体感 ──
+  // 影と陰影は、地図ごとに一度だけ絵に焼いて貼る。線を重ねて描く方法は、地図を引きずるたびに描き直しになって重い。
+  // 太さは地図の単位で決めるので、寄れば陰影も大きく見える(盤そのものに彫ってある、という見え方になる)。
+  var relief = {}, reliefBusy = {};
+  function ensureRelief(key, then) {
+    if (relief[key] != null || reliefBusy[key]) { if (then) then(); return; }
+    reliefBusy[key] = true;
+    setTimeout(function () {
+      var t0 = Date.now();
+      bakeRelief(key, function (r) {
+        relief[key] = r || false; reliefBusy[key] = false;
+        (ui.reliefMs = ui.reliefMs || {})[key] = r ? Date.now() - t0 : -1; // 焼くのにかかった時間(確認用)
+        if (r && ui.map === key) [['rel-under', r.under], ['rel-over', r.over]].forEach(function (a) {
+          var el = document.getElementById(a[0]); if (el) { el.setAttribute('href', a[1]); el.classList.add('in'); }
+        });
+        if (then) then();
+      });
+    }, 60);
+  }
+  function bakeRelief(key, done) {
+    var m = MAP[key], s = key === 'japan' ? 0.8 : 2.2; // ふだんの縮尺で、画面の 1px が地図のいくつに当たるか。太さはこれに合わせる
+    var lp, dp, under, over, steps;
+    function layer(k) {
+      var c = document.createElement('canvas'); c.width = Math.round(m.w * k); c.height = Math.round(m.h * k);
+      var x = c.getContext('2d'); x.setTransform(k, 0, 0, k, 0, 0); x.lineJoin = 'round';
+      x.sh = function (col, blur, ox, oy) { x.shadowColor = col; x.shadowBlur = blur * s * k; x.shadowOffsetX = (ox || 0) * s * k; x.shadowOffsetY = (oy || 0) * s * k; }; // 影の寸法は、絵の画素で数える
+      return x;
+    }
+    function line(x, col, w, dx, dy) { x.save(); x.translate((dx || 0) * s, (dy || 0) * s); x.strokeStyle = col; x.lineWidth = w * s; x.stroke(lp); x.restore(); x.getImageData(0, 0, 1, 1); } // 最後の読み出しで、その場で描かせる
+    steps = [
+      function () { // 下の絵:浅瀬の明かりと、陸が海に落とす影。ぼかした絵なので粗くてよい
+        var land = ''; Object.keys(m.regions).forEach(function (id) { land += m.regions[id].d; });
+        lp = new Path2D(land); dp = new Path2D(land + m.deco);
+        under = layer(key === 'japan' ? 0.600 : 0.400); under.fillStyle = '#050911';
+        under.sh('rgba(150, 198, 252, .6)', 17); under.fill(dp);
+        under.sh('rgba(0, 0, 0, .9)', 6, 2.800, 4.400); under.fill(dp);
+      },
+      function () { // 上の絵:国ざかいから内へ沈む陰(陸の内側だけ)
+        over = layer(key === 'japan' ? 2 : 1.300); over.clip(lp);
+        over.sh('rgba(3, 6, 14, .85)', 11); line(over, 'rgba(3, 6, 14, .3)', 4.500);
+        over.sh('rgba(0, 0, 0, 0)', 0);
+      },
+      function () { line(over, 'rgba(255, 250, 235, .36)', 1.300, 1.050, 1.250); },  // 左上の縁に光
+      function () { line(over, 'rgba(3, 6, 14, .46)', 1.500, -1.050, -1.250); }      // 右下の縁に陰
+    ];
+    (function run(i) { // 一息ずつ進める。画面を固めない
+      if (i === steps.length) return canvasURL(under.canvas, function (u1) { canvasURL(over.canvas, function (u2) { done(u1 && u2 ? { under: u1, over: u2 } : null); }); });
+      setTimeout(function () { try { steps[i](); } catch (e) { return done(null); } run(i + 1); }, 30);
+    })(0);
+  }
+  function canvasURL(c, cb) { // 絵の場所を得る。blob が使えなければ data URL で
+    function data() { var u = null; try { u = c.toDataURL('image/png'); } catch (e) { /* 書き出せない環境 */ } cb(u); }
+    if (!c.toBlob || !window.URL || !URL.createObjectURL) return data();
+    try {
+      c.toBlob(function (bl) {
+        if (!bl) return data();
+        var u = URL.createObjectURL(bl), im = new Image();
+        im.onload = function () { cb(u); };
+        im.onerror = function () { URL.revokeObjectURL(u); data(); };
+        im.src = u;
+      }, 'image/png');
+    } catch (e) { data(); }
+  }
+  // 段の目盛り(地図の印の下に付ける)
+  function lvMeter(k, lv, y) {
+    var mx = E.facMax(k), s, i, w; if (mx < 2) return '';
+    w = 9.4 / mx;
+    s = '<g class="lvm"><rect x="-5.300" y="' + y + '" width="10.600" height="3.200" rx="1"/>';
+    for (i = 0; i < mx; i++) s += '<rect class="' + (i < lv ? 'on' : 'off') + '" x="' + (-4.7 + i * w + 0.3).toFixed(2) + '" y="' + (y + 0.7).toFixed(2) + '" width="' + (w - 0.6).toFixed(2) + '" height="1.800"/>';
+    return s + '</g>';
   }
 
   // 海外への出口(日本図)と、海路でつながる相手
@@ -231,19 +312,32 @@
       if (n) {
         s += '<g class="sites">';
         sites.forEach(function (k, i) {
-          var x = (i - (n - 1) / 2) * 13, fk = k === 'coal' ? 'coalmine' : (k === 'gold' ? 'mine' : (k === 'iron' ? 'ironmine' : (k === 'oil' ? 'oilwell' : 'bauxite')));
+          var x = (i - (n - 1) / 2) * 13, fk = SITE_FAC[k];
           var built = own && r.fac[fk];
           var todo = own && !built; // 自領でまだ掘っていない資源は、白抜きで示す
           s += '<g class="site" transform="translate(' + x + ' ' + sy + ')"><circle r="5.600" fill="' + (todo ? '#1a2740' : SITE_COLOR[k]) + '" stroke="' + (todo ? SITE_COLOR[k] : 'rgba(10,16,30,.9)') + '" stroke-width="' + (todo ? 1.6 : 1) + '"/>' +
-            '<path transform="translate(-4.200 -4.200) scale(.35)" fill="' + (todo ? SITE_COLOR[k] : '#10192b') + '" d="' + TF.iconPath(TF.SITE_ICON[k]) + '"/></g>';
+            '<path transform="translate(-4.200 -4.200) scale(.35)" fill="' + (todo ? SITE_COLOR[k] : '#10192b') + '" d="' + TF.iconPath(TF.SITE_ICON[k]) + '"/>' + (built ? lvMeter(fk, +r.fac[fk] || 1, 6.800) : '') + '</g>';
         });
         s += '</g>';
+      }
+      if (own) { // 建っている施設:引いた図では色の点、寄った図では絵の札と段の目盛り
+        var fs = FAC_MAP.filter(function (k) { return r.fac[k]; }), nf = fs.length;
+        if (nf) {
+          var dy = n ? 26.500 : 15, gy = n ? 34.500 : 18, per = nf > 4 ? Math.ceil(nf / 2) : nf, dots = '', gl = '';
+          fs.forEach(function (k, i) {
+            var row = i < per ? 0 : 1, cnt = row ? nf - per : per, col = row ? i - per : i;
+            dots += '<rect x="' + ((i - (nf - 1) / 2) * 5.400 - 2).toFixed(1) + '" y="' + (dy - 2) + '" width="4" height="4" rx="1.100" fill="' + FAC_COLOR[k] + '"/>';
+            gl += '<g transform="translate(' + ((col - (cnt - 1) / 2) * 12.600).toFixed(1) + ' ' + (gy + row * 16) + ')"><rect class="pl" x="-5.300" y="-5.300" width="10.600" height="10.600" rx="2.500" fill="' + FAC_COLOR[k] + '"/>' +
+              '<path fill-rule="evenodd" transform="translate(-4.200 -4.200) scale(.35)" d="' + TF.iconPath(FAC_ICON[k]) + '"/>' + lvMeter(k, +r.fac[k] || 1, 6.500) + '</g>';
+          });
+          s += '<g class="fdots">' + dots + '</g><g class="fglyphs">' + gl + '</g>';
+        }
       }
       var us = E.unitsAt(id);
       if (us.length) {
         var top = us.slice().sort(function (a, b) { return E.ustat(b).atk - E.ustat(a).atk; })[0];
         var ready = us.some(function (u) { return !u.acted; });
-        s += '<g class="ubadge" transform="translate(0 -21)"' + (ready ? '' : ' opacity=".6"') + '><rect x="-16" y="-8" width="32" height="16" rx="5"/><path transform="translate(-13 -6.500) scale(.54)" d="' + TF.iconPath(TF.UNIT_ICON[top.type]) + '"/><text x="7" y="4">' + us.length + '</text></g>';
+        s += '<g class="ubadge" transform="translate(0 -21)"' + (ready ? '' : ' opacity=".6"') + '><rect x="-16" y="-8" width="32" height="16" rx="5" style="fill:url(#g-badge) #e2492d"/><path transform="translate(-13 -6.500) scale(.54)" d="' + TF.iconPath(TF.UNIT_ICON[top.type]) + '"/><text x="7" y="4">' + us.length + '</text></g>';
       }
       if (threatened[id]) s += '<g class="alert" transform="translate(19 -8)"><circle r="7.500"/><text y="4">!</text></g>';
       if (own && (r.b || r.p)) s += '<g class="bld" transform="translate(-19 -8)"><circle r="4"/></g>';
@@ -269,6 +363,7 @@
     $$('#marks .mk[data-area]').forEach(function (g) {
       var px = Math.sqrt(+g.getAttribute('data-area')) / u, rid = g.getAttribute('data-rid');
       g.classList.toggle('small', px < 31 && rid !== ui.sel);
+      g.classList.toggle('near', px >= 58 || rid === ui.sel); // 寄ったら、施設の絵と段を見せる
     });
   }
 
@@ -454,19 +549,40 @@
   function siteTags(id) {
     var d = reg(id), r = S().regions[id], own = r.o === 'player', s = '';
     Object.keys(d.res).forEach(function (k) {
-      var fk = k === 'coal' ? 'coalmine' : (k === 'gold' ? 'mine' : (k === 'iron' ? 'ironmine' : (k === 'oil' ? 'oilwell' : 'bauxite')));
-      s += '<span class="tag site" style="background:' + SITE_COLOR[k] + '">' + icon(TF.SITE_ICON[k]) + D.SITE_NAMES[k] + ' ' + d.res[k] + (own ? (r.fac[fk] ? '・稼働中' : '・未開発') : '') + '</span>';
+      var fk = SITE_FAC[k];
+      s += '<span class="tag site" style="background-color:' + SITE_COLOR[k] + '">' + icon(TF.SITE_ICON[k]) + D.SITE_NAMES[k] + ' ' + d.res[k] + (own ? (r.fac[fk] ? '・稼働中' : '・未開発') : '') + '</span>';
     });
     return s;
+  }
+  // その地域に建っているものを、札で並べる。札を押すと、建設の一覧のその行へ行く
+  function facTiles(id) {
+    var r = S().regions[id], by = {}, h = '';
+    E.buildOptions(id).forEach(function (o) { by[o.key] = o; });
+    FAC_TILES.forEach(function (k) {
+      var o = by[k]; if (!o) return;
+      var F = D.FACILITIES[k], fort = k === 'fort', lv = fort ? r.fort : (F.levels ? o.level : (r.fac[k] ? 1 : 0)), mx = fort ? 5 : E.facMax(k);
+      if (!lv && !o.building && o.locked && E.techStatus(F.tech) === 'locked') return; // まだ先の研究が要るものは、並べない
+      var name = fort ? '城郭' : (lv && F.levels ? F.levels[lv - 1].name : F.name), p = '<span class="pips">', i;
+      for (i = 0; i < mx; i++) p += '<i class="' + (i < lv ? 'on' : (o.building && i === lv ? 'wip' : '')) + '"></i>';
+      h += '<button class="fac ' + (lv ? 'has' : 'none') + (o.building ? ' wip' : '') + (o.ok ? ' can' : '') + '" data-act="sub" data-sub="build" data-key="' + k + '" aria-label="' + esc(name) + '(' + (lv ? (mx > 1 ? lv + '/' + mx + '段' : '稼働中') : 'まだ無い') + ')">' +
+        '<i class="med"' + (lv ? ' style="background-color:' + FAC_COLOR[k] + '"' : '') + '>' + icon(FAC_ICON[k]) + '</i>' + p + '</span>' +
+        (o.ok && lv ? '<em class="up">▲</em>' : (o.locked ? '<em class="lk">' + icon('lock') + '</em>' : '')) +
+        '<b>' + esc(name) + '</b>' + (o.building ? '<small>工事中・あと' + r.b.t + '季</small>' : '') + '</button>';
+    });
+    return h;
+  }
+  function showHl() { // 建設の一覧で、選んだ施設の行を見えるところへ
+    var sc = $('#sheet .sheet-in'), row = $('#sheet .row.hl');
+    if (sc && row) sc.scrollTop = Math.max(0, row.offsetTop - sc.offsetTop - (sc.clientHeight - row.offsetHeight) / 2);
   }
   function renderSheet() {
     var el = $('#sheet'), id = ui.sel, st = S();
     if (!id || ui.mv) { el.hidden = true; el.innerHTML = ''; return; }
     var d = reg(id), r = st.regions[id], own = r.o === 'player', f = st.factions[r.o], h = '';
-    h += '<div class="sh-head"><i class="sh-flag" style="background:' + colorOf(id) + '"></i><div class="sh-title"><h2>' + esc(d.name) + '</h2><p>' +
+    h += '<div class="sh-head"><i class="sh-flag" style="background-color:' + colorOf(id) + '"></i><div class="sh-title"><h2>' + esc(d.name) + '</h2><p>' +
       (own ? '自領 ・ 統治 ' + Math.round(r.ctl) + '% ・ 民心 ' + Math.round(r.mood) : esc(E.fname(r.o)) + ' ・ ' + esc(f.leader)) + (d.seat ? ' ・ ' + esc(d.seat) : '') + '</p></div>' +
       '<button class="x" data-act="close-sheet" aria-label="閉じる">×</button></div>';
-    if (own && ui.sub === 'build') { el.innerHTML = '<div class="sheet-in">' + h + buildList(id) + '</div>'; el.hidden = false; return; }
+    if (own && ui.sub === 'build') { el.innerHTML = '<div class="sheet-in">' + h + buildList(id) + '</div>'; el.hidden = false; showHl(); return; }
     if (own && ui.sub === 'produce') { el.innerHTML = '<div class="sheet-in">' + h + produceList(id) + '</div>'; el.hidden = false; return; }
     // 札
     var tags = '';
@@ -483,10 +599,9 @@
     if (d.mtn) tags += '<span class="tag">山がち(守り +15%)</span>';
     if (!d.coast) tags += '<span class="tag">内陸</span>';
     if (d.port) tags += '<span class="tag">' + icon('anchor') + '交易港</span>';
-    if (own) Object.keys(r.fac).forEach(function (k) { if (!D.FACILITIES[k].site) tags += '<span class="tag gold">' + E.facLabel(id, k) + '</span>'; });
     if (tags) h += '<div class="tags">' + tags + '</div>';
     var nbr = '<div class="tags nbrs"><span class="dim">つながる地域</span>';
-    E.links(id).forEach(function (l) { nbr += '<button class="tag nb" data-act="goto" data-id="' + l.id + '"><i style="background:' + colorOf(l.id) + '"></i>' + esc(short(l.id)) + (l.sea ? '<small>海路</small>' : '') + '</button>'; });
+    E.links(id).forEach(function (l) { nbr += '<button class="tag nb" data-act="goto" data-id="' + l.id + '"><i style="background-color:' + colorOf(l.id) + '"></i>' + esc(short(l.id)) + (l.sea ? '<small>海路</small>' : '') + '</button>'; });
     nbr += '</div>';
     if (own) {
       var y = E.regionYield(id);
@@ -499,7 +614,7 @@
       if (y.rp) ys.push(icon('rp') + ' +' + y.rp);
       h += '<p class="dim" style="font-size:12.5px">毎季の産出 <span class="cost" style="color:var(--fg)">' + ys.map(function (x) { return '<span>' + x + '</span>'; }).join('') + '</span></p>';
       var vx = E.voice(id), tg = E.moodTarget(id);
-      h += '<div class="vox"><div class="vox-m"><span>民心</span>' + moodBar(r.mood, tg) + '<b class="' + moodCls(r.mood) + '">' + Math.round(r.mood) + '</b>' + (Math.abs(tg - r.mood) >= 1 ? '<small>' + (tg > r.mood ? '↗' : '↘') + ' ' + tg + '</small>' : '') + '</div>' +
+      var voxH = '<div class="vox"><div class="vox-m"><span>民心</span>' + moodBar(r.mood, tg) + '<b class="' + moodCls(r.mood) + '">' + Math.round(r.mood) + '</b>' + (Math.abs(tg - r.mood) >= 1 ? '<small>' + (tg > r.mood ? '↗' : '↘') + ' ' + tg + '</small>' : '') + '</div>' +
         (vx ? '<p><b>' + esc(vx.who) + '</b>「' + esc(vx.t) + '」</p>' : '') +
         '<p class="pop">人口 ' + popText(r.pop) + ' ・ 死亡率 ' + E.vitals(id).d.toFixed(0) + '‰ ・ 出生率 ' + E.vitals(id).b.toFixed(0) + '‰<small>(千人あたり・年)</small></p></div>';
       var th = st.threats.filter(function (t) { return t.to === id; });
@@ -507,11 +622,13 @@
         var A = st.regions[t.from].g * 0.7 / E.MEN * st.factions[t.f].q * D.DIFFICULTY[st.diff].enemy * (t.sea ? 0.7 : 1);
         h += '<p class="note bad" style="border-color:var(--bad)">' + esc(E.fname(t.f)) + 'が' + esc(reg(t.from).name) + 'から攻めてくる(戦力 約' + fmt(A) + ')。守りの戦力がこれを上回れば退けられる。</p>';
       });
+      h += '<div class="sec">施設<span class="hint">札を押すと、建設と格上げへ</span></div><div class="facs">' + facTiles(id) + '</div>';
       if (r.b) { var rc = E.rushCost(id); h += '<p class="note">' + E.facLabel(id, r.b.k, true) + 'を建設中(あと' + r.b.t + '季)' + (rc != null ? ' <button class="btn sm" data-act="rush"' + (rc <= st.res.gold ? '' : ' disabled') + '>急がせる ' + costHTML({ gold: rc }) + '</button>' : '') + '</p>'; }
       if (r.p) h += '<p class="note">' + esc(D.UNIT_TYPES[r.p.type].name) + 'を編成中(あと' + r.p.t + 'ターン)</p>';
       var cst = E.garrisonCost(1000), room = E.garrisonCap(id) - r.g;
       h += '<div class="acts"><button class="btn" data-act="sub" data-sub="build">' + icon('fort') + '建設</button><button class="btn" data-act="sub" data-sub="produce">' + icon('ashi') + '編成</button>' +
         '<button class="btn" data-act="recruit" data-n="1000"' + (room > 0 && st.res.gold >= cst.gold && st.res.food >= cst.food ? '' : ' disabled') + '>徴兵 +1千 ' + costHTML(cst) + '</button></div>';
+      h += voxH;
       var us = E.unitsAt(id);
       if (us.length) {
         var np = us.filter(function (u) { return ui.pick[u.id]; }).length, movable = us.filter(function (u) { return !u.acted; }).length;
@@ -555,8 +672,8 @@
     var h = '<div class="acts"><button class="btn sm" data-act="sub" data-sub="">◂ もどる</button></div>' + (S().auto.build !== 'off' ? '<p class="note">内政はおまかせ中(' + autoLabel() + ')。ここで出した指示も、そのまま通る。</p>' : '') + '<div class="sec">建設</div><div class="list">';
     E.buildOptions(id).forEach(function (o) {
       var st = o.built ? '<b class="good">済</b>' : (o.building ? '<b class="warn">建設中</b>' : '<b>' + o.turns + '季</b>');
-      h += '<button class="row' + (o.built ? ' done' : (o.ok ? '' : ' off')) + '" data-act="build" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(o.key === 'fort' ? 'fort' : (o.key === 'oilwell' ? 'oil' : (o.key === 'coalmine' ? 'coal' : (o.key === 'ironmine' ? 'iron' : (o.key === 'mine' ? 'gold' : (o.key === 'bauxite' ? 'bauxite' : (o.key === 'school' ? 'rp' : (o.key === 'farm' ? 'food' : (o.key === 'shipyard' ? 'anchor' : (o.key === 'airfield' ? 'kair' : (o.key === 'arsenal' ? 'gear' : (o.key === 'datacenter' ? 'chip' : 'gold'))))))))))), 'big') +
-        '<div><h3>' + o.name + (o.upgrade ? ' <span class="tag gold">格上げ</span>' : '') + (o.amount ? ' <span class="dim" style="font-weight:400">埋蔵 ' + o.amount + '</span>' : '') + '</h3><p>' + o.effect + '</p><p>' + (o.built ? '' : costHTML(o.cost)) + (o.why && !o.built ? ' <span class="' + (o.building ? 'warn' : 'bad') + '">' + o.why + '</span>' : '') + '</p></div><div class="side">' + st + '</div></button>';
+      h += '<button class="row' + (o.built ? ' done' : (o.ok ? '' : ' off')) + (ui.hl === o.key ? ' hl' : '') + '" data-act="build" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(FAC_ICON[o.key], 'big') +
+        '<div><h3>' + o.name + (o.upgrade ? ' <span class="tag gold">格上げ</span>' : '') + (o.amount ? ' <span class="dim" style="font-weight:400">埋蔵 ' + o.amount + '</span>' : '') + '</h3><p>' + o.effect + '</p><p>' + (o.built ? '' : costHTML(o.cost)) + (o.why && !o.built ? ' <span class="' + (o.building ? 'warn' : 'bad') + '">' + o.why + '</span>' : '') + '</p></div><div class="side">' + st + (o.max > 1 ? pips(o.level, o.max) : '') + '</div></button>';
     });
     return h + '</div>';
   }
@@ -858,7 +975,7 @@
   function facRow(fid, near) {
     var st = S(), f = st.factions[fid], regs = E.factionRegions(fid), F = D.FACTIONS[fid];
     var tags = (f.war ? '<span class="tag war">交戦中</span>' : '') + (f.pact > 0 ? '<span class="tag ok">不可侵' + f.pact + '</span>' : '') + (f.trade ? '<span class="tag ok">通商</span>' : '') + (f.awe > 0 ? '<span class="tag">畏怖</span>' : '');
-    return '<button class="row" data-act="fac" data-fid="' + fid + '"><i class="sh-flag" style="background:' + F.color + '"></i><div><h3>' + esc(F.name) + ' <span class="dim" style="font-weight:400">' + esc(f.leader) + '</span></h3><p>' + regs.map(short).join('・') + ' ・ 戦力 ' + fmt(E.factionPower(fid)) + '</p>' + (tags ? '<div class="tags" style="margin-top:3px">' + tags + '</div>' : '') + '</div>' +
+    return '<button class="row" data-act="fac" data-fid="' + fid + '"><i class="sh-flag" style="background-color:' + F.color + '"></i><div><h3>' + esc(F.name) + ' <span class="dim" style="font-weight:400">' + esc(f.leader) + '</span></h3><p>' + regs.map(short).join('・') + ' ・ 戦力 ' + fmt(E.factionPower(fid)) + '</p>' + (tags ? '<div class="tags" style="margin-top:3px">' + tags + '</div>' : '') + '</div>' +
       '<div class="side"><b class="' + (f.att >= 15 ? 'good' : (f.att <= -20 ? 'bad' : '')) + '">' + sgn(f.att) + '</b>友好' + (near ? '<small>降伏 ' + E.submitChance(fid) + '%</small>' : '') + '</div></button>';
   }
   function panelDiplo() {
@@ -881,7 +998,7 @@
     var st = S(), f = st.factions[fid], F = D.FACTIONS[fid];
     if (!f || !f.alive) { toast('この勢力はもうありません'); return; }
     var regs = E.factionRegions(fid);
-    var h = '<div class="sh-head"><i class="sh-flag" style="background:' + F.color + '"></i><div class="sh-title"><h2>' + esc(F.name) + '</h2><p>' + esc(f.leader) + ' ・ ' + regs.map(function (id) { return reg(id).name; }).join('、') + '</p></div></div>';
+    var h = '<div class="sh-head"><i class="sh-flag" style="background-color:' + F.color + '"></i><div class="sh-title"><h2>' + esc(F.name) + '</h2><p>' + esc(f.leader) + ' ・ ' + regs.map(function (id) { return reg(id).name; }).join('、') + '</p></div></div>';
     h += '<div class="facts"><div class="fact"><span>友好度</span><b class="' + (f.att >= 15 ? 'good' : (f.att <= -20 ? 'bad' : '')) + '">' + sgn(f.att) + '</b></div><div class="fact"><span>誇り</span><b>' + f.pride + '</b></div><div class="fact"><span>戦力</span><b>' + fmt(E.factionPower(fid)) + '</b></div><div class="fact"><span>我が総戦力</span><b>' + fmt(E.playerPower()) + '</b></div></div>';
     var tags = (f.war ? '<span class="tag war">交戦中</span>' : '<span class="tag">中立</span>') + (f.pact > 0 ? '<span class="tag ok">不可侵 あと' + f.pact + '</span>' : '') + (f.trade ? '<span class="tag ok">通商中</span>' : '') + (f.awe > 0 ? '<span class="tag">畏怖 あと' + f.awe + '</span>' : '') + (E.inContact(fid) ? '' : '<span class="tag">接していない</span>');
     h += '<div class="tags">' + tags + '</div><div class="sec">外交行動(今季 あと' + st.dipLeft + ')</div><div class="list">';
@@ -966,7 +1083,7 @@
     mine.forEach(function (id) {
       var r = st.regions[id], d = reg(id), y = E.regionYield(id);
       var todo = E.buildOptions(id).filter(function (o) { return o.ok && D.FACILITIES[o.key].site; }).map(function (o) { return o.name; });
-      h += '<button class="row" data-act="goto" data-id="' + id + '"><i class="sh-flag" style="background:' + pColor() + '"></i><div><h3>' + esc(d.name) + ' <span class="dim" style="font-weight:400">国力' + d.koku + ' ・ 統治' + Math.round(r.ctl) + '% ・ <span class="' + moodCls(r.mood) + '">民心' + Math.round(r.mood) + '</span> ・ 守備' + men(r.g) + '</span></h3><p>' +
+      h += '<button class="row" data-act="goto" data-id="' + id + '"><i class="sh-flag" style="background-color:' + pColor() + '"></i><div><h3>' + esc(d.name) + ' <span class="dim" style="font-weight:400">国力' + d.koku + ' ・ 統治' + Math.round(r.ctl) + '% ・ <span class="' + moodCls(r.mood) + '">民心' + Math.round(r.mood) + '</span> ・ 守備' + men(r.g) + '</span></h3><p>' +
         (r.ruin > 0.04 ? '<span class="bad">焦土</span> ' : '') + (r.b ? '<span class="warn">' + E.facLabel(id, r.b.k, true) + ' 建設中</span> ' : '') + (r.p ? '<span class="warn">' + D.UNIT_TYPES[r.p.type].short + ' 編成中</span> ' : '') + (todo.length ? '<span class="good">建設できる資源施設: ' + todo.join('、') + '</span>' : '') + '</p></div><div class="side"><b>+' + fmt(y.gold) + '</b>資金</div></button>';
     });
     return h + '</div>';
@@ -989,7 +1106,7 @@
     var fates = D.FATES.filter(function (f) { return st.flags.unified != null && st.factions[f.fid] && !st.factions[f.fid].alive; });
     if (fates.length && !asiOn()) {
       h += '<div class="sec">武将たちのその後</div><div class="list">';
-      fates.forEach(function (f) { h += '<div class="row"><i class="sh-flag" style="background:' + D.FACTIONS[f.fid].color + '"></i><div><h3>' + esc(f.who) + '</h3><p style="color:var(--fg)">' + esc(f.fate) + '</p></div><span></span></div>'; });
+      fates.forEach(function (f) { h += '<div class="row"><i class="sh-flag" style="background-color:' + D.FACTIONS[f.fid].color + '"></i><div><h3>' + esc(f.who) + '</h3><p style="color:var(--fg)">' + esc(f.fate) + '</p></div><span></span></div>'; });
       h += '</div>';
     } else if (st.flags.unified == null) h += '<p class="dim" style="font-size:12px">天下を統一すると、降った武将たちのその後がここに並ぶ。</p>';
     return h;
@@ -1234,7 +1351,7 @@
     if (snd) sfx(snd, snd === 'chirp' ? { n: 2 } : null);
     switch (act) {
       case 'close-sheet': select(null); break;
-      case 'sub': ui.sub = el.getAttribute('data-sub') || null; renderSheet(); break;
+      case 'sub': ui.sub = el.getAttribute('data-sub') || null; ui.hl = el.getAttribute('data-key') || null; renderSheet(); break;
       case 'pick': id = +el.getAttribute('data-uid'); if (ui.pick[id]) delete ui.pick[id]; else ui.pick[id] = 1; renderSheet(); break;
       case 'move-start': startMove(); break;
       case 'move-cancel': ui.mv = null; refreshAll(); break;
@@ -1345,6 +1462,8 @@
     var live = hot && hot.save;
     if (live) { try { E.load(live); resumeGame(); return; } catch (e) { /* 表紙へ */ } }
     showTitle();
+    // 表紙が出ているあいだに、地図の陰影を先に焼いておく
+    setTimeout(function () { ensureRelief('japan', function () { setTimeout(function () { ensureRelief('world'); }, 250); }); }, 350);
   }
   // 開いたままのページが更新されても、進行を引き継ぐ
   var hotApi = window.claude && window.claude.hot;

@@ -377,3 +377,166 @@ body.asi .nav .end { background: #c9d3e2; color: #1c2433; }
 .spark p { font-size: 11.5px; margin-top: 2px; }
 .spark p small, .vox .pop small { font-size: 10px; }
 .vox p.pop { font-size: 11.5px; color: var(--fg-dim); }
+
+/* ═════════ 地域の施設:建っているものを札で並べる ═════════ */
+.sec .hint { order: 2; letter-spacing: 0; font-size: 10.5px; color: var(--fg-faint); }
+.facs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.fac { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; align-content: start; column-gap: 5px; row-gap: 4px; padding: 5px 5px 6px; border-radius: 9px; text-align: left; min-width: 0; }
+.fac .med { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-style: normal; }
+.fac .pips { display: flex; gap: 2px; min-width: 0; }
+.fac .pips i { flex: 1 1 0; max-width: 7px; min-width: 3px; height: 10px; }
+.fac b { grid-column: 1 / -1; font-size: 10px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
+.fac small { grid-column: 1 / -1; font-size: 9.5px; line-height: 1.2; color: var(--warn); font-family: var(--f-num); }
+.fac em { position: absolute; left: 21px; top: 1px; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 8px; line-height: 1; }
+.fac em .ic { font-size: 9px; }
+.row.hl { animation: hl 1.6s ease-out 1; }
+@keyframes hl { 0%, 55% { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(217, 178, 76, .55), 0 0 18px rgba(217, 178, 76, .45); } }
+@keyframes wip { 50% { opacity: .25; } }
+
+/* ═════════ 質感の層:黒漆の軍議盤と、鋳物の金具 ═════════
+   面は上が明るく、下が暗い。縁には光と陰を一本ずつ。押せるものには台座の厚みを持たせ、
+   計器や枠は彫り込んで内側に陰を落とす。ここで決めるのは見た目だけで、並べ方には触れない。 */
+:root {
+  --hi: rgba(255, 244, 214, .15);   /* 上の縁に走る光 */
+  --hi-2: rgba(255, 244, 214, .07); /* 窪みの下の縁に返る光 */
+  --edge: #060a13;                  /* いちばん外の、沈んだ縁 */
+  --foot: #070b15;                  /* 押しボタンの台座 */
+  --foot-brass: #6b5210;
+  --foot-shu: #5d170a;
+  --ink-brass: #2a1e02;             /* 金の上に彫る字 */
+  --rim: #7d6520;                   /* 板のふちに回す金 */
+  --g-lacquer: linear-gradient(180deg, #1e2c49 0%, #172238 46%, #101929 100%);
+  --g-slab: linear-gradient(180deg, #2e4064 0%, #243354 46%, #1b2844 100%);
+  --g-key: linear-gradient(180deg, #3f5482 0%, #2e4168 47%, #26365b 53%, #1d2b4a 100%);
+  --g-well: linear-gradient(180deg, #070c17 0%, #0f1829 100%);
+  --g-brass: linear-gradient(180deg, #fcecb6 0%, #e9c969 30%, #d0a236 58%, #a67c1c 100%);
+  --g-shu: linear-gradient(180deg, #f78c70 0%, #e5512f 36%, #c93c22 60%, #992915 100%);
+  --gloss: linear-gradient(180deg, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, 0) 52%, rgba(0, 0, 0, .22) 100%);
+}
+
+/* 上の帯と下の帯:地図の盤を挟む、厚い縁 */
+.hud { background: linear-gradient(180deg, #1b2843 0%, #111b2e 68%, #0a111e 100%); border-bottom-color: var(--edge); box-shadow: inset 0 1px 0 var(--hi-2), inset 0 -1px 0 rgba(217, 178, 76, .34); }
+.hud-date { text-shadow: 0 1px 0 rgba(0, 0, 0, .75), 0 0 14px rgba(217, 178, 76, .2); }
+.hud-menu { background: var(--g-key); border-color: var(--edge); box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--foot), 0 3px 6px rgba(0, 0, 0, .4); }
+.chip { background: var(--g-well); border-color: var(--edge); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .8), 0 1px 0 var(--hi-2); }
+.chip .ic { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .75)); }
+.chip b { text-shadow: 0 1px 0 rgba(0, 0, 0, .7); }
+@keyframes chip-up { 0%, 40% { border-color: var(--good); } 100% { border-color: var(--edge); } }
+@keyframes chip-down { 0%, 40% { border-color: var(--bad); } 100% { border-color: var(--edge); } }
+.nav { background: linear-gradient(180deg, #18243b 0%, #0d1524 62%, #080d18 100%); border-top-color: var(--edge); box-shadow: inset 0 1px 0 rgba(217, 178, 76, .32), inset 0 2px 0 rgba(0, 0, 0, .3); }
+.nav button { text-shadow: 0 1px 0 rgba(0, 0, 0, .7); }
+.nav button .ic { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .7)); }
+.nav button.on { background: var(--g-well); color: var(--gold); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .85), inset 0 -2px 0 var(--gold), 0 1px 0 var(--hi-2); }
+.nav button .dot { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 0 1px 2px rgba(0, 0, 0, .7); }
+.nav .end { background: var(--g-shu); border: 1px solid var(--foot-shu); box-shadow: inset 0 1px 0 rgba(255, 226, 208, .6), inset 0 -2px 0 rgba(94, 22, 8, .5), 0 3px 0 var(--foot-shu), 0 6px 12px rgba(0, 0, 0, .5); text-shadow: 0 -1px 0 rgba(94, 22, 8, .8); margin-bottom: 3px; }
+.nav .end:active { transform: translateY(3px); box-shadow: inset 0 2px 5px rgba(60, 12, 4, .6), 0 0 0 var(--foot-shu); }
+
+/* 押しボタン:台座のある鍵。押すと沈む */
+.btn { background: var(--g-key); border-color: var(--edge); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 2px 0 var(--foot), 0 4px 8px rgba(0, 0, 0, .35); text-shadow: 0 1px 0 rgba(0, 0, 0, .6); }
+.btn.gold { background: var(--g-brass); border-color: var(--foot-brass); color: var(--ink-brass); text-shadow: 0 1px 0 rgba(255, 246, 208, .65); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(120, 88, 12, .4), 0 2px 0 var(--foot-brass), 0 5px 10px rgba(0, 0, 0, .4); }
+.btn.shu { background: var(--g-shu); border-color: var(--foot-shu); text-shadow: 0 -1px 0 rgba(94, 22, 8, .8); box-shadow: inset 0 1px 0 rgba(255, 226, 208, .55), inset 0 -2px 0 rgba(94, 22, 8, .5), 0 2px 0 var(--foot-shu), 0 5px 10px rgba(0, 0, 0, .4); }
+.btn:not(:disabled):active { transform: translateY(2px); box-shadow: inset 0 2px 5px rgba(0, 0, 0, .45); }
+.btn:disabled { box-shadow: inset 0 1px 0 var(--hi-2), 0 1px 0 var(--foot); }
+.x { background: var(--g-key); border: 1px solid var(--edge); box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 var(--foot), 0 3px 6px rgba(0, 0, 0, .4); }
+
+/* 行の札:持ち上がった板。絵は彫り込んだ窪みに納める */
+.row { background: var(--g-slab); border-color: #0b1220; box-shadow: inset 0 1px 0 var(--hi), inset 0 -1px 0 rgba(0, 0, 0, .28), 0 1px 0 rgba(0, 0, 0, .5), 0 3px 6px rgba(0, 0, 0, .22); }
+.row.on { border-color: var(--gold); background: linear-gradient(180deg, #47577c 0%, #303f60 50%, #26334f 100%); box-shadow: inset 0 0 0 1px rgba(217, 178, 76, .4), inset 0 1px 0 rgba(255, 240, 190, .3), 0 0 14px rgba(217, 178, 76, .22), 0 1px 0 rgba(0, 0, 0, .5); }
+.row .ic.big { box-sizing: content-box; padding: 5px; border-radius: 9px; background: var(--g-well); color: var(--gold); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .85), 0 1px 0 var(--hi-2); }
+.row.tight .ic.big { padding: 4px; border-radius: 7px; }
+.row.off .ic.big, .row.done .ic.big { color: var(--fg-dim); }
+button.row:not(:disabled):active { background: linear-gradient(180deg, #223150 0%, #2b3d61 100%); }
+.row.dario { background: var(--g-lacquer); border-color: #0b1220; }
+.row.manual { border-style: dashed; border-color: #51648c; }
+.bcard { background: var(--g-slab); border-color: #0b1220; box-shadow: inset 0 1px 0 var(--hi), 0 1px 0 rgba(0, 0, 0, .5), 0 3px 6px rgba(0, 0, 0, .25); }
+.bird { box-shadow: 0 0 0 1px rgba(6, 10, 19, .9), 0 2px 4px rgba(0, 0, 0, .5); }
+.who .bird { box-shadow: none; }
+.fld { background: var(--g-well); color: var(--gold); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .85), 0 1px 0 var(--hi-2); }
+
+/* 小さな札・計器・窪み */
+.tag { background: linear-gradient(180deg, #31446b 0%, #1f2c49 100%); border-color: #0b1220; box-shadow: inset 0 1px 0 var(--hi), 0 1px 0 rgba(0, 0, 0, .45); }
+.tag.site { background-image: var(--gloss); border-color: rgba(6, 10, 19, .65); text-shadow: 0 1px 0 rgba(255, 255, 255, .35); }
+.tag.nb i { background-image: var(--gloss); border-color: rgba(6, 10, 19, .8); }
+.fact, .vox { background: var(--g-well); border: 1px solid var(--edge); box-shadow: inset 0 1px 4px rgba(0, 0, 0, .7), 0 1px 0 var(--hi-2); }
+.asi-card .fact { box-shadow: none; border-color: rgba(28, 36, 51, .14); }
+.pips i { background: #080d18; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .9), 0 1px 0 var(--hi-2); }
+.pips i.on { background: var(--g-brass); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75), 0 1px 1px rgba(0, 0, 0, .65); }
+.pips i.wip { background: var(--warn); animation: wip 1.1s ease-in-out infinite; }
+.bar, .prog { background: #050911; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .95), 0 1px 0 var(--hi-2); }
+.bar i { position: relative; }
+.bar i::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--gloss); }
+.prog i, .prog i.w { background-image: var(--gloss); }
+.sec::after { height: 2px; background: linear-gradient(180deg, rgba(0, 0, 0, .6) 0 1px, rgba(255, 244, 214, .1) 1px 2px); }
+.tblwrap { background: var(--g-lacquer); border: 1px solid var(--edge); box-shadow: inset 0 1px 0 var(--hi-2), 0 2px 6px rgba(0, 0, 0, .3); }
+.ev .k { box-shadow: inset 0 1px 0 var(--hi), 0 1px 2px rgba(0, 0, 0, .5); }
+
+/* 施設の札:建っていれば持ち上がった板に色の徽章、無ければ彫り込んだ空きの枠 */
+.fac.has { background: var(--g-slab); border: 1px solid #0b1220; box-shadow: inset 0 1px 0 var(--hi), inset 0 -1px 0 rgba(0, 0, 0, .28), 0 1px 0 rgba(0, 0, 0, .5), 0 3px 6px rgba(0, 0, 0, .22); }
+.fac.none { background: var(--g-well); border: 1px dashed #2c3c5e; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .7); }
+.fac.has .med { color: #10192b; background-image: radial-gradient(circle at 34% 26%, rgba(255, 255, 255, .8) 0%, rgba(255, 255, 255, 0) 48%), linear-gradient(180deg, rgba(255, 255, 255, .08) 0%, rgba(0, 0, 0, .3) 100%); box-shadow: 0 0 0 1px rgba(6, 10, 19, .9), 0 2px 3px rgba(0, 0, 0, .6), inset 0 -1px 1px rgba(0, 0, 0, .35); }
+.fac.none .med { color: var(--fg-faint); background: #0b1322; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .85), 0 1px 0 var(--hi-2); }
+.fac.none b { color: var(--fg-faint); font-weight: 400; }
+.fac.none.can b { color: var(--fg-dim); }
+.fac.none.can { border-color: #4a5d86; }
+.fac.wip { border: 1px solid var(--warn); background-image: repeating-linear-gradient(-45deg, rgba(235, 176, 74, .13) 0 6px, rgba(235, 176, 74, 0) 6px 12px), var(--g-slab); }
+.fac.none.wip .med { color: var(--warn); }
+.fac.none.wip b { color: var(--fg); font-weight: 700; }
+.fac em.up { background: var(--g-brass); color: var(--ink-brass); box-shadow: 0 0 0 1px rgba(6, 10, 19, .9), 0 1px 2px rgba(0, 0, 0, .6); }
+.fac em.lk { background: #1a2640; color: var(--fg-dim); box-shadow: 0 0 0 1px rgba(6, 10, 19, .9); }
+.fac:active { transform: scale(.96); }
+
+/* シート・全面パネル・重ねる窓:金のふちを回した厚い板 */
+.sheet { background: linear-gradient(180deg, #203050 0, #182339 96px, #101929 100%); border-top-color: var(--rim); box-shadow: inset 0 1px 0 rgba(255, 236, 170, .34), inset 0 3px 0 rgba(0, 0, 0, .22), 0 -14px 36px rgba(0, 0, 0, .62); }
+.sh-flag { background-image: var(--gloss); border-color: rgba(6, 10, 19, .75); box-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+.sh-title h2, .panel-head h2, .card h2 { text-shadow: 0 2px 0 rgba(0, 0, 0, .55); }
+.panel { background: radial-gradient(130% 60% at 50% 0%, #1b2a48 0%, #0e1626 58%, #080e19 100%); }
+.panel-head { position: relative; z-index: 1; background: linear-gradient(180deg, #1d2b48 0%, #121c30 100%); border-bottom-color: var(--edge); box-shadow: inset 0 -1px 0 rgba(217, 178, 76, .3), 0 4px 12px rgba(0, 0, 0, .45); }
+.modal { background: radial-gradient(90% 70% at 50% 45%, rgba(8, 13, 26, .66) 0%, rgba(3, 5, 11, .9) 100%); }
+.card { background: linear-gradient(180deg, #223152 0, #18243c 120px, #121b2e 100%); border-color: var(--rim); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 236, 170, .22), 0 26px 70px rgba(0, 0, 0, .7), 0 6px 14px rgba(0, 0, 0, .45); }
+.card-foot { background: linear-gradient(180deg, #0f1728 0%, #0a101d 100%); border-top-color: var(--edge); box-shadow: inset 0 1px 0 var(--hi-2); }
+.ncard { background: linear-gradient(160deg, #34466c 0%, #1d2a45 55%, #131c2f 100%); border-color: var(--rim); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 2px 0 rgba(255, 236, 170, .2), inset 0 0 30px rgba(0, 0, 0, .35), 0 6px 16px rgba(0, 0, 0, .4); }
+.ncard h3 { text-shadow: 0 2px 0 rgba(0, 0, 0, .6), 0 0 18px rgba(217, 178, 76, .25); }
+.toast { background: linear-gradient(180deg, #fffaf0 0%, #e4dac3 100%); box-shadow: inset 0 1px 0 #fff, 0 2px 0 #8d8572, 0 10px 24px rgba(0, 0, 0, .55); }
+
+/* 地図の上に浮く小物 */
+.seg { background: var(--g-well); border-color: var(--edge); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .85), 0 1px 0 var(--hi-2), 0 4px 10px rgba(0, 0, 0, .4); }
+.seg button { text-shadow: 0 1px 0 rgba(0, 0, 0, .7); }
+.seg button.on { background: var(--g-brass); color: var(--ink-brass); text-shadow: 0 1px 0 rgba(255, 246, 208, .65); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -1px 0 rgba(120, 88, 12, .45); }
+.zoom button, .npill, .advisor button { background: linear-gradient(180deg, rgba(42, 58, 94, .97) 0%, rgba(16, 24, 42, .97) 100%); border-color: var(--edge); box-shadow: inset 0 1px 0 var(--hi), 0 2px 0 rgba(4, 7, 14, .9), 0 6px 14px rgba(0, 0, 0, .5); }
+.zoom button:active { transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5); }
+.npill b { text-shadow: 0 1px 0 rgba(0, 0, 0, .7); }
+.movebar { background: var(--g-brass); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .65), 0 2px 0 var(--foot-brass), 0 8px 18px rgba(0, 0, 0, .5); }
+.b-dario { background: linear-gradient(180deg, rgba(36, 51, 84, .95) 0%, rgba(13, 20, 36, .95) 100%); border-color: var(--edge); box-shadow: inset 0 1px 0 var(--hi), 0 8px 20px rgba(0, 0, 0, .5); }
+.b-skip { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 4px 10px rgba(0, 0, 0, .45); }
+
+/* 表紙:題字は厚みのある彫り物に */
+.title { background: radial-gradient(120% 75% at 50% 0%, #2b4272 0%, #16233d 42%, #0a101c 100%); }
+.title::before { content: ""; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 130px rgba(0, 0, 0, .7); }
+.title h1 { text-shadow: 0 1px 0 #cfc7b3, 0 2px 0 #b0a893, 0 3px 0 #8f8873, 0 4px 0 #6b6552, 0 6px 0 rgba(0, 0, 0, .5), 0 16px 30px rgba(0, 0, 0, .6); }
+.title h1 span { text-shadow: 0 1px 0 #c93c22, 0 2px 0 #a92f1a, 0 3px 0 #8a2412, 0 4px 0 #641a0b, 0 6px 0 rgba(0, 0, 0, .5), 0 16px 30px rgba(0, 0, 0, .6); }
+.title .subt { text-shadow: 0 1px 0 rgba(0, 0, 0, .75); }
+
+/* ── 地図:海に置いた浮き彫りの盤 ──
+   海は中ほどが明るく、縁が沈む。陸は影を落として持ち上がり、国ざかいから内へ向かって濃くなる。 */
+#stage { background: radial-gradient(115% 85% at 50% 38%, #233d68 0%, #15233c 50%, #0a1322 100%); }
+#stage::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 12px 16px -10px rgba(0, 0, 0, .8), inset 0 -12px 16px -10px rgba(0, 0, 0, .8), inset 0 0 70px rgba(3, 6, 14, .45); }
+.sea { fill: transparent; }
+.grat { stroke: rgba(126, 166, 226, .1); }
+.deco { fill: #27354f; stroke: #0f1727; }
+.rel { pointer-events: none; opacity: 0; transition: opacity .5s; }
+.rel.in { opacity: 1; }
+.rg { stroke: #0a101d; }
+.mk .fdots rect, .mk .fglyphs .pl { stroke: rgba(6, 10, 19, .92); stroke-width: .9; }
+.mk .fglyphs path { fill: #10192b; }
+.mk .lvm > rect:first-child { fill: #070b14; stroke: rgba(6, 10, 19, .92); stroke-width: .6; }
+.mk .lvm .on { fill: #ffe9a8; } .mk .lvm .off { fill: #2a3653; }
+.mk .fglyphs, .mk .lvm { display: none; }
+.mk.near .fglyphs, .mk.near .lvm { display: inline; }
+.mk.near .fdots, .mk.small .fdots, .mk.small .fglyphs { display: none; }
+.mk .ubadge rect { stroke-width: 1; }
+
+/* 超知能のあと:金も朱も、同じ静かな銀になる */
+body.asi { --g-brass: linear-gradient(180deg, #ffffff 0%, #e6ecf5 40%, #c1ccdd 100%); --g-shu: linear-gradient(180deg, #eef2f8 0%, #c9d3e2 55%, #a5b2c6 100%); --ink-brass: #1c2433; --foot-brass: #7b889c; --foot-shu: #7b889c; --rim: #8794a8; }
+body.asi .btn.shu, body.asi .nav .end { color: #1c2433; text-shadow: 0 1px 0 rgba(255, 255, 255, .5); }
+body.asi .mk .ubadge rect { fill: #8e9bb0 !important; }
+@media (prefers-reduced-motion: reduce) { .pips i.wip, .row.hl { animation: none; } }

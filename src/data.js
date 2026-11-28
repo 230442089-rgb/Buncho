@@ -66,7 +66,13 @@
     { id: 'powder', name: '火薬量産', field: '兵', tier: 1, cost: 50, req: [],
       effect: '守備隊と現地歩兵団が鉄砲隊に(戦力1.5倍)',
       hist: '硝石は輸入に頼っていたが、古土法・培養法で国産できる。粒状火薬(コーニング)にすれば威力も安定する。' },
+    { id: 'irrigation', name: '用水と治水', field: '生', tier: 1, cost: 60, req: ['agri'],
+      effect: '農地改良を「用水と新田」に格上げできる(兵糧 ×1.9)',
+      hist: '武田の信玄堤、加藤清正の治水、そして近代の用水路と干拓。水を治める者が、国を治めた。' },
     // 第二段階:産業革命
+    { id: 'bank', name: '為替と銀行', field: '算', tier: 2, cost: 100, req: ['survey'],
+      effect: '楽市楽座を「両替商と商館」に格上げできる(資金 ×1.9)',
+      hist: '1609年アムステルダム銀行、日本では大坂の両替商。重い銀を運ばずに、紙一枚で遠くの支払いが済むようになった。' },
     { id: 'steam', name: '蒸気機関', field: '機', tier: 2, cost: 100, req: ['blast'],
       effect: '工廠を建設できる(部隊と弾薬の生産拠点)。学問所を高等学校に格上げできる',
       hist: '1712年ニューコメン、1769年ワットの分離凝縮器。人と馬と水車の時代が終わり、石炭が動力になった。' },
@@ -116,7 +122,19 @@
     { id: 'radio', name: '無線通信', field: '電', tier: 3, cost: 150, req: ['electric'],
       effect: '外交行動 +1。全部隊の攻撃力 +10%',
       hist: '1895年マルコーニ。海の上の艦隊にも、山の向こうの部隊にも、命令が届く。' },
+    { id: 'breeding', name: '品種改良', field: '生', tier: 3, cost: 150, req: ['fertilizer', 'irrigation'],
+      effect: '農地を「品種改良の試験田」に格上げできる(兵糧 ×2.3)',
+      hist: '1865年メンデルの法則。日本では明治の「神力」「亀の尾」から、寒さと病気に強い稲が次々に生まれた。' },
+    { id: 'corp', name: '株式会社と取引所', field: '算', tier: 3, cost: 170, req: ['bank', 'rail'],
+      effect: '商館を「取引所」に格上げできる(資金 ×2.3)',
+      hist: '1602年オランダ東インド会社。大勢から少しずつ金を集めれば、鉄道でも製鉄所でも建てられる。' },
     // 第四段階:20世紀前半
+    { id: 'assembly', name: '流れ作業', field: '機', tier: 4, cost: 230, req: ['machine', 'engine'],
+      effect: '工廠を「流れ作業の工廠」に格上げできる(弾薬の生産が増え、その工廠の編成が1季早くなる)',
+      hist: '1913年、フォードの組立ライン。一台に12時間かかっていた自動車が、93分でできるようになった。' },
+    { id: 'tractor', name: '農業機械', field: '機', tier: 4, cost: 220, req: ['engine', 'breeding'],
+      effect: '農地を「機械化農場」に格上げできる(兵糧 ×2.8)',
+      hist: '1892年、フローリッヒのガソリントラクター。牛馬が田畑から消え、一人が百人ぶんを耕した。' },
     { id: 'geophys', name: '物理探査', field: '地', tier: 4, cost: 200, req: ['electric', 'drill'],
       effect: '油井・鉱山の産出 +20%',
       hist: '1920年代の反射法地震探査。地面を叩いて返ってくる波で、地下数千メートルの油田が「見える」ようになった。' },
@@ -133,6 +151,12 @@
       effect: '戦艦戦隊を建造できる',
       hist: '1884年パーソンズの蒸気タービン、1906年の戦艦ドレッドノート。一隻で、それまでの艦隊を旧式にした。' },
     // 第五段階:現代へ
+    { id: 'retail', name: '百貨店と流通', field: '算', tier: 5, cost: 280, req: ['corp', 'electric', 'engine'],
+      effect: '取引所を「百貨店と流通網」に格上げできる(資金 ×2.8)',
+      hist: '1852年パリのボン・マルシェ、1904年三越の「デパートメントストア宣言」。値札と正札販売、そして全国への配送網。' },
+    { id: 'offshore', name: '海底油田', field: '地', tier: 5, cost: 300, req: ['geophys', 'turbine'],
+      effect: '油田を「海底油田」に格上げできる(産出 ×2.4)',
+      hist: '1947年、メキシコ湾で陸の見えない沖合の掘削に成功。石油は、海の底からも掘るものになった。' },
     { id: 'electronics', name: '電子工学', field: '電', tier: 5, cost: 320, req: ['radio', 'machine'],
       effect: '研究速度 +25%。全部隊の攻撃力 +15%。大学を研究所に格上げできる',
       hist: '1947年トランジスタ、1958年集積回路。レーダーも計算機も、指先ほどの石の中に入った。' },
@@ -272,20 +296,34 @@
 
   // ───────────────────────── 施設 ─────────────────────────
   var FACILITIES = {
-    mine: { name: '金銀山', site: 'gold', cost: { gold: 80 }, turns: 2, effect: '資金を産出する' },
-    ironmine: { name: '鉄山', site: 'iron', cost: { gold: 100 }, turns: 2, effect: '鉄鋼を産出する' },
+    // levels[n] が「n 段目から n+1 段目へ」の中身。k は倍率(または産出の値)、tech はその段に要る研究
+    mine: { name: '金銀山', site: 'gold', cost: { gold: 80 }, turns: 2, effect: '資金を産出する。研究が進むと、掘り方を格上げできる',
+      levels: [{ name: '金銀山', k: 1, cost: { gold: 80 } }, { name: '排水坑道の金銀山', tech: 'steam', k: 1.4, cost: { gold: 180 } },
+        { name: '電気巻上げの金銀山', tech: 'electric', k: 1.8, cost: { gold: 320, steel: 40 } }, { name: '深部採掘の金銀山', tech: 'geophys', k: 2.3, cost: { gold: 520, steel: 80 } }] },
+    ironmine: { name: '鉄山', site: 'iron', cost: { gold: 100 }, turns: 2, effect: '鉄鋼を産出する。研究が進むと、掘り方を格上げできる',
+      levels: [{ name: '鉄山', k: 1, cost: { gold: 100 } }, { name: '坑道掘りの鉄山', tech: 'steam', k: 1.4, cost: { gold: 200 } },
+        { name: '電化鉱山', tech: 'electric', k: 1.8, cost: { gold: 340, steel: 40 } }, { name: '大規模露天掘り', tech: 'geophys', k: 2.3, cost: { gold: 540, steel: 80 } }] },
     coalmine: { name: '炭鉱', site: 'coal', tech: 'survey', cost: { gold: 120 }, turns: 2, effect: '鉄鋼生産 +50%(4か所まで累積)。蒸気軍艦の運用に必要' },
-    oilwell: { name: '油井', site: 'oil', tech: 'distill', cost: { gold: 150, steel: 30 }, turns: 2, effect: '燃料を産出する' },
+    oilwell: { name: '油井', site: 'oil', tech: 'distill', cost: { gold: 150, steel: 30 }, turns: 2, effect: '燃料を産出する。研究が進むと、油田を格上げできる',
+      levels: [{ name: '油井', k: 1, cost: { gold: 150, steel: 30 } }, { name: '機械掘りの油田', tech: 'drill', k: 1.4, cost: { gold: 260, steel: 60 } },
+        { name: '探査油田', tech: 'geophys', k: 1.8, cost: { gold: 420, steel: 100 } }, { name: '海底油田', tech: 'offshore', k: 2.4, cost: { gold: 700, steel: 200 } }] },
     bauxite: { name: 'ボーキサイト鉱山', site: 'bauxite', tech: 'survey', cost: { gold: 150 }, turns: 2, effect: 'アルミ精錬と航空機生産に必要' },
-    farm: { name: '農地改良', cost: { gold: 60 }, turns: 1, effect: 'この地域の兵糧 +50%' },
-    market: { name: '楽市楽座', cost: { gold: 90 }, turns: 1, effect: 'この地域の資金 +50%' },
+    farm: { name: '農地改良', cost: { gold: 60 }, turns: 1, effect: 'この地域の兵糧 +50%。研究が進むと、用水・品種改良・機械化へ格上げできる',
+      levels: [{ name: '農地改良', k: 1.5, cost: { gold: 60 } }, { name: '用水と新田', tech: 'irrigation', k: 1.9, cost: { gold: 140 } },
+        { name: '品種改良の試験田', tech: 'breeding', k: 2.3, cost: { gold: 260 } }, { name: '機械化農場', tech: 'tractor', k: 2.8, cost: { gold: 420, steel: 60 } }] },
+    market: { name: '楽市楽座', cost: { gold: 90 }, turns: 1, effect: 'この地域の資金 +50%。研究が進むと、商館・取引所・百貨店へ格上げできる',
+      levels: [{ name: '楽市楽座', k: 1.5, cost: { gold: 90 } }, { name: '両替商と商館', tech: 'bank', k: 1.9, cost: { gold: 200 } },
+        { name: '取引所', tech: 'corp', k: 2.3, cost: { gold: 380 } }, { name: '百貨店と流通網', tech: 'retail', k: 2.8, cost: { gold: 620, steel: 60 } }] },
     // 学問所は研究が進むと格上げできる。levels[n] が「n 段目から n+1 段目へ」の中身
     school: { name: '学問所', cost: { gold: 120 }, turns: 2, effect: '研究力 +3(建てるほど割高になる)。研究が進むと、高等学校・大学・研究所へ格上げできる',
-      levels: [{ name: '学問所', rp: 3, cost: { gold: 120 } }, { name: '高等学校', tech: 'steam', rp: 6, cost: { gold: 200 } },
-        { name: '大学', tech: 'electric', rp: 10, cost: { gold: 350, steel: 30 } }, { name: '研究所', tech: 'electronics', rp: 16, cost: { gold: 600, steel: 80 } }] },
-    datacenter: { name: '計算センター', tech: 'computer', cost: { gold: 500, steel: 150 }, turns: 3, effect: '研究力 +12(建てるほど割高になる)。窓のない館に、計算機がぎっしり並ぶ' },
+      levels: [{ name: '学問所', k: 3, cost: { gold: 120 } }, { name: '高等学校', tech: 'steam', k: 6, cost: { gold: 200 } },
+        { name: '大学', tech: 'electric', k: 10, cost: { gold: 350, steel: 30 } }, { name: '研究所', tech: 'electronics', k: 16, cost: { gold: 600, steel: 80 } }] },
+    datacenter: { name: '計算センター', tech: 'computer', cost: { gold: 500, steel: 150 }, turns: 3, effect: '研究力 +12(建てるほど割高になる)。窓のない館に、計算機がぎっしり並ぶ。研究が進むと格上げできる',
+      levels: [{ name: '計算センター', k: 12, cost: { gold: 500, steel: 150 } }, { name: '学習計算基盤', tech: 'deeplearn', k: 20, cost: { gold: 900, steel: 250 } }, { name: '汎用知能の館', tech: 'agi', k: 32, cost: { gold: 1500, steel: 400 } }] },
     fort: { name: '築城', cost: { gold: 70 }, turns: 2, effect: '城郭レベル +1(最大5)', repeat: true },
-    arsenal: { name: '工廠', tech: 'steam', cost: { gold: 220, steel: 60 }, turns: 3, effect: '部隊を生産できる。無煙火薬の習得後は弾薬も生産' },
+    arsenal: { name: '工廠', tech: 'steam', cost: { gold: 220, steel: 60 }, turns: 3, effect: '部隊を生産できる。無煙火薬の習得後は弾薬も生産。研究が進むと格上げできる',
+      levels: [{ name: '工廠', k: 15, cost: { gold: 220, steel: 60 } }, { name: '機械工廠', tech: 'machine', k: 24, cost: { gold: 380, steel: 120 } },
+        { name: '流れ作業の工廠', tech: 'assembly', k: 34, cost: { gold: 600, steel: 220 } }, { name: '自動化工廠', tech: 'electronics', k: 46, cost: { gold: 900, steel: 350 } }] },
     shipyard: { name: '造船所', tech: 'steamship', coast: true, cost: { gold: 200, steel: 80 }, turns: 3, effect: '艦艇を建造できる' },
     airfield: { name: '飛行場', cost: { gold: 260, steel: 40 }, turns: 3, effect: '航空部隊の出撃拠点になる' }
   };
@@ -548,7 +586,11 @@
   var DIFFICULTY = {
     easy: { name: '演習', desc: '燃料と弾薬にゆとりがある。はじめての方に。', stock: 1.5, enemy: 0.85 },
     normal: { name: '実戦', desc: '標準の難しさ。', stock: 1.0, enemy: 1.0 },
-    hard: { name: '極限', desc: '補給は乏しく、敵は強い。', stock: 0.7, enemy: 1.2 }
+    hard: { name: '極限', desc: '補給は乏しく、敵は強い。', stock: 0.7, enemy: 1.2 },
+    // 修羅:war=宣戦のしやすさ / raid=攻めてくる頻度 / edge=どれだけ優勢なら攻めるか / grow=毎季の兵の質の伸び /
+    //       feud=強国が弱国を呑みこむ頻度 / regen=守備兵の回復 / sea=外洋を渡って攻めてくる / coal=大同盟が結ばれる海外領の数 / peace=これ以上の友好なら兵を向けない
+    hell: { name: '修羅', desc: '他国がきわめて好戦的。次々に兵を向け、隙のある国境へ攻めこんでくる。強国は弱国を呑みこんで大きくなり、年を追うごとに兵の質も上がる。うかうかしていると、取り返しがつかない。',
+      stock: 0.8, enemy: 1.2, war: 6, peace: 60, raid: 0.9, edge: 0.9, grow: 0.006, feud: 0.55, regen: 0.1, sea: true, coal: 10 }
   };
   var START = { gold: 400, food: 600, steel: 100, fuel: 600, ammo: 700, prestige: 5, region: 'izu', year: 1560 };
 

@@ -21,7 +21,9 @@
     'steamship', 'telegraph', 'fertilizer', 'rail', 'electric', 'cracking', 'engine', 'mg', 'machine', 'medicine', 'radio', 'geophys',
     'tank', 'aluminium', 'aircraft', 'turbine', 'electronics',
     // ここから先は現代と未来。研究を速める計算機の系統を先に。核兵器と超知能は司令が自分で命じたときだけ進む(manual)
-    'computer', 'catcrack', 'jet', 'network', 'modern', 'nuclear', 'deeplearn', 'rocket', 'llm', 'agi', 'drone', 'fusion', 'laser', 'orbital', 'birdmech'];
+    // 施設の格上げを解く研究(用水・銀行・品種改良…)は本筋の合間に。得意な鳥は、手が空けば先に取りかかる
+    'computer', 'catcrack', 'jet', 'irrigation', 'bank', 'network', 'modern', 'breeding', 'corp', 'assembly', 'tractor', 'offshore', 'retail',
+    'nuclear', 'deeplearn', 'rocket', 'llm', 'agi', 'drone', 'fusion', 'laser', 'orbital', 'birdmech'];
   var POLICY_BY_ID = {};
   (D.POLICIES || []).forEach(function (p) { POLICY_BY_ID[p.id] = p; });
 
@@ -179,17 +181,17 @@
     var mf = moodFactor(r.mood), rf = 1 - 0.6 * (r.ruin || 0);   // 民心と焦土
     var atom = (tech('nuclear') ? 0.25 : 0) + (tech('fusion') ? 0.25 : 0);
     var gm = Math.max(0.3, 1 + (tech('network') ? 0.1 : 0) + atom + polSum('gold') + (w ? polSum('goldW') : 0));
-    y.gold = (d.koku * 0.45 * c * (r.fac.market ? 1.5 : 1) * (tech('rail') ? 1.15 : 1) + d.port * c) * mf;
-    if (r.fac.mine) y.gold += (d.res.gold || 0) * 4 * (tech('survey') ? 1.5 : 1) * geo;
+    y.gold = (d.koku * 0.45 * c * (r.fac.market ? facK('market', r.fac.market) : 1) * (tech('rail') ? 1.15 : 1) + d.port * c) * mf;
+    if (r.fac.mine) y.gold += (d.res.gold || 0) * 4 * (tech('survey') ? 1.5 : 1) * geo * facK('mine', r.fac.mine);
     y.gold *= gm * rf;
-    y.food = d.koku * 1.0 * c * (r.fac.farm ? 1.5 : 1) * (1 + (tech('agri') ? 0.4 : 0) + (tech('fertilizer') ? 0.6 : 0)) * mf * Math.max(0.3, 1 + polSum('food')) * rf;
+    y.food = d.koku * 1.0 * c * (r.fac.farm ? facK('farm', r.fac.farm) : 1) * (1 + (tech('agri') ? 0.4 : 0) + (tech('fertilizer') ? 0.6 : 0)) * mf * Math.max(0.3, 1 + polSum('food')) * rf;
     y.steel = d.koku * 0.03 * c * mf;
-    if (r.fac.ironmine) y.steel += (d.res.iron || 0) * 4 * (tech('blast') ? 3 : 1) * (tech('bessemer') ? 2 : 1) * (1 + 0.5 * cm) * geo;
+    if (r.fac.ironmine) y.steel += (d.res.iron || 0) * 4 * (tech('blast') ? 3 : 1) * (tech('bessemer') ? 2 : 1) * (1 + 0.5 * cm) * geo * facK('ironmine', r.fac.ironmine);
     y.steel *= (1 + atom) * rf;
-    if (r.fac.oilwell) y.fuel = (d.res.oil || 0) * 5 * (tech('drill') ? 1.5 : 1) * (tech('cracking') ? 1.6 : 1) * (tech('catcrack') ? 1.3 : 1) * geo * rf;
-    if (r.fac.arsenal && tech('ammo')) y.ammo = 15 * (tech('fertilizer') ? 1.5 : 1) * (tech('electric') ? 1.5 : 1);
-    if (r.fac.school) y.rp = D.FACILITIES.school.levels[Math.min(r.fac.school, 4) - 1].rp;
-    if (r.fac.datacenter) y.rp += 12;
+    if (r.fac.oilwell) y.fuel = (d.res.oil || 0) * 5 * (tech('drill') ? 1.5 : 1) * (tech('cracking') ? 1.6 : 1) * (tech('catcrack') ? 1.3 : 1) * geo * rf * facK('oilwell', r.fac.oilwell);
+    if (r.fac.arsenal && tech('ammo')) y.ammo = facK('arsenal', r.fac.arsenal) * (tech('fertilizer') ? 1.5 : 1) * (tech('electric') ? 1.5 : 1);
+    if (r.fac.school) y.rp = facK('school', r.fac.school);
+    if (r.fac.datacenter) y.rp += facK('datacenter', r.fac.datacenter);
     return y;
   }
   function income() {
@@ -456,7 +458,7 @@
       events.push(ev('event', '天下統一! 日本は一つになった。', { big: { title: '天下統一', body: '蝦夷から薩摩まで、すべての国が一つの旗の下に入った。元号は「天鳥」と改められた。鳥たちはすでに、世界地図を広げている。——次は、海の向こうだ。', bird: 'gin', fanfare: true } }));
     }
     var wOwned = w.filter(isP).length;
-    if (!S.flags.coalition && wOwned >= 18) {
+    if (!S.flags.coalition && wOwned >= (diff().coal || 18)) {
       S.flags.coalition = S.turn; mark('bad', '残る世界の国々が、対日大同盟を結ぶ。');
       Object.keys(S.factions).forEach(function (fid) {
         var f = S.factions[fid]; if (!f.alive) return;
@@ -616,16 +618,27 @@
   // 建設にかかる季節。鉄道で資材が届き、重機で工事が早くなる(最短1季)
   function buildTurns(key) { return Math.max(1, D.FACILITIES[key].turns - (tech('rail') ? 1 : 0) - (tech('engine') ? 1 : 0)); }
   function schoolName(lv) { var L = D.FACILITIES.school.levels; return L[clamp(lv, 1, L.length) - 1].name; }
-  // その地域での施設の呼び名(学問所は段で名が変わる。建設中なら、できあがる段の名)
-  function facLabel(rid, key, next) { var r = S.regions[rid]; return key === 'school' ? schoolName((r.fac.school || 0) + (next ? 1 : 0) || 1) : D.FACILITIES[key].name; }
+  // 段のある施設の、その段での倍率(または産出の値)
+  function facK(key, lv) { var L = D.FACILITIES[key].levels; return L ? L[clamp(lv, 1, L.length) - 1].k : 1; }
+  function facMax(key) { var L = D.FACILITIES[key].levels; return L ? L.length : 1; }
+  function lvText(key, lv) { // その段の効き目を一言で
+    var k = facK(key, lv);
+    return key === 'farm' ? '兵糧 ×' + k : (key === 'market' ? '資金 ×' + k : (key === 'school' || key === 'datacenter' ? '研究力 +' + k : (key === 'arsenal' ? '弾薬 ' + k + '(毎季の基本)' : '産出 ×' + k)));
+  }
+  // その地域での施設の呼び名(段で名が変わる。建設中なら、できあがる段の名)
+  function facLabel(rid, key, next) {
+    var r = S.regions[rid], L = D.FACILITIES[key].levels;
+    return L ? L[clamp((r.fac[key] || 0) + (next ? 1 : 0) || 1, 1, L.length) - 1].name : D.FACILITIES[key].name;
+  }
   function facCost(rid, key) {
     var F = D.FACILITIES[key], c = { gold: F.cost.gold || 0, steel: F.cost.steel || 0 };
-    if (key === 'school') {
-      var lv = S.regions[rid].fac.school || 0, L = F.levels[Math.min(lv, F.levels.length - 1)];
+    if (F.levels) { // 次の段の費用
+      var lv = S.regions[rid].fac[key] || 0, L = F.levels[Math.min(lv, F.levels.length - 1)];
       c = { gold: L.cost.gold || 0, steel: L.cost.steel || 0 };
-      if (!lv) c.gold += 30 * Math.max(0, schoolCount() - 1);
+      if (!lv && key === 'school') c.gold += 30 * Math.max(0, schoolCount() - 1);
+      if (!lv && key === 'datacenter') c.gold += 200 * facCount('datacenter');
+      return c;
     }
-    if (key === 'datacenter') c.gold += 200 * facCount('datacenter');
     if (key === 'fort') c.gold = 70 * (S.regions[rid].fort + 1);
     return c;
   }
@@ -642,11 +655,11 @@
       if (F.coast && !d.coast) { o.show = false; return; }
       if (F.site) o.amount = d.res[F.site];
       if (key === 'fort') { if (r.fort >= 5) { o.built = true; o.ok = false; o.why = '最大'; } }
-      else if (key === 'school') { // 段を上げていく
-        var lv = r.fac.school || 0, L = F.levels[lv];
-        o.level = lv;
-        if (!L) { o.built = true; o.ok = false; o.why = '最高の段'; o.name = schoolName(lv); o.effect = '研究力 +' + F.levels[lv - 1].rp; }
-        else if (lv) { o.upgrade = true; o.name = schoolName(lv) + ' → ' + L.name; o.effect = '研究力 +' + F.levels[lv - 1].rp + ' → +' + L.rp; needTech = L.tech; }
+      else if (F.levels) { // 段を上げていく
+        var lv = r.fac[key] || 0, L = F.levels[lv];
+        o.level = lv; o.max = F.levels.length;
+        if (!L) { o.built = true; o.ok = false; o.why = '最高の段'; o.name = F.levels[lv - 1].name; o.effect = lvText(key, lv); }
+        else if (lv) { o.upgrade = true; o.name = F.levels[lv - 1].name + ' → ' + L.name; o.effect = lvText(key, lv) + ' → ' + lvText(key, lv + 1); needTech = L.tech; }
       }
       else if (r.fac[key]) { o.built = true; o.ok = false; o.why = '建設済み'; }
       if (!o.built) {
@@ -709,7 +722,7 @@
     Object.keys(D.UNIT_TYPES).forEach(function (type) {
       var T = D.UNIT_TYPES[type]; if (!T.cost) return;
       var cost = unitCost(type);
-      var o = { type: type, name: T.tiered ? D.INF_TIERS[infTier()].name + '(現地歩兵団)' : T.name, cost: cost, turns: prodTurns(type), ok: true, why: '', desc: T.desc, show: true };
+      var o = { type: type, name: T.tiered ? D.INF_TIERS[infTier()].name + '(現地歩兵団)' : T.name, cost: cost, turns: prodTurns(type, rid), ok: true, why: '', desc: T.desc, show: true };
       if (T.tiered) { o.count = ashiCount(); o.cap = ashiCap(); }
       if (T.tech && !tech(T.tech)) { o.show = false; return; }
       if (T.at && !r.fac[T.at]) { o.ok = false; o.why = D.FACILITIES[T.at].name + 'が必要'; }
@@ -731,10 +744,13 @@
     if (!o || !o.ok) return { error: o ? o.why : '編成できません' };
     var T = D.UNIT_TYPES[type];
     S.res.gold -= o.cost.gold; S.res.steel -= o.cost.steel; S.res.food -= o.cost.food;
-    S.regions[rid].p = { type: type, t: prodTurns(type) };
+    S.regions[rid].p = { type: type, t: prodTurns(type, rid) };
     return { ok: true };
   }
-  function prodTurns(type) { return Math.max(1, D.UNIT_TYPES[type].turns - (tech('machine') ? 1 : 0) - (tech('agi') ? 1 : 0)); } // 互換部品と、工程を詰める汎用人工知能
+  function prodTurns(type, rid) { // 互換部品、流れ作業の工廠、工程を詰める汎用人工知能
+    var T = D.UNIT_TYPES[type], line = rid && T.at === 'arsenal' && (S.regions[rid].fac.arsenal || 0) >= 3 ? 1 : 0;
+    return Math.max(1, T.turns - (tech('machine') ? 1 : 0) - line - (tech('agi') ? 1 : 0));
+  }
 
   // ───────────────────────── 外交 ─────────────────────────
   function playerPower() { var p = 0; S.units.forEach(function (u) { p += ustat(u).atk * u.hp / 100; }); return p; }
@@ -932,6 +948,7 @@
   }
   function planThreats() {
     if (S.flags.asi != null) return;   // 調和圏に槍を向ける者は、もういない
+    var dd = diff();
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid]; if (!f.alive || !f.war || f.pact > 0) return;
       factionRegions(fid).forEach(function (rid) {
@@ -939,23 +956,44 @@
         var from = S.regions[rid], best = null;
         links(rid).forEach(function (l) {
           if (!isP(l.id)) return;
-          if (l.sea && D.REGIONS[rid].map !== D.REGIONS[l.id].map) return; // 敵は外洋を渡ってこない
+          if (l.sea && D.REGIONS[rid].map !== D.REGIONS[l.id].map && !dd.sea) return; // ふつうは、敵は外洋を渡ってこない
           var A = from.g * 0.7 / MEN * fq(fid) * (l.sea ? 0.7 : 1), Dp = defensePower(l.id);
-          if (A >= Dp * 1.2 && (!best || Dp < best.Dp)) best = { id: l.id, Dp: Dp, sea: l.sea };
+          if (A >= Dp * (dd.edge || 1.2) && (!best || Dp < best.Dp)) best = { id: l.id, Dp: Dp, sea: l.sea };
         });
-        if (best && rnd() < 0.4) {
+        if (best && rnd() < (dd.raid || 0.4)) {
           S.threats.push({ from: rid, to: best.id, f: fid, turn: S.turn + 1, sea: best.sea });
           ev('warn', fname(fid) + 'が' + rname(rid) + 'から' + rname(best.id) + 'をうかがっている。次の季節に攻めてくる。', { rid: best.id, fid: fid });
         }
       });
     });
   }
+  // 修羅:強い国が、隣の弱い国を呑みこんで大きくなる
+  function aiFeud(p) {
+    if (rnd() > p) return;
+    var best = null;
+    Object.keys(S.factions).forEach(function (fid) {
+      var f = S.factions[fid]; if (!f.alive) return;
+      factionRegions(fid).forEach(function (rid) {
+        links(rid).forEach(function (l) {
+          var tr = S.regions[l.id], o = tr.o; if (o === 'player' || o === fid || l.sea) return;
+          if (tr.feud != null && S.turn - tr.feud < 12) return;                                   // 取ったばかりの土地は、しばらく取り返されない
+          if (S.flags.unified == null && D.REGIONS[l.id].map === 'w') return;                     // 海の向こうの争いは、海を渡れるようになってから
+          var A = S.regions[rid].g * 0.7 / MEN * fq(fid), Dn = enemyPower(l.id), sc = A / Math.max(1, Dn) * (0.6 + D.FACTIONS[fid].aggr);
+          if (A > Dn * 1.25 && (!best || sc > best.sc)) best = { by: fid, from: rid, to: l.id, sc: sc };
+        });
+      });
+    });
+    if (!best) return;
+    var loser = fname(S.regions[best.to].o);
+    S.regions[best.from].g = r100(S.regions[best.from].g * 0.8); S.regions[best.to].feud = S.turn;
+    aiTake(best.by, best.to, fname(best.by) + 'が' + loser + 'の' + rname(best.to) + 'を攻め取った。');
+  }
   function aiDeclare() {
     if (S.flags.asi != null) return;
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid], df = D.FACTIONS[fid];
-      if (!f.alive || f.war || f.pact > 0 || f.awe > 0 || f.att >= 30 || !inContact(fid)) return;
-      var p = df.aggr * 0.06 + (f.att < -20 ? 0.04 : 0);
+      if (!f.alive || f.war || f.pact > 0 || f.awe > 0 || f.att >= (diff().peace || 30) || !inContact(fid)) return;
+      var p = (df.aggr * 0.06 + (f.att < -20 ? 0.04 : 0)) * (diff().war || 1);
       if (rnd() < p) { f.war = true; f.trade = false; ev('warn', fname(fid) + '(' + f.leader + ')が我が軍に兵を向けた。', { fid: fid }); }
     });
   }
@@ -1007,7 +1045,7 @@
       if (r.b && r.b.t <= 1 && r.b.k === 'oilwell' && !S.flags.oil1) { S.flags.oil1 = S.turn; mark('event', rname(id) + 'で、初めての油井が動きだす。戦車は、もうただの鉄の箱ではない。'); }
       if (r.b) { r.b.t--; if (r.b.t <= 0) {
         var bn = facLabel(id, r.b.k, true);
-        if (r.b.k === 'fort') r.fort = Math.min(5, r.fort + 1); else if (r.b.k === 'school') r.fac.school = Math.min(4, (r.fac.school || 0) + 1); else r.fac[r.b.k] = 1;
+        if (r.b.k === 'fort') r.fort = Math.min(5, r.fort + 1); else if (D.FACILITIES[r.b.k].levels) r.fac[r.b.k] = Math.min(facMax(r.b.k), (r.fac[r.b.k] || 0) + 1); else r.fac[r.b.k] = 1;
         ev('build', rname(id) + 'に' + bn + 'が完成した。', { rid: id }); r.b = null;
       } }
       if (r.p) { r.p.t--; if (r.p.t <= 0) { var u = addUnit(r.p.type, null, id); u.acted = false; ev('build', rname(id) + 'で' + u.name + 'の編成が完了した。', { rid: id }); r.p = null; } }
@@ -1033,6 +1071,7 @@
     runHistory();
     aiDeclare();
     planThreats();
+    if (diff().feud && S.flags.asi == null) aiFeud(diff().feud);
     if (S.flags.asi != null) asiSpread();
     Object.keys(S.regions).forEach(function (id) { // 人は生まれ、死ぬ
       var r0 = S.regions[id], v = vitals(id);
@@ -1046,12 +1085,13 @@
     Object.keys(S.regions).forEach(function (id) {
       var r = S.regions[id]; if (r.o === 'player') return;
       if (r.ruin > 0) r.ruin = Math.max(0, Math.round((r.ruin - 0.04) * 100) / 100);
-      r.gmax = Math.round(r.gmax * 1.002);
-      if (r.g < r.gmax) r.g = Math.min(r.gmax, r100(r.g + r.gmax * 0.06));
+      r.gmax = Math.round(r.gmax * (diff().grow ? 1.005 : 1.002));
+      if (r.g < r.gmax) r.g = Math.min(r.gmax, r100(r.g + r.gmax * (diff().regen || 0.06)));
     });
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid]; if (!f.alive) return;
       if (f.pact > 0) { f.pact--; if (f.pact === 0) ev('info', fname(fid) + 'との不可侵の期限が切れた。', { fid: fid }); }
+      if (diff().grow) f.q = Math.min(D.FACTIONS[fid].q + 1.2, Math.round((f.q + diff().grow) * 1000) / 1000);   // 修羅:年を追うごとに兵の質が上がる
       if (f.cool > 0) f.cool--;
       if (f.awe > 0) f.awe--;
       if (f.trade && f.att < 60) f.att++;
@@ -1282,9 +1322,9 @@
     if (old) r.fac[k] = old; else delete r.fac[k];
     ['gold', 'food', 'steel', 'fuel', 'ammo', 'rp'].forEach(function (x) { v += (y1[x] - y0[x]) * AUTO_W[x] * N[x]; });
     if (k === 'arsenal') {
-      if (have.arsenal >= Math.max(1, Math.ceil(playerRegions().length / 5))) return 0;        // 工廠は領地5つに1つまで
+      if (!old && have.arsenal >= Math.max(1, Math.ceil(playerRegions().length / 5))) return 0; // 新しい工廠は領地5つに1つまで(格上げは別)
       v -= (y1.ammo - y0.ammo) / 3 * AUTO_W.steel * N.steel;                                 // 弾薬は鉄鋼を食う
-      v += !have.arsenal ? 60 + d.koku * 0.3 : (S.auto.make ? 25 : 0);
+      if (!old) v += !have.arsenal ? 60 + d.koku * 0.3 : (S.auto.make ? 25 : 0);
     }
     return v;
   }
@@ -1467,6 +1507,7 @@
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,
     inContact: inContact, isJp: isJp, playerPower: playerPower, factionPower: factionPower,
     endTurn: endTurn, hints: hints, summary: summary, fname: fname, rname: rname, lockedOverseas: lockedOverseas, MEN: MEN,
+    facK: facK, facMax: facMax, lvText: lvText,
     census: census, vitals: vitals, popInit: popInit, keepGoing: keepGoing,
     buildTurns: buildTurns, schoolName: schoolName, facLabel: facLabel, rushCost: rushCost, rush: rush,
     setAuto: setAuto, autoBuild: autoBuild, autoMove: autoMove, autoGuard: autoGuard, autoMake: autoMake, autoNeeds: autoNeeds, autoReserve: autoReserve, frontDist: frontDist,

@@ -177,16 +177,23 @@
   P.birdmech = 'M12 3c4.400 0 8 3.400 8 7.600 0 3.300-2.200 6.100-5.300 7.200V20h2.300v1.500h-4v-3.200h-2v3.200H7V20h2.300v-2.200C6.200 16.700 4 13.900 4 10.600 4 6.400 7.600 3 12 3zM8.500 8.500a1.200 1.200 0 1 0 0 2.400 1.200 1.200 0 0 0 0-2.400zM15.500 8.500a1.200 1.200 0 1 0 0 2.400 1.200 1.200 0 0 0 0-2.400zM10 12h4l-2 3z';
   P.heart = 'M12 21l-1.450-1.320C5.400 15.360 2 12.280 2 8.500 2 5.420 4.420 3 7.500 3c1.740 0 3.410.810 4.500 2.090C13.090 3.810 14.760 3 16.500 3 19.580 3 22 5.420 22 8.500c0 3.780-3.400 6.860-8.550 11.540L12 21z';
   P.globe = 'M12 2.500a9.500 9.500 0 1 1 0 19 9.500 9.500 0 0 1 0-19zM4.300 11.200h3.400c.1-1.700.5-3.300 1.100-4.600a7.700 7.700 0 0 0-4.500 4.600zM9.400 11.200h5.200c-.2-2.800-1.300-5.200-2.600-6.600-1.300 1.400-2.400 3.800-2.600 6.600zM16.300 11.200h3.400a7.700 7.700 0 0 0-4.500-4.600c.6 1.300 1 2.900 1.100 4.600zM4.300 12.800a7.700 7.700 0 0 0 4.500 4.600c-.6-1.300-1-2.900-1.100-4.600zM9.400 12.800c.2 2.800 1.300 5.200 2.600 6.600 1.300-1.400 2.400-3.800 2.600-6.600zM16.300 12.800c-.1 1.700-.5 3.300-1.100 4.600a7.700 7.700 0 0 0 4.500-4.600z';
+  // 施設の絵(店、苗、書物)と、錠
+  P.market = 'M2.500 9.500l2-5.500h15l2 5.500a2.375 2.375 0 0 1-4.750 0 2.375 2.375 0 0 1-4.750 0 2.375 2.375 0 0 1-4.750 0 2.375 2.375 0 0 1-4.750 0zM4.500 13.500h15V21h-15zM6.500 15.500v3h5v-3zM13.500 15.500V21h4v-5.500z';
+  P.farm = 'M11.250 10h1.500v10h-1.500zM11.250 12.500C7.300 12.500 5 10 4.500 6c4 0 6.750 2.500 6.750 6.500zM12.750 10.500c0-4 2.400-6.800 6.750-7.500 0 4.500-2.400 7.500-6.750 7.500zM4 20h16v1.500H4z';
+  P.book = 'M3 5.200c3.200-.900 6-.600 8.200.900v13.600c-2.200-1.500-5-1.800-8.200-.900zM21 5.200c-3.200-.900-6-.600-8.200.900v13.600c2.200-1.500 5-1.800 8.200-.900z';
+  P.lock = 'M7.500 10.500V8a4.500 4.500 0 0 1 9 0v2.500H18V20H6v-9.500zM9.500 10.500h5V8a2.500 2.500 0 0 0-5 0z';
   function icon(name, cls) {
     var d = P[name] || P.flag;
     return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="' + d + '"/></svg>';
   }
   var UNIT_ICON = { inf: 'inf', tank: 'tank', arty: 'arty', heli: 'heli', jet: 'jet', ddg: 'ddg', lst: 'lst', ashi: 'ashi', fgun: 'arty', ktank: 'tank', modern: 'tank', kair: 'kair', ironclad: 'ironclad', bb: 'bb', drone: 'drone', nuke: 'nuke', orbital: 'orbital', birdmech: 'birdmech' };
   var SITE_ICON = { oil: 'fuel', coal: 'coal', iron: 'iron', gold: 'gold', bauxite: 'bauxite' };
+  var FAC_ICON = { fort: 'fort', mine: 'gold', ironmine: 'iron', coalmine: 'coal', oilwell: 'oil', bauxite: 'bauxite', farm: 'farm', market: 'market', school: 'book', datacenter: 'chip', arsenal: 'gear', shipyard: 'anchor', airfield: 'kair' };
 
   TF.birdSVG = birdSVG;
   TF.icon = icon;
   TF.iconPath = function (name) { return P[name] || P.flag; };
   TF.UNIT_ICON = UNIT_ICON;
   TF.SITE_ICON = SITE_ICON;
+  TF.FAC_ICON = FAC_ICON;
 })(typeof window !== 'undefined' ? window : globalThis);

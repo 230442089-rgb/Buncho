@@ -296,6 +296,63 @@ section('国のすがたと、統一のあと', () => {
   E.newGame({ seed: 23 }); ok(E.keepGoing().error, '決着の前には選べない');
 });
 
+section('施設の段と、それを解く研究', () => {
+  E.newGame({ seed: 31 });
+  const S = E.S; S.res.gold = 99999; S.res.steel = 99999;
+  const opt = k => E.buildOptions('izu').find(o => o.key === k);
+  const finish = k => { ok(E.build('izu', k).ok, k + ' を建てられる'); S.regions.izu.b.t = 1; E.endTurn(); };
+  const food0 = E.regionYield('izu').food;
+  finish('farm');
+  ok(S.regions.izu.fac.farm === 1 && Math.abs(E.regionYield('izu').food / food0 - 1.5) < 0.12, '農地改良で兵糧が約1.5倍');
+  ok(opt('farm').upgrade && !opt('farm').ok && /用水と治水/.test(opt('farm').why), '格上げには「用水と治水」が要る: ' + opt('farm').why);
+  S.techs.agri = true; S.techs.irrigation = true;
+  ok(opt('farm').ok && /用水と新田/.test(opt('farm').name), '研究が済むと格上げできる: ' + opt('farm').name);
+  finish('farm');
+  ok(S.regions.izu.fac.farm === 2 && E.facLabel('izu', 'farm') === '用水と新田', '二段目の名で呼ばれる');
+  for (const t of ['fertilizer', 'breeding', 'engine', 'tractor']) S.techs[t] = true;
+  finish('farm'); finish('farm');
+  ok(S.regions.izu.fac.farm === 4 && opt('farm').built && opt('farm').why === '最高の段', '四段目で打ち止め');
+  const g0 = E.regionYield('izu').gold; finish('market');
+  for (const t of ['survey', 'bank', 'rail', 'steam', 'bessemer', 'blast', 'corp']) S.techs[t] = true;
+  finish('market'); finish('market');
+  ok(S.regions.izu.fac.market === 3 && E.facLabel('izu', 'market') === '取引所' && E.regionYield('izu').gold > g0 * 1.8, '楽市楽座 → 商館 → 取引所で資金が増える');
+  // 工廠:段で弾薬が増え、流れ作業の工廠は編成が早い
+  S.techs.ammo = true; finish('arsenal');
+  const a1 = E.regionYield('izu').ammo; S.techs.machine = true; S.techs.electric = true; finish('arsenal');
+  ok(E.regionYield('izu').ammo > a1 * 1.3, '機械工廠で弾薬が増える');
+  S.techs.tank = true; S.techs.mg = true; S.techs.rifle = true; S.techs.agi = false;
+  const t2 = E.prodTurns('ktank', 'izu'); S.techs.assembly = true; finish('arsenal');
+  ok(S.regions.izu.fac.arsenal === 3 && E.prodTurns('ktank', 'izu') === Math.max(1, t2 - 1), '流れ作業の工廠では編成が1季早い');
+  // 油井と鉱山(資源のある土地)
+  S.regions.echigo.o = 'player'; S.techs.distill = true;
+  ok(E.build('echigo', 'oilwell').ok, '越後に油井'); S.regions.echigo.b.t = 1; E.endTurn();
+  const f1 = E.regionYield('echigo').fuel; S.techs.drill = true;
+  ok(E.build('echigo', 'oilwell').ok, '機械掘りへ格上げ'); S.regions.echigo.b.t = 1; E.endTurn();
+  ok(S.regions.echigo.fac.oilwell === 2 && E.regionYield('echigo').fuel > f1 * 1.35, '油田の格上げで燃料が増える(' + f1 + ' → ' + E.regionYield('echigo').fuel + '、段 ' + S.regions.echigo.fac.oilwell + '、持ち主 ' + S.regions.echigo.o + ')');
+  ok(E.lvText('farm', 2) === '兵糧 ×1.9' && E.facMax('school') === 4 && E.facMax('fort') === 1, '段の説明');
+  const j = E.serialize(); E.load(j); ok(E.serialize() === j, 'セーブの往復で変わらない');
+  // 古いセーブ(段のない施設)もそのまま読める
+  const old = JSON.parse(fs.readFileSync(new URL('./fixtures/save-before-mood-t20.json', import.meta.url), 'utf8'));
+  E.load(old); let fine = true;
+  for (const id of E.playerRegions()) { const y = E.regionYield(id); if (!Number.isFinite(y.gold + y.food + y.steel + y.fuel + y.ammo + y.rp)) fine = false; }
+  ok(fine, '古いセーブの施設は一段目として扱われる');
+});
+
+section('難易度「修羅」', () => {
+  const count = (diff, turns) => {
+    E.newGame({ difficulty: diff, seed: 77 });
+    const S = E.S; let war = 0, feud = 0, raid = 0;
+    for (const id of ['sagami', 'suruga', 'kai', 'musashi', 'kozuke', 'shinano']) S.regions[id].o = 'player';
+    for (let i = 0; i < turns; i++) { for (const id of E.playerRegions()) S.regions[id].g = 800; S.res.gold = 5000; S.res.food = 5000; const r = E.endTurn(); for (const e of r.events) { if (/兵を向けた/.test(e.t)) war++; if (/攻め取った/.test(e.t)) feud++; if (/うかがっている/.test(e.t)) raid++; } if (S.over) break; }
+    return { war, feud, raid, q: S.factions.mori.q, base: D.FACTIONS.mori.q };
+  };
+  const n = count('normal', 30), h = count('hell', 30);
+  ok(D.DIFFICULTY.hell && D.DIFFICULTY.hell.name === '修羅', '難易度の一覧にある');
+  ok(h.war + h.raid >= (n.war + n.raid) * 1.4 && h.war > n.war && h.war + h.raid >= 8, '宣戦と侵攻が多い(実戦 ' + (n.war + n.raid) + ' / 修羅 ' + (h.war + h.raid) + ')');
+  ok(h.feud >= 3 && n.feud === 0, '強国が弱国を呑みこむ(修羅 ' + h.feud + ' 回)');
+  ok(h.q > h.base + 0.1 && n.q === n.base, '年を追うごとに兵の質が上がる(' + h.base + ' → ' + h.q + ')');
+});
+
 section('民の声(全地域・全時代)', () => {
   E.newGame({ seed: 10 });
   const S = E.S;
