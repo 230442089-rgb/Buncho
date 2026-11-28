@@ -119,6 +119,14 @@
   function farmGeo() { // 茅葺きの農家
     return merge([gb(3.0, 1.25, 2.1, 0, 0, 0xddd2b4), gb(3.06, 0.42, 2.16, 0, 0, 0x7a5a3a), fr(0.55, 2.3, 1.45, 0, 1.25, 0, 0xb9975a, 1.48, 1.12), bx(1.3, 0.2, 0.5, 0, 2.72, 0, 0x8f7442), bx(0.5, 0.8, 0.06, 0.5, 0.42, 1.06, 0x4e3a28)]);
   }
+  // 海の向こうの町の家(culture: east=明・朝鮮 / india / islam / europe)。大きさは農家に合わせてある
+  function houseGeo(cu) {
+    if (cu === 'east') return merge([gb(3.0, 1.2, 2.0, 0, 0, 0xb9b3a6), fr(1.0, 3.4, 0.95, 0, 1.2, 0, 0x565c66, 1, 0.72), bx(3.3, 0.1, 0.12, 0, 2.2, 0, 0x3d4249), bx(0.5, 0.8, 0.06, 0.4, 0.4, 1.02, 0xa5352b)]);
+    if (cu === 'india') return merge([gb(2.7, 1.5, 2.2, 0, 0, 0xd9a877), gb(2.9, 0.14, 2.4, 0, 0, 0xc08a5a, 1.5), gb(1.1, 0.8, 1.1, 0.6, 0.4, 0xe2b98a, 1.5), sp(0.42, 0.6, 2.72, 0.4, 0xf3ead7, [1, 0.8, 1]), bx(0.5, 0.9, 0.06, -0.5, 0.45, 1.12, 0x4e3a28)]);
+    if (cu === 'islam') return merge([gb(2.6, 1.6, 2.2, 0, 0, 0xe6d6ae), gb(2.8, 0.14, 2.4, 0, 0, 0xcbb98a, 1.6), gb(1.0, 0.9, 1.0, -0.6, 0.4, 0xeadcb6, 1.6), bx(0.5, 1.0, 0.06, 0.5, 0.5, 1.12, 0x2b6d74), bx(0.3, 0.3, 0.06, -0.6, 1.05, 1.12, 0x2b3d61)]);
+    if (cu === 'europe') return merge([gb(2.6, 1.5, 2.0, 0, 0, 0xefe6d2), pr(2.9, 1.5, 2.3, 0, 1.5, 0, 0xa5452f), bx(0.09, 1.5, 0.07, -1.3, 0.75, 1.02, 0x5a4632), bx(0.09, 1.5, 0.07, 1.3, 0.75, 1.02, 0x5a4632), bx(2.6, 0.09, 0.07, 0, 0.8, 1.02, 0x5a4632), bx(0.5, 0.9, 0.07, 0.3, 0.45, 1.03, 0x4e3a28), gb(0.4, 0.9, 0.4, -0.7, -0.3, 0x8a8d95, 2.3)]);
+    return farmGeo();
+  }
   // 鳥(文鳥人・インコ人)。足もとが原点、前は +z。色は DATA.BIRDS の look から
   function birdGeo(b) {
     var L = b.look, k = L.kind, a = [], wing = shade(L.body, k === 'budgie' ? 0.7 : 0.86), long = k === 'budgie' || k === 'cockatiel';
@@ -194,7 +202,7 @@
       }
     } catch (e) { glOK = false; return null; }
 
-    var R = rng(20261127), D = TF.DATA || {}, BIRDS = D.BIRDS || [];
+    var R = rng(20261127), D = TF.DATA || {}, BIRDS = D.BIRDS || [], CU = opts.culture || ''; // CU: 海の向こうの町にするときの文化圏
     var M = { host: host, t: 0, stage: -1, dead: false, manual: false, raf: 0, last: 0, w: 0, h: 0, phi: opts.angle == null ? 0.55 : opts.angle, orbit: opts.orbit !== false, form: 0, trash: [], night: 0, skyK: 1, shx: +opts.shiftX || 0, shy: +opts.shiftY || 0 };
     var reduced = false; try { reduced = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* 古い端末 */ }
     if (reduced) M.orbit = false;
@@ -275,18 +283,37 @@
     });
     chunk('castle', 0, 8, -23.5, -23.5, function (o) {
       var y = 5.2, W = 0xf1ece0, Rf = 0x2e3440, a = o.lit;
+      if (CU === 'east') { // 朱の楼閣と黄瑠璃の瓦
+        a.push(fr(4.6, 5.2, 1.0, 0, y, 0, 0xe9e2d2), gb(3.7, 1.3, 2.7, 0, 0, 0xb5433a, y + 1.0), fr(2.2, 4.9, 0.75, 0, y + 2.3, 0, 0xd9a93a, 1, 0.76), gb(2.5, 0.95, 1.8, 0, 0, 0xb5433a, y + 3.05),
+          fr(1.0, 3.5, 0.85, 0, y + 4.0, 0, 0xd9a93a, 1, 0.76), bx(0.16, 0.3, 0.16, 0, y + 5.0, 0, 0xd9b24c), gb(0.7, 0.8, 0.08, 0, 1.38, 0x3a2c20, y + 1.0));
+        return;
+      }
+      if (CU === 'islam' || CU === 'india') { // 丸屋根と尖塔
+        var wl = CU === 'india' ? 0xc9694a : 0xe6d3ac, dm = CU === 'india' ? 0xf3ead7 : 0x3aa0a8;
+        a.push(fr(4.7, 5.2, 0.8, 0, y, 0, shade(wl, 0.85)), gb(3.4, 1.9, 3.4, 0, 0, wl, y + 0.8), sp(1.75, 0, y + 2.75, 0, dm, [1, 0.95, 1], 12, 8), co(0.14, 0.7, 6, 0, y + 4.75, 0, 0xd9b24c), gb(0.8, 1.2, 0.08, 0, 1.72, 0x2b3d61, y + 0.8));
+        [[-2.05, 2.05], [2.05, 2.05], [-2.05, -2.05], [2.05, -2.05]].forEach(function (q) {
+          if (CU === 'india') a.push(cy(0.3, 0.34, 2.6, 8, q[0], y + 2.1, q[1], wl), sp(0.46, q[0], y + 3.5, q[1], dm, [1, 0.9, 1]));
+          else a.push(cy(0.26, 0.32, 4.6, 8, q[0], y + 3.1, q[1], wl), cy(0.42, 0.42, 0.16, 8, q[0], y + 4.4, q[1], shade(wl, 0.8)), co(0.36, 1.0, 8, q[0], y + 5.9, q[1], dm));
+        });
+        return;
+      }
+      if (CU === 'europe') { // 石の聖堂と塔
+        a.push(fr(4.7, 5.2, 0.7, 0, y, 0, 0x8a8d95), gb(3.0, 2.3, 3.8, 0.5, 0, 0xa4a7ad, y + 0.7), pr(3.3, 1.5, 4.0, 0.5, y + 3.0, 0, 0x4a5f78), cy(0.85, 0.9, 4.6, 10, -1.7, y + 3.0, 1.2, 0x9a9da4), co(1.05, 2.2, 10, -1.7, y + 6.4, 1.2, 0x4a5f78),
+          bx(0.08, 0.7, 0.08, -1.7, y + 7.85, 1.2, 0xd9b24c), bx(0.4, 0.08, 0.08, -1.7, y + 7.95, 1.2, 0xd9b24c), cy(0.5, 0.5, 0.06, 12, 0.5, y + 2.4, 1.93, 0x6f9fd0, [PI / 2, 0, 0]), gb(0.7, 1.1, 0.08, 0.5, 1.92, 0x3a2c20, y + 0.7));
+        return;
+      }
       a.push(fr(4.2, 5.2, 1.5, 0, y, 0, 0x8a8d95), gb(3.5, 1.1, 3.5, 0, 0, W, y + 1.5), fr(2.7, 4.4, 0.55, 0, y + 2.6, 0, Rf), gb(2.5, 0.95, 2.5, 0, 0, W, y + 3.15), fr(1.9, 3.25, 0.5, 0, y + 4.1, 0, Rf),
         gb(1.6, 0.85, 1.6, 0, 0, W, y + 4.6), py(2.5, 1.0, 0, y + 5.45, 0, Rf), bx(0.14, 0.3, 0.14, 0, y + 6.55, 0, 0xd9b24c), gb(0.6, 0.7, 0.08, 0, 1.78, 0x3a2c20, y + 1.5));
     });
 
     // 戦国:村と田と橋
     chunk('farm_town', 0, 2, 3, -5, function (o) {
-      var g = geo('farm', farmGeo);
+      var g = geo('farm' + CU, function () { return houseGeo(CU); });
       [[-7, -4.6, 0.2, 1], [6.5, -5.2, -0.3, 1.05], [-6.2, 4.3, 2.9, 0.95], [6.4, 4.6, 0.1, 1], [9.8, -3.6, 1.4, 0.9]].forEach(function (h) { o.lit.push(put(g, h[0], 0, h[1], h[2], h[3])); });
       o.lit.push(gb(0.5, 0.5, 0.5, -3.2, -3.4, 0x8a8d95), gb(0.9, 0.08, 0.9, -3.2, -3.4, 0x5a4632, 0.9), bx(0.08, 0.5, 0.08, -3.55, 0.7, -3.4, 0x5a4632), bx(0.08, 0.5, 0.08, -2.85, 0.7, -3.4, 0x5a4632)); // 井戸
     });
     chunk('farm_out', 0, 4, -20, 12.9, function (o) {
-      var g = geo('farm', farmGeo);
+      var g = geo('farm' + CU, function () { return houseGeo(CU); });
       o.lit.push(put(g, 8.6, 0, 0, 0.1, 1), put(g, -8.2, 0, 0, -0.12, 0.95), put(g, 13.5, 0, -27.4, 0.6, 0.9));
     });
     emitter(0, 3, -11.4, 3.0, 12.9, 0.5, 0.34, 0.92, 1.1);

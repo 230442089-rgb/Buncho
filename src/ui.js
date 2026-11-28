@@ -1056,7 +1056,8 @@
     if (!(TF.Diorama3D && TF.Diorama3D.available())) { toast('この端末では3D表示が使えません'); return; }
     var cur = E.eraStage(), era = D.ERAS[cur];
     showModal('<div class="card-body dio-body"><p class="eyebrow">' + esc(E.nation().name) + ' ・ <span id="dio-era">' + era.name + '</span></p><div class="dio" id="dio"></div><p class="dim" id="dio-cap">' + esc(era.look) + '</p>' +
-      '<div class="acts">' + D.ERAS.map(function (e, i) { return i <= cur ? '<button class="btn sm' + (i === cur ? ' gold' : '') + '" data-act="dio-era" data-i="' + i + '">' + e.name + '</button>' : ''; }).join('') + '</div></div>' +
+      '<div class="acts">' + D.ERAS.map(function (e, i) { return i <= cur ? '<button class="btn sm' + (i === cur ? ' gold' : '') + '" data-act="dio-era" data-i="' + i + '">' + e.name + '</button>' : ''; }).join('') + '</div>' +
+      (S().flags.unified != null ? '<div class="sec">どこの町を見るか</div><div class="acts">' + [['', '日本'], ['east', '明・朝鮮'], ['india', 'インド'], ['islam', 'オスマン'], ['europe', 'ヨーロッパ']].map(function (c) { return '<button class="btn sm' + (c[0] === '' ? ' gold' : '') + '" data-act="dio-land" data-c="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div><p class="dim" style="font-size:12px">海の向こうの町も、丘の上の建物だけを残して、同じ形の駅と学校と街灯に替わっていく。</p>' : '') + '</div>' +
       '<div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true, dio: true });
     try { ui.dio = TF.Diorama3D.mount($('#dio'), { stage: cur, orbit: true }); } catch (e) { ui.dio = null; $('#dio').innerHTML = '<p class="dim">3D表示を始められませんでした。</p>'; }
   }
@@ -1218,6 +1219,7 @@
   var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'opt-ringer': null, 'sound-test': null, 'io-load': null,
     rush: null, 'auto-build': 'select', 'auto-res': 'select', 'auto-toggle': null, 'auto-now': null, 'opt-bgm': null,
     'keep-going': null,
+    'dio-land': 'select',
     enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'select', 'dio-era': 'select', 'assign-all': 'chirp',
     tab: 'open', attack: 'open', menu: 'open', fac: 'open', tech: 'open', help: 'open', log: 'open', io: 'open', hints: 'dario', bird: 'chirp', assign: 'chirp',
     'atk-toggle': 'select', pick: 'select', goto: 'select', map: 'select', 'new-game': 'launch', 'continue': 'launch' };
@@ -1291,6 +1293,13 @@
       case 'dio-era':
         id = +el.getAttribute('data-i');
         if (ui.dio) { ui.dio.setStage(id, { animate: true }); $$('[data-act="dio-era"]').forEach(function (b2) { b2.classList.toggle('gold', +b2.getAttribute('data-i') === id); }); $('#dio-cap').textContent = D.ERAS[id].look; $('#dio-era').textContent = D.ERAS[id].name; }
+        break;
+      case 'dio-land': // 町を替える(時代はそのまま)
+        if (ui.dio) {
+          id = ui.dio.stage; closeDiorama();
+          try { ui.dio = TF.Diorama3D.mount($('#dio'), { stage: id, orbit: true, culture: el.getAttribute('data-c') }); } catch (err) { ui.dio = null; }
+          $$('[data-act="dio-land"]').forEach(function (b2) { b2.classList.toggle('gold', b2 === el); });
+        }
         break;
       case 'chronicle': playChronicle(); break;
       case 'auto-research': st.autoResearch = !st.autoResearch; if (st.autoResearch) E.autoAssign(); save(); renderPanel(); renderNav(); break;
