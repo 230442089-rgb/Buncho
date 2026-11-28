@@ -1551,8 +1551,8 @@
     while (q.length) { var cur = q.shift(); links(cur).forEach(function (l) { if (isP(l.id) && dist[l.id] == null) { dist[l.id] = dist[cur] + 1; q.push(l.id); } }); }
     return dist;
   }
-  function autoMove() { // 未行動の部隊を、前線へ一歩ずつ寄せる
-    var n = 0, dist = frontDist(), aimed = {};
+  function autoMove() { // 未行動の部隊を、前線へ一歩ずつ寄せる。攻撃もまかせているときは、狙いをつけた敵地の手前へ集める
+    var n = 0, dist = (autoAtkOn() && stageDist(autoFocus())) || frontDist(), aimed = {};
     S.threats.forEach(function (t) { aimed[t.to] = 1; });
     S.units.slice().forEach(function (u) {
       if (u.acted || u.loc === null || !dist[u.loc] || aimed[u.loc]) return;   // 前線にいる・狙われた土地を守っている部隊は動かさない
@@ -1592,9 +1592,81 @@
     });
     return list;
   }
+  // ── おまかせの攻撃 ──
+  // 季節の変わり目に、勝算が九割以上になる相手にだけ仕掛ける。編成は、燃料と弾薬の割に強い部隊から、必要なぶんだけ。
+  // 不可侵と通商の相手には手を出さない。核は使わない。狙われた土地を守っている部隊は出さない。燃料と弾薬は、守りのぶんを残す。
+  function autoAtkOn() { return !!S.auto && (S.auto.attack === 'war' || S.auto.attack === 'all'); }
+  function autoKeep() { var n = income().net; return { fuel: n.fuel > 0 ? 60 : 150, ammo: n.ammo > 0 ? 60 : 150 }; }   // 作れているなら、少なめの予備でよい
+  function autoTargets() { // いま手の届く相手。交戦中・こちらを狙っている・本拠・石油の順に重く、同じなら弱いほうから
+    var seen = {}, out = [], war = S.auto.attack === 'war';
+    playerRegions().forEach(function (pid) {
+      links(pid).forEach(function (l) {
+        if (seen[l.id] || isP(l.id) || lockedOverseas(l.id)) return; seen[l.id] = 1;
+        var o = S.regions[l.id].o, f = S.factions[o]; if (!f || !f.alive || f.pact > 0 || f.trade || (war && !f.war)) return;
+        out.push({ id: l.id, sc: (f.war ? 3 : 0) + (S.threats.some(function (t) { return t.from === l.id; }) ? 3 : 0) + (f.cap === l.id ? 2 : 0) + (D.REGIONS[l.id].res.oil ? 2 : 0) - enemyPower(l.id) / 200000 });
+      });
+    });
+    return out.sort(function (a, b) { return b.sc - a.sc; });
+  }
+  function autoFocus() { // 狙い:全軍を寄せれば勝てそうな相手のうち、いちばん値打ちのある土地
+    if (!autoAtkOn()) return null;
+    var total = 0; S.units.forEach(function (u) { if (!D.UNIT_TYPES[u.type].nuke) total += ustat(u).atk * u.hp / 100; });
+    var ts = autoTargets().filter(function (t) { return enemyPower(t.id) * 1.15 <= total; });
+    return ts.length ? ts[0].id : null;
+  }
+  function stageDist(tid) { // 狙いの手前(隣り合う自領。陸つづきがあれば陸だけ)からの、自領の中の距離
+    if (!tid) return null;
+    var ls = links(tid).filter(function (l) { return isP(l.id); }), land = ls.filter(function (l) { return !l.sea; });
+    if (!land.length && !hasTransportShip()) return null;
+    var dist = {}, q = [];
+    (land.length ? land : ls).forEach(function (l) { dist[l.id] = 0; q.push(l.id); });
+    if (!q.length) return null;
+    while (q.length) { var cur = q.shift(); links(cur).forEach(function (l) { if (isP(l.id) && dist[l.id] == null) { dist[l.id] = dist[cur] + 1; q.push(l.id); } }); }
+    return dist;
+  }
+  function autoPlan(tid, aimed, free) { // その相手に出す部隊。九割に届かなければ null。free: 燃料も弾薬も使わない部隊だけで組む
+    var opts = attackOptions(tid), pool = opts.filter(function (o) { var st = ustat(o.u); return o.ok && !D.UNIT_TYPES[o.u.type].nuke && !(o.u.loc && aimed[o.u.loc]) && !(free && (st.fuel > 0 || st.ammo > 0)); });
+    function good(q) { return q.chance >= 0.9 && q.canCapture && !q.problems.length; }
+    function eff(o) { var st = ustat(o.u); return st.atk / (st.fuel * 1.5 + st.ammo + 2); }
+    if (!pool.length) return null;
+    var all = predictAttack(tid, pool.map(function (o) { return o.u.id; }), opts);
+    if (all.chance < 0.9 || !all.canCapture) return null;                       // 全部出しても届かない
+    pool.sort(function (a, b) { return eff(b) - eff(a); });
+    var first = pool.filter(function (o) { return o.via === 'land'; })[0] || pool.filter(function (o) { return o.via === 'sea'; })[0];
+    if (!first) return null;
+    var ids = [first.u.id];
+    if (first.via === 'sea') pool.forEach(function (o) { if (o.via === 'transport') ids.push(o.u.id); });   // 海を渡るなら、まず船
+    var pr = predictAttack(tid, ids, opts);
+    for (var j = 0; j < pool.length && !good(pr); j++) { if (ids.indexOf(pool[j].u.id) >= 0) continue; ids.push(pool[j].u.id); pr = predictAttack(tid, ids, opts); }
+    return good(pr) ? { ids: ids, pr: pr } : null;
+  }
+  function autoAttack() {
+    var out = [], aimed = {};
+    if (!autoAtkOn()) return out;
+    S.threats.forEach(function (t) { aimed[t.to] = 1; });
+    for (var guard = 0; guard < 16 && !S.over; guard++) {
+      var keep = autoKeep(), ts = autoTargets(), done = false;
+      for (var i = 0; i < ts.length && !done; i++) {
+        var pl = autoPlan(ts[i].id, aimed);
+        if (!pl) continue;
+        // 予備を割るなら、燃料も弾薬も使わない部隊(現地歩兵団など)だけで組み直す。それでも届かなければ見送る
+        if ((pl.pr.fuel > 0 && S.res.fuel - pl.pr.fuel < keep.fuel) || (pl.pr.ammo > 0 && S.res.ammo - pl.pr.ammo < keep.ammo)) { pl = autoPlan(ts[i].id, aimed, true); if (!pl) continue; }
+        var res = attack(ts[i].id, pl.ids);
+        if (res.error) continue;
+        out.push({ rid: ts[i].id, win: res.win, chance: pl.pr.chance, fuel: res.fuel, ammo: res.ammo, n: pl.ids.length, events: res.events });
+        done = true;
+      }
+      if (!done) break;
+    }
+    return out;
+  }
   function autoRun() { // 季節の変わり目に一度
     var A = S.auto; if (!A || (S.over && !S.flags.cont)) return;
-    var men = A.guard ? autoGuard() : 0, b = autoBuild(), made = A.make ? autoMake() : [], moved = A.move ? autoMove() : 0, parts = [];
+    var men = A.guard ? autoGuard() : 0, b = autoBuild(), made = A.make ? autoMake() : [], atk = autoAttack(), moved = A.move || autoAtkOn() ? autoMove() : 0, parts = [];
+    atk.forEach(function (x) { // 攻撃の結果は、一つずつ知らせる。その戦で起きたこと(本拠の陥落、節目の札)も、季節の知らせに並べる
+      ev('battle', 'おまかせ:' + rname(x.rid) + (x.win ? 'を攻略した' : 'の攻略に失敗した') + '(勝算 ' + Math.round(x.chance * 100) + '%、' + x.n + '部隊、燃料 −' + x.fuel + '、弾薬 −' + x.ammo + ')。', { rid: x.rid, auto: true, won: !!x.win });
+      if (REPORT) x.events.forEach(function (e) { REPORT.push(e); });
+    });
     if (b.n) { var cnt = {}; b.list.forEach(function (x) { var nm = x.name.split(' → ').pop(); cnt[nm] = (cnt[nm] || 0) + 1; }); parts.push('建設 ' + Object.keys(cnt).map(function (k) { return k + (cnt[k] > 1 ? '×' + cnt[k] : ''); }).join('、')); }
     if (men) parts.push('徴兵 +' + (men / 1000) + '千');
     if (made.length) { var mc = {}; made.forEach(function (t) { var nm = D.UNIT_TYPES[t].short; mc[nm] = (mc[nm] || 0) + 1; }); parts.push('編成 ' + Object.keys(mc).map(function (k) { return k + (mc[k] > 1 ? '×' + mc[k] : ''); }).join('、')); }
@@ -1608,6 +1680,7 @@
     if (o.build != null && ['off', 'scarce', 'res', 'study'].indexOf(o.build) >= 0) A.build = o.build;
     if (o.res != null && ['gold', 'food', 'steel', 'fuel', 'ammo'].indexOf(o.res) >= 0) A.res = o.res;
     ['move', 'guard', 'make'].forEach(function (k) { if (o[k] != null) A[k] = !!o[k]; });
+    if (o.attack != null && ['off', 'war', 'all'].indexOf(o.attack) >= 0) A.attack = o.attack;   // 攻撃:まかせない / 交戦中の相手だけ / 不可侵・通商の相手以外すべて
     return A;
   }
 
@@ -1714,7 +1787,7 @@
     facK: facK, facMax: facMax, lvText: lvText,
     census: census, vitals: vitals, popInit: popInit, keepGoing: keepGoing,
     buildTurns: buildTurns, schoolName: schoolName, facLabel: facLabel, rushCost: rushCost, rush: rush,
-    setAuto: setAuto, autoBuild: autoBuild, autoMove: autoMove, autoGuard: autoGuard, autoMake: autoMake, autoNeeds: autoNeeds, autoReserve: autoReserve, frontDist: frontDist,
+    setAuto: setAuto, autoAttack: autoAttack, autoFocus: autoFocus, autoKeep: autoKeep, autoTargets: autoTargets, autoPlan: autoPlan, autoBuild: autoBuild, autoMove: autoMove, autoGuard: autoGuard, autoMake: autoMake, autoNeeds: autoNeeds, autoReserve: autoReserve, frontDist: frontDist,
     isSpec: isSpec, researchMult: researchMult, autoTechLeft: autoTechLeft, manualAvail: manualAvail, allTechDone: allTechDone, prodTurns: prodTurns,
     moodTarget: moodTarget, moodAvg: moodAvg, moodFactor: moodFactor, polHas: polHas, policyOptions: policyOptions, enact: enact,
     nationStage: nationStage, nation: nation, eraStage: eraStage, voice: voice, voices: voices, world: world,

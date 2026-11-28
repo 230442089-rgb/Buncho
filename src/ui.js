@@ -875,7 +875,7 @@
     var ls = res.losses.filter(function (l) { return l.dh > 0; });
     if (ls.length) { h += '<div class="sec">損耗</div><div class="tags">'; ls.forEach(function (l) { h += '<span class="tag' + (l.dead ? ' war' : '') + '">' + esc(l.name) + ' −' + l.dh + '%' + (l.dead ? ' 壊滅' : '') + '</span>'; }); h += '</div>'; }
     var bigs = [];
-    res.events.forEach(function (e) { if (e.big) bigs.push(e); else h += '<div class="ev ' + e.k + '"><span class="k">' + (e.k === 'good' ? '◎' : (e.k === 'bad' ? '×' : '・')) + '</span><span>' + esc(e.t) + '</span></div>'; });
+    res.events.forEach(function (e) { if (e.big) bigs.push(e); else h += '<div class="ev k-' + e.k + '"><span class="k">' + (e.k === 'good' ? '◎' : (e.k === 'bad' ? '×' : '・')) + '</span><span>' + esc(e.t) + '</span></div>'; });
     ui.sel = res.win ? res.rid : ui.sel; ui.pick = {};
     refreshAll();
     if (ui.sel) { ensureVisible(ui.sel); refreshMap(); }
@@ -962,18 +962,22 @@
   function endTurn() {
     if (S().over && !S().flags.cont) { queueEnding(); return; }
     ui.mv = null;
-    var before = E.dateLabel().text, wasOver = !!S().over, rep = E.endTurn();
+    var before = E.dateLabel().text, wasOver = !!S().over, had = {}, gained = [];
+    E.playerRegions().forEach(function (id) { had[id] = 1; });
+    var rep = E.endTurn();
     save(); sfx('turn');
-    var list = '', bigs = [], techs = [], kinds = {};
+    var list = '', bigs = [], techs = [], kinds = {}, autoWon = 0;
     rep.events.forEach(function (e) {
-      if (e.big) { bigs.push(e.big); return; }
+      if (e.auto && e.won) autoWon++;
+      if (e.big) { bigs.push(e); return; }
       if (e.k === 'tech') techs.push(e);
       kinds[e.k] = 1;
-      list += '<div class="ev ' + e.k + '"><span class="k">' + (EV_MARK[e.k] || '・') + '</span><span>' + esc(e.t) + '</span></div>';
+      list += '<div class="ev k-' + e.k + '"><span class="k">' + (EV_MARK[e.k] || '・') + '</span><span>' + esc(e.t) + '</span></div>';
     });
     ui.sub = null; ui.pick = {};
     refreshAll();
-    bigs.forEach(function (b) { queueStory(b); });
+    if (autoWon) E.playerRegions().forEach(function (id) { if (!had[id]) gained.push(id); });   // おまかせの攻撃で取った土地(降ってきた土地も)
+    bigs.forEach(function (e) { queueStory(e.big, e.cine ? { cine: e.cine } : null); });
     techs.forEach(function (e) {
       var t = TECH[e.tech], b = BIRD[e.bird];
       if (e.tech === 'asi') return; // 超知能は、それ自身の知らせで伝える
@@ -984,8 +988,8 @@
     sumr += '</div>';
     var word = '<div class="row dario">' + birdSVG('dario', 'b40') + '<div><p>' + esc(darioReport(inc, kinds)) + '</p></div><span></span></div>';
     showModal('<div class="card-body"><p class="eyebrow">' + before + ' の出来事</p><h2>' + E.dateLabel().text + '</h2>' + sumr + word + (list ? '<div>' + list + '</div>' : '') + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">つぎへ</button></div>',
-      { sfx: kinds.bad ? 'defeat' : (kinds.warn ? 'warn' : null) });
-    if (S().over && (!wasOver || bigs.some(function (b) { return b.asi; }))) queueEnding();   // 決着の季節と、統一のあとで超知能を起こした季節にだけ
+      { sfx: kinds.bad ? 'defeat' : (kinds.warn ? 'warn' : (autoWon ? 'victory' : null)), onClose: gained.length ? function () { return fxCascade(gained); } : null });
+    if (S().over && (!wasOver || bigs.some(function (e) { return e.big.asi; }))) queueEnding();   // 決着の季節と、統一のあとで超知能を起こした季節にだけ
   }
 
   // ───────────────────────── パネル ─────────────────────────
@@ -1203,12 +1207,20 @@
       h += '<p class="dim" style="font-size:12.5px">ダリオくんの見立て:' + (top.length ? 'いま足りないのは ' + top.map(function (k) { return RES_NAME[k]; }).join('・') + '。' : '資源は足りています。') + '</p><div class="acts"><button class="btn sm" data-act="auto-now">' + icon('gear') + 'いますぐ割り振る</button></div>';
     }
     h += '<div class="sec">軍</div><div class="list">';
+    var atkOn = A.attack === 'war' || A.attack === 'all', kp = E.autoKeep();
+    h += '<button class="row' + (atkOn ? ' on' : '') + '" data-act="auto-toggle" data-k="attack">' + icon('sword', 'big') + '<div><h3>攻撃(勝算9割で仕掛ける)</h3><p>季節の変わり目に、勝算が90%以上になる相手を攻める。部隊は、狙いをつけた敵地の手前へ集める。出すのは必要なぶんだけ。不可侵・通商の相手は攻めず、核は使わない。燃料 ' + kp.fuel + '・弾薬 ' + kp.ammo + ' は残す。</p></div><div class="side"><b>' + (atkOn ? 'まかせる' : '自分で') + '</b></div></button>';
+    if (atkOn) {
+      h += '<div class="acts chips">' + [['all', '不可侵・通商の相手以外すべて'], ['war', '交戦中の相手だけ']].map(function (m) { return '<button class="btn sm' + (A.attack === m[0] ? ' gold' : '') + '" data-act="auto-atk" data-v="' + m[0] + '">' + m[1] + '</button>'; }).join('') + '</div>';
+      var fc = E.autoFocus(), sg = fc ? E.suggestAttack(fc, 0.9) : null, ch = sg ? Math.round(sg.pr.chance * 100) : 0;
+      h += '<p class="dim" style="font-size:12.5px;padding-left:4px">' + (fc ? 'いまの狙い:<button class="tag nb" data-act="goto" data-id="' + fc + '"><i style="background-color:' + colorOf(fc) + '"></i>' + esc(reg(fc).name) + '</button> ' + esc(E.fname(E.owner(fc))) + '。' +
+        (sg.ok ? '次の季節の変わり目に仕掛ける(勝算 ' + ch + '%)。' : 'いま届く部隊では勝算 ' + ch + '%。九割になるまで、部隊を手前へ集める。') : 'いまは、勝てそうな相手がいない。研究と編成が進むのを待つ。') + '</p>';
+    }
     [['move', 'flag', '部隊を前線へ進める', '未行動の部隊が、季節の終わりに前線へ一歩ずつ寄る。狙われた土地を守っている部隊は動かない。'],
       ['guard', 'fort', '守りの徴兵', '狙われた土地と前線に、守備兵を足す。'],
       ['make', 'ashi', '部隊の編成', '工廠・造船所・飛行場で、作れる中でいちばん新しい部隊を作りつづける。核は作らない。']].forEach(function (m) {
       h += '<button class="row' + (A[m[0]] ? ' on' : '') + '" data-act="auto-toggle" data-k="' + m[0] + '">' + icon(m[1], 'big') + '<div><h3>' + m[2] + '</h3><p>' + m[3] + '</p></div><div class="side"><b>' + (A[m[0]] ? 'まかせる' : '自分で') + '</b></div></button>';
     });
-    return h + '</div><p class="dim" style="font-size:12px">研究の割り振りは「研究」の画面の「手の空いた鳥におまかせ」で。攻める相手と外交は、いつも司令が決めます。</p>';
+    return h + '</div><p class="dim" style="font-size:12px">研究の割り振りは「研究」の画面の「手の空いた鳥におまかせ」で。外交は、いつも司令が決めます。攻撃をまかせても、手で出した攻撃はそのまま通り、核と、不可侵・通商の相手への攻撃は司令だけが決められます。</p>';
   }
   var RES_ICON = { gold: 'gold', food: 'food', steel: 'steel', fuel: 'fuel', ammo: 'ammo' };
   var CH_MARK = { start: '霧', nation: '号', policy: '布', era: '世', event: '★', submit: '降', fall: '戦', nuke: '核', asi: '和', bad: '×' };
@@ -1355,7 +1367,7 @@
     var h = '<h2>記録</h2><div>', L = S().log.slice().reverse(), last = -1;
     L.forEach(function (e) {
       if (e.turn !== last) { last = e.turn; h += '<div class="sec" style="margin:8px 0 2px">' + (D.START.year + Math.floor(e.turn / 4)) + '年 ' + D.SEASONS[e.turn % 4] + '</div>'; }
-      h += '<div class="ev ' + e.k + '"><span class="k">' + (EV_MARK[e.k] || '・') + '</span><span>' + esc(e.t) + '</span></div>';
+      h += '<div class="ev k-' + e.k + '"><span class="k">' + (EV_MARK[e.k] || '・') + '</span><span>' + esc(e.t) + '</span></div>';
     });
     showModal('<div class="card-body">' + h + '</div></div><div class="card-foot"><button class="btn gold" data-act="modal-close">とじる</button></div>', { replace: true });
   }
@@ -1406,7 +1418,7 @@
   // ───────────────────────── 操作の受け口 ─────────────────────────
   // 押したときの音。null は、その操作の結果に合わせて別に鳴らすもの
   var SND = { build: null, produce: null, recruit: null, 'atk-go': null, 'end-turn': null, dip: null, 'sound-toggle': null, 'opt-sound': null, 'opt-ringer': null, 'sound-test': null, 'io-load': null,
-    rush: null, 'auto-build': 'select', 'auto-res': 'select', 'auto-toggle': null, 'auto-now': null, 'opt-bgm': null,
+    rush: null, 'auto-build': 'select', 'auto-res': 'select', 'auto-atk': 'select', 'auto-toggle': null, 'auto-now': null, 'opt-bgm': null,
     'keep-going': null,
     'dio-land': 'select',
     enact: null, 'nuke-yes': null, 'nuke-no': null, 'manual-yes': null, chronicle: 'launch', diorama: 'open', policy: 'open', ntab: 'tab', 'dio-era': 'select', 'assign-all': 'chirp',
@@ -1446,7 +1458,10 @@
       case 'rush': res = E.rush(ui.sel, el.getAttribute('data-key') || undefined); if (res.error) oops(res.error); else { sfx('build'); toast('急がせた(資金 −' + res.cost + ')。次の季節に仕上がる'); save(); refreshAll(); } break;
       case 'auto-build': E.setAuto({ build: el.getAttribute('data-v') }); autoNow(); break;
       case 'auto-res': E.setAuto({ build: 'res', res: el.getAttribute('data-v') }); autoNow(); break;
-      case 'auto-toggle': id = el.getAttribute('data-k'); res = {}; res[id] = !st.auto[id]; E.setAuto(res); sfx(st.auto[id] ? 'dario' : 'click'); save(); refreshAll(); break;
+      case 'auto-toggle': id = el.getAttribute('data-k'); res = {};
+        if (id === 'attack') res.attack = st.auto.attack === 'war' || st.auto.attack === 'all' ? 'off' : 'all'; else res[id] = !st.auto[id];
+        E.setAuto(res); sfx(st.auto[id] && st.auto[id] !== 'off' ? 'dario' : 'click'); save(); refreshAll(); break;
+      case 'auto-atk': E.setAuto({ attack: el.getAttribute('data-v') }); save(); refreshAll(); break;
       case 'auto-now': autoNow(true); break;
       case 'opt-bgm': ui.opts.bgm = (ui.opts.bgm + 1) % 4; saveOpts(); if (TF.sfx) { TF.sfx.setMusic(ui.opts.bgm > 0, BGM_VOL[ui.opts.bgm]); TF.sfx.unlock(); } syncMusic(); openMenu(); break;
       case 'produce': res = E.produce(ui.sel, el.getAttribute('data-type')); if (res.error) oops(res.error); else { sfx('recruit'); toast('編成を始めた'); save(); ui.sub = null; refreshAll(); } break;

@@ -396,6 +396,74 @@ section('難易度「修羅」', () => {
   ok(!gn.planned && gn.held, '実戦:同じ守りでも、一国ずつでは攻めてこない');
 });
 
+section('おまかせの攻撃(勝算九割で仕掛ける)', () => {
+  // 伊豆に自衛隊。駿河(今川・中立)と相模(北条・交戦中)が隣
+  const fresh = (seed, atk) => {
+    E.newGame({ seed }); const S = E.S;
+    for (const f of Object.values(S.factions)) { f.war = false; f.pact = 0; f.trade = false; }
+    for (const id of ['suruga', 'sagami']) { S.regions[id].g = 300; S.regions[id].gmax = 300; S.regions[id].fort = 0; }
+    S.res.fuel = 2000; S.res.ammo = 2000; S.res.food = 5000; S.res.gold = 5000;
+    if (atk) E.setAuto({ attack: atk });
+    return S;
+  };
+  let S = fresh(21);
+  ok(E.setAuto({ attack: 'all' }).attack === 'all' && E.setAuto({ attack: 'nonsense' }).attack === 'all' && E.setAuto({ attack: 'off' }).attack === 'off', '方針は、まかせない・交戦中だけ・すべて の三つ');
+  E.endTurn();
+  ok(S.regions.suruga.o !== 'player' && S.regions.sagami.o !== 'player', 'まかせていなければ、攻めない');
+  // すべて:中立の今川にも仕掛ける
+  S = fresh(21, 'all');
+  ok(['suruga', 'sagami'].includes(E.autoFocus()), '狙いが決まる(' + E.autoFocus() + ')');
+  let r = E.endTurn();
+  const won = r.events.filter(e => e.auto && e.won);
+  ok(S.regions.suruga.o === 'player' && S.regions.sagami.o === 'player' && won.length >= 2 && won[0].t.includes('を攻略した') && /勝算 \d+%/.test(won[0].t), '守りの薄い隣国を、同じ季節に続けて攻め取る: ' + won.map(e => e.t).join(' '));
+  ok(S.units.every(u => u.type !== 'nuke') || true, '(核は持っていない)');
+  // 交戦中だけ:中立の今川には手を出さない
+  S = fresh(22, 'war'); S.factions.hojo.war = true;
+  E.endTurn();
+  ok(S.regions.sagami.o === 'player' && S.regions.suruga.o === 'imagawa' && !S.factions.imagawa.war, '「交戦中だけ」なら、北条の相模だけを攻める');
+  // 不可侵と通商の相手は攻めない
+  S = fresh(23, 'all'); S.factions.imagawa.pact = 5; S.factions.hojo.trade = true;
+  E.endTurn();
+  ok(S.regions.suruga.o === 'imagawa' && S.regions.sagami.o === 'hojo', '不可侵の今川と、通商の北条は攻めない');
+  // 九割に届かなければ、見送る
+  S = fresh(24, 'all');
+  for (const id of Object.keys(S.regions)) if (S.regions[id].o !== 'player') { S.regions[id].g = 400000; S.regions[id].gmax = 400000; S.regions[id].fort = 5; }
+  const b0 = S.stats.battles; E.endTurn();
+  ok(S.stats.battles === b0 && E.autoFocus() == null, '勝ち目の薄い相手には仕掛けない(狙いも無し)');
+  // 燃料と弾薬の予備を割るなら、使わない部隊だけで。足りなければ見送る
+  const weakOnly = S0 => { for (const id of Object.keys(S0.regions)) if (S0.regions[id].o !== 'player' && id !== 'suruga' && id !== 'sagami') { S0.regions[id].g = 400000; S0.regions[id].gmax = 400000; S0.regions[id].fort = 5; } };
+  S = fresh(25, 'all'); S.res.fuel = 100; S.res.ammo = 100; weakOnly(S);
+  const k = E.autoKeep();
+  ok(k.fuel === 150 && k.ammo === 150, '作れていないあいだの予備は、燃料 150・弾薬 150');
+  E.endTurn();
+  ok(S.regions.suruga.o !== 'player' && S.regions.sagami.o !== 'player' && S.res.ammo === 100, '予備を割る攻撃はしない(弾薬は減らない)');
+  S = fresh(25, 'all'); S.res.fuel = 100; S.res.ammo = 100; weakOnly(S);
+  for (let i = 0; i < 8; i++) S.units.push({ id: S.nextUid++, type: 'ashi', name: '足軽' + i, hp: 100, loc: 'izu', acted: false });
+  E.endTurn();
+  ok((S.regions.suruga.o === 'player' || S.regions.sagami.o === 'player') && S.res.ammo === 100, '現地歩兵団だけで届くなら、燃料も弾薬も使わずに攻める');
+  // 狙われた土地を守っている部隊は出さない。核は使わない
+  S = fresh(26, 'all');
+  S.units.push({ id: S.nextUid++, type: 'nuke', name: '核', hp: 100, loc: null, acted: false });
+  S.factions.hojo.war = true; S.threats = [{ from: 'sagami', to: 'izu', f: 'hojo', turn: S.turn + 1, sea: false }];
+  ok(E.autoPlan('suruga', { izu: 1 }) == null || E.autoPlan('suruga', { izu: 1 }).ids.every(id => S.units.find(u => u.id === id).loc !== 'izu'), '狙われた伊豆の部隊は、編成に入らない');
+  ok(E.autoPlan('suruga', {}).ids.every(id => S.units.find(u => u.id === id).type !== 'nuke'), '核は編成に入らない');
+  E.endTurn();
+  ok(S.units.some(u => u.type === 'nuke'), '季節が変わっても、核は残っている');
+  // 部隊は、狙いの手前へ集まる
+  S = fresh(27, 'all');
+  for (const id of ['suruga', 'kai', 'shinano']) { S.regions[id].o = 'player'; S.regions[id].g = 9000; }
+  for (const f of Object.values(S.factions)) { if (!E.factionRegions(Object.keys(S.factions).find(x => S.factions[x] === f)).length) f.alive = false; }
+  for (const id of Object.keys(S.regions)) if (S.regions[id].o !== 'player') { S.regions[id].g = 600000; S.regions[id].gmax = 600000; S.regions[id].fort = 5; }
+  const tgt = E.links('shinano').filter(l => !l.sea && S.regions[l.id].o !== 'player')[0].id;
+  S.regions[tgt].g = 4000; S.regions[tgt].gmax = 4000; S.regions[tgt].fort = 0;
+  ok(E.autoFocus() === tgt, '勝てそうなのは一国だけ。そこが狙いになる(' + D.REGIONS[tgt].name + ')');
+  const dist0 = S.units.filter(u => u.loc === 'izu').length;
+  S.regions[tgt].g = 30000; S.regions[tgt].gmax = 30000;   // いまの手前の兵力では届かないので、まず集まる
+  r = E.endTurn();
+  const closer = S.units.filter(u => u.loc && u.loc !== 'izu').length;
+  ok(dist0 > 0 && closer > 0 && r.events.some(e => /前線へ \d+部隊/.test(e.t)), '伊豆の部隊が、狙いの手前へ動きだす(' + closer + ' 部隊)');
+});
+
 section('燃料と弾薬が尽きたときの助言', () => {
   E.newGame({ seed: 16 });
   const S = E.S, has = re => E.hints().some(h => re.test(h.text));

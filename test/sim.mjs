@@ -2,6 +2,7 @@
 //   node test/sim.mjs [難易度=normal] [試行回数=3] [最大ターン=400] [-v]
 // 環境変数: ASI=1 超知能まで研究する / NUKE=1 核兵器を研究して作り、撃つ / MAXATK=n 1ターンの攻撃回数を絞る(ゆっくり遊ぶ人の再現)
 //           AUTO=scarce|study|fuel|gold… 建設・徴兵・編成・移動をエンジンの「おまかせ」に任せる(ボットは外交と攻撃だけ)
+//           ATK=auto|war 攻撃もおまかせに任せる(勝算九割で仕掛ける。war は交戦中の相手だけ)。AUTO と合わせると、ボットは外交と研究だけ
 //           POL=none 施策を布告しない / POL=all 見守り網まで全部布告する / DUMP_DIR=… 途中のセーブを書き出す
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -17,7 +18,7 @@ const DIFF = args[0] || 'normal';
 const RUNS = +(args[1] || 3);
 const MAXT = +(args[2] || 400);
 const WANT_ASI = process.env.ASI === '1', WANT_NUKE = process.env.NUKE === '1';
-const MAXATK = +(process.env.MAXATK || 999), POL = process.env.POL || 'default', AUTO = process.env.AUTO || '';
+const MAXATK = +(process.env.MAXATK || 999), POL = process.env.POL || 'default', AUTO = process.env.AUTO || '', ATK = process.env.ATK || '';   // ATK=auto|war: 攻撃もおまかせに任せる
 
 function assertState(tag) {
   const S = E.S;
@@ -182,8 +183,9 @@ function botTurn(log) {
   let atkN = 0;
   const left = Object.keys(S.regions).filter(id => !E.isP(id)).length;
   const hold = WANT_ASI && S.flags.asi == null && left <= 4;   // 超知能を待つあいだ、最後の数地域は残す
+  if (ATK) E.setAuto({ attack: ATK === 'war' ? 'war' : 'all' });   // 攻撃をまかせる:ここでは攻めない(季節の変わり目に、おまかせが仕掛ける)
   for (const { tid } of list) {
-    if (atkN >= MAXATK || hold) break;
+    if (atkN >= MAXATK || hold || ATK) break;
     if (E.isP(tid)) continue;
     if (S.factions[E.owner(tid)].pact > 0) continue;
     const plan = planAttack(tid, 0.9);
@@ -201,7 +203,7 @@ function botTurn(log) {
   const dist = distToFrontier();
   const hojoNear = E.owner('sagami') !== 'player';
   let homeGuard = false;
-  for (const u of AUTO ? [] : S.units.slice()) {
+  for (const u of AUTO || ATK ? [] : S.units.slice()) {   // 攻撃をまかせているときは、寄せるのもおまかせ
     if (u.acted || u.loc === null) continue;
     if (hojoNear && u.loc === 'izu' && u.type === 'inf' && !homeGuard) { homeGuard = true; continue; }
     if (dist[u.loc] === 0) continue;
