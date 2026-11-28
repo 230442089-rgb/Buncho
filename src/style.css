@@ -544,3 +544,27 @@ body.asi .btn.shu, body.asi .nav .end { color: #1c2433; text-shadow: 0 1px 0 rgb
 body.asi .mk .ubadge rect { fill: #8e9bb0 !important; }
 body.asi .fac.has .med { filter: saturate(.2) brightness(1.08); }
 @media (prefers-reduced-motion: reduce) { .pips i.wip, .row.hl { animation: none; } }
+
+/* ── エクストリームハード ── */
+.row.extreme { background: linear-gradient(180deg, #2a2233 0%, #17131f 46%, #0b0910 100%); border-color: #7d6520; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 236, 170, .22), 0 0 16px rgba(226, 73, 45, .18), 0 3px 6px rgba(0, 0, 0, .3); }
+.row.extreme h3 { color: #ffd9a0; } .row.extreme .fld { color: #ff9a86; }
+.row.extreme h3 .tag { font-size: 10.5px; font-weight: 400; vertical-align: 2px; }
+
+/* ── 地下壕の場面(エクストリームハードで「第三帝国」を降したときの寸劇) ── */
+.bunker { position: fixed; inset: 0; z-index: 36; overflow: hidden; background: #0d0c0a; touch-action: none; user-select: none; -webkit-user-select: none; }
+.bk-frame { position: absolute; overflow: hidden; background: #0d0c0a; box-shadow: 0 0 0 1px #24211b, 0 18px 50px rgba(0, 0, 0, .7); }
+.bk-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; filter: sepia(.3) saturate(.85) contrast(1.06); }
+.bunker.black .bk-frame { visibility: hidden; }
+.bunker.nogl .bk-canvas { visibility: hidden; }
+.bunker.nogl .bk-frame { background: radial-gradient(90% 70% at 50% 40%, #4a4436 0%, #1a1814 62%, #0b0a08 100%); }
+.bk-vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(80% 70% at 50% 46%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, .7) 100%); }
+.bk-card { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; background: #070605; color: #f1eadb; padding: 0 var(--gut-r) 0 var(--gut-l); }
+.bk-card b { font-family: var(--f-display); font-weight: 400; font-size: clamp(30px, 8.6vw, 54px); line-height: 1.35; letter-spacing: .06em; }
+.bk-card small { font-size: 12.5px; letter-spacing: .2em; color: #b9b1a0; }
+.bk-sub { position: absolute; left: var(--gut-l); right: var(--gut-r); bottom: calc(env(safe-area-inset-bottom, 0px) + 16%); margin: 0; text-align: center; font-size: clamp(17px, 4.9vw, 26px); font-weight: 700; line-height: 1.45; color: #fff6b8; text-shadow: 0 2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 0 -2px 0 #000, 0 0 10px rgba(0, 0, 0, .8); text-wrap: balance; }
+.bk-sub.shout { font-size: clamp(20px, 5.8vw, 31px); animation: bk-shake .11s linear infinite; }
+.bk-sub.big { font-size: clamp(34px, 11vw, 60px); }
+.bk-sub.narr { color: #d5dbe6; font-weight: 400; font-size: clamp(14px, 4vw, 20px); }
+@keyframes bk-shake { 0% { transform: translate(1px, 0); } 25% { transform: translate(-1px, 1px); } 50% { transform: translate(1px, -1px); } 75% { transform: translate(-1px, 0); } 100% { transform: translate(0, 1px); } }
+.bk-skip { position: absolute; right: var(--gut-r); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); padding: 9px 16px; border-radius: 20px; background: rgba(14, 22, 38, .8); border: 1px solid rgba(255, 255, 255, .4); color: #fff; font-size: 13px; font-weight: 700; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 4px 10px rgba(0, 0, 0, .45); }
+@media (prefers-reduced-motion: reduce) { .bk-sub.shout { animation: none; } }

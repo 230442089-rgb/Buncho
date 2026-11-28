@@ -10,7 +10,7 @@
 
   var SAVE_VERSION = 1;
   var MEN = 50;          // 兵50人で戦力1(槍足軽の場合)
-  function lockedOverseas(rid) { return D.REGIONS[rid].map === 'w' && S.flags.unified == null; }
+  function lockedOverseas(rid) { return D.REGIONS[rid].map === 'w' && S.flags.unified == null && !D.DIFFICULTY[S.diff].open; }
   var TECH_BY_ID = {};
   D.TECHS.forEach(function (t) { TECH_BY_ID[t.id] = t; });
   var BIRD_BY_ID = {};
@@ -79,6 +79,7 @@
       var f = D.FACTIONS[id];
       S.factions[id] = { att: f.att, war: !!f.war, pact: 0, trade: false, lost: 0, cap: f.capital, alive: !f.dormant, cool: 0, awe: 0, q: f.q, pride: f.pride, leader: f.leader };
     });
+    if (diff.alt) applyAlt();
     var home = S.regions[st.region];
     home.g = 1500; home.fac = { airfield: 1, school: 1 };
     D.START_UNITS.forEach(function (u) { addUnit(u.type, u.name, st.region); });
@@ -107,9 +108,13 @@
     var o = typeof json === 'string' ? JSON.parse(json) : json;
     if (!o || o.v !== SAVE_VERSION || !o.regions || !o.units) throw new Error('セーブデータの形式が違います');
     // 地域や勢力が増減していたら読み込まない(古い版のセーブ)
-    var ok = Object.keys(D.REGIONS).every(function (id) { return o.regions[id]; }) && Object.keys(D.FACTIONS).every(function (id) { return o.factions[id]; });
+    var ok = Object.keys(D.REGIONS).every(function (id) { return o.regions[id]; }) && Object.keys(D.FACTIONS).every(function (id) { return o.factions[id] || D.FACTIONS[id].dormant; });
     if (!ok) throw new Error('セーブデータの版が違います');
     S = o; REPORT = null;
+    Object.keys(D.FACTIONS).forEach(function (id) {
+      var f = D.FACTIONS[id];
+      if (!S.factions[id]) S.factions[id] = { att: f.att, war: false, pact: 0, trade: false, lost: 0, cap: f.capital, alive: false, cool: 0, awe: 0, q: f.q, pride: f.pride, leader: f.leader };
+    });
     // 民心・施策・国号が入る前のセーブは、ここで足す
     S.pol = S.pol || {}; S.flags = S.flags || {};
     if (!S.auto) S.auto = { build: 'off', res: 'fuel', move: false, guard: false, make: false };
@@ -119,6 +124,106 @@
     if (!S.hist) S.hist = [];
     if (S.flags.nation == null) S.flags.nation = nationCalc();
     return S;
+  }
+
+  // ───────────────────────── エクストリームハード ─────────────────────────
+  function isBoss(fid) { return !!(D.FACTIONS[fid] && D.FACTIONS[fid].boss); }
+  function isPower(fid) { return !!(D.FACTIONS[fid] && D.FACTIONS[fid].power != null); }
+  // 世界の成り立ちを差し替える:ローマが続き、新大陸に合衆国がある
+  function applyAlt() {
+    var A = D.ALT, en = D.DIFFICULTY[S.diff].enemy;
+    A.wake.forEach(function (fid) { S.factions[fid].alive = true; });
+    Object.keys(A.owners).forEach(function (rid) {
+      var r = S.regions[rid]; r.o = A.owners[rid];
+      if (A.troops[rid]) { r.g = r100(A.troops[rid] * en); r.gmax = r.g; }
+      if (A.forts[rid] != null) r.fort = A.forts[rid];
+    });
+    Object.keys(S.factions).forEach(function (fid) {
+      var f = S.factions[fid];
+      if (f.alive && !factionRegions(fid).length) { f.alive = false; f.war = false; }   // 土地のなくなった国は、この世界には無い
+      if (isPower(fid)) f.ind = D.FACTIONS[fid].power;
+    });
+  }
+  // 持ち主が土地を失ったあと(敵どうしの争い・最後の敵の出現)
+  function afterAiLoss(prev, rid) {
+    var pf = S.factions[prev]; if (!pf) return;
+    var rest = factionRegions(prev);
+    if (!rest.length) { pf.alive = false; pf.war = false; pf.trade = false; ev('news', fname(prev) + 'は滅亡した。', { fid: prev }); }
+    else if (pf.cap === rid) { rest.sort(function (a, b) { return D.REGIONS[b].koku - D.REGIONS[a].koku; }); pf.cap = rest[0]; }
+  }
+  // 列強:産業の段を進め、日本の大名に銃を流す
+  function powerStep() {
+    if (!diff().alt || S.flags.asi != null) return;
+    var last = D.POWER_STAGES.length - 1;
+    Object.keys(S.factions).forEach(function (fid) {
+      var f = S.factions[fid]; if (!f.alive || !isPower(fid)) return;
+      if (S.turn > 0 && (S.turn + (fid === 'rome' ? 0 : 8)) % 16 === 0 && f.ind < last) {   // 四年に一段。ローマとアメリカで時期をずらす
+        f.ind++; f.q = Math.round((f.q + 0.25) * 1000) / 1000; f.qb = Math.round(((f.qb || 0) + 0.25) * 1000) / 1000;
+        ev('news', fname(fid) + 'が「' + D.POWER_STAGES[f.ind] + '」の段に入った。兵の質が上がっている。', { fid: fid });
+        mark('bad', fname(fid) + 'が、産業の段を「' + D.POWER_STAGES[f.ind] + '」へ進める。');
+      }
+    });
+    if (S.flags.unified == null && rnd() < 0.14) {
+      var seller = Object.keys(S.factions).filter(function (fid) { return S.factions[fid].alive && isPower(fid); });
+      var buyers = Object.keys(S.factions).filter(function (fid) { var f = S.factions[fid]; return f.alive && !isPower(fid) && !isBoss(fid) && (f.arms || 0) < 5 && factionRegions(fid).length && isJp(fid); });
+      if (seller.length && buyers.length) {
+        var sf = seller[Math.floor(rnd() * seller.length)], bf = buyers[Math.floor(rnd() * buyers.length)], b = S.factions[bf];
+        b.arms = (b.arms || 0) + 1; b.q = Math.round((b.q + 0.08) * 1000) / 1000; b.qb = Math.round(((b.qb || 0) + 0.08) * 1000) / 1000;
+        ev('news', fname(sf) + 'の商館が、' + fname(bf) + 'に新式の銃を売った。', { fid: bf });
+      }
+    }
+  }
+  // 最後の敵:兆し → 出現 → 電撃戦
+  function bossOf(fid) { return D.BOSSES.filter(function (b) { return b.id === fid; })[0]; }
+  function bossState(fid) { return S.flags['boss_' + fid] || null; }
+  function bossRise(b) {
+    var r = S.regions[b.home], prev = r.o, f = S.factions[b.id], en = diff().enemy;
+    S.flags['boss_' + b.id].up = S.turn;
+    if (prev === 'player') { // 自領で起きたら、土地ごと奪われる。部隊は隣の自領へ退く
+      var esc = links(b.home).filter(function (l) { return isP(l.id) && !l.sea; })[0] || links(b.home).filter(function (l) { return isP(l.id); })[0];
+      var to = esc ? esc.id : playerRegions().filter(function (id) { return id !== b.home; })[0];
+      unitsAt(b.home).forEach(function (u) { if (to) { u.loc = to; u.hp = Math.max(1, u.hp - 15); } else u.hp = 0; });
+      S.units = S.units.filter(function (u) { return u.hp > 0; });
+      r.fac = {}; r.b = null; r.p = null;
+    }
+    S.threats = S.threats.filter(function (t) { return t.to !== b.home && t.from !== b.home; });
+    r.o = b.id; r.g = r100(b.troops * en); r.gmax = r.g; r.fort = Math.max(r.fort, b.fort); r.ruin = 0; r.feud = S.turn;
+    f.alive = true; f.war = true; f.pact = 0; f.trade = false; f.att = -100; f.cap = b.home; f.q = D.FACTIONS[b.id].q; f.lost = 0; f.awe = 0;
+    if (prev !== 'player') afterAiLoss(prev, b.home);
+    mark('bad', '「' + fname(b.id) + '」が現れる。' + rname(b.home) + 'は、一季で別の国になった。');
+    ev('event', rname(b.home) + 'に「' + fname(b.id) + '」が現れた。' + (prev === 'player' ? '我が軍は' + rname(b.home) + 'を追われた。' : ''),
+      { big: { kicker: dateLabel().text, title: b.rise.title, body: b.rise.body, bird: b.rise.bird }, fid: b.id, rid: b.home, boss: b.id });
+  }
+  function bossStep() {
+    if (!diff().boss) return;
+    D.BOSSES.forEach(function (b) {
+      var k = 'boss_' + b.id, st = S.flags[k], f = S.factions[b.id];
+      if (st && st.down != null) return;
+      if (!st) {
+        if (S.flags.asi == null && (playerRegions().length >= b.at.regions || S.turn >= b.at.turn)) { S.flags[k] = { omen: S.turn }; ev('warn', b.omen, { rid: b.home }); }
+        return;
+      }
+      if (st.up == null) { if (S.turn > st.omen) bossRise(b); return; }
+      if (!f.alive || S.flags.asi != null) return;
+      // 電撃戦:力の差にかまわず、隣でいちばん弱い国を呑みこむ。大きくなるほど足は鈍る
+      var n = factionRegions(b.id).length;
+      if (rnd() >= b.blitz * Math.max(0.12, 1 - n / b.max)) return;
+      var best = null;
+      factionRegions(b.id).forEach(function (rid) {
+        links(rid).forEach(function (l) {
+          var o = S.regions[l.id].o; if (o === 'player' || o === b.id || isBoss(o)) return;
+          if (l.sea && D.REGIONS[l.id].map !== D.REGIONS[rid].map) return;
+          var pw = enemyPower(l.id) * (l.sea ? 1.4 : 1);
+          if (!best || pw < best.pw) best = { to: l.id, pw: pw };
+        });
+      });
+      if (!best) return;
+      var tr = S.regions[best.to], prev = tr.o;
+      tr.o = b.id; tr.g = r100(b.troops * 0.35 * diff().enemy); tr.gmax = Math.max(tr.gmax, tr.g); tr.fort = Math.max(tr.fort, 3); tr.feud = S.turn;
+      S.threats = S.threats.filter(function (t) { return t.from !== best.to; });
+      ev('news', b.take.replace('{r}', rname(best.to)), { fid: b.id, rid: best.to });
+      afterAiLoss(prev, best.to);
+    });
   }
 
   // ───────────────────────── 基本の問い合わせ ─────────────────────────
@@ -425,6 +530,14 @@
   }
   function afterLoss(fid, lostRid, events) { // 勢力が地域を失ったあとの処理(本拠陥落・滅亡)
     var f = S.factions[fid]; if (!f) return;
+    if (isBoss(fid) && lostRid === f.cap) { // 最後の敵は、本拠が落ちれば残りも崩れる
+      var bz = bossOf(fid);
+      factionRegions(fid).forEach(function (id) { takeRegion(id, 'defect', events); });
+      f.alive = false; f.war = false; f.trade = false; S.prestige += 10; S.flags['boss_' + fid].down = S.turn;
+      mark('fall', fname(fid) + 'の本拠' + rname(lostRid) + 'を落とす。残る軍団は、武器を置いた。');
+      events.push(ev('event', fname(fid) + 'は崩壊した。', { big: { kicker: dateLabel().text, title: bz.fall.title, body: bz.fall.body, bird: bz.fall.bird }, cine: bz.cine || null, fid: fid, bossDown: fid }));
+      return;
+    }
     var rest = factionRegions(fid);
     if (!rest.length) {
       f.alive = false; f.war = false; f.trade = false;
@@ -768,7 +881,7 @@
   }
   function isJp(fid) { var regs = factionRegions(fid); return regs.length ? D.REGIONS[regs[0]].map === 'jp' : true; }
   function submitChance(fid) {
-    var f = S.factions[fid]; if (!f || !f.alive) return 0;
+    var f = S.factions[fid]; if (!f || !f.alive || isBoss(fid)) return 0;
     if (S.flags.asi != null) return inContact(fid) ? 95 : 0;   // 説得に失敗するということが、もうない
     var ratio = playerPower() / Math.max(1, factionPower(fid));
     var c = 4 + 16 * Math.log(Math.max(0.05, ratio)) / Math.LN2;
@@ -781,7 +894,7 @@
     return clamp(Math.round(c), 0, 95);
   }
   function pactChance(fid) {
-    var f = S.factions[fid]; if (!f || !f.alive) return 0;
+    var f = S.factions[fid]; if (!f || !f.alive || isBoss(fid)) return 0;
     var c = 40 + f.att * 0.8 - D.FACTIONS[fid].aggr * 25 + S.prestige * 0.2 + (f.awe > 0 ? 10 : 0);
     if (f.war) c = 15 + S.prestige * 0.3 + f.lost * 12 - f.pride * 0.3 + (f.awe > 0 ? 15 : 0);
     return clamp(Math.round(c), 2, 95);
@@ -804,6 +917,7 @@
     if (!f || !f.alive) return out;
     var regs0 = factionRegions(fid);
     if (regs0.length && lockedOverseas(regs0[0])) { out.push({ key: 'locked', name: '天下統一のあとで', ok: false, why: '海の向こうとの外交は、天下統一のあとです' }); return out; }
+    if (isBoss(fid)) { out.push({ key: 'locked', name: '交渉の余地なし', ok: false, why: '使者は国境で追い返された。この相手とは、戦うほかない' }); return out; }
     var sc = submitChance(fid);
     o('submit', '降伏勧告', contact && f.cool <= 0, !contact ? '接していない勢力には使者を送れない' : (f.cool > 0 ? 'あと' + f.cool + 'ターンは聞く耳を持たない' : ''), { chance: sc, desc: '全領地を明け渡させる。失敗すると関係が悪化する。' });
     var su = showUnit(fid);
@@ -882,12 +996,7 @@
     if (!factionRegions(by).some(function (id) { return links(id).some(function (l) { return l.id === rid; }); })) return false;
     r.o = by; r.g = r100(Math.max(r.g * 0.6, r.gmax * 0.5));
     ev('news', text, { fid: by, rid: rid });
-    var pf = S.factions[prev];
-    if (pf) {
-      var rest = factionRegions(prev);
-      if (!rest.length) { pf.alive = false; pf.war = false; pf.trade = false; ev('news', fname(prev) + 'は滅亡した。', { fid: prev }); }
-      else if (pf.cap === rid) { rest.sort(function (a, b) { return D.REGIONS[b].koku - D.REGIONS[a].koku; }); pf.cap = rest[0]; }
-    }
+    afterAiLoss(prev, rid);
     return true;
   }
   function runHistory() {
@@ -1006,15 +1115,18 @@
   // 修羅:強い国が、隣の弱い国を呑みこんで大きくなる
   function aiFeud(p) {
     if (rnd() > p) return;
-    var best = null;
+    var best = null, open = !!diff().open;
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid]; if (!f.alive) return;
       factionRegions(fid).forEach(function (rid) {
         links(rid).forEach(function (l) {
-          var tr = S.regions[l.id], o = tr.o; if (o === 'player' || o === fid || l.sea) return;
+          var tr = S.regions[l.id], o = tr.o; if (o === 'player' || o === fid) return;
+          if (l.sea && !(open && isPower(fid))) return;                                           // 海を越えて土地を奪うのは、列強だけ(エクストリームハード)
+          if (isBoss(o) || isBoss(fid)) return;                                                   // 最後の敵は、別の決まりで動く
+          if (isPower(fid) && f.fcool > S.turn) return;                                           // 列強は、ひとつ呑むとしばらく腹がふくれる
           if (tr.feud != null && S.turn - tr.feud < 12) return;                                   // 取ったばかりの土地は、しばらく取り返されない
-          if (S.flags.unified == null && D.REGIONS[l.id].map === 'w') return;                     // 海の向こうの争いは、海を渡れるようになってから
-          var A = S.regions[rid].g * 0.7 / MEN * fq(fid), Dn = enemyPower(l.id), sc = A / Math.max(1, Dn) * (0.6 + D.FACTIONS[fid].aggr);
+          if (S.flags.unified == null && D.REGIONS[l.id].map === 'w' && !open) return;            // 海の向こうの争いは、海を渡れるようになってから
+          var A = S.regions[rid].g * 0.7 / MEN * fq(fid) * (l.sea ? 0.7 : 1), Dn = enemyPower(l.id), sc = A / Math.max(1, Dn) * (0.6 + D.FACTIONS[fid].aggr);
           if (A > Dn * 1.25 && (!best || sc > best.sc)) best = { by: fid, from: rid, to: l.id, sc: sc };
         });
       });
@@ -1022,6 +1134,7 @@
     if (!best) return;
     var loser = fname(S.regions[best.to].o);
     S.regions[best.from].g = r100(S.regions[best.from].g * 0.8); S.regions[best.to].feud = S.turn;
+    if (isPower(best.by)) S.factions[best.by].fcool = S.turn + 6;
     aiTake(best.by, best.to, fname(best.by) + 'が' + loser + 'の' + rname(best.to) + 'を攻め取った。');
   }
   function aiDeclare() {
@@ -1109,6 +1222,8 @@
       order.forEach(function (id) { resolveThreats(groups[id]); });
     } else due.forEach(function (t) { resolveThreats([t]); });
     runHistory();
+    powerStep();
+    bossStep();
     aiDeclare();
     planThreats();
     if (diff().feud && S.flags.asi == null) aiFeud(diff().feud);
@@ -1126,12 +1241,12 @@
       var r = S.regions[id]; if (r.o === 'player') return;
       if (r.ruin > 0) r.ruin = Math.max(0, Math.round((r.ruin - 0.04) * 100) / 100);
       r.gmax = Math.round(r.gmax * (diff().grow ? 1.005 : 1.002));
-      if (r.g < r.gmax) r.g = Math.min(r.gmax, r100(r.g + r.gmax * (diff().regen || 0.06)));
+      if (r.g < r.gmax) r.g = Math.min(r.gmax, r100(r.g + r.gmax * (diff().regen || 0.06) * (S.factions[r.o] && S.factions[r.o].ind >= 3 ? 1.5 : 1)));   // 鉄道のある国は、兵の補充が速い
     });
     Object.keys(S.factions).forEach(function (fid) {
       var f = S.factions[fid]; if (!f.alive) return;
       if (f.pact > 0) { f.pact--; if (f.pact === 0) ev('info', fname(fid) + 'との不可侵の期限が切れた。', { fid: fid }); }
-      if (diff().grow) f.q = Math.min(D.FACTIONS[fid].q + 1.2, Math.round((f.q + diff().grow) * 1000) / 1000);   // 修羅:年を追うごとに兵の質が上がる
+      if (diff().grow) f.q = Math.min(D.FACTIONS[fid].q + 1.2 + (f.qb || 0), Math.round((f.q + diff().grow) * 1000) / 1000);   // 修羅:年を追うごとに兵の質が上がる
       if (f.cool > 0) f.cool--;
       if (f.awe > 0) f.awe--;
       if (f.trade && f.att < 60) f.att++;
@@ -1330,7 +1445,7 @@
       var f = S.factions[fid];
       if (n >= 3 || !f.alive) return;
       var regs = factionRegions(fid);
-      if (!regs.length || lockedOverseas(regs[0]) || !inContact(fid)) return;
+      if (!regs.length || lockedOverseas(regs[0]) || !inContact(fid) || isBoss(fid)) return;
       regs.forEach(function (id) { takeRegion(id, 'asi', []); });
       f.alive = false; f.war = false; f.trade = false; S.stats.submits++; n++; mark('asi', fname(fid) + '(' + f.leader + ')が、戦わずに調和圏へ加わる。');
       ev('asi', fname(fid) + '(' + f.leader + ')は、戦わずに調和圏へ加わった。' + ['理由を尋ねられた使者は、微笑むだけだった。', '城門は、内側から静かに開いた。', '降伏の文書に、署名はなかった。必要がなかった。'][(S.turn + n) % 3], { fid: fid, regions: regs });
@@ -1481,6 +1596,11 @@
       var on = threatOn(t.to);
       h('gin', rname(t.to) + 'が' + (on.joint ? '複数の敵に、示し合わせて' : fname(t.f) + 'に') + '狙われています' + (on.joint ? '(合わせた戦力 約' + Math.round(on.power) + '、守りは ' + Math.round(defensePower(t.to)) + ')' : '') + '。守備隊を増やすか、部隊を置いてください。', t.to, 1);
     });
+    if (diff().alt) Object.keys(S.factions).some(function (fid) {
+      var pf = S.factions[fid]; if (!pf.alive || !isPower(fid) || !inContact(fid)) return false;
+      h('gin', fname(fid) + 'と国境を接しています。産業が「' + D.POWER_STAGES[pf.ind] + '」まで進んだ大国です。接する土地、とくに本拠の守りを空けないでください。', null, 1);
+      return true;
+    });
     if (mine.length === 1 && S.turn < 4) {
       var first = links(mine[0]).filter(function (l) { return !isP(l.id) && !l.sea; }).sort(function (x, y) { return enemyPower(x.id) - enemyPower(y.id); })[0];
       if (first) h('dario', 'まずは足場を。隣の' + rname(first.id) + 'をタップして「攻撃」。編成は私の「おすすめ」のままで決行できます。', first.id, 1);
@@ -1545,7 +1665,7 @@
     tech: tech, season: season, year: year, dateLabel: dateLabel, isP: isP, owner: owner, links: links, playerRegions: playerRegions,
     factionRegions: factionRegions, distKm: distKm, infTier: infTier, ustat: ustat, unitById: unitById, unitsAt: unitsAt, poolUnits: poolUnits,
     dipMax: dipMax, moveRange: moveRange, hasSite: hasSite, regionYield: regionYield, income: income, foodCap: foodCap,
-    threatOn: threatOn, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
+    threatOn: threatOn, isBoss: isBoss, isPower: isPower, bossState: bossState, techStatus: techStatus, techLockReason: techLockReason, darioOn: darioOn, darioRp: darioRp, birdRp: birdRp, techRp: techRp, assign: assign, autoAssign: autoAssign, idleBirds: idleBirds,
     enemyPower: enemyPower, defensePower: defensePower, attackOptions: attackOptions, predictAttack: predictAttack, suggestAttack: suggestAttack, attack: attack,
     moveTargets: moveTargets, move: move, buildOptions: buildOptions, build: build, garrisonCap: garrisonCap, garrisonCost: garrisonCost, recruit: recruit,
     produceOptions: produceOptions, produce: produce, ashiCap: ashiCap, ashiCount: ashiCount, unitCost: unitCost, submitChance: submitChance, pactChance: pactChance, diploOptions: diploOptions, diplo: diplo,

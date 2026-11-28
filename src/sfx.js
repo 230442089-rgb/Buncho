@@ -244,6 +244,16 @@
     submit: function (t) { [N.D4, N.G4, N.A4, N.D5, N.G5].forEach(function (f, i) { pluck(t + i * 0.07, f, 0.26); }); SOUNDS.chirp(t + 0.5, { n: 2 }); },
     refuse: function (t) { pluck(t, N.A3 * 2, 0.26); pluck(t + 0.16, N.F3 * 2.12, 0.26); taiko(t + 0.3, 0.26); },
     warn: function (t) { taiko(t, 0.42); taiko(t + 0.22, 0.42); horagai(t + 0.1, 0.9, 0.16); },
+    // ── 地下壕の場面 ──
+    slam: function (t) { taiko(t, 0.5); noise(t + 0.005, { type: 'bandpass', f0: 900, q: 1.2, dur: 0.08, gain: 0.55 }); tone(t, { type: 'triangle', f0: 170, f1: 70, dur: 0.16, gain: 0.45 }); }, // 机を叩く
+    rant: function (t, o) { // 怒鳴り声(言葉にはならない)。n: 音節の数 / muffled: 扉ごし
+      var n = o.n || 6, lp = o.muffled ? 420 : 1500, g = o.muffled ? 0.3 : 0.34, i, f;
+      for (i = 0; i < n; i++) {
+        f = 170 + rnd(0, 110) + (i % 3 === 0 ? 60 : 0);
+        tone(t + i * 0.13, { type: 'sawtooth', f0: f, f1: f * rnd(0.72, 0.95), dur: rnd(0.07, 0.11), gain: g, lp: lp, attack: 0.01 });
+        if (!o.muffled) noise(t + i * 0.13, { type: 'bandpass', f0: rnd(1400, 2400), q: 2.5, dur: 0.05, gain: 0.22 });
+      }
+    },
     firework: function (t) { tone(t, { f0: 500, f1: 1500, dur: 0.3, gain: 0.08, attack: 0.05 }); boom(t + 0.32, 0.7, 0.36); for (var i = 0; i < 5; i++) noise(t + 0.4 + rnd(0, 0.35), { type: 'highpass', f0: 4000, dur: 0.03, gain: 0.16 }); },
     // ── 未来の兵装と、その先 ──
     drone: function (t, o) { // 無人機の群れ:羽音のような唸りが近づいてくる

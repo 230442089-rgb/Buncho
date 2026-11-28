@@ -425,7 +425,16 @@
     mapuche: { name: 'マプチェ族', leader: '戦士長(トキ)たち', color: C.tetsu, q: 1.2, pride: 65, aggr: 0, att: 5 },
     aboriginal: { name: 'アボリジナル諸族', leader: '長老たち', color: C.kaki, q: 0.8, pride: 20, aggr: 0, att: 10 },
     maori: { name: 'マオリ諸部族', leader: '首長(アリキ)たち', color: C.nando, q: 1.3, pride: 60, aggr: 0, att: 5 },
-    hawaii: { name: 'ハワイ諸王国', leader: 'ケアウェヌイアウミ王', color: C.toki, q: 0.9, pride: 35, aggr: 0, att: 15 }
+    hawaii: { name: 'ハワイ諸王国', leader: 'ケアウェヌイアウミ王', color: C.toki, q: 0.9, pride: 35, aggr: 0, att: 15 },
+    // ── エクストリームハードの世界にだけいる国(ふだんは眠っている) ──
+    // power: 列強。数字は、はじめの産業の段(POWER_STAGES)。季節を追うごとに段が上がり、兵の質が伸びる
+    rome: { name: 'ローマ帝国', leader: '皇帝コンスタンティヌス21世', color: '#7d4aa3', q: 2.2, pride: 100, aggr: 0.3, att: -5, dormant: true, power: 2, capital: 'italy' },
+    usa: { name: 'アメリカ合衆国', leader: '大統領コロンブス19世', color: '#3f73c4', q: 1.9, pride: 90, aggr: 0.5, att: 0, dormant: true, power: 1, capital: 'na_east' },
+    germania: { name: 'ゲルマニア王国', leader: '王アルミニウス8世', color: C.tetsu, q: 1.4, pride: 80, aggr: 0.3, att: 0, dormant: true, capital: 'germany' },
+    inca: { name: 'インカ帝国', leader: 'サパ・インカ ワスカル3世', color: C.kincha, q: 1.2, pride: 80, aggr: 0.1, att: 0, dormant: true, capital: 'andes' },
+    // boss: 最後の敵。交渉はできず、隣の国を次々に呑みこむ(BOSSES)
+    reich: { name: '第三帝国', leader: '総統', color: '#4d5058', q: 6, pride: 100, aggr: 1, att: -100, dormant: true, boss: true, capital: 'germany' },
+    soviet: { name: 'ソビエト連邦', leader: '書記長', color: '#8c7a3d', q: 4.5, pride: 100, aggr: 0.9, att: -100, dormant: true, boss: true, capital: 'russia' }
   };
 
   // ───────────────────────── 地域 ─────────────────────────
@@ -583,6 +592,38 @@
   var ADJ_ADD = [];
 
   // ───────────────────────── 難易度・初期値 ─────────────────────────
+  // ── エクストリームハードの世界 ──
+  // ローマは滅びず、地中海を囲んだまま産業革命に入りかけている。コロンブスは五百年早く(992年に)海を渡り、新大陸の植民地はやがて独立して合衆国になった。
+  // owners: 地域 → 持ち主 / troops: 守備兵(もとの値の代わり) / forts: 城郭 / wake: 起こす勢力。土地のなくなった国(スペイン・オスマンなど)は、この世界には無い
+  var ALT = {
+    wake: ['rome', 'usa', 'germania', 'inca'],
+    owners: { italy: 'rome', iberia: 'rome', france: 'rome', britain: 'rome', balkans: 'rome', anatolia: 'rome', egypt: 'rome', n_africa: 'rome',
+      arabia: 'safavid', germany: 'germania',
+      na_east: 'usa', na_west: 'usa', mexico: 'usa', caribbean: 'usa', colombia: 'usa', brazil: 'usa', andes: 'inca' },
+    troops: { italy: 160000, britain: 80000, egypt: 90000, n_africa: 80000, germany: 120000,
+      na_east: 120000, na_west: 60000, mexico: 70000, caribbean: 30000, colombia: 40000, brazil: 50000 },
+    forts: { italy: 5, na_east: 4, na_west: 2, mexico: 3 },
+    intro: [
+      { bird: 'kozakura', title: '地図が違う', body: '司令、妙です。偵察機の写真が、私の覚えている十六世紀と合いません。地中海をぐるりと囲んで、ローマ帝国がまだ続いています。工場の煙突まで写っていました。新大陸には「アメリカ合衆国」。コロンブスが、五百年早く着いたそうです。' },
+      { bird: 'dario', title: '前提の変更', body: 'この世界では、海の向こうと最初から行き来があります。こちらから手を出せますし、向こうからも来ます。ローマとアメリカは、季節を追うごとに産業を進めます。\n……それと、史料にない揺らぎを二つ、検出しています。まだ、形になっていません。' }
+    ]
+  };
+  // 列強が進めていく産業の段。十六季(四年)ごとに一段。上がるたびに兵の質が伸びる
+  var POWER_STAGES = ['手工業', '製鉄と工場', '蒸気機関', '鉄道と蒸気船', '鋼鉄と後装銃', '電信と機関銃', '内燃機関'];
+  // 最後の敵。at: 自領の数か季節が、どちらか先に届くと兆しが出て、次の季節に現れる / blitz: 毎季、隣の国を呑みこむ確率 / max: このあたりの数で足が鈍る
+  var BOSSES = [
+    { id: 'reich', home: 'germany', at: { regions: 28, turn: 84 }, troops: 110000, fort: 5, blitz: 0.8, max: 12, cine: 'bunker',
+      omen: 'ドイツから妙な報せ。ミュンヘンの酒場で、美術学校に二度落ちた絵描きが演説をして、人を集めているという。',
+      rise: { title: '第三帝国', bird: 'dario', body: '美術学校に二度落ちた男が酒場で演説を始めた——という報せから、わずか一季。ドイツは、一つの号令で動く国になっていた。工場は昼も夜も戦車を吐き出し、軍靴の列が国境へ向かう。交渉の窓口は、ない。\n「司令。史料にある、あのドイツです。……四百年ほど、早いですが」' },
+      take: '第三帝国が、電撃戦で{r}を呑みこんだ。',
+      fall: { title: '第三帝国、崩壊', bird: 'gin', body: 'ベルリンは落ちた。地下壕の男は、最後まで文鳥のことを怒っていたという。残る軍団は、武器を置いた。' } },
+    { id: 'soviet', home: 'russia', at: { regions: 38, turn: 96 }, troops: 170000, fort: 4, blitz: 0.6, max: 12,
+      omen: 'モスクワから妙な報せ。神学校を追われた男が、地下で機関紙を刷っているという。',
+      rise: { title: 'ソビエト連邦', bird: 'dario', body: '神学校を追われた男が「鋼鉄の人」を名乗り、玉座の代わりに書記局の椅子に座った。五か年の計画が始まり、ウラルの向こうで工場が煙を上げる。兵は、畑から数えたほうが早い。交渉の窓口は、やはり、ない。\n「司令。こちらも、史料にあります。……やはり四百年ほど、早いです」' },
+      take: 'ソビエト連邦が、{r}を「解放」した。',
+      fall: { title: 'ソビエト連邦、崩壊', bird: 'gin', body: 'クレムリンは落ちた。「鋼鉄の人」は、読まれなかった演説の原稿だけを残して消えた。残る軍団は、武器を置いた。' } }
+  ];
+
   var DIFFICULTY = {
     easy: { name: '演習', desc: '燃料と弾薬にゆとりがある。はじめての方に。', stock: 1.5, enemy: 0.85 },
     normal: { name: '実戦', desc: '標準の難しさ。', stock: 1.0, enemy: 1.0 },
@@ -591,7 +632,11 @@
     //       feud=強国が弱国を呑みこむ頻度 / regen=守備兵の回復 / sea=外洋を渡って攻めてくる / coal=大同盟が結ばれる海外領の数 / peace=これ以上の友好なら兵を向けない /
     //       gang=隣り合う敵が示し合わせて同じ土地を攻める / siege=日本でこの数の国を取ると、諸大名が包囲網を結ぶ
     hell: { name: '修羅', desc: '他国がきわめて好戦的。次々に兵を向け、隣どうし示し合わせて同じ土地へ攻めこんでくる。国を六つ取るころには、諸大名が包囲網を結ぶ。強国は弱国を呑みこんで大きくなり、年を追うごとに兵の質も上がる。うかうかしていると、取り返しがつかない。',
-      stock: 0.8, enemy: 1.2, war: 6, peace: 60, raid: 0.9, edge: 0.9, grow: 0.006, feud: 0.55, regen: 0.1, sea: true, coal: 10, gang: true, siege: 6 }
+      stock: 0.8, enemy: 1.2, war: 6, peace: 60, raid: 0.9, edge: 0.9, grow: 0.006, feud: 0.55, regen: 0.1, sea: true, coal: 10, gang: true, siege: 6 },
+    // エクストリームハード:修羅の決まりに加えて、
+    //   alt=世界の成り立ちが違う(ALT) / open=天下統一の前から、海の向こうと互いに手を出せる / boss=進むと「最後の敵」が現れる(BOSSES)
+    extreme: { name: 'エクストリームハード', mark: '絶', desc: '修羅の上。世界の成り立ちが違う。滅びなかったローマ帝国は産業革命に入りかけ、コロンブスが五百年早く着いた新大陸にはアメリカ合衆国がある。天下統一の前から、海の向こうと互いに手を出せる。そして進むほどに、歴史の底から「最後の敵」が二つ現れる。',
+      stock: 0.8, enemy: 1.25, war: 6, peace: 60, raid: 0.9, edge: 0.9, grow: 0.006, feud: 0.6, regen: 0.1, sea: true, coal: 10, gang: true, siege: 6, alt: true, open: true, boss: true }
   };
   var START = { gold: 400, food: 600, steel: 100, fuel: 600, ammo: 700, prestige: 5, region: 'izu', year: 1560 };
 
@@ -625,6 +670,7 @@
       { h: '音と演出', p: 'メニューから、効果音と戦闘の3Dアニメを入れたり切ったりできます。戦闘アニメは「スキップ」でいつでも飛ばせます。' },
       { h: '内政', p: '自分の地域をタップすると、シートの「施設」に、そこに建っているものが札で並びます。金の目盛りが段、▲は今すぐ格上げできる印、錠は研究待ちの印。札を押すと建設の一覧へ進みます。金銀山・鉄山・炭鉱・油井は資源のある地域にだけ建ちます。統治度が上がるほど収入が増えます。地図でも、自領の地域名の下に施設の印が出ます。黄は楽市、緑は農地、青は学問所、紫は計算センター、白は工廠・造船所・飛行場。地図を拡大すると、絵と段の目盛りに変わります。' },
       { h: '難しさ「修羅」', p: '他国がきわめて好戦的になります。友好がそこそこあっても兵を向け、守りの薄い国境へはほぼ確実に攻めこみます。隣り合う敵は示し合わせて同じ土地を攻めるので、守りは地域のシートに出る「合わせた戦力」と比べてください。日本で国を六つ取ると、諸大名が包囲網を結び、不可侵の約束は反故になります。強国は弱国を呑みこんで大きくなり、兵の質は年を追うごとに上がり、海の向こうからも攻めてきます。国境の守備兵と城郭を厚くし、育ちきる前に削るのが要です。' },
+      { h: 'エクストリームハード', p: '修羅の上の難しさです。世界の成り立ちが違い、滅びなかったローマ帝国(産業革命に入りかけ)と、コロンブスが五百年早く着いて育ったアメリカ合衆国がいます。どちらも四年ごとに産業の段を一つ進め、兵の質が上がります。天下統一の前から、海の向こうを攻めることも使者を送ることもでき、向こうからも攻めてきます。列強は日本の大名に銃を売り、海を越えて土地を奪います。そして自領が増えるか季節が進むと、「最後の敵」が二つ、突然現れます。交渉はできず、桁違いに強く、隣の国を次々に呑みこみます。本拠を落とせば、残りは崩れます。守備兵が何十万いても、核なら二十分の一にできます。' },
       { h: '海を渡る', p: '海路(点線)でつながった地域へは、艦隊の輸送力が必要です。輸送艦は4部隊、護衛艦は1部隊を運べます。蒸気軍艦を作れば燃料なしで渡れます。' }
     ]
   };
@@ -632,7 +678,7 @@
   var DATA = {
     BIRDS: BIRDS, DARIO: DARIO, FIELD_NAMES: FIELD_NAMES, TECHS: TECHS, INF_TIERS: INF_TIERS, UNIT_TYPES: UNIT_TYPES, START_UNITS: START_UNITS,
     FACILITIES: FACILITIES, SITE_NAMES: SITE_NAMES, FACTIONS: FACTIONS, REGIONS: REGIONS, SEA_LINKS: SEA_LINKS,
-    ADJ_REMOVE: ADJ_REMOVE, ADJ_ADD: ADJ_ADD, DIFFICULTY: DIFFICULTY, START: START, SEASONS: SEASONS, TEXT: TEXT,
+    ADJ_REMOVE: ADJ_REMOVE, ADJ_ADD: ADJ_ADD, DIFFICULTY: DIFFICULTY, ALT: ALT, POWER_STAGES: POWER_STAGES, BOSSES: BOSSES, START: START, SEASONS: SEASONS, TEXT: TEXT,
     PLAYER_COLOR: '#e2492d'
   };
   root.TF = root.TF || {};

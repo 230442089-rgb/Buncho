@@ -240,9 +240,9 @@
     sea: ['middag', 'ayutthaya', 'toungoo', 'johor', 'aceh', 'banten', 'brunei', 'maynila', 'ternate'],
     india: ['mughal', 'vijayanagara'],
     islam: ['safavid', 'ottoman', 'saadi'],
-    europe: ['muscovy', 'poland', 'sweden', 'hre', 'italia', 'france', 'spain', 'england', 'brazil'],
+    europe: ['muscovy', 'poland', 'sweden', 'hre', 'italia', 'france', 'spain', 'england', 'brazil', 'rome', 'usa', 'germania', 'reich', 'soviet'],
     africa: ['songhai', 'kongo', 'ethiopia', 'mutapa'],
-    america: ['iroquois', 'plains', 'mapuche'],
+    america: ['iroquois', 'plains', 'mapuche', 'inca'],
     pacific: ['aboriginal', 'maori', 'hawaii']
   };
   Object.keys(CULT).forEach(function (k) { CULT[k].forEach(function (fid) { D.CULTURE[fid] = k; }); });

@@ -515,7 +515,7 @@
     else hudAnim = {};
     hudTarget = vals; hudTarget._gid = ui.gid;
     var h = '<div class="hud-top"><span class="hud-date">' + dl.text + '</span><span class="hud-era">' + dl.era + '</span>' +
-      '<span class="hud-goal">日本 <b>' + sm.jp + '</b>/' + sm.jpAll + (st.flags.unified != null ? ' 世界 <b>' + sm.w + '</b>/' + sm.wAll : '') + '</span>' +
+      '<span class="hud-goal">日本 <b>' + sm.jp + '</b>/' + sm.jpAll + (st.flags.unified != null || D.DIFFICULTY[st.diff].open ? ' 世界 <b>' + sm.w + '</b>/' + sm.wAll : '') + '</span>' +
       '<button class="hud-menu" data-act="sound-toggle" aria-label="効果音を' + (ui.opts.sound ? '切る' : '入れる') + '">' + icon(ui.opts.sound ? 'sound' : 'mute') + '</button>' +
       '<button class="hud-menu" data-act="menu" aria-label="メニュー">≡</button></div><div class="res">';
     RES.forEach(function (r) {
@@ -579,6 +579,12 @@
     if (bottom > sc.scrollTop + sc.clientHeight - 8) sc.scrollTop = bottom - sc.clientHeight + 14; // 隠れているときだけ、見えるところまで送る
     else if (top < sc.scrollTop) sc.scrollTop = Math.max(0, top - 14);
   }
+  function powerTags(fid) { // 列強は産業の段、最後の敵はその印
+    var f = S().factions[fid];
+    if (E.isBoss(fid)) return '<span class="tag war">最後の敵・交渉不能</span>';
+    if (E.isPower(fid) && f) return '<span class="tag gold">列強・産業「' + D.POWER_STAGES[f.ind] + '」</span>';
+    return '';
+  }
   function renderSheet() {
     var el = $('#sheet'), id = ui.sel, st = S();
     if (!id || ui.mv) { el.hidden = true; el.innerHTML = ''; return; }
@@ -592,6 +598,7 @@
     var tags = '';
     if (!own) {
       if (f.cap === id) tags += '<span class="tag gold">本拠</span>';
+      tags += powerTags(r.o);
       if (f.war) tags += '<span class="tag war">交戦中</span>';
       if (f.pact > 0) tags += '<span class="tag ok">不可侵 あと' + f.pact + '</span>';
       if (f.trade) tags += '<span class="tag ok">通商中</span>';
@@ -824,14 +831,15 @@
     if (ui.sel) { ensureVisible(ui.sel); refreshMap(); }
     showModal('<div class="card-body">' + h + '</div><div class="card-foot"><button class="btn gold" data-act="modal-close">' + (res.nuke ? '……' : 'よし') + '</button></div>',
       { replace: true, sfx: res.nuke ? (animOn() ? null : 'nuke') : (res.win ? 'victory' : (res.bombard ? 'taiko' : 'defeat')), onClose: function () { return fxCascade(gained); } });
-    bigs.forEach(function (e) { queueStory(e.big); });
+    bigs.forEach(function (e) { queueStory(e.big, e.cine ? { cine: e.cine } : null); });
     if (S().over) queueEnding();
   }
 
   // ───────────────────────── 重ねる窓 ─────────────────────────
   function showModal(html, opts) {
     opts = opts || {};
-    if (ui.modal && !opts.replace) { ui.queue.push({ html: html, opts: opts }); return; }
+    if ((ui.modal || ui.cine) && !opts.replace) { ui.queue.push({ html: html, opts: opts }); return; }
+    if (opts.cine && !opts.cineDone) { opts.cineDone = true; if (playCine(opts.cine, function () { showModal(html, opts); })) return; }
     closeDiorama();
     var el = $('#modal'), old = $('.card-body', el), top = old && opts.keepScroll ? old.scrollTop : 0;
     el.innerHTML = '<div class="card" role="dialog" aria-modal="true">' + html + '</div>';
@@ -845,8 +853,16 @@
     closeDiorama();
     el.hidden = true; el.innerHTML = ''; ui.modal = null; ui.atk = null;
     if (cur && cur.onClose) wait = cur.onClose() || 0; // 地図の演出を見せるあいだ、次の窓を待たせる
-    function next() { if (ui.modal || !ui.queue.length) return; var q = ui.queue.shift(); showModal(q.html, q.opts); }
+    function next() { if (ui.modal || ui.cine || !ui.queue.length) return; var q = ui.queue.shift(); showModal(q.html, q.opts); }
     if (wait && ui.queue.length) setTimeout(next, wait); else next();
+  }
+  // 特別な画(いまは地下壕の場面だけ)。流せたら true を返し、終わったら done を呼ぶ
+  function playCine(name, done) {
+    if (name !== 'bunker' || !TF.Bunker || !ui.opts.anim || reduce) return false;
+    ui.cine = true; $('#modal').hidden = true;
+    if (TF.sfx && TF.sfx.duck) TF.sfx.duck(0.12);
+    TF.Bunker.play(function () { ui.cine = false; if (TF.sfx && TF.sfx.duck) TF.sfx.duck(1); done(); });
+    return true;
   }
   function storyHTML(b, btn) {
     var ey = b.eyebrow || b.kicker;
@@ -1005,7 +1021,7 @@
     var regs = E.factionRegions(fid);
     var h = '<div class="sh-head"><i class="sh-flag" style="background-color:' + F.color + '"></i><div class="sh-title"><h2>' + esc(F.name) + '</h2><p>' + esc(f.leader) + ' ・ ' + regs.map(function (id) { return reg(id).name; }).join('、') + '</p></div></div>';
     h += '<div class="facts"><div class="fact"><span>友好度</span><b class="' + (f.att >= 15 ? 'good' : (f.att <= -20 ? 'bad' : '')) + '">' + sgn(f.att) + '</b></div><div class="fact"><span>誇り</span><b>' + f.pride + '</b></div><div class="fact"><span>戦力</span><b>' + fmt(E.factionPower(fid)) + '</b></div><div class="fact"><span>我が総戦力</span><b>' + fmt(E.playerPower()) + '</b></div></div>';
-    var tags = (f.war ? '<span class="tag war">交戦中</span>' : '<span class="tag">中立</span>') + (f.pact > 0 ? '<span class="tag ok">不可侵 あと' + f.pact + '</span>' : '') + (f.trade ? '<span class="tag ok">通商中</span>' : '') + (f.awe > 0 ? '<span class="tag">畏怖 あと' + f.awe + '</span>' : '') + (E.inContact(fid) ? '' : '<span class="tag">接していない</span>');
+    var tags = powerTags(fid) + (f.war ? '<span class="tag war">交戦中</span>' : '<span class="tag">中立</span>') + (f.pact > 0 ? '<span class="tag ok">不可侵 あと' + f.pact + '</span>' : '') + (f.trade ? '<span class="tag ok">通商中</span>' : '') + (f.awe > 0 ? '<span class="tag">畏怖 あと' + f.awe + '</span>' : '') + (E.inContact(fid) ? '' : '<span class="tag">接していない</span>');
     h += '<div class="tags">' + tags + '</div><div class="sec">外交行動(今季 あと' + st.dipLeft + ')</div><div class="list">';
     E.diploOptions(fid).forEach(function (o) {
       h += '<button class="row' + (o.ok ? '' : ' off') + '" data-act="dip" data-fid="' + fid + '" data-key="' + o.key + '"' + (o.ok ? '' : ' disabled') + '>' + icon(o.key === 'show' ? 'heli' : (o.key === 'gift' ? 'gold' : (o.key === 'trade' ? 'anchor' : 'scroll')), 'big') + '<div><h3>' + o.name + '</h3><p>' + (o.desc || '') + '</p>' + (o.why ? '<p class="bad">' + o.why + '</p>' : '') + '</div><div class="side">' + (o.chance != null ? '<b>' + o.chance + '%</b>成功率' : '') + '</div></button>';
@@ -1304,7 +1320,7 @@
     el.hidden = false; syncMusic();
     if (step === 'diff') {
       h = '<p class="subt">難しさをえらぶ</p><div class="diffs">';
-      Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row' + (k === 'hell' ? ' hell' : '') + '" data-act="new-game" data-diff="' + k + '"><span class="fld">' + x.name.charAt(0) + '</span><div><h3>' + x.name + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
+      Object.keys(D.DIFFICULTY).forEach(function (k) { var x = D.DIFFICULTY[k]; h += '<button class="row' + (k === 'hell' ? ' hell' : (x.boss ? ' extreme' : '')) + '" data-act="new-game" data-diff="' + k + '"><span class="fld">' + (x.mark || x.name.charAt(0)) + '</span><div><h3>' + x.name + (x.boss ? ' <span class="tag war">修羅の上</span>' : '') + '</h3><p>' + x.desc + '</p></div><span></span></button>'; });
       h += '</div>' + (has ? '<p class="seal warn">いまのセーブデータは上書きされます。</p>' : '') + '<div class="acts"><button class="btn" data-act="title-back">もどる</button></div>';
     } else {
       h = '<p class="subt">戦国タイムスリップ戦略</p><h1>天下布<span>鳥</span></h1><div class="flock">' + birdSVG('dario') + D.BIRDS.map(function (b) { return birdSVG(b); }).join('') + '</div>' +
@@ -1321,7 +1337,7 @@
     $('#title').hidden = true;
     ui.sel = null; ui.panel = null; ui.mv = null; ui.map = 'japan'; ui.view = { japan: null, world: null }; ui.queue = []; ui.modal = null; $('#modal').hidden = true;
     buildMap(); applyView(); refreshAll();
-    var pages = D.TEXT.intro;
+    var pages = D.TEXT.intro.concat(D.DIFFICULTY[diff] && D.DIFFICULTY[diff].alt ? D.ALT.intro : []);
     pages.forEach(function (p, i) { queueStory({ eyebrow: (i + 1) + ' / ' + pages.length, title: p.title, bird: p.bird, body: p.body }, { btn: i === pages.length - 1 ? '作戦開始' : 'つぎへ' }); });
   }
   function resumeGame() {
@@ -1462,7 +1478,7 @@
     ['pointerup', 'touchend', 'click', 'keydown'].forEach(function (ev) { // ブラウザが音の開始を許すのは、指を離した瞬間・クリック・キー入力の中だけ
       document.addEventListener(ev, function () { if (TF.sfx) TF.sfx.unlock(); }, { capture: true, passive: true });
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (ui.modal) closeModal(); else if (ui.mv) { ui.mv = null; refreshAll(); } else if (ui.panel) { ui.panel = null; renderPanel(); renderNav(); } else if (ui.sel) select(null); } });
+    document.addEventListener('keydown', function (e) { if (ui.cine) return; if (e.key === 'Escape') { if (ui.modal) closeModal(); else if (ui.mv) { ui.mv = null; refreshAll(); } else if (ui.panel) { ui.panel = null; renderPanel(); renderNav(); } else if (ui.sel) select(null); } });
     bindMap();
     var live = hot && hot.save;
     if (live) { try { E.load(live); resumeGame(); return; } catch (e) { /* 表紙へ */ } }

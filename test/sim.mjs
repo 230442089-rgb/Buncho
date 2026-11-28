@@ -235,7 +235,7 @@ function run(seed) {
     if (marks['n' + ns] == null) marks['n' + ns] = E.S.turn;
     for (const id of E.playerRegions()) { const v = E.voice(id); if (!v || !v.t) throw new Error('民の声が出ない: ' + id); }
     // セーブとロードの往復で状態が変わらないこと
-    if (process.env.DUMP_DIR && [8, 20, 34, 50].includes(E.S.turn)) fs.writeFileSync(`${process.env.DUMP_DIR}/save-t${E.S.turn}.json`, E.serialize());
+    if (process.env.DUMP_DIR && [8, 20, 34, 50, 80, 110, 130].includes(E.S.turn)) fs.writeFileSync(`${process.env.DUMP_DIR}/save-t${E.S.turn}.json`, E.serialize());
     if (E.S.turn % 25 === 0) { const j = E.serialize(); E.load(j); if (E.serialize() !== j) throw new Error('セーブの往復で状態が変わった'); }
     const sm = E.summary();
     if (!marks.oil && E.playerRegions().some(id => E.S.regions[id].fac.oilwell)) marks.oil = E.S.turn;

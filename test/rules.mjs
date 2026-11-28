@@ -396,6 +396,79 @@ section('難易度「修羅」', () => {
   ok(!gn.planned && gn.held, '実戦:同じ守りでも、一国ずつでは攻めてこない');
 });
 
+section('エクストリームハード', () => {
+  const X = D.DIFFICULTY.extreme, keys = Object.keys(D.DIFFICULTY);
+  ok(X && X.name === 'エクストリームハード' && keys.indexOf('extreme') === keys.indexOf('hell') + 1, '修羅の上にある');
+  // ふだんの世界には、ローマもアメリカもいない
+  E.newGame({ difficulty: 'hell', seed: 4 });
+  let S = E.S;
+  ok(['rome', 'usa', 'germania', 'inca', 'reich', 'soviet'].every(f => !S.factions[f].alive && !E.factionRegions(f).length), 'ほかの難しさでは、新しい国は眠ったまま');
+  ok(E.lockedOverseas('hawaii') && E.attackOptions('hawaii').length === 0, 'ほかの難しさでは、統一まで海の向こうへ手を出せない');
+  // 世界の成り立ち
+  E.newGame({ difficulty: 'extreme', seed: 4 });
+  S = E.S;
+  const regs = f => E.factionRegions(f).sort().join(',');
+  ok(regs('rome') === 'anatolia,balkans,britain,egypt,france,iberia,italy,n_africa' && S.factions.rome.alive && S.factions.rome.ind === 2, 'ローマ帝国が地中海を囲み、産業は「蒸気機関」の段');
+  ok(regs('usa') === 'brazil,caribbean,colombia,mexico,na_east,na_west' && S.factions.usa.ind === 1, '新大陸にアメリカ合衆国');
+  ok(S.regions.germany.o === 'germania' && S.regions.andes.o === 'inca' && S.regions.arabia.o === 'safavid', 'ゲルマニア・インカ・ペルシャ');
+  ok(['spain', 'ottoman', 'hre', 'italia', 'france', 'england', 'saadi', 'brazil'].every(f => !S.factions[f].alive), 'この世界に無い国は、はじめから無い');
+  ok(Object.keys(S.factions).every(f => !S.factions[f].alive || E.factionRegions(f).length > 0) && Object.keys(S.regions).every(id => S.regions[id].o === 'player' || S.factions[S.regions[id].o].alive), '生きている国は土地を持ち、土地の持ち主は生きている');
+  ok(E.enemyPower('italy') > 15000 && S.factions.rome.q > S.factions.ming.q * 2, 'ローマは桁違いに強い(イタリアの戦力 ' + Math.round(E.enemyPower('italy')) + ')');
+  // 開かれた海
+  ok(!E.lockedOverseas('hawaii') && E.attackOptions('hawaii').some(o => o.ok), '統一の前から、海の向こうを攻められる');
+  ok(E.diploOptions('hawaii').some(o => o.key === 'submit'), '統一の前から、海の向こうへ使者を送れる');
+  // 列強は産業の段を進める
+  const q0 = S.factions.rome.q;
+  for (let i = 0; i < 16; i++) E.endTurn();
+  ok(S.factions.rome.ind === 3 && S.factions.usa.ind === 2 && S.factions.rome.q > q0 + 0.3, '四年たつと、産業の段が上がり兵の質が伸びる(' + q0 + ' → ' + S.factions.rome.q + ')');
+  // 最後の敵:兆し → 出現
+  E.newGame({ difficulty: 'extreme', seed: 6 });
+  S = E.S;
+  const give = n => { let k = E.playerRegions().length; for (const id of Object.keys(S.regions)) { if (k >= n) break; if (S.regions[id].o !== 'player' && D.REGIONS[id].map === 'jp') { const prev = S.regions[id].o; S.regions[id].o = 'player'; S.regions[id].g = 90000; k++; if (!E.factionRegions(prev).length) S.factions[prev].alive = false; } } };
+  const calm = () => { for (const f of Object.values(S.factions)) { f.war = false; f.pact = 9; } S.res.gold = 9000; S.res.food = 9000; S.flags.siege = 0; };
+  give(27); calm(); E.endTurn();
+  ok(E.bossState('reich') == null, '自領 27 では、まだ何も起きない');
+  give(28); calm(); let r = E.endTurn();
+  ok(E.bossState('reich') && E.bossState('reich').omen != null && E.bossState('reich').up == null && r.events.some(e => /妙な報せ/.test(e.t)), '自領 28 で、ドイツに兆し');
+  ok(!S.factions.reich.alive && S.regions.germany.o === 'germania', '兆しの季節には、まだ現れない');
+  calm(); r = E.endTurn();
+  const card = r.events.find(e => e.big && e.big.title === '第三帝国');
+  ok(S.factions.reich.alive && S.regions.germany.o === 'reich' && S.factions.reich.war && !!card && !S.factions.germania.alive, '次の季節に「第三帝国」が現れ、ゲルマニアは消える');
+  ok(E.enemyPower('germany') > 40000, '本拠の戦力は桁違い(' + Math.round(E.enemyPower('germany')) + ')');
+  ok(E.diploOptions('reich').length === 1 && E.diploOptions('reich')[0].key === 'locked' && E.submitChance('reich') === 0 && E.pactChance('reich') === 0, '交渉の余地はない');
+  for (let i = 0; i < 10; i++) { calm(); S.factions.reich.war = true; E.endTurn(); }
+  const nR = E.factionRegions('reich').length;
+  ok(nR >= 4, '電撃戦で、隣の国を次々に呑みこむ(十季で ' + nR + ' 地域)');
+  ok(E.bossState('soviet') == null, '二つめの敵は、まだ(自領 38 から)');
+  give(38); calm(); E.endTurn(); calm(); E.endTurn();
+  ok(S.factions.soviet.alive && S.regions.russia.o === 'soviet', '自領 38 で、ロシアに二つめの敵');
+  // 本拠を落とすと、残りも崩れる(特別な画の合図つき)
+  const reichRegs = E.factionRegions('reich');
+  const base = E.links('germany').filter(l => !l.sea)[0].id;
+  S.regions[base].o = 'player'; S.regions[base].g = 5000;
+  S.regions.germany.g = 100; S.regions.germany.fort = 0;
+  for (const u of S.units) if (D.UNIT_TYPES[u.type].cls === 'ground') { u.loc = base; u.acted = false; u.hp = 100; }
+  S.res.fuel = 9000; S.res.ammo = 9000;
+  const ids = E.attackOptions('germany').filter(o => o.ok && (o.via === 'land')).map(o => o.u.id);
+  const res = E.attack('germany', ids);
+  const down = (res.events || []).find(e => e.bossDown === 'reich');
+  ok(res.win && !!down && down.cine === 'bunker' && down.big && /崩壊/.test(down.big.title), '本拠を落とすと崩壊の知らせ。特別な画(bunker)の合図がつく');
+  ok(!S.factions.reich.alive && reichRegs.every(id => S.regions[id].o === 'player') && E.bossState('reich').down != null, '残る土地もすべて降る');
+  // 自領で起きた場合:土地ごと奪われ、部隊は退く
+  E.newGame({ difficulty: 'extreme', seed: 8 });
+  S = E.S;
+  S.regions.germany.o = 'player'; S.regions.germany.g = 3000; S.factions.germania.alive = false;
+  S.regions.france.o = 'player'; S.regions.france.g = 3000;
+  const u0 = S.units.find(u => D.UNIT_TYPES[u.type].cls === 'ground'); u0.loc = 'germany';
+  S.flags.boss_reich = { omen: S.turn - 1 }; E.endTurn();
+  ok(S.regions.germany.o === 'reich' && u0.loc === 'france' && u0.hp > 0, '自領のドイツで起きたら、土地を奪われ、部隊は隣へ退く');
+  // 古いセーブ(新しい国が無い)も読める
+  E.newGame({ difficulty: 'normal', seed: 2 });
+  const old = JSON.parse(E.serialize()); for (const f of ['rome', 'usa', 'germania', 'inca', 'reich', 'soviet']) delete old.factions[f];
+  let loaded = true; try { E.load(JSON.stringify(old)); } catch (e) { loaded = false; }
+  ok(loaded && E.S.factions.rome && !E.S.factions.rome.alive, '新しい国が入る前のセーブも読みこめる');
+});
+
 section('民の声(全地域・全時代)', () => {
   E.newGame({ seed: 10 });
   const S = E.S;
